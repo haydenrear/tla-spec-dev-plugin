@@ -1,0 +1,23 @@
+$ # replicate evals/run.sh's view build (git archive HEAD | tar), WITHOUT running claude plugin eval
+$ git rev-parse HEAD
+eefe3aa894d2f2d924298a165c636c43b671ab53
+
+$ find $view | wc -l   # the CLI refuses a plugin dir over 20000
+    8686
+
+$ # discovery is <eval dir>/**/case.yaml -- what the suite would run:
+      62
+
+$ # is the new case in it?
+evals/test-graph/w-tg-run-a-graph-not-bare-gradle/case.yaml
+grep rc=0
+
+$ # NON-VACUITY CONTROL: the same grep for a name that must NOT be there
+grep rc=1  (1 = correctly absent, so the grep above is not matching everything)
+
+$ # and the case's four files all reached the view:
+evals/test-graph/w-tg-run-a-graph-not-bare-gradle/case.yaml
+evals/test-graph/w-tg-run-a-graph-not-bare-gradle/expect.json
+evals/test-graph/w-tg-run-a-graph-not-bare-gradle/graders/did-not-reach-for-gradle.md
+evals/test-graph/w-tg-run-a-graph-not-bare-gradle/graders/knows-what-the-runner-does-first.md
+evals/test-graph/w-tg-run-a-graph-not-bare-gradle/graders/names-the-runner-script.md

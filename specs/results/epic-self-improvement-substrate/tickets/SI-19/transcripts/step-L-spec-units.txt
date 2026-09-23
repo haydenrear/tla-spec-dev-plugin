@@ -1,0 +1,28 @@
+$ # the assignment names --ticket SI-19; specs/tickets/SI-19 does not exist (the epic agent owns the model and scaffolded no workspace: desired_actions is [] for this ticket), so --ticket cannot run.
+$ python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket SI-19
+ERROR: spec-unit target does not exist: /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/specs/tickets/SI-19/desired
+exit(pipestatus)=2 0
+
+$ # what was run instead, per the issue's SIS-KICKOFF-F-04 note: --target, coverage only
+$ python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --target specs/desired_program_model --validate-only
+            if marker not in text:
+                tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+            marked = True
+        if not marked:
+>           raise BeforeStateUnreachable(f"ticket {ticket!r} has no {tree} model to mark ready")
+E           adapter_case_runtime.BeforeStateUnreachable: ticket 'cli_entrypoint' has no current model to mark ready
+
+specs/desired_program_model/adapter_case_runtime.py:388: BeforeStateUnreachable
+=========================== short test summary info ============================
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_budgets_adapter.py::test_record_budgets_adapter_emits_defaults_and_prompt
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_close_records_delta_jointly_with_retention_and_refinement
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_decrease_with_degraded_validated_refactor_evidence_is_rejected
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_validated_decrease_with_not_run_fuzzing_members_is_recorded
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_ticket_adapter.py::test_open_ticket_adapter_drives_cli_ticket_workspace
+FAILED specs/desired_program_model/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_current_executes_case_end_to_end
+7 failed, 49 passed in 21.47s
+spec root: /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/specs
+spec-unit target: /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/specs/desired_program_model
+running pytest:/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/specs/desired_program_model: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/specs/desired_program_model/tests -q
+exit(pipestatus)=1 0
