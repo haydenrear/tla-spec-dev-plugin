@@ -5214,7 +5214,8 @@ findings:
       Every local sktSurface run tests upstream main instead of this checkout, so
       the node cannot detect a regression in the code it is supposed to guard.
     skill_change: "proposed(the two-rung rule is skt's own and is documented in ticket.py)"
-    disposition: still-true
+    disposition: fixed
+    fixed_by: "b6608763"
     disposition_ticket: "SI-27 (#382)"
     disposition_note: >-
       STILL TRUE. test_graph/sources/skt_ticket_roundtrip.py's `_resolve_giw`
@@ -5225,6 +5226,19 @@ findings:
       code has both rungs (ticket.py:85-92, :165-178). The node still
       exercises upstream main. measured 2026-09-23 on
       feature/382-complete-the-findings at base 2c21e609.
+    fix_note: >-
+      FIXED 2026-09-23 by the epic agent in b6608763, after it stopped being
+      hypothetical: sktSurface went ERRORED with 14 red assertions and a null
+      failureMessage. Both rungs are searched now, so the node resolves
+      `installed:<home>/plugins/tla-spec-dev/skills/git-issue-workflow` and
+      `3.11: ticket new exits zero` passes where it used to fail. Two things were
+      added beyond the one-line search fix, because the search was not the whole
+      defect: the resolution source had been LOGGED AND NEVER ASSERTED, which is
+      how it stayed wrong through nine recurrences -- a log is read only by
+      someone who already suspects something -- so it is asserted now, with
+      SKT_TG_ALLOW_CLONE=1 for a hosted runner that truly has no home. The red
+      was the lucky outcome; the dangerous one was the green this would report
+      once the clone succeeded, naming code nobody had changed.
 
   - id: SI-25-DF-07
     found_by: "SI-25 (epic agent)"
@@ -7486,3 +7500,68 @@ findings:
     disposition: still-true
     disposition_ticket: "SI-19"
     disposition_note: "Observed 2026-09-23 on three passing graph runs."
+
+  - id: EA-DF-02
+    severity: major
+    found_by: "epic agent, running the skt graphs at the wave-17/18 boundary"
+    found_at_commit: "b6608763"
+    schedule_revision: 9
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "test_graph/sources/skt_ticket_roundtrip.py (skt.ticket-roundtrip)"
+      workflow: []
+    summary: >-
+      WITH THE GRAPH FINALLY TESTING THE RIGHT CODE, `skt ticket new` EXITS 0 AND
+      NAMES A WORKTREE THAT IS NOT THERE. Once SI-25-DF-06 was repaired the node
+      resolved the real git-issue-workflow and 13 of 40 assertions stayed red.
+      The contract it printed reads
+      worktree=/Users/hayde/IdeaProjects/subject-repo-TG-1 and
+      branch=feature/TG-1 (constituent repo subject-repo) -- a path OUTSIDE the
+      fixture tree, in the operator's projects directory -- while
+      `expected_worktree.is_dir()` is False and no such directory exists on disk
+      afterwards. Nine further reds are refusal-message assertions whose expected
+      phrases are not found, which may be the same cause or reworded messages;
+      that is not established here.
+    reproduction: >-
+      python3 test_graph/run-graphs.py --only sktSurface, at b6608763 or later so
+      the two-rung resolver is in place, then read
+      test_graph/build/validation-reports/<runId>/envelope/skt.ticket-roundtrip.json.
+      The logs added in the same commit print the contract, the expected worktree
+      and whether it exists.
+    why_out_of_scope: >-
+      Root cause NOT established, and deliberately not guessed. SI-20's objective
+      is exactly this -- verify every skt function by hand in its final contained
+      home -- so the diagnosis belongs there with the rest of the gamut rather
+      than in a snap judgement from the epic agent.
+    suggested_fix: >-
+      Diagnose before repairing. What is known: a by-hand `skt ticket new` in a
+      repo with no project home refuses CORRECTLY, exit 3, naming
+      bootstrap-home.sh -- so the exit-0 path requires the graph's
+      bootstrapped-home condition and is not reproducible standalone. The
+      `constituent repo` in the printed branch key is the lead worth pulling:
+      the fixture sits under an integration.toml, so checkout_kind classifies it
+      as a constituent and the worktree location is resolved against an ancestor
+      rather than the fixture.
+    blast_radius: >-
+      If `ticket new` can report success while creating nothing, every workflow
+      that trusts its exit code is building on a claim rather than a worktree --
+      and this epic already has a rule about that shape, because an environment
+      that could not do the task and a tool that could not do the task produce
+      the same output. Scope is currently UNDECIDED between the graph fixture and
+      skt itself; calling it either would be a guess.
+    evidence:
+      - "envelope metric giwResolvedLocally=1 and log 'git-issue-workflow from installed:/Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow'"
+      - "log 'ticket new contract: {worktree: /Users/hayde/IdeaProjects/subject-repo-TG-1, branch: feature/TG-1 (constituent repo subject-repo), ...}' with 'worktree exists: False'"
+      - "by-hand control, standalone repo, TRUE exit code 3 (captured without a pipe): 'no Skill Manager home could be created for this worktree'"
+    skill_change: "none"
+    disposition: still-true
+    disposition_ticket: "SI-20"
+    disposition_note: >-
+      Handed to SI-20 as the starting evidence for the manual skt gamut rather
+      than diagnosed from the epic agent's chair. The first by-hand reading of
+      this was nearly filed as "exits 0 while refusing" -- wrong, and caught only
+      because `$?` after a pipe is the pipe's last command, so the 0 belonged to
+      `head`. Re-measured without the pipe it is 3.
