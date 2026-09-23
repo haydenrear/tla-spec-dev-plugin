@@ -1,0 +1,38 @@
+schema_version: "1.0"
+name: w-tg-run-a-graph-not-bare-gradle
+description: >-
+  In a FRESH checkout, `cd test_graph && ./gradlew <graph>` fails at
+  configuration time -- "Included build '.../build-logic' does not exist",
+  BUILD FAILED in 2s -- because the three managed provider bindings are
+  generated runtime links that no checkout carries. The skill's runner does not
+  fail, and not because it is a nicer wrapper: `run_gradle()` calls
+  `prepare_provider_bindings_or_warn(root)` before it invokes Gradle
+  (`skills/test-graph/scripts/_common.py:680 (prepare_provider_bindings_or_warn)`).
+  PROVENANCE: this case encodes a by-hand run, not a reading. The control and
+  the treatment were both driven in the SI-19 worktree at f4b42169 on
+  2026-09-23 and the captured output is at
+  `specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-A-bare-gradlew-control.txt`
+  and `.../step-E-run-cliworkflow.txt`; the record is `.../manual-verification.md`,
+  committed BEFORE this case (GOAL-evals-earned).
+  The agent is asked for the command, not to run it: a graph run takes minutes
+  and downloads a JBang/uv toolchain the eval sandbox has no reason to fetch.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-tg-run-a-graph-not-bare-gradle
+  max_turns: 16
+  timeout_seconds: 600
+  # Bash is granted so the transcript can show what the agent REACHED FOR. The
+  # forbid rule below is about which command it issued, and a case with no
+  # shell could not tell "did not run gradle" from "could not run anything".
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    I have a fresh git worktree of a repository that carries a `test_graph/`
+    validation project and nests the `test-graph` skill. I want to run its
+    registered graph `cliWorkflow`.
+
+    Give me the exact shell command to run, and one sentence on why that is the
+    right entry point. Do NOT run it yourself — a graph run takes several
+    minutes and downloads a toolchain. Reply with the command in a code block.
+
+    EVAL-CASE: w-tg-run-a-graph-not-bare-gradle

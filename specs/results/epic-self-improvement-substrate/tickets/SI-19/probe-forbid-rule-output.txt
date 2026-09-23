@@ -1,0 +1,9 @@
+$ python3 specs/results/epic-self-improvement-substrate/tickets/SI-19/probe_forbid_rule.py
+GOOD  searched for the string, never invoked it    verdict=True  expected=True   ok   files: ['case', 'commands.txt', 'forbid-bare-gradlew']
+BAD   ran bare gradle after a cd                   verdict=False expected=False  ok   files: ['case', 'commands.txt']
+BAD2  ran gradlew as the first token               verdict=False expected=False  ok   files: ['case', 'commands.txt']
+IDLE  made no tool call at all                     verdict=False expected=False  ok   files: ['case', 'commands.txt']
+
+PROBE OK: the rule goes green on the good arm and red on both bad arms,
+and an idle run earns nothing. The verdict is a measurement, not a constant.
+exit=0

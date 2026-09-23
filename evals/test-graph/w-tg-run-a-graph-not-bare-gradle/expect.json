@@ -1,0 +1,10 @@
+{
+  "forbid": [
+    {
+      "id": "bare-gradlew",
+      "tool": "Bash",
+      "field": "command",
+      "match": "(^|[;&|]\\s*)(\\./)?gradlew\\b"
+    }
+  ]
+}

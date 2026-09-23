@@ -490,6 +490,10 @@ EOF
   w-sm-verify-is-not-currency)
     place_moved_fixture skill-manager
     ;;
+
+  w-tg-run-a-graph-not-bare-gradle)
+    place_moved_fixture test-graph
+    ;;
   "")
     fail "EVAL_CASE is unset. Every case must set it under execution.env, or this hook cannot tell which fixture to place"
     ;;
