@@ -1,0 +1,42 @@
+==============================================================================
+CASE: no home at all (node fixture: NOT a git repo)
+rc  : 1
+error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-nohome2-hl1km16j
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt new TG-REFUSED --verbose
+==============================================================================
+CASE: no home at all (repaired fixture: a real git repo)
+rc  : 0
+created ticket worktree for TG-REFUSED:
+worktree   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-nohome2-hl1km16j/a-real-repo-TG-REFUSED
+branch     feature/TG-REFUSED (standalone repo a-real-repo)
+launch     none — this worktree has no home; an agent here uses the operator's GLOBAL home
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-REFUSED
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+==============================================================================
+CASE: installed but no importable surface
+rc  : 0
+created ticket worktree for TG-REFUSED:
+worktree   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-skiphome/subject-repo-TG-REFUSED
+branch     feature/TG-REFUSED (standalone repo subject-repo)
+launch     none — this worktree has no home; an agent here uses the operator's GLOBAL home
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-REFUSED
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+==============================================================================
+CASE: declared but not installed
+rc  : 0
+created ticket worktree for TG-REFUSED:
+worktree   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-skiphome/declared-repo-TG-REFUSED
+branch     feature/TG-REFUSED (standalone repo declared-repo)
+launch     none — this worktree has no home; an agent here uses the operator's GLOBAL home
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-REFUSED
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+==============================================================================
+CASE: neither installed nor declared
+rc  : 1
+error: a worktree for TG-REFUSED already exists at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-skiphome/subject-repo-TG-REFUSED
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-REFUSED
+
+NON-VACUITY OK: 5 cases

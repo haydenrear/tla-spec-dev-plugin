@@ -1,0 +1,390 @@
+==============================================================================
+VERB : --version
+cmd  : skt --version
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+skt 0.8.2
+==============================================================================
+VERB : status (fixture home)
+cmd  : skt status
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+skt status — /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+checkout   integration repo, branch feature/369-eval-ladder-skt (ticket 369-eval-ladder-skt) (epic architectural-coherence available)
+home       /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home — tier: project, policy: live
+parent     /Users/hayde/.skill-manager — this home was cloned from it and syncs back to it
+publish    edited a unit here? `skt publish <unit>` — syncs it to the parent above, then publishes to the unit's own git repo. Nothing else carries an edit out of this home; git does not.
+writes     this session writes /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home. Never write /Users/hayde/.skill-manager, or any other home, by hand.
+spec       workflow 'self-improvement-substrate' active; no open tickets — this branch's ticket is NOT in the plan
+base       in sync with parent @5d05ba7f (548 commit(s) ahead)
+units      0 installed (0 change-managed)
+plugins    tla-spec-dev
+next       skt check — new-version and sync notifications
+==============================================================================
+VERB : status --json
+cmd  : skt status --json
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+{
+  "schema": 3,
+  "home": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home",
+  "tier": "project",
+  "artifacts": null,
+  "cli": null,
+  "policy": "live",
+  "drift_pending": false,
+  "checkout": {
+    "root": "/Users/hayde/IdeaProjects/wt-369-eval-ladder-skt",
+    "kind": "integration",
+    "branch": "feature/369-eval-ladder-skt",
+    "ticket": "369-eval-ladder-skt",
+    "epic": "architectural-coherence",
+    "on_epic_branch": false
+  },
+  "spec_workflow": {
+    "name": "self-improvement-substrate",
+    "open_tickets": [],
+    "ticket_in_plan": false
+  },
+  "cli_tools": [],
+  "promotion": {
+    "parent": "/Users/hayde/.skill-manager",
+    "error": null,
+    "from": "tier"
+  },
+  "worktree_sync": {
+    "parent_head": "5d05ba7f",
+    "merge_base": "5d05ba7f",
+    "in_sync": true,
+    "ahead": 548,
+    "behind": 0
+  },
+  "units": [],
+  "plugins": [
+    "tla-spec-dev"
+  ],
+  "migration": null
+}
+==============================================================================
+VERB : status (worktree home, real tier)
+cmd  : skt status
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+skt status — /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+checkout   integration repo, branch feature/369-eval-ladder-skt (ticket 369-eval-ladder-skt) (epic architectural-coherence available)
+home       /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/.skill-manager — tier: worktree, policy: live
+parent     /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager — this home was cloned from it and syncs back to it
+publish    edited a unit here? `skt publish <unit>` — syncs it to the parent above, then publishes to the unit's own git repo. Nothing else carries an edit out of this home; git does not.
+writes     this session writes /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/.skill-manager. Never write /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager, or any other home, by hand.
+spec       workflow 'self-improvement-substrate' active; no open tickets — this branch's ticket is NOT in the plan
+base       in sync with parent @5d05ba7f (548 commit(s) ahead)
+cli        @google/gemini-cli, claude, codex, computeq, docker, gemini-cli, gh, google, google-gemini-cli, helm +15 more
+units      19 installed (11 change-managed)
+  acp-cdc-ai-python 0.2.0 skill [loaded] [cm] 3c02dc52
+  andrej-karpathy-skills 1.0.0 plugin [cm] 43442d0f
+  cdc-agent-substrate-plugin 0.2.2 plugin [loaded]
+  code-reviewer 0.1.0 harness
+  debugging 0.1.0 skill [loaded] [cm] 3520c531
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  doc-repo-devops 0.1.0 doc [loaded] [cm] 3bf44536
+  hyper-experiments-finance 0.1.0 skill [loaded] [cm] 5b3c8d2b
+  hyper-experiments 0.1.0 skill [loaded] [cm] 41b8f560
+  live-swarm-agent 0.1.0 harness
+  llm-wiki 0.1.0 skill [loaded] [cm] d4d6b11a
+  repo-coder 0.1.0 harness
+  repo-tester 0.1.0 harness
+  run-tracer 0.1.0 harness
+  slm-agent 0.1.1 skill [loaded]
+  … +4 more (skt status --json for all)
+plugins    andrej-karpathy-skills, cdc-agent-substrate-plugin, tla-spec-dev
+next       skt check — new-version and sync notifications
+==============================================================================
+VERB : check --cached
+cmd  : skt check --cached --json
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+{
+  "schema": 6,
+  "home": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home",
+  "cache_state": "missing",
+  "from_cache": true,
+  "checked_units": [],
+  "unverifiable": [],
+  "notifications": []
+}
+==============================================================================
+VERB : check --cached (2nd, throttled)
+cmd  : skt check --cached --json
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+{
+  "schema": 6,
+  "home": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home",
+  "cache_state": "missing",
+  "from_cache": true,
+  "checked_units": [],
+  "unverifiable": [],
+  "notifications": []
+}
+==============================================================================
+VERB : sync (no unit)
+cmd  : skt sync
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 1
+--- output ---
+skt sync: name a unit (see `skt check` for which are stale)
+==============================================================================
+VERB : sync <absent unit>
+cmd  : skt sync no-such-unit
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 1
+--- output ---
+skt sync: no installed unit named 'no-such-unit'
+==============================================================================
+VERB : build --dry-run
+cmd  : skt build --dry-run
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 1
+--- output ---
+error: this home has no skill-manager CLI pin at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home/bin/cli/skill-manager
+fix:   skill-manager home shims --root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home   # re-writes the pin
+==============================================================================
+VERB : build --all --dry-run
+cmd  : skt build --all --dry-run
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 1
+--- output ---
+error: this home has no skill-manager CLI pin at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home/bin/cli/skill-manager
+fix:   skill-manager home shims --root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home   # re-writes the pin
+==============================================================================
+VERB : publish --check
+cmd  : skt publish --check
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+skt publish --check: no edited units in this home
+==============================================================================
+VERB : ticket list
+cmd  : skt ticket list
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+skt ticket list — /Users/hayde/IdeaProjects/tla-spec-dev
+epic       none discoverable
+target     none — containment NOT checked (pass --epic <slug> or --target <ref>)
+home       close-out destination: /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager
+  -                /Users/hayde/IdeaProjects/tla-spec-dev  [primary]
+      branch  main @5d05ba7f
+      excluded  the primary checkout — never removed
+  -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/base-wt  [MISSING, prunable]
+      branch  (detached) @571aad99
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/basecheck  [MISSING, prunable]
+      branch  (detached) @571aad99
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si17check  [MISSING, prunable]
+      branch  (detached) @569a472c
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note    prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  334-plugin-migra /Users/hayde/IdeaProjects/wt-334-plugin-migration
+      branch  feature/334-plugin-migration @5b929e17
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  335-nest-workflo /Users/hayde/IdeaProjects/wt-335-nest-workflow-skills
+      branch  feature/335-nest-workflow-skills @78dff9c3
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  336-improvement- /Users/hayde/IdeaProjects/wt-336-improvement-card
+      branch  feature/336-improvement-card @c2c32ad7
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  337-improvement- /Users/hayde/IdeaProjects/wt-337-improvement-record
+      branch  feature/337-improvement-record @7ac938e2
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  338-close-out-ow /Users/hayde/IdeaProjects/wt-338-close-out-owes-change
+      branch  feature/338-close-out-owes-change @a241de5e
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  339-skills-propo /Users/hayde/IdeaProjects/wt-339-skills-propose
+      branch  feature/339-skills-propose @12fb074d
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  340-epic-owns-mo /Users/hayde/IdeaProjects/wt-340-epic-owns-model
+      branch  feature/340-epic-owns-model @df8efcab
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  341-evaluation   /Users/hayde/IdeaProjects/wt-341-evaluation
+      branch  feature/341-evaluation @d40731e9
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  342-progressive- /Users/hayde/IdeaProjects/wt-342-progressive-disclosure
+      branch  feature/342-progressive-disclosure @2dd5bada
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  343-plugin-evals /Users/hayde/IdeaProjects/wt-343-plugin-evals
+      branch  feature/343-plugin-evals @0095a750
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  351-plugin-plumb /Users/hayde/IdeaProjects/wt-351-plugin-plumbing
+      branch  feature/351-plugin-plumbing @d306daa8
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  359-nest-remaini /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents
+      branch  feature/359-nest-remaining-dependents @47da9e6b
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  360-test-graphs- /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products
+      branch  feature/360-test-graphs-both-products @e242f700
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  361-pin-eval-too /Users/hayde/IdeaProjects/wt-361-pin-eval-toolchain
+      branch  feature/361-pin-eval-toolchain @4a45377e
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  362-evals-one-pl /Users/hayde/IdeaProjects/wt-362-evals-one-place
+      branch  feature/362-evals-one-place @9ba955b7
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  365-nest-skt     /Users/hayde/IdeaProjects/wt-365-nest-skt
+      branch  feature/365-nest-skt @fbe8bb9a
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  366-wt-into-skt  /Users/hayde/IdeaProjects/wt-366-wt-into-skt
+      branch  feature/366-wt-into-skt @569a472c
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  368-eval-ladder- /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold
+      branch  feature/368-eval-ladder-graph-scaffold @fbfc23d6
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  369-eval-ladder- /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt  [current]
+      branch  feature/369-eval-ladder-skt @1cb00be7
+      excluded  the worktree this command is running IN — run the sweep from the primary checkout instead: git -C /Users/hayde/IdeaProjects/tla-spec-dev … / cd /Users/hayde/IdeaProjects/tla-spec-dev
+  382-complete-the /Users/hayde/IdeaProjects/wt-382-complete-the-findings
+      branch  feature/382-complete-the-findings @1e0b84cb
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  -                /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate
+      branch  epic/self-improvement-substrate @1cb00be7
+      clean   no blocker — this worktree may be retired
+      note    no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+
+23 sweepable, 23 with no blocker, 2 excluded
+next       skt ticket sweep            # the plan, nothing removed
+           skt ticket sweep --yes      # retire the unblocked ones
+==============================================================================
+VERB : ticket sweep (dry run, no -y)
+cmd  : skt ticket sweep
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+skt ticket sweep (dry run) — /Users/hayde/IdeaProjects/tla-spec-dev
+epic       none discoverable
+target     none — containment NOT checked (pass --epic <slug> or --target <ref>)
+home       close-out destination: /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager
+  excluded     -                /Users/hayde/IdeaProjects/tla-spec-dev
+      the primary checkout — never removed
+  excluded     369-eval-ladder- /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+      the worktree this command is running IN — run the sweep from the primary checkout instead: git -C /Users/hayde/IdeaProjects/tla-spec-dev … / cd /Users/hayde/IdeaProjects/tla-spec-dev
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/base-wt
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note: prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/basecheck
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note: prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  would remove -                /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si17check
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+      note: prunable: gitdir file points to non-existent location — `git worktree prune` clears the entry
+  would remove 334-plugin-migra /Users/hayde/IdeaProjects/wt-334-plugin-migration
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 335-nest-workflo /Users/hayde/IdeaProjects/wt-335-nest-workflow-skills
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 336-improvement- /Users/hayde/IdeaProjects/wt-336-improvement-card
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 337-improvement- /Users/hayde/IdeaProjects/wt-337-improvement-record
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 338-close-out-ow /Users/hayde/IdeaProjects/wt-338-close-out-owes-change
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 339-skills-propo /Users/hayde/IdeaProjects/wt-339-skills-propose
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 340-epic-owns-mo /Users/hayde/IdeaProjects/wt-340-epic-owns-model
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 341-evaluation   /Users/hayde/IdeaProjects/wt-341-evaluation
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 342-progressive- /Users/hayde/IdeaProjects/wt-342-progressive-disclosure
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 343-plugin-evals /Users/hayde/IdeaProjects/wt-343-plugin-evals
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 351-plugin-plumb /Users/hayde/IdeaProjects/wt-351-plugin-plumbing
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 359-nest-remaini /Users/hayde/IdeaProjects/wt-359-nest-remaining-dependents
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 360-test-graphs- /Users/hayde/IdeaProjects/wt-360-test-graphs-both-products
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 361-pin-eval-too /Users/hayde/IdeaProjects/wt-361-pin-eval-toolchain
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 362-evals-one-pl /Users/hayde/IdeaProjects/wt-362-evals-one-place
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 365-nest-skt     /Users/hayde/IdeaProjects/wt-365-nest-skt
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 366-wt-into-skt  /Users/hayde/IdeaProjects/wt-366-wt-into-skt
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 368-eval-ladder- /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove 382-complete-the /Users/hayde/IdeaProjects/wt-382-complete-the-findings
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+  would remove -                /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate
+      note: no epic/target branch known, so containment was not checked (pass --epic <slug> or --target <ref>)
+
+23 would be removed, 0 skipped for safety, 2 excluded
+dry run — NOTHING was removed. Re-run with --yes to retire the 23 worktree(s) marked `would remove`; every check above is re-run immediately before each removal.
+The `skill-manager home close-out` gate is NOT run by a dry run, so a `would remove` row can still be skipped for unpublished skill work in its home.
+==============================================================================
+VERB : ticket new --help
+cmd  : skt ticket new --help
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 0
+--- output ---
+usage: skt ticket new <ticket> [<base>] [--base <ref>] [--path <dir>]
+
+Create the worktree AND its own Skill Manager home, in one command,
+rolled back together if the bootstrap fails.
+
+  <ticket>        the ticket id; the branch becomes feature/<ticket>
+  <base>          the base, positionally -- the same thing --base
+                  names. Accepted so this and `wt new <ticket>
+                  <base>` agree; --base wins if you give both.
+  --base <ref>    commit or ref to branch from. Resolve it FIRST and
+                  pass the SHA in epic mode -- a bare epic/<slug>
+                  names the local ref, which a server-side merge does
+                  not move. Must exist here; skt refuses rather than
+                  guessing.
+  --path <dir>    epic mode: put the worktree at this DECLARED path
+                  (assignments name it) instead of wt's derived one
+
+examples:
+  skt ticket new OUN-6
+  skt ticket new OUN-6 --base HEAD --path ../wt-oun-6
+==============================================================================
+VERB : ticket (no verb)
+cmd  : skt ticket
+cwd  : /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt
+rc   : 1
+--- output ---
+usage: skt ticket new|close|info <TICKET> [--base <branch>] [--path <dir>]
+       skt ticket list  [--epic <slug>] [--target <ref>] [--into <home>] [--json]
+       skt ticket sweep [--epic <slug>] [--target <ref>] [--into <home>] [-y|--yes] [--json]
+
+GAMUT NON-VACUITY: 15 invocations

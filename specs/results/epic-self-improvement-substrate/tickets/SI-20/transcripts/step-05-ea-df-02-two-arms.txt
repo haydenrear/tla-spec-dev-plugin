@@ -1,0 +1,28 @@
+==============================================================================
+ARM: A-standalone   (integration.toml planted above: False)
+rc  : 0
+created ticket worktree for TG-1:
+worktree   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/A-standalone/outer/inner/subject-repo-TG-1
+branch     feature/TG-1 (standalone repo subject-repo)
+launch     none — this worktree has no home; an agent here uses the operator's GLOBAL home
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-1
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+beside the repo   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/A-standalone/outer/inner/subject-repo-TG-1: True
+beside `outer`    /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/A-standalone/subject-repo-TG-1: False
+close rc=0: ['closed /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/A-standalone/outer/inner/subject-repo-TG-1', 'branch feature/TG-1 kept — delete once the change has landed']
+==============================================================================
+ARM: B-constituent   (integration.toml planted above: True)
+rc  : 0
+created ticket worktree for TG-1:
+worktree   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/B-constituent/subject-repo-TG-1
+branch     feature/TG-1 (constituent repo subject-repo)
+launch     none — this worktree has no home; an agent here uses the operator's GLOBAL home
+close      skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-1
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+beside the repo   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/B-constituent/outer/inner/subject-repo-TG-1: False
+beside `outer`    /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/B-constituent/subject-repo-TG-1: True
+close rc=0: ['closed /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/ea-df-02/B-constituent/subject-repo-TG-1', 'branch feature/TG-1 kept — delete once the change has landed']
+
+NON-VACUITY OK: 2 arms driven

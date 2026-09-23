@@ -1,0 +1,38 @@
+# skill-manager home close-out — the verb, watched
+
+## A: destination is not a home (refusal shape)
+rc=2
+✗ home close-out --home: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home is not a Skill Manager home (it exists but carries neither a descriptor nor the installed/ + skills/ pair). A home carries a home.runtime.json descriptor, or an installed/ and a skills/ directory. If you meant the home inside a worktree, name it: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/gamut-home/.skill-manager. Nothing was read and nothing was written.
+! Telemetry export unavailable; continuing without telemetry.
+
+## B: this ticket worktree home -> an EMPTY but valid destination home
+rc=1
+! Telemetry export unavailable; continuing without telemetry.
+✗   would-create       skill:acp-cdc-ai-python — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:debugging — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:deploy-helm — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:hyper-experiments — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:hyper-experiments-finance — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:llm-wiki — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:slm-agent — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:tracer-agent — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:tracing-observability — not in the destination home; the source holds it and this home does not
+✗   would-create       skill:vision-toolbelt-skill — not in the destination home; the source holds it and this home does not
+✗   would-create       plugin:andrej-karpathy-skills — not in the destination home; the source holds it and this home does not
+✗   would-create       plugin:cdc-agent-substrate-plugin — not in the destination home; the source holds it and this home does not
+✗ … 28 more — all 40 in /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skill-manager/logs/home-close-out-20260923-193540-2722.log
+✗ 20 unit(s) in /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/.skill-manager would be lost if it were removed now
+  log: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skill-manager/logs/home-close-out-20260923-193540-2722.log
+
+## C: --json verdict SIZE (the field, not the bytes)
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'SP'
+
+## C: --json verdict, as data (rerun)
+bytes: 3748517
+keys: ['blockers', 'exitCode', 'home', 'into', 'safe', 'selfObtainable', 'units']
+safe: False  clean: None  exitCode: 1
+blockers: 20  units: 20
+largest fields (bytes, key): [(3774707, 'units'), (9387, 'blockers'), (131, 'into')]
