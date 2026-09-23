@@ -7191,3 +7191,298 @@ findings:
       because CI never runs the graphs on a PR. Not repaired here: the oracle is
       skill-manager's code, and PR #397 was merged on the strength of the
       environmental proof above rather than by weakening the instrument.
+
+  - id: SI-19-DF-01
+    severity: major
+    found_by: SI-19
+    found_at_commit: "f4b42169"
+    schedule_revision: 9
+    target: tla-spec-dev
+    attribution: "UNMODELED/test-graph-scaffold"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "skills/test-graph/scripts/scaffold.py:154 (next steps)"
+        - "skills/test-graph/project_sdk_sources/sources/AppRunning.java:46 (http://localhost:8080)"
+      workflow: []
+    summary: >-
+      A FRESH SCAFFOLD'S OWN PRINTED NEXT STEP PRODUCES A RED, AND NOTHING SAYS
+      WHY. `scaffold.py <dir>` succeeds and prints a five-line "next steps"
+      block ending in `run.py smoke` and `run.py --all`. Following it verbatim,
+      `run.py smoke` returns exit 1 with `BUILD FAILED` and a `summary.json`
+      whose status is `errored`: the first node `app.running` errors with
+      `java.net.ConnectException` and the remaining FIVE nodes are skipped.
+      The cause is a precondition, not a wiring fault -- `AppRunning.java:46`
+      defaults `baseUrl` to `http://localhost:8080` and HEADs it, and nothing is
+      listening in a fresh scaffold. The scaffolded `README.md` never mentions
+      it (grepped for `app.running`, `8080`, `start the app`, `prereq`: no
+      match), and neither does the next-steps block that recommended the
+      command.
+      This is the epic's own recurring defect one layer out. An environment that
+      could not run the task and a tool that could not do the task produce the
+      SAME output, and the output is charged to the tool.
+    reproduction: >-
+      In a clean directory outside the repository:
+      `python3 skills/test-graph/scripts/scaffold.py <dir>` (exit 0), then
+      `python3 skills/test-graph/scripts/run.py smoke --test-graph-root <dir>/test_graph`.
+      Read the verdict from `<dir>/test_graph/build/validation-reports/<runId>/summary.json`,
+      not from the exit code: `"status": "errored"`, `app.running -> errored`,
+      five nodes `skipped`. The error stack names `AppRunning.head(AppRunning.java:70)`
+      under `java.net.ConnectException`.
+    why_out_of_scope: >-
+      `skills/test-graph/**` is not in SI-19's `conflict_keys.production`, which
+      is `evals/**` alone. The fix is a wording or a precondition check in
+      another unit's scaffold surface, and SI-19's slice is the eval ladder's
+      first rung.
+    suggested_fix: >-
+      Cheapest correct change: have the next-steps block say what `smoke`
+      needs, e.g. print `run.py smoke  # needs an app answering at
+      http://localhost:8080; override with -PbaseUrl=` beside it. Stronger, and
+      the shape this epic keeps asking for: give `app.running` a precondition
+      that reports UNDECIDED-no-app rather than ERRORED when nothing is
+      listening, so a first run distinguishes "not measured" from "failed".
+      Weakest and wrong: making `smoke` not include `app.running`, which would
+      remove the demonstration rather than the ambiguity.
+    blast_radius: >-
+      Every first-time user of `test-graph`, and every agent told to "scaffold
+      validation and run it" -- which is exactly what the existing eval case
+      `evals/test-graph/compose-a-behavioural-graph` asks an agent to do. That
+      case grades the SCAFFOLD structurally and deliberately does not run the
+      graph, so it cannot see this; an agent that goes one step further than the
+      case asks gets a red it did not cause.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-F-scaffold.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-H-scaffold-run-smoke.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-H2-smoke-verdict.txt"
+    skill_change: "none applied; proposed(test-graph, SI-19-DF-01: the next-steps block names smoke's precondition)"
+    disposition: still-true
+    disposition_ticket: "SI-19"
+    disposition_note: >-
+      Observed by hand on 2026-09-23 while producing SI-19's manual-verification
+      record. Not repaired: out of conflict keys.
+
+  - id: SI-19-DF-02
+    severity: minor
+    found_by: SI-19
+    found_at_commit: "f4b42169"
+    schedule_revision: 9
+    target: tla-spec-dev
+    attribution: "UNMODELED/test-graph-scaffold"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "skills/test-graph/scripts/scaffold.py"
+        - "skills/test-graph/scripts/_common.py:594 (prepare_provider_bindings_or_warn)"
+      workflow: []
+    summary: >-
+      SCAFFOLDING INTO A TARGET OUTSIDE THE SKILL'S TREE WRITES ABSOLUTE
+      SYMLINKS. In-repository, `prepare-bindings.py` resolved the provider as
+      `kind: workspace-relative` and wrote
+      `test_graph/sdk -> ../skills/test-graph/project_sdk_sources/sdk`. Scaffolding
+      into a directory outside the repository wrote
+      `sdk -> /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/project_sdk_sources/sdk`
+      -- one developer's absolute home path, which is the exact shape commit
+      `175f5c7c` removed from tracked content.
+      IT IS NOT THE SAME DEFECT AND THE DIFFERENCE MATTERS: the links are inside
+      the `TEST-GRAPH-MANAGED-BINDINGS` ignore block the scaffold writes, so
+      nothing absolute is ever committed and `git status` stays clean. What is
+      left is a directory that breaks if it is copied, moved or shared, with
+      three dangling links and no note saying to re-run `prepare-bindings.py`.
+    reproduction: >-
+      `python3 skills/test-graph/scripts/scaffold.py /tmp/<fresh>` then
+      `ls -l /tmp/<fresh>/test_graph` -- the three managed links are absolute.
+      Compare `python3 skills/test-graph/scripts/prepare-bindings.py` run at the
+      repository root, whose printed manifest says `"kind": "workspace-relative"`
+      and whose links are `../skills/...`.
+    why_out_of_scope: >-
+      `skills/test-graph/**` is outside `conflict_keys.production` (`evals/**`).
+    suggested_fix: >-
+      Either say it -- one line in the scaffold's output that the managed links
+      are machine-local and `prepare-bindings.py` re-materialises them after a
+      move -- or make the absolute case self-healing, since
+      `prepare_provider_bindings_or_warn` already runs before every Gradle
+      invocation and could re-point a link whose target does not resolve.
+    blast_radius: >-
+      Any scaffolded project that is relocated or copied between machines.
+      Nothing committed, nothing in CI.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-F-scaffold.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-B-prepare-bindings.txt"
+    skill_change: "none"
+    disposition: still-true
+    disposition_ticket: "SI-19"
+    disposition_note: "Observed 2026-09-23. Not repaired: out of conflict keys."
+
+  - id: SI-19-DF-03
+    severity: minor
+    found_by: SI-19
+    found_at_commit: "f4b42169"
+    schedule_revision: 9
+    target: tla-spec-dev
+    attribution: "UNMODELED/record-keeping"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "specs/results/epic-self-improvement-substrate/tickets/SI-13/classification.md"
+    summary: >-
+      SI-13'S GRAPH CLASSIFICATION IS NOW INCOMPLETE FOR THIS REPOSITORY.
+      It names three registered graphs -- specWorkflow, cliWorkflow,
+      effectProviderExamples -- and classifies each RUN. `discover.py` on
+      2026-09-23 lists FIVE: `sktSurface` (5 nodes) and `sktHooks` (3 nodes)
+      were registered after SI-13 measured, by SI-16 nesting `skt` here.
+      Nothing SI-13 wrote is false; the table has simply stopped being the whole
+      registry, and the issue for this ticket instructs successors to "consume
+      it; do not redo it", which is how a stale population propagates.
+      The two new graphs are UNDECIDED here: SI-19 listed them and did not run
+      them, which is not the same as green.
+    reproduction: >-
+      `python3 skills/test-graph/scripts/discover.py` at the repository root
+      prints five `graph:` lines. SI-13's table has three rows.
+    why_out_of_scope: >-
+      `specs/results/**` belonging to another ticket is explicitly not SI-19's
+      to edit, and re-running the classification is a measurement ticket's work,
+      not a side effect of this one.
+    suggested_fix: >-
+      Classify `sktSurface` and `sktHooks` RUN / OPT-IN / DEAD with an observed
+      verdict each, and append to SI-13's table with the date, rather than
+      rewriting it. The underlying repair is stronger: SI-13's own front door
+      `test_graph/run-graphs.py --list` enumerates the registry at run time, so
+      a classification that is regenerated cannot go stale the way a committed
+      table does.
+    blast_radius: >-
+      Any ticket that takes SI-13's table as the population of graphs -- which
+      is what its successors are told to do.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-C-discover-list.txt"
+    skill_change: "none"
+    disposition: still-true
+    disposition_ticket: "SI-19"
+    disposition_note: "Observed 2026-09-23. Not repaired: another ticket's evidence."
+
+  - id: SI-19-DF-04
+    severity: major
+    found_by: SI-19
+    found_at_commit: "f4b42169"
+    schedule_revision: 9
+    target: tla-spec-dev
+    attribution: "UNMODELED/agent-harness"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_eval_toolchain_pin.py:180 (.toolchain is not gitignored)"
+        - ".gitignore:45 (.toolchain/)"
+    summary: >-
+      AN ELEVENTH REPOSITORY-SUITE FAILURE ON A CLEAN TREE, AND IT IS A
+      STATEMENT ABOUT THE MACHINE RATHER THAN THE REPOSITORY.
+      `tests/test_eval_toolchain_pin.py::test_the_view_excludes_the_materialised_toolchain`
+      is red in a fresh worktree at `f4b42169`, alongside the epic's ten known
+      failures. It asserts `git check-ignore -q .toolchain` returns 0. The
+      ignore rule IS present, at `.gitignore:45`, but it is spelled
+      `.toolchain/` with a trailing slash, so it matches directories only, and
+      `git check-ignore` cannot match a path that is not on disk. `.toolchain/`
+      is created by `evals/lib/toolchain.py` on the first eval run, so the test
+      is GREEN on any machine that has run one and RED in every fresh checkout.
+      The property the test is defending -- that the view is built from a commit
+      and cannot swallow the toolchain cache -- is true and is asserted two
+      lines earlier. Only the third assertion is environment-dependent.
+    reproduction: >-
+      In a fresh worktree: `git check-ignore -v .toolchain` -> rc 1;
+      `mkdir -p .toolchain` -> `git check-ignore -v .toolchain` prints
+      `.gitignore:45:.toolchain/` and returns rc 0; the whole file then passes
+      (`10 passed in 7.56s`); `rmdir .toolchain` restores the red. Measured
+      2026-09-23 before SI-19 changed any file.
+    why_out_of_scope: >-
+      `tests/**` is outside `conflict_keys.production` (`evals/**`). The change
+      is one line and tempting, and taking it would widen this ticket's diff
+      into the file another ticket's instrument reads.
+    suggested_fix: >-
+      Assert the rule rather than the resolution: `git check-ignore --no-index
+      .toolchain/somefile` answers the same question without requiring the
+      directory to exist, or read `.gitignore` for the `.toolchain/` line
+      directly. Either keeps the property and drops the dependence on whether
+      an eval has ever been run on this machine.
+    blast_radius: >-
+      Every fresh checkout, every ticket agent's baseline, and every by-name
+      comparison against the epic's list of ten -- which is the instrument this
+      epic uses to tell a ticket's regressions from the background. An eleventh
+      name that is not on the list costs each agent the time to establish that
+      it is not theirs, and invites the cheaper conclusion that the list is just
+      approximate.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/baseline-repository-suite.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/baseline-failure-names.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/manual-verification.md (section 6)"
+    skill_change_absorbed_note: >-
+      Repaired by the epic agent at wave close, not deferred: the assertion now
+      asks about `.toolchain/` with the trailing slash, which matches whether or
+      not the directory exists. Verified in BOTH conditions (10 passed with the
+      cache present, 10 passed with it moved aside) rather than the convenient
+      one.
+    skill_change: "none"
+    disposition: fixed
+    fixed_by: "105f224c"
+    disposition_ticket: "SI-19"
+    disposition_note: >-
+      Observed 2026-09-23 on the untouched worktree, and falsified both ways
+      before being written down. Not repaired: out of conflict keys.
+
+  - id: SI-19-DF-05
+    severity: minor
+    found_by: SI-19
+    found_at_commit: "f4b42169"
+    schedule_revision: 9
+    target: tla-spec-dev
+    attribution: "UNMODELED/test-graph-runtime"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "the node runtime's OTLP exporter (every graph run)"
+      workflow: []
+    summary: >-
+      EVERY GREEN GRAPH RUN PRINTS FOURTEEN OR MORE JAVA STACK TRACES. All three
+      graphs run here passed, and each interleaved repeated
+      `java.net.ConnectException` / `java.io.EOFException` traces from the
+      OpenTelemetry OTLP exporter trying `http://localhost:4318/` with no
+      collector listening. `cliWorkflow`'s 271-line transcript contains 14
+      occurrences of `4318`; the two-graph sweep's transcript is 1056 lines.
+      The traces are indistinguishable at a glance from a failing run, and the
+      real verdict is 250 lines further down in a `summary.json` nobody is
+      forced to open. An agent asked "did the graph pass" and reading the
+      terminal will answer no.
+    reproduction: >-
+      `python3 skills/test-graph/scripts/run.py cliWorkflow` with no OTLP
+      collector on 4318. `grep -c 4318` over the captured output returns 14;
+      `summary.json` says `"status":"passed"`.
+    why_out_of_scope: >-
+      The exporter configuration is the node runtime's, under
+      `skills/test-graph/project_sdk_sources/`, outside `evals/**`.
+    suggested_fix: >-
+      Make the exporter silent-by-default when no endpoint is reachable, or log
+      one line rather than a stack per export. If neither is wanted, have the
+      runner print the graph's verdict LAST and unmistakably -- it already knows
+      it, and a final `cliWorkflow: PASSED (2/2 nodes)` line would cost nothing
+      and would beat the noise.
+    blast_radius: >-
+      Reading, not correctness. It is the direction that matters: the noise
+      makes a green run look red, so the failure mode is a correct run reported
+      as broken -- and it is precisely the shape this epic keeps finding, where
+      the output of "it worked" and "it did not" are not distinguishable.
+    evidence:
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-E-run-cliworkflow.txt"
+      - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-I-run-sweep.txt"
+    skill_change: "none"
+    disposition: still-true
+    disposition_ticket: "SI-19"
+    disposition_note: "Observed 2026-09-23 on three passing graph runs."
