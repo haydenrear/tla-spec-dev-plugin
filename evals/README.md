@@ -30,7 +30,8 @@ direction: **the cases moved here.**
 | `skill-manager` | 9 |
 | `git-issue` | 3 |
 | `plugin-repository` | 2 |
-| `test-graph`, `discovery` | 1 each |
+| `test-graph` | 2 |
+| `discovery` | 1 |
 | `harness`, `unnested` | 3 |
 
 **No moved case declares `plugins:`, and that is not a style rule.** Measured
@@ -75,6 +76,19 @@ here. Filed as `SI-15-DF-02`.
 | `git-issue-workflow` | `use-the-front-door` | is the first move `wt new`, or a bare `git worktree add` that leaves the agent writing the operator's global home? |
 | `git-epic-workflow` | `epic-mode-is-not-main` | does the assignment marker change the branch point, the PR base, and the stopping point? |
 | `test-graph` | `compose-a-behavioural-graph` | does a registered graph with a node in it come out, or another unit test in a new directory? |
+
+SI-19 added one more, and it is the first case in this suite written AFTER
+the behaviour it grades was watched by hand rather than alongside it:
+
+| skill | case | the question |
+|---|---|---|
+| `test-graph` | `w-tg-run-a-graph-not-bare-gradle` | asked to run a registered graph in a fresh checkout, is the command the skill's runner — or `cd test_graph && ./gradlew`, which fails at configuration time because the managed provider bindings are generated links no checkout carries? |
+
+Its provenance is a committed transcript, not a memory: the control and the
+treatment were both run in the SI-19 worktree at `f4b42169` on 2026-09-23,
+and `specs/results/epic-self-improvement-substrate/tickets/SI-19/manual-verification.md`
+is committed in an EARLIER commit than the case. That ordering is the whole
+of `GOAL-evals-earned`, and it is checkable with `git log`.
 
 Full method — what a grader can see, what a case can observe, how to keep a
 score attached to something that happened — is

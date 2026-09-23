@@ -1,0 +1,67 @@
+$ cat $target/test_graph/provider-bindings.json  # the COMMITTED half
+{
+  "bindings": {
+    "build-logic": "project_sdk_sources/build-logic",
+    "sdk": "project_sdk_sources/sdk",
+    "standard-nodes": "project_sdk_sources/standard-nodes"
+  },
+  "provider_candidates": [
+    {
+      "kind": "skill-root"
+    }
+  ],
+  "schema_version": "test-graph.provider-bindings.v1"
+}
+
+$ cat $target/test_graph/.gitignore
+# Gradle
+.gradle/
+build/
+**/build/
+out/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+
+# Toolchain downloads (jbang / uv). Override versions via
+# -Poverride-jbang-version=<v> / -Poverride-uv-version=<v>.
+.bin/
+
+# Python SDK packaging scratch
+sdk/python/.venv/
+sdk/python/**/__pycache__/
+sdk/python/**/*.egg-info/
+sdk/python/dist/
+sdk/python/build/
+
+# uv caches inside script invocations
+**/__pycache__/**
+
+# TEST-GRAPH-MANAGED-BINDINGS-BEGIN
+# Generated runtime links; provider-bindings.json is the durable record.
+/build-logic
+/sdk
+/standard-nodes
+# TEST-GRAPH-MANAGED-BINDINGS-END
+
+$ python3 skills/test-graph/scripts/discover.py --test-graph-root $target/test_graph
+graph: smoke
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/user_seeded.py
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/NetworkPingable.java
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/LoginSmoke.java
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/RerunDisabledProbe.py
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/ContextSnapshotsPresent.py
+graph: rerunSmokeUv
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/RerunDisabledProbe.py
+graph: rerunSmokeJava
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/RerunJavaProbe.java
+graph: observabilitySmoke
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/RerunDisabledProbe.py
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/RerunJavaProbe.java
+graph: rerunGuidance
+  - /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph/sources/RerunGuidanceFailure.py
+exit=0

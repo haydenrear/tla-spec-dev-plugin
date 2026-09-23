@@ -1,0 +1,27 @@
+$ python3 skills/test-graph/scripts/discover.py
+graph: specWorkflow
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/tla_spec_dev_cli_install.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_create_repo.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_start_ticket.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_complete_ticket.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_spec_units.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_close_ticket.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_failure_cleanup_probe.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/spec_workflow_cleanup.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/reference_adapters_resolve.py
+graph: cliWorkflow
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/tla_spec_dev_cli_install.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/tla_spec_dev_cli_help.py
+graph: effectProviderExamples
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/effect_provider_examples.py
+graph: sktSurface
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_wrapper_installed.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_status_tiers.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_check_cached.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_hook_contract.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_ticket_roundtrip.py
+graph: sktHooks
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_wrapper_installed.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_check_cached.py
+  - /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/sources/skt_hook_contract.py
+exit=0

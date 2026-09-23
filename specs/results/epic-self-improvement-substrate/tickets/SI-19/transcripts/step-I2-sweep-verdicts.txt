@@ -1,0 +1,48 @@
+--- build/validation-reports/20260923-202809/summary.json ---
+graph: specWorkflow  status: passed  nodes: 9
+    spec.cli.install -> passed
+    spec.reference.adapters_resolve -> passed
+    spec.workflow.cleanup -> passed
+    spec.workflow.close -> passed
+    spec.workflow.complete -> passed
+    spec.workflow.failure_cleanup_probe -> passed
+    spec.workflow.repo -> passed
+    spec.workflow.spec_units -> passed
+    spec.workflow.start -> passed
+--- build/validation-reports/20260923-203027/summary.json ---
+graph: effectProviderExamples  status: passed  nodes: 1
+    effect.providers.examples -> passed
+--- sweep.json ---
+{
+  "schema": "test-graph.sweep.v1",
+  "mode": "graphs",
+  "selection_known": true,
+  "graphs_selected": 2,
+  "graphs_executed": 2,
+  "graphs_passed": 2,
+  "graphs_failed": 0,
+  "graphs_not_run": 0,
+  "results": [
+    {
+      "graph": "specWorkflow",
+      "status": "passed",
+      "seconds": 139.602,
+      "run_dirs": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202809"
+      ],
+      "reason": null
+    },
+    {
+      "graph": "effectProviderExamples",
+      "status": "passed",
+      "seconds": 72.804,
+      "run_dirs": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-203027"
+      ],
+      "reason": null
+    }
+  ],
+  "sweep_id": "20260923-202758",
+  "gradle_exit_code": 0,
+  "continue_past_failures": true
+}

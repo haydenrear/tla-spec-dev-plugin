@@ -1,0 +1,24 @@
+$ python3 skills/test-graph/scripts/discover.py cliWorkflow
+plan for test graph 'cliWorkflow' (2 steps):
+  #   id                kind        rt      entry
+  1.  spec.cli.install  testbed     uv      sources/tla_spec_dev_cli_install.py
+  2.  spec.cli.help     assertion   uv      sources/tla_spec_dev_cli_help.py
+
+dependencies:
+  spec.cli.install  (root)
+  spec.cli.help     <- spec.cli.install
+
+dependency graph:
+  see it here: docs/cliWorkflow.png
+  (DOT source: docs/cliWorkflow.dot)
+exit=0
+
+$ ls -l test_graph/docs/
+total 80
+-rw-r--r--@ 1 hayde  staff    244 Sep 23 16:25 cliWorkflow.dot
+-rw-r--r--@ 1 hayde  staff   4761 Sep 23 16:25 cliWorkflow.png
+-rw-r--r--@ 1 hayde  staff   1066 Sep 23 16:03 specWorkflow.dot
+-rw-r--r--@ 1 hayde  staff  21572 Sep 23 16:03 specWorkflow.png
+
+$ git status --short test_graph
+(end)

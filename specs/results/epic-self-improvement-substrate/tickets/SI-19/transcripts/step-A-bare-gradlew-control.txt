@@ -1,0 +1,32 @@
+$ pwd
+/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph
+
+$ ls -d sdk build-logic standard-nodes
+ls: build-logic: No such file or directory
+ls: sdk: No such file or directory
+ls: standard-nodes: No such file or directory
+
+$ ./gradlew cliWorkflow   # the CONTROL: bare gradle, no binding materialisation
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Included build '/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build-logic' does not exist.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 2s
+exit=1
