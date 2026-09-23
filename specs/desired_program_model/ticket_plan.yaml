@@ -1555,7 +1555,7 @@ tickets:
 
   - id: SI-27
     title: "Complete the findings: validate every open row, batch the fixes, and fill the attribution record"
-    status: planned
+    status: done
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/382"
     schedule_revision: 8
     depends_on: ["SI-25", "SI-26"]
@@ -1598,7 +1598,23 @@ tickets:
         - "REACH, BLIND and PRICE each hold at least one real row."
         - "Fixes applied inside the conflict keys; everything else filed with a stated reason."
         - "Suite compared by NAME against known-ten-baseline.txt: no new failures."
-      evidence: []
+      evidence:
+        - "specs/results/deferred_findings_final.yaml"
+        - "specs/results/deferred/attribution/attribution.yaml"
+        - "specs/results/epic-self-improvement-substrate/tickets/SI-27/disposition-table.md"
+        - "specs/results/epic-self-improvement-substrate/tickets/SI-27/pytest-after-names.txt"
+        - "specs/results/epic-self-improvement-substrate/tickets/SI-27/local-signal-GOAL-findings-become-changes.md"
+    delivery_note: >-
+      PR #383 targets `epic/self-improvement-substrate` on haydenrear/tla-spec-dev,
+      whose epic branch is at 1efa0b4b and five commits stale, because the
+      delivery surface moved to tla-spec-dev-plugin/main and that repository is
+      no longer pushed. That is the EPIC AGENT'S error in the assignment, not
+      the ticket agent's: base_sha 2c21e609 exists only on the plugin remote
+      while pr_base resolves on the archived one, so the PR diffs 98 files
+      instead of 18. The branch was verified to CONTAIN the epic tip
+      (2d8e8d84 is an ancestor of 1e0b84cb) and fast-forwarded in directly;
+      the PR stands as the record. Assignments after this must name a pr_base
+      that lives on the same repository as base_sha.
 
   - id: SI-19
     title: "Eval ladder 1/4: scaffold a test graph, verify by hand, then one small eval"

@@ -3002,6 +3002,27 @@ findings:
       2026-09-23 on feature/382-complete-the-findings at base 2c21e609.
 
   - id: SI-04-DF-04
+    owner_note: >-
+      REPOINTED AND VERIFIED 2026-09-23 by the epic agent, and this is a
+      RECURRENCE, not a first sighting. SI-04-DF-04 recorded the same defect
+      with `origin` aimed at `wt-351-plugin-plumbing`; SI-27-DF-05 caught it
+      aimed at `wt-382-complete-the-findings`. Two tickets, two different
+      sibling worktrees, same shape.
+      FIX APPLIED: `remote.origin.url` set to git@github.com:haydenrear/tla-spec-dev.git
+      and the `pushurl` REMOVED rather than left beside it -- the split is what
+      made the failure silent, because push kept working while fetch read a
+      local mirror. One value means a future rewrite breaks loudly instead.
+      VERIFIED, not assumed: after the change `git fetch origin` reports
+      origin/epic/self-improvement-substrate at 1efa0b4b, which equals
+      `git ls-remote` against GitHub. The same fetch also advanced THREE other
+      epic branches that had been stale in the local mirror, which is the
+      clearest evidence of what the rewrite had been costing.
+      STILL UNRESOLVED: what writes it. A sweep of the shipped scripts found no
+      `remote set-url` or `remote add origin` aimed at the parent -- only test
+      fixtures and constituent handling. Until the writer is named this will
+      recur, and `epic-ticket.md` §1's
+      `git merge-base --is-ancestor <base_sha> origin/epic/<slug>` is the
+      command it makes lie.
     found_by: "SI-04"
     found_at_commit: "4b72c869"
     schedule_revision: 1
@@ -6935,6 +6956,27 @@ findings:
       Also carried as a row in the PR's `## Skill changes proposed` table.
 
   - id: SI-27-DF-05
+    owner_note: >-
+      REPOINTED AND VERIFIED 2026-09-23 by the epic agent, and this is a
+      RECURRENCE, not a first sighting. SI-04-DF-04 recorded the same defect
+      with `origin` aimed at `wt-351-plugin-plumbing`; SI-27-DF-05 caught it
+      aimed at `wt-382-complete-the-findings`. Two tickets, two different
+      sibling worktrees, same shape.
+      FIX APPLIED: `remote.origin.url` set to git@github.com:haydenrear/tla-spec-dev.git
+      and the `pushurl` REMOVED rather than left beside it -- the split is what
+      made the failure silent, because push kept working while fetch read a
+      local mirror. One value means a future rewrite breaks loudly instead.
+      VERIFIED, not assumed: after the change `git fetch origin` reports
+      origin/epic/self-improvement-substrate at 1efa0b4b, which equals
+      `git ls-remote` against GitHub. The same fetch also advanced THREE other
+      epic branches that had been stale in the local mirror, which is the
+      clearest evidence of what the rewrite had been costing.
+      STILL UNRESOLVED: what writes it. A sweep of the shipped scripts found no
+      `remote set-url` or `remote add origin` aimed at the parent -- only test
+      fixtures and constituent handling. Until the writer is named this will
+      recur, and `epic-ticket.md` §1's
+      `git merge-base --is-ancestor <base_sha> origin/epic/<slug>` is the
+      command it makes lie.
     found_by: SI-27
     found_at_commit: "08c943c1"
     schedule_revision: 8
