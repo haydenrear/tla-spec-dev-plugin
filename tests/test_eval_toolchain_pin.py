@@ -153,11 +153,36 @@ def test_the_view_excludes_the_materialised_toolchain() -> None:
     """The cache is 11,481 entries for skill-manager alone and the view's
     ceiling is 20,000. A view that swallowed the cache would be refused by the
     CLI with a message about plugin directory size, which reads as a repository
-    problem rather than as this."""
+    problem rather than as this.
+
+    REWRITTEN 2026-09-23. This asserted the literal `--exclude='./.toolchain'`
+    in run.sh, and `d4b5e3ca` removed that line when the view stopped being a
+    copy of the working tree and became `git archive <commit>`. The assertion
+    went red on a property that had just been made STRONGER, which is the
+    failure mode of testing a mechanism instead of the thing it buys.
+
+    An exclude list keeps the cache out only while somebody remembers to name
+    it. `git archive` emits TRACKED CONTENT at a commit, so `.toolchain` --
+    gitignored, zero tracked files -- cannot enter the view at all. The test
+    now asserts that: the ignore rule exists, nothing under it is tracked, and
+    the view is built from the commit rather than from the tree.
+    """
     text = RUNNER.read_text(encoding="utf-8")
-    assert "--exclude='./.toolchain'" in text, (
-        "the staged view does not exclude the toolchain cache"
+    assert "git archive" in text and "$view_commit" in text, (
+        "the view is no longer built from a commit; if it went back to copying "
+        "the working tree, the toolchain cache needs an explicit exclude again"
     )
+    repo_root = ROOT
+    ignored = subprocess.run(
+        ["git", "check-ignore", "-q", ".toolchain"],
+        cwd=str(repo_root), capture_output=True,
+    ).returncode == 0
+    assert ignored, ".toolchain is not gitignored, so a tracked-content view could carry it"
+    tracked = subprocess.run(
+        ["git", "ls-files", ".toolchain"],
+        cwd=str(repo_root), capture_output=True, text=True,
+    ).stdout.strip()
+    assert not tracked, f".toolchain has tracked files, which a git-archive view WOULD carry: {tracked!r}"
 
 
 def test_the_cache_is_not_inside_the_eval_dir() -> None:
