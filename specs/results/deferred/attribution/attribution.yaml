@@ -235,6 +235,62 @@ reach:
 # BLIND -- a green, and what it could never have caught. (§6)
 # A BLIND does not fail a green and does not gate a close. It annotates one.
 # =====================================================================
+  - invariant: >-
+      a checker that walks the checkout reads THIS repository's source, and
+      neither the per-checkout agent homes nor build output, which carry whole
+      COPIES of the bytes it is checking
+    enforced_on:
+      - "skills/spec-double-2/scripts/check_citations.py, via EXCLUDED_DIRS,
+         now pruning DURING the walk rather than filtering its results"
+      - "tests/test_card_has_one_home.py, via PRUNE = ... | AGENT_HOMES |
+         BUILD_OUTPUT"
+      - "tests/test_prediction_seal.py, via NOT_THIS_REPO -- previously no
+         prune at all on its test_graph root"
+      - "tests/test_source_citations.py and tests/test_citation_fixer.py,
+         which inherit the fix because both delegate to the shipped checker"
+    unenforced_on:
+      - "the prune is by NAME, deliberately (these trees are gitignored, and
+         demonstrate.py runs tripwires in staged copies with no repository
+         around them where `git check-ignore` decides nothing) -- so a build
+         directory under any other name is not covered"
+      - "every repo-rooted walker outside tests/ and the spec-double-2
+         scripts: evals/lib/checks/testgraph_scaffold.py and evals/lib/grant.py
+         walk without a prune and were never exercised by the experiment below"
+      - "tests/test_scripts_parse_on_oldest_python.py, which walks rooted and
+         names no prune; it did not fail here, which is evidence about this
+         tree's contents, not about the walker"
+      - "the cost half is enforced only in check_citations.py. No other walker
+         builds an index, so any of them can still go quadratic on a polluted
+         tree without failing -- it would simply take longer"
+    enumerated_by: >-
+      EMPIRICALLY, not by grep: the full suite was run on a worktree polluted
+      by real test_graph output (test_graph/build/validation-reports/, 22
+      copies of each cited script, ~360k entries) and compared BY NAME against
+      known-ten-baseline.txt. Exactly 5 tests in 4 files changed verdict; all 4
+      files are in enforced_on. A syntactic sweep was attempted first and is
+      recorded as rejected: a regex for `REPO_ROOT...rglob` missed
+      check_citations.py and test_prediction_seal.py, both of which were known
+      by then to be in the population, so no count from it is reportable.
+    note: >-
+      SI-27. THE RECURRENCE IS THE FINDING. This is the third time this exact
+      class has been fixed one instance at a time: RD-01-DF-02 pruned agent
+      homes from the card tripwire, HP-01-DF-01 pruned them from the citation
+      resolver, and each fixed the instance in front of it without ever
+      enumerating the population of walkers. Section 5 names the failure
+      exactly -- "a REACH whose unenforced list was never acted on is a list,
+      not a reach" -- and there was no reach row at all, so there was not even
+      a list. Two further things were only visible because the pollution was
+      kept in place as a non-vacuity control rather than cleaned away: the
+      first fix was CORRECT AND USELESS, filtering rglob's output while it
+      still descended ~360k entries per citation, so the shipped checker
+      exceeded a 300s timeout and reported nothing at all (a checker too slow
+      to finish is worse than one that answers wrongly, and it had been
+      degrading silently for as long as agents have run test graphs); and the
+      five red tests were initially read as regressions from the SI-27 merge,
+      which they were not -- they postdated the baseline because the epic
+      agent's own test-graph runs had written the fixtures.
+    skill_change: applied(d09d8326)
+
 blind:
 
   - case: "skills/plugin-repository/scripts/verify.sh -- the repository sweep"

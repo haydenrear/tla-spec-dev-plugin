@@ -7064,3 +7064,73 @@ findings:
       SI-04-DF-04 is corrected from `fixed` back to `still-true` in the same
       commit, with both of SI-27's readings recorded. Evidence:
       specs/results/epic-self-improvement-substrate/tickets/SI-27/remote-origin-is-local-again.txt.
+  - id: SI-27-DF-06
+    severity: major
+    found_by: "epic agent, verifying the SI-27 merge"
+    found_at_commit: "56840715"
+    schedule_revision: 8
+    surface:
+      production:
+        - "skills/spec-double-2/scripts/check_citations.py (resolve_cited)"
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "tests/test_card_has_one_home.py"
+        - "tests/test_prediction_seal.py"
+    summary: >-
+      Three checkers walked the whole checkout and counted generated COPIES of
+      the repository as the repository. Running the test graphs and then the
+      suite -- the ordinary order -- turned five checks red on a tree whose only
+      difference was output: test_graph writes whole plugin trees as fixtures
+      under test_graph/build/validation-reports/, giving case_modules.py 22
+      copies. The citation resolver then called a uniquely-named source file
+      ambiguous ("does not resolve to one file"), the card tripwire reported the
+      card stated outside its one home at a fixture OF the card, and the
+      prediction-seal check found 72 consumers of a checker nothing consumes,
+      one being a copy of its own test file. Separately and worse, the shipped
+      checker was quadratic: resolve_cited re-walked the tree per citation, so
+      on a polluted tree it blew a 300s timeout and reported NOTHING.
+    reproduction: >-
+      In the epic worktree, run the test graphs (leaving
+      test_graph/build/validation-reports/ in place), then run the suite as
+      README.md:168 documents it -- uv run with pytest, pyyaml, jinja2 and
+      hypothesis, over the tests directory. Five failures appear that are absent
+      from an archive of the same commit. Decisive control: move
+      test_graph/build aside and re-run only those five -- 5 passed, no code
+      change.
+    why_out_of_scope: >-
+      Not out of scope; fixed in the same pass it was found. Recorded because
+      the RECURRENCE is the finding, not this instance.
+    suggested_fix: >-
+      Done in d09d8326: prune by NAME during descent (not by filtering
+      the glob's output, which still descends), and build one basename index per
+      root instead of one walk per citation. Prune by name rather than asking
+      git because these trees are gitignored -- so a plain clone has none and
+      every walk looks correct -- and because demonstrate.py runs tripwires in
+      staged copies where git check-ignore decides nothing.
+    blast_radius: >-
+      Every ticket worktree, which is the only place ticket agents ever run, and
+      every agent who runs graphs before the suite. "The suite is green" was not
+      true there, and the five reds invited exactly the wrong conclusion: they
+      were first read as regressions from the SI-27 merge. They were not -- they
+      postdated the baseline because the epic agent's own graph runs wrote the
+      fixtures. The cost half had been degrading silently for as long as agents
+      have run test graphs, and a checker too slow to finish reports nothing at
+      all, which is worse than reporting wrongly.
+    evidence:
+      - "specs/results/deferred/attribution/attribution.yaml (the REACH row: invariant, enforced_on, unenforced_on)"
+      - "300s timeout to 4.1s on the same tree; full suite 2185s to 1259s"
+      - "10 failed, 1843 passed with pollution present, compared BY NAME against the ten known: no new name, no disappeared name (1838 to 1843)"
+    skill_change: "applied(d09d8326)"
+    fixed_by: "d09d8326"
+    disposition: fixed
+    disposition_ticket: "SI-27 (#382)"
+    disposition_note: >-
+      Third fix of one class: RD-01-DF-02 pruned agent homes from the card
+      tripwire, HP-01-DF-01 pruned them from the citation resolver, and neither
+      enumerated the population of walkers. bug_attribution.md section 5 names
+      the failure exactly -- "a REACH whose unenforced list was never acted on
+      is a list, not a reach" -- and there was no reach row at all, so there was
+      not even a list. There is one now, and its unenforced_on names the walkers
+      still uncovered.
