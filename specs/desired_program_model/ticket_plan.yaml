@@ -1659,7 +1659,33 @@ tickets:
 
   - id: SI-19
     title: "Eval ladder 1/4: scaffold a test graph, verify by hand, then one small eval"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-23 as PR #1 on tla-spec-dev-plugin (the first PR on the
+      delivery surface), epic tip 41560624. Verified independently rather than
+      accepted: the manual record 8e362bbb is an ancestor of the eval case
+      eefe3aa8, the record commit carries 0 files under evals/, and the case
+      commit does not touch the record -- so GOAL-evals-earned's ordering holds
+      by construction and not by assertion, 1 stage of 1. Suite compared BY NAME
+      against the ten known: no new name, no disappeared name, 1845 passed
+      (+2, both parametrisations over the new inbox file).
+
+      SI-19 CORRECTED THE EPIC AGENT, and that is the most useful thing it did.
+      The dispatch handed it a baseline of "ten known failures". The real count
+      on the untouched epic tip was ELEVEN: my own assertion in 2e01a950 asked
+      `git check-ignore -q .toolchain`, and the rule at .gitignore:45 is spelled
+      `.toolchain/` -- directories only -- which check-ignore cannot match for a
+      path absent from disk. The cache is created by the first eval run, so the
+      test was green on any machine that had run one and red in every fresh
+      checkout, including CI and every ticket agent. I had measured the baseline
+      in a worktree that happened to have it. SI-19 falsified it both ways
+      instead of reporting a discrepancy; repaired in 105f224c and verified in
+      both conditions.
+
+      No scored eval run is claimed: `claude plugin eval` has no load-only flag
+      and nobody authorised billed spend. What is established is structural --
+      the view rebuilt as run.sh builds it, 8,686 entries against a 20,000
+      ceiling, 62 case.yaml where there were 61, with a non-vacuity control.
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/368"
     schedule_revision: 4
     depends_on: ["SI-13", "SI-14"]
