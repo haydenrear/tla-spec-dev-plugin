@@ -10,7 +10,7 @@ updated: "2026-09-21"
 # later wave. The owner re-sequenced: graph surface, then the manual gamut,
 # then skill-manager, and the eval ladder LAST, consuming a substrate both
 # products already share. The dependency list and the objective now say that.
-schedule_revision: 8
+schedule_revision: 9
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -630,7 +630,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/339"
     schedule_revision: 1
     depends_on: ["SI-02"]
-    blocks: ["SI-07", "SI-09", "SI-08"]
+    blocks: ["SI-07", "SI-08", "SI-09"]
     wave: 3
     promotion_order: 50
     promotion_predecessor: "SI-05"
@@ -797,7 +797,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/336"
     schedule_revision: 1
     depends_on: ["SI-04"]
-    blocks: ["SI-09", "SI-08"]
+    blocks: ["SI-08", "SI-09"]
     wave: 4
     promotion_order: 70
     promotion_predecessor: "SI-11"
@@ -850,7 +850,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/340"
     schedule_revision: 1
     depends_on: ["SI-04", "SI-05", "SI-06"]
-    blocks: ["SI-09", "SI-08"]
+    blocks: ["SI-08", "SI-09"]
     wave: 4
     promotion_order: 80
     promotion_predecessor: "SI-03"
@@ -1008,7 +1008,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/360"
     schedule_revision: 3
     depends_on: ["SI-02", "SI-12"]
-    blocks: ["SI-14", "SI-15", "SI-08", "SI-19"]
+    blocks: ["SI-08", "SI-14", "SI-15", "SI-19"]
     wave: 7
     promotion_order: 95
     promotion_predecessor: "SI-09"
@@ -1059,7 +1059,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/361"
     schedule_revision: 3
     depends_on: ["SI-13"]
-    blocks: ["SI-15", "SI-08", "SI-19"]
+    blocks: ["SI-08", "SI-15", "SI-19"]
     wave: 8
     promotion_order: 100
     promotion_predecessor: "SI-13"
@@ -1291,7 +1291,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/366"
     schedule_revision: 4
     depends_on: ["SI-16"]
-    blocks: ["SI-20", "SI-23"]
+    blocks: ["SI-18", "SI-20", "SI-23", "SI-24"]
     wave: 12
     promotion_order: 140
     promotion_predecessor: "SI-16"
@@ -1386,7 +1386,7 @@ tickets:
     # test graph including skt. Then ... we'll reconvene here to do the evals."
     # So SI-18 runs BEFORE the ladder, and the ladder consumes its result.
     depends_on: ["SI-15", "SI-16", "SI-17", "SI-24", "SI-25", "SI-26"]
-    blocks: ["SI-23"]
+    blocks: ["SI-22", "SI-23"]
     wave: 16
     promotion_order: 160
     promotion_predecessor: "SI-26"
@@ -1440,7 +1440,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/377"
     schedule_revision: 5
     depends_on: ["SI-16", "SI-17"]
-    blocks: ["SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-23"]
+    blocks: ["SI-18", "SI-23", "SI-25"]
     wave: 13
     promotion_order: 150
     promotion_predecessor: "SI-17"
@@ -1492,7 +1492,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/380"
     schedule_revision: 6
     depends_on: ["SI-24"]
-    blocks: ["SI-26", "SI-18", "SI-23"]
+    blocks: ["SI-18", "SI-26", "SI-27"]
     wave: 14
     promotion_order: 152
     promotion_predecessor: "SI-24"
@@ -1542,7 +1542,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/381"
     schedule_revision: 6
     depends_on: ["SI-25"]
-    blocks: ["SI-18", "SI-19", "SI-23"]
+    blocks: ["SI-18", "SI-27"]
     wave: 15
     promotion_order: 155
     promotion_predecessor: "SI-25"
@@ -1600,10 +1600,10 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/382"
     schedule_revision: 8
     depends_on: ["SI-25", "SI-26"]
-    blocks: ["SI-19", "SI-23"]
+    blocks: []
     wave: 16
     promotion_order: 165
-    promotion_predecessor: "SI-26"
+    promotion_predecessor: "SI-18"
     role: implementation
     objective: "Make the findings record answerable. It is currently TWO ledgers that disagree -- deferred_findings_final.yaml holds 87 rows and the per-ticket files under specs/results/deferred/ hold 28 more that are not in it (SI-08 x11, SI-16 x6, SI-15 x5, SI-17 x5, EPIC-AGENT x1), so the real total is 115. The epic agent cited SI-16-DF-02 and -DF-03 as the eval blockers and a ledger query returned NOT FOUND for both. Beyond reconciling that, disposition the 80 unsettled rows with evidence, batch the fixes that are safely in scope, and fill the three attribution record kinds that are entirely empty."
     desired_actions: []
@@ -1666,7 +1666,7 @@ tickets:
     blocks: ["SI-20", "SI-23"]
     wave: 17
     promotion_order: 170
-    promotion_predecessor: "SI-18"
+    promotion_predecessor: "SI-27"
     role: implementation
     objective: "First rung of the ladder. Scaffold a test graph, run it, verify the workflow scripts by hand, record what was observed -- and only then write one small eval that encodes it."
     desired_actions: []
@@ -1798,7 +1798,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/371"
     schedule_revision: 4
     depends_on: ["SI-18", "SI-21"]
-    blocks: ["SI-18", "SI-23"]
+    blocks: ["SI-23"]
     wave: 20
     promotion_order: 185
     promotion_predecessor: "SI-21"
