@@ -173,11 +173,23 @@ def test_the_view_excludes_the_materialised_toolchain() -> None:
         "the working tree, the toolchain cache needs an explicit exclude again"
     )
     repo_root = ROOT
+    # THE TRAILING SLASH IS LOAD-BEARING, and it cost a whole ticket to learn.
+    # The rule at `.gitignore:45` is `.toolchain/` -- directories only -- and
+    # `git check-ignore` cannot know that a path which is ABSENT from disk would
+    # be a directory, so it refuses to match a bare `.toolchain` there. The cache
+    # is created by `evals/lib/toolchain.py` on the first eval run, so asking
+    # about the bare name made this assertion green on any machine that had run
+    # one and red in every fresh checkout -- CI and every ticket agent. It was
+    # written that way, and the epic agent then measured a "ten known failures"
+    # baseline in a worktree that happened to have the cache, handed that number
+    # to SI-19, and SI-19 had to spend the investigation to disprove it
+    # (SI-19-DF-04). Spelled with the slash it matches whether or not the
+    # directory exists, which is the property actually being asserted.
     ignored = subprocess.run(
-        ["git", "check-ignore", "-q", ".toolchain"],
+        ["git", "check-ignore", "-q", ".toolchain/"],
         cwd=str(repo_root), capture_output=True,
     ).returncode == 0
-    assert ignored, ".toolchain is not gitignored, so a tracked-content view could carry it"
+    assert ignored, ".toolchain/ is not gitignored, so a tracked-content view could carry it"
     tracked = subprocess.run(
         ["git", "ls-files", ".toolchain"],
         cwd=str(repo_root), capture_output=True, text=True,
