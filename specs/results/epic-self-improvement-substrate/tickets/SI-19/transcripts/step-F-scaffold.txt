@@ -1,0 +1,34 @@
+$ target repo root: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target (empty, no test_graph/)
+total 0
+drwxr-xr-x@  2 hayde  wheel   64 Sep 23 16:26 .
+drwx------@ 25 hayde  wheel  800 Sep 23 16:26 ..
+
+$ python3 skills/test-graph/scripts/scaffold.py /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target
+scaffolded test_graph project at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target/test_graph
+  managed provider bindings: build-logic, sdk, standard-nodes
+  (provider-bindings.json is committed; generated links are ignored)
+
+next steps:
+  cd /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si19-scaffold-target
+  /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/scripts/discover.py
+  /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/scripts/discover.py smoke
+  /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/scripts/run.py smoke
+  /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/scripts/run.py --all
+exit=0
+
+$ ls -la $target/test_graph
+total 72
+drwxr-xr-x@ 14 hayde  wheel   448 Sep 23 16:26 .
+drwxr-xr-x@  3 hayde  wheel    96 Sep 23 16:26 ..
+-rw-r--r--@  1 hayde  wheel   574 Sep 23 16:26 .gitignore
+lrwxr-xr-x@  1 hayde  wheel   109 Sep 23 16:26 build-logic -> /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/project_sdk_sources/build-logic
+-rw-r--r--@  1 hayde  wheel  3885 Sep 23 16:26 build.gradle.kts
+drwxr-xr-x@  4 hayde  wheel   128 Sep 23 16:03 examples
+drwxr-xr-x@  4 hayde  wheel   128 Sep 23 16:03 gradle
+-rwxr-xr-x@  1 hayde  wheel  8497 Sep 23 16:03 gradlew
+-rw-------@  1 hayde  wheel   301 Sep 23 16:26 provider-bindings.json
+-rw-r--r--@  1 hayde  wheel  4370 Sep 23 16:03 README.md
+lrwxr-xr-x@  1 hayde  wheel   101 Sep 23 16:26 sdk -> /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/project_sdk_sources/sdk
+-rw-r--r--@  1 hayde  wheel   333 Sep 23 16:03 settings.gradle.kts
+drwxr-xr-x@ 10 hayde  wheel   320 Sep 23 16:03 sources
+lrwxr-xr-x@  1 hayde  wheel   112 Sep 23 16:26 standard-nodes -> /Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph/project_sdk_sources/standard-nodes

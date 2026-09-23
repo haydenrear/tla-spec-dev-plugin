@@ -1,0 +1,524 @@
+$ cat test_graph/build/validation-reports/20260923-202608/summary.json
+{"runId":"20260923-202608","status":"passed","traceId":"b6e61a51ff5c4a28001d75ffa3c7a056","execution":{"mode":"full","graphName":"cliWorkflow","complete":true,"expectedNodeIds":["spec.cli.install","spec.cli.help"],"observedNodeIds":["spec.cli.help","spec.cli.install"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["spec.cli.install","spec.cli.help"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
+  "nodeId": "spec.cli.help",
+  "status": "passed",
+  "startedAt": "2026-09-23T20:26:14.126911Z",
+  "endedAt": "2026-09-23T20:26:14.867883Z",
+  "assertions": [
+    {
+      "name": "version succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "version mentions tla-spec-dev 0.1.0",
+      "status": "passed"
+    },
+    {
+      "name": "root-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "root-help mentions --spec-root",
+      "status": "passed"
+    },
+    {
+      "name": "root-help mentions scaffold",
+      "status": "passed"
+    },
+    {
+      "name": "root-help mentions open",
+      "status": "passed"
+    },
+    {
+      "name": "root-help mentions run",
+      "status": "passed"
+    },
+    {
+      "name": "root-help mentions close",
+      "status": "passed"
+    },
+    {
+      "name": "scaffold-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "scaffold-help mentions project",
+      "status": "passed"
+    },
+    {
+      "name": "scaffold-help mentions workflow",
+      "status": "passed"
+    },
+    {
+      "name": "project-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "project-help mentions program_model",
+      "status": "passed"
+    },
+    {
+      "name": "project-help mentions baseline",
+      "status": "passed"
+    },
+    {
+      "name": "workflow-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "workflow-help mentions current",
+      "status": "passed"
+    },
+    {
+      "name": "workflow-help mentions desired_program_model",
+      "status": "passed"
+    },
+    {
+      "name": "open-ticket-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "open-ticket-help mentions ticket_name",
+      "status": "passed"
+    },
+    {
+      "name": "open-ticket-help mentions desired-first",
+      "status": "passed"
+    },
+    {
+      "name": "run-spec-units-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "run-spec-units-help mentions generated/adapted",
+      "status": "passed"
+    },
+    {
+      "name": "run-spec-units-help mentions spec root",
+      "status": "passed"
+    },
+    {
+      "name": "close-ticket-help succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "close-ticket-help mentions append-only history",
+      "status": "passed"
+    },
+    {
+      "name": "close-ticket-help mentions ticket_name",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-scaffold exited 2",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-scaffold mentions incomplete command: tla-spec-dev scaffold",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-scaffold mentions next:",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-open exited 2",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-open mentions incomplete command: tla-spec-dev open",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-open mentions next:",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-run exited 2",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-run mentions incomplete command: tla-spec-dev run",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-run mentions next:",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-close exited 2",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-close mentions incomplete command: tla-spec-dev close",
+      "status": "passed"
+    },
+    {
+      "name": "incomplete-close mentions next:",
+      "status": "passed"
+    },
+    {
+      "name": "cli path came from install node",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [],
+  "processes": [
+    {
+      "label": "version",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 97186,
+      "log": "node-logs/spec.cli.help.version.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.127063Z",
+      "endedAt": "2026-09-23T20:26:14.186949Z"
+    },
+    {
+      "label": "root-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97187,
+      "log": "node-logs/spec.cli.help.root-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.187551Z",
+      "endedAt": "2026-09-23T20:26:14.253607Z"
+    },
+    {
+      "label": "scaffold-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "scaffold",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97188,
+      "log": "node-logs/spec.cli.help.scaffold-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.254192Z",
+      "endedAt": "2026-09-23T20:26:14.313917Z"
+    },
+    {
+      "label": "project-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "scaffold",
+        "project",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97189,
+      "log": "node-logs/spec.cli.help.project-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.314486Z",
+      "endedAt": "2026-09-23T20:26:14.374417Z"
+    },
+    {
+      "label": "workflow-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "scaffold",
+        "workflow",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97190,
+      "log": "node-logs/spec.cli.help.workflow-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.374826Z",
+      "endedAt": "2026-09-23T20:26:14.436963Z"
+    },
+    {
+      "label": "open-ticket-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "open",
+        "ticket",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97191,
+      "log": "node-logs/spec.cli.help.open-ticket-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.437407Z",
+      "endedAt": "2026-09-23T20:26:14.499633Z"
+    },
+    {
+      "label": "run-spec-units-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "run",
+        "spec-unit-tests",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97192,
+      "log": "node-logs/spec.cli.help.run-spec-units-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.500074Z",
+      "endedAt": "2026-09-23T20:26:14.559913Z"
+    },
+    {
+      "label": "close-ticket-help",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "close",
+        "ticket",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 97193,
+      "log": "node-logs/spec.cli.help.close-ticket-help.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.560343Z",
+      "endedAt": "2026-09-23T20:26:14.624939Z"
+    },
+    {
+      "label": "incomplete-scaffold",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "scaffold"
+      ],
+      "exitCode": 2,
+      "pid": 97194,
+      "log": "node-logs/spec.cli.help.incomplete-scaffold.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.625516Z",
+      "endedAt": "2026-09-23T20:26:14.683953Z"
+    },
+    {
+      "label": "incomplete-open",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "open"
+      ],
+      "exitCode": 2,
+      "pid": 97195,
+      "log": "node-logs/spec.cli.help.incomplete-open.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.684531Z",
+      "endedAt": "2026-09-23T20:26:14.742646Z"
+    },
+    {
+      "label": "incomplete-run",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "run"
+      ],
+      "exitCode": 2,
+      "pid": 97196,
+      "log": "node-logs/spec.cli.help.incomplete-run.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.743235Z",
+      "endedAt": "2026-09-23T20:26:14.807270Z"
+    },
+    {
+      "label": "incomplete-close",
+      "command": [
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+        "close"
+      ],
+      "exitCode": 2,
+      "pid": 97197,
+      "log": "node-logs/spec.cli.help.incomplete-close.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:14.807880Z",
+      "endedAt": "2026-09-23T20:26:14.867458Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 740
+  },
+  "logs": [],
+  "published": {}
+,"envelopeVersion":1,"executorStartedAt":"2026-09-23T20:26:13.901195Z","executorEndedAt":"2026-09-23T20:26:19.888162Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.help.stdout.log","inputContextFile":"context/spec.cli.help.input.json","traceId":"b6e61a51ff5c4a28001d75ffa3c7a056"},{
+  "nodeId": "spec.cli.install",
+  "status": "passed",
+  "startedAt": "2026-09-23T20:26:08.468980Z",
+  "endedAt": "2026-09-23T20:26:08.839271Z",
+  "assertions": [
+    {
+      "name": "install script succeeded",
+      "status": "passed"
+    },
+    {
+      "name": "tla-spec-dev wrapper exists",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "tla-spec-dev",
+      "path": "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev"
+    }
+  ],
+  "processes": [
+    {
+      "label": "install-tla-spec-dev",
+      "command": [
+        "bash",
+        "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skill-scripts/install-tla-spec-dev.sh"
+      ],
+      "exitCode": 0,
+      "pid": 97166,
+      "log": "node-logs/spec.cli.install.install-tla-spec-dev.log",
+      "error": null,
+      "startedAt": "2026-09-23T20:26:08.469254Z",
+      "endedAt": "2026-09-23T20:26:08.839074Z"
+    }
+  ],
+  "metrics": {
+    "durationMs": 370
+  },
+  "logs": [],
+  "published": {
+    "cliPath": "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev",
+    "binDir": "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-09-23T20:26:08.234193Z","executorEndedAt":"2026-09-23T20:26:13.866762Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.install.stdout.log","inputContextFile":"context/spec.cli.install.input.json","traceId":"b6e61a51ff5c4a28001d75ffa3c7a056"}]}
+$ cat test_graph/build/validation-reports/20260923-202608/report.md
+# Validation report — 20260923-202608
+
+**Graph**: `cliWorkflow`
+
+**Trace ID**: `b6e61a51ff5c4a28001d75ffa3c7a056`
+
+**Overall**: PASSED
+
+**Execution scope**: full graph
+
+**Plan evidence**: 2/2 expected node envelopes observed
+
+**Input-context evidence**: 2/2 expected node snapshots observed
+
+**Nodes**: 2 (passed=2, failed=0, errored=0)
+
+| Node | Status | Duration | Input context | Captured stdout |
+|---|---|---|---|---|
+| `spec.cli.help` | **PASS** | 5987ms | [context/spec.cli.help.input.json](context/spec.cli.help.input.json) | [node-logs/spec.cli.help.stdout.log](node-logs/spec.cli.help.stdout.log) |
+| `spec.cli.install` | **PASS** | 5632ms | [context/spec.cli.install.input.json](context/spec.cli.install.input.json) | [node-logs/spec.cli.install.stdout.log](node-logs/spec.cli.install.stdout.log) |
+
+## `spec.cli.help` — **PASS**
+
+executor start: `2026-09-23T20:26:13.901195Z`
+
+executor end: `2026-09-23T20:26:19.888162Z`
+
+spawn exit code: 0
+
+**Input context**: [context/spec.cli.help.input.json](context/spec.cli.help.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| version succeeded | **PASS** |
+| version mentions tla-spec-dev 0.1.0 | **PASS** |
+| root-help succeeded | **PASS** |
+| root-help mentions --spec-root | **PASS** |
+| root-help mentions scaffold | **PASS** |
+| root-help mentions open | **PASS** |
+| root-help mentions run | **PASS** |
+| root-help mentions close | **PASS** |
+| scaffold-help succeeded | **PASS** |
+| scaffold-help mentions project | **PASS** |
+| scaffold-help mentions workflow | **PASS** |
+| project-help succeeded | **PASS** |
+| project-help mentions program_model | **PASS** |
+| project-help mentions baseline | **PASS** |
+| workflow-help succeeded | **PASS** |
+| workflow-help mentions current | **PASS** |
+| workflow-help mentions desired_program_model | **PASS** |
+| open-ticket-help succeeded | **PASS** |
+| open-ticket-help mentions ticket_name | **PASS** |
+| open-ticket-help mentions desired-first | **PASS** |
+| run-spec-units-help succeeded | **PASS** |
+| run-spec-units-help mentions generated/adapted | **PASS** |
+| run-spec-units-help mentions spec root | **PASS** |
+| close-ticket-help succeeded | **PASS** |
+| close-ticket-help mentions append-only history | **PASS** |
+| close-ticket-help mentions ticket_name | **PASS** |
+| incomplete-scaffold exited 2 | **PASS** |
+| incomplete-scaffold mentions incomplete command: tla-spec-dev scaffold | **PASS** |
+| incomplete-scaffold mentions next: | **PASS** |
+| incomplete-open exited 2 | **PASS** |
+| incomplete-open mentions incomplete command: tla-spec-dev open | **PASS** |
+| incomplete-open mentions next: | **PASS** |
+| incomplete-run exited 2 | **PASS** |
+| incomplete-run mentions incomplete command: tla-spec-dev run | **PASS** |
+| incomplete-run mentions next: | **PASS** |
+| incomplete-close exited 2 | **PASS** |
+| incomplete-close mentions incomplete command: tla-spec-dev close | **PASS** |
+| incomplete-close mentions next: | **PASS** |
+| cli path came from install node | **PASS** |
+
+### Metrics
+
+- `durationMs`: 740
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| version | 0 | 59ms | 97186 | [`node-logs/spec.cli.help.version.log`](node-logs/spec.cli.help.version.log) |  |
+| root-help | 0 | 66ms | 97187 | [`node-logs/spec.cli.help.root-help.log`](node-logs/spec.cli.help.root-help.log) |  |
+| scaffold-help | 0 | 59ms | 97188 | [`node-logs/spec.cli.help.scaffold-help.log`](node-logs/spec.cli.help.scaffold-help.log) |  |
+| project-help | 0 | 60ms | 97189 | [`node-logs/spec.cli.help.project-help.log`](node-logs/spec.cli.help.project-help.log) |  |
+| workflow-help | 0 | 62ms | 97190 | [`node-logs/spec.cli.help.workflow-help.log`](node-logs/spec.cli.help.workflow-help.log) |  |
+| open-ticket-help | 0 | 62ms | 97191 | [`node-logs/spec.cli.help.open-ticket-help.log`](node-logs/spec.cli.help.open-ticket-help.log) |  |
+| run-spec-units-help | 0 | 59ms | 97192 | [`node-logs/spec.cli.help.run-spec-units-help.log`](node-logs/spec.cli.help.run-spec-units-help.log) |  |
+| close-ticket-help | 0 | 64ms | 97193 | [`node-logs/spec.cli.help.close-ticket-help.log`](node-logs/spec.cli.help.close-ticket-help.log) |  |
+| incomplete-scaffold | 2 | 58ms | 97194 | [`node-logs/spec.cli.help.incomplete-scaffold.log`](node-logs/spec.cli.help.incomplete-scaffold.log) |  |
+| incomplete-open | 2 | 58ms | 97195 | [`node-logs/spec.cli.help.incomplete-open.log`](node-logs/spec.cli.help.incomplete-open.log) |  |
+| incomplete-run | 2 | 64ms | 97196 | [`node-logs/spec.cli.help.incomplete-run.log`](node-logs/spec.cli.help.incomplete-run.log) |  |
+| incomplete-close | 2 | 60ms | 97197 | [`node-logs/spec.cli.help.incomplete-close.log`](node-logs/spec.cli.help.incomplete-close.log) |  |
+
+**Node-process stdout**: [node-logs/spec.cli.help.stdout.log](node-logs/spec.cli.help.stdout.log)
+
+---
+
+## `spec.cli.install` — **PASS**
+
+executor start: `2026-09-23T20:26:08.234193Z`
+
+executor end: `2026-09-23T20:26:13.866762Z`
+
+spawn exit code: 0
+
+**Input context**: [context/spec.cli.install.input.json](context/spec.cli.install.input.json)
+
+### Assertions
+
+| Name | Status |
+|---|---|
+| install script succeeded | **PASS** |
+| tla-spec-dev wrapper exists | **PASS** |
+
+### Metrics
+
+- `durationMs`: 370
+
+### Subprocesses
+
+| Label | Exit | Duration | PID | Log | Error |
+|---|---|---|---|---|---|
+| install-tla-spec-dev | 0 | 370ms | 97166 | [`node-logs/spec.cli.install.install-tla-spec-dev.log`](node-logs/spec.cli.install.install-tla-spec-dev.log) |  |
+
+### Artifacts
+
+- `tla-spec-dev` — [`/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev`](/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev)
+
+### Published context
+
+- `cliPath`: `/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin/tla-spec-dev`
+- `binDir`: `/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/test_graph/build/validation-reports/20260923-202608/tla-spec-dev-bin`
+
+**Node-process stdout**: [node-logs/spec.cli.install.stdout.log](node-logs/spec.cli.install.stdout.log)
+
+---

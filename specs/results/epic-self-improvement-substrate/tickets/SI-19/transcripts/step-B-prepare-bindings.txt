@@ -1,0 +1,35 @@
+$ pwd
+/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold
+
+$ python3 skills/test-graph/scripts/prepare-bindings.py
+{
+  "bindings": {
+    "build-logic": {
+      "provider_relative": "project_sdk_sources/build-logic",
+      "target": "../skills/test-graph/project_sdk_sources/build-logic"
+    },
+    "sdk": {
+      "provider_relative": "project_sdk_sources/sdk",
+      "target": "../skills/test-graph/project_sdk_sources/sdk"
+    },
+    "standard-nodes": {
+      "provider_relative": "project_sdk_sources/standard-nodes",
+      "target": "../skills/test-graph/project_sdk_sources/standard-nodes"
+    }
+  },
+  "provider": {
+    "kind": "workspace-relative",
+    "root": "/Users/hayde/IdeaProjects/wt-368-eval-ladder-graph-scaffold/skills/test-graph"
+  },
+  "schema_version": "test-graph.provider-bindings.v1"
+}
+exit=0
+
+$ ls -ld test_graph/sdk test_graph/build-logic test_graph/standard-nodes
+lrwxr-xr-x@ 1 hayde  staff  52 Sep 23 16:24 test_graph/build-logic -> ../skills/test-graph/project_sdk_sources/build-logic
+lrwxr-xr-x@ 1 hayde  staff  44 Sep 23 16:24 test_graph/sdk -> ../skills/test-graph/project_sdk_sources/sdk
+lrwxr-xr-x@ 1 hayde  staff  55 Sep 23 16:24 test_graph/standard-nodes -> ../skills/test-graph/project_sdk_sources/standard-nodes
+
+$ git status --short   # do the materialised bindings dirty the tree?
+?? specs/results/epic-self-improvement-substrate/tickets/SI-19/
+(end of git status)

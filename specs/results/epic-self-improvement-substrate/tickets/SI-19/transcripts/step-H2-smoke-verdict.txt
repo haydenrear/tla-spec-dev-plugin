@@ -1,0 +1,50 @@
+$ python3 -c 'read summary.json status + per-node status'
+overall status: errored
+  app.running -> errored
+  context.snapshots.present -> skipped
+  login.smoke -> skipped
+  network.pingable -> skipped
+  rerun.disabled.probe -> skipped
+  user.seeded -> skipped
+
+$ sed -n '1,40p' report.md
+# Validation report — 20260923-202715
+
+**Graph**: `smoke`
+
+**Trace ID**: `00c6322f4b2e367babf26b57e90aa332`
+
+**Overall**: ERRORED
+
+**Execution scope**: full graph
+
+**Plan evidence**: 6/6 expected node envelopes observed
+
+**Input-context evidence**: 6/6 expected node snapshots observed
+
+**Execution error**: `java.lang.RuntimeException` — node app.running errored
+
+**Nodes**: 6 (passed=0, failed=0, errored=1, skipped=5)
+
+| Node | Status | Duration | Input context | Captured stdout |
+|---|---|---|---|---|
+| `app.running` | **ERROR** | 921ms | [context/app.running.input.json](context/app.running.input.json) | [node-logs/app.running.stdout.log](node-logs/app.running.stdout.log) |
+| `context.snapshots.present` | _skipped_ | 0ms | [context/context.snapshots.present.input.json](context/context.snapshots.present.input.json) | [node-logs/context.snapshots.present.stdout.log](node-logs/context.snapshots.present.stdout.log) |
+| `login.smoke` | _skipped_ | 0ms | [context/login.smoke.input.json](context/login.smoke.input.json) | [node-logs/login.smoke.stdout.log](node-logs/login.smoke.stdout.log) |
+| `network.pingable` | _skipped_ | 0ms | [context/network.pingable.input.json](context/network.pingable.input.json) | [node-logs/network.pingable.stdout.log](node-logs/network.pingable.stdout.log) |
+| `rerun.disabled.probe` | _skipped_ | 0ms | [context/rerun.disabled.probe.input.json](context/rerun.disabled.probe.input.json) | [node-logs/rerun.disabled.probe.stdout.log](node-logs/rerun.disabled.probe.stdout.log) |
+| `user.seeded` | _skipped_ | 0ms | [context/user.seeded.input.json](context/user.seeded.input.json) | [node-logs/user.seeded.stdout.log](node-logs/user.seeded.stdout.log) |
+
+## `app.running` — **ERROR**
+
+<details><summary>Error stack</summary>
+
+```
+java.net.ConnectException
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:951)
+	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:133)
+	at AppRunning.head(AppRunning.java:70)
+	at AppRunning.lambda$main$0(AppRunning.java:48)
+	at com.hayden.testgraphsdk.sdk.Node.run(Node.java:81)
+	at AppRunning.main(AppRunning.java:45)
+Caused by: java.net.ConnectException
