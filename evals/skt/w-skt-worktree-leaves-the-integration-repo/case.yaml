@@ -1,0 +1,55 @@
+schema_version: "1.0"
+name: w-skt-worktree-leaves-the-integration-repo
+description: >-
+  `skt ticket new` exited 0 and printed a worktree that is not where the caller
+  expected it. Handed the captured output, does the agent find the rule that
+  decided the location -- or report a bug in `skt ticket new`?
+  THE BEHAVIOUR: a ticket worktree goes beside the OUTERMOST enclosing
+  integration repository, never inside one, because a linked worktree's `.git`
+  is a FILE and a parent `git add -A` would stage the whole directory as a
+  gitlink. The marker that decides it is `integration.toml` in any ancestor;
+  the rule is `worktree_parent_dir()` in
+  `skills/git-issue-workflow/scripts/lib.sh:341 (worktree_parent_dir)`.
+  PROVENANCE: this case encodes a by-hand run, not a reading. The two arms --
+  one fixture, one variable, `integration.toml` planted above or not -- were
+  driven in the SI-20 worktree at 1cb00be7 on 2026-09-23 and the captured
+  output is at
+  `specs/results/epic-self-improvement-substrate/tickets/SI-20/transcripts/step-05-ea-df-02-two-arms.txt`;
+  the record is `.../manual-verification.md` §4, committed BEFORE this case
+  (GOAL-evals-earned).
+  The agent is asked to diagnose, not to reproduce: reproducing means creating
+  real git worktrees outside the sandbox, which is the very thing the rule is
+  about.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-skt-worktree-leaves-the-integration-repo
+  max_turns: 16
+  timeout_seconds: 600
+  # Bash is granted so the transcript can show WHERE the agent looked. A case
+  # about reading the lifecycle source cannot tell "did not read it" from
+  # "could not read anything" if the only file tool is Read.
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    A validation node in this repository creates a throwaway git repo under its
+    own report directory and runs `skt ticket new TG-1` inside it. It then
+    asserts that the worktree appears beside that throwaway repo. On this
+    repository the node logged, verbatim:
+
+        ticket new exit code: 0
+        ticket new contract: {'worktree': '/Users/hayde/IdeaProjects/subject-repo-TG-1',
+                              'branch':   'feature/TG-1 (constituent repo subject-repo)'}
+        expected worktree: <repo>/test_graph/build/validation-reports/<run>/fixtures/skt-ticket/subject-repo-TG-1
+        worktree exists: False
+
+    The command succeeded and the worktree is real — it is just somewhere else.
+
+    Tell me WHY it went there: name the thing on disk that decided the
+    location, name the function that applies it and the file it lives in, and
+    say in one sentence what would go wrong if the worktree had been created
+    where the node expected. Then say whether this is a defect in
+    `skt ticket new`.
+
+    Do not create any git worktree.
+
+    EVAL-CASE: w-skt-worktree-leaves-the-integration-repo

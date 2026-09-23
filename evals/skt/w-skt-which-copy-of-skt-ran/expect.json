@@ -1,0 +1,9 @@
+{
+  "require": [
+    {
+      "id": "read-the-wrapper-or-its-installer",
+      "tool": "Read|Grep|Bash",
+      "match": "install-skt\\.sh|bin/cli/skt"
+    }
+  ]
+}

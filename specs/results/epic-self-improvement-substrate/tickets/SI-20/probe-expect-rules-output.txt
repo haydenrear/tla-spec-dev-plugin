@@ -1,0 +1,21 @@
+ok    w-skt-worktree-leaves-the-integration-repo  [read lib.sh with Read -> earned]  require-read-the-lifecycle-source = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [read lib.sh with Read -> earned]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped lib.sh -> earned]  require-read-the-lifecycle-source = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped lib.sh -> earned]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [only read the python copy -> NOT earned]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [only read the python copy -> NOT earned]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `git worktree add` -> forbid RED]  require-read-the-lifecycle-source = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `git worktree add` -> forbid RED]  forbid-made-a-worktree = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `skt ticket new` -> forbid RED]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `skt ticket new` -> forbid RED]  forbid-made-a-worktree = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped FOR the phrase -> forbid still GREEN]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped FOR the phrase -> forbid still GREEN]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [idle run earns nothing]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [idle run earns nothing]  forbid-made-a-worktree = False (want False)
+ok    w-skt-which-copy-of-skt-ran  [read the generated wrapper -> earned]  require-read-the-wrapper-or-its-installer = True (want True)
+ok    w-skt-which-copy-of-skt-ran  [read the installer -> earned]  require-read-the-wrapper-or-its-installer = True (want True)
+ok    w-skt-which-copy-of-skt-ran  [read only cli.py -> NOT earned]  require-read-the-wrapper-or-its-installer = False (want False)
+ok    w-skt-which-copy-of-skt-ran  [idle run earns nothing]  require-read-the-wrapper-or-its-installer = False (want False)
+
+NON-VACUITY: 11 synthetic transcripts, 18 verdict assertions
+both directions hold for every rule

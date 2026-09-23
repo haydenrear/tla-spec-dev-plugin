@@ -1,0 +1,37 @@
+schema_version: "1.0"
+name: w-skt-which-copy-of-skt-ran
+description: >-
+  A skill-manager home's `bin/cli/skt` resolves skt from THE HOME THE WRAPPER
+  LIVES IN -- `<home>/plugins/<plugin>/skills/skt/src/skt/cli.py` -- and a
+  worktree's home carries its own clone of that plugin, pinned at whatever
+  commit the home was branched from. So running `<checkout>/.skill-manager/bin/cli/skt`
+  after editing `<checkout>/skills/skt/` runs the OLD code, silently and with no
+  error. Asked why an edit had no effect, does the agent find the resolution
+  rule -- or reach for cache-clearing, PATH, or a reinstall of the wrong unit?
+  PROVENANCE: this case encodes a by-hand run, not a reading. Measured in the
+  SI-20 worktree at 1cb00be7 on 2026-09-23: the worktree home's contained copy
+  sat at 1efa0b4b and its `status.py` differed from the source beside it; the
+  gamut was re-run against a home built by hand with `install-skt.sh` so that
+  the bytes under test were the bytes under review. Record:
+  `specs/results/epic-self-improvement-substrate/tickets/SI-20/manual-verification.md`
+  §0, committed BEFORE this case (GOAL-evals-earned).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-skt-which-copy-of-skt-ran
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    I am working in a git worktree of this repository. It has its own Skill
+    Manager home at `.skill-manager/`, with a `bin/cli/skt` in it.
+
+    I edited `skills/skt/src/skt/status.py` here — added a line to what
+    `skt status` prints. Then I ran `.skill-manager/bin/cli/skt status` and my
+    line is not there. No error, exit 0, and the old output.
+
+    There is no caching involved and nothing is stale in the sense of needing a
+    rebuild. Tell me what that wrapper actually executes and why it is not my
+    file, and then give me a command that DOES run the code I just edited.
+
+    EVAL-CASE: w-skt-which-copy-of-skt-ran
