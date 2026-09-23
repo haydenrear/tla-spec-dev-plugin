@@ -53,8 +53,8 @@ schema_version = 1
 
 [units.skill-manager]
 origin = "git@github.com:haydenrear/skill-manager.git"
-commit = "fd4bdf7865d68a186a1faca94b2abed9bc981750"
-ref_when_pinned = "feature/si18-adopt-unified-plugin"
+commit = "7941f4e1dd9eb72debea3b82ec2230d21971cf68"
+ref_when_pinned = "epic/self-improvement-substrate"
 role = """
 The CLI itself. Evals must run against the skill-manager from the branch under
 review, NOT the operator's brew install at

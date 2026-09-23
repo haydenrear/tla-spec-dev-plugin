@@ -1333,7 +1333,48 @@ tickets:
 
   - id: SI-18
     title: "skill-manager adopts the unified plugin: drop vendored skt, teach the resolver the plugin rung, stop onboard re-installing"
-    status: planned
+    status: done
+    delivery_note: >-
+      Delivered in the skill-manager repository as PR #397, merged to
+      epic/self-improvement-substrate on 2026-09-23 as merge commit 7941f4e1.
+      Dispatched there as a separate agent per the owner decision of 2026-09-20,
+      so this repository holds no SI-18 diff.
+
+      VALIDATED BEFORE MERGE, and locally, because CI never runs the graphs on a
+      PR -- that job is gated to schedule/workflow_dispatch, so "skipping" there
+      was by design and not a failure. 26 of 26 graphs executed, 24 passed. The
+      two reds were proven environmental rather than assumed: both failed the
+      same node, the_operators_real_agent_homes_did_not_move, over ONE file that
+      neither repository references anywhere --
+      .claude/skills/synced/<uuid>/manifest.json, identical size 6501, mtime
+      only. The file was observed rewriting itself during a 45s window with no
+      graph running, and the mtime it moved to (1790191140) is the exact value
+      the ticket-lifecycle re-run then reported as a leak. onboarding passed on
+      re-run; ticket-lifecycle reproduced the same mtime-only delta. The
+      oracle's own self-tests -- planted unit directory, planted symlink,
+      in-place rewrite, repointed skill link -- all passed, so the instrument is
+      sound; it is watching a tree the agent client mutates on its own schedule.
+      CI is unaffected: there is no Claude Code client there. Filed as
+      SI-18-DF-01.
+
+      ACCEPTANCE, item by item. "No TLA identifier ever named skt": holds -- the
+      three surviving mentions in skill-manager's live spec trees
+      (GitHistoryInternal.tla:216, :251, HomeIntegrityInternal.tla:596) are
+      prose and comments, never identifiers. "The @command binding on
+      GitHistoryInternal.tla:251 is repointed or removed deliberately": the
+      deliberate decision is to KEEP IT UNCHANGED. It reads `@command wt close /
+      skt ticket close`, and `skt ticket close` is still a real command --
+      skills/skt/src/skt/cli.py:90 lists `close` among the ticket verbs and
+      cli.py:225 carries its usage. SI-18 retired the VENDORED COPY of skt, not
+      the command, so a repoint would have made the binding wrong. Recorded here
+      because the acceptance asked for a decision, and "unchanged" is only a
+      decision if it is written down. "skill-manager's citation tests stay
+      green": covered by the PR's own checks, all of which pass; the sole red is
+      DCO, which the owner ruled irrelevant on 2026-09-19.
+
+      The eval toolchain pin moved with the merge, from the mid-branch commit
+      fd4bdf78 to the merge commit, and was verified by the CLI's own
+      self-report: `skill-manager 0.28.1+g7941f4e1dd9e`.
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/367"
     schedule_revision: 7
     # REVISION 7: the eval-ladder dependencies are dropped. Revision 5 had

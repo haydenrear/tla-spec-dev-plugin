@@ -7134,3 +7134,60 @@ findings:
       is a list, not a reach" -- and there was no reach row at all, so there was
       not even a list. There is one now, and its unenforced_on names the walkers
       still uncovered.
+  - id: SI-18-DF-01
+    severity: minor
+    found_by: "epic agent, validating PR #397 before merge"
+    found_at_commit: "fd4bdf78"
+    schedule_revision: 8
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph:
+        - "skill-manager: the leak oracle behind the_operators_real_agent_homes_did_not_move (a DIFFERENT repository)"
+      workflow: []
+    summary: >-
+      skill-manager's home-leak oracle watches the operator's real agent homes
+      by (path, size, mtime), and one of the trees it watches is
+      .claude/skills/synced/, which the Claude Code client rewrites on its own
+      schedule -- roughly every four minutes. Any graph whose oracle window
+      straddles one of those rewrites reports a leak that no code caused. Two of
+      26 graphs went red this way, ticket-lifecycle and onboarding, on one file
+      with an IDENTICAL size of 6501 bytes and nothing but a new mtime.
+    reproduction: >-
+      Run skill-manager's graphs on a workstation with a Claude Code session
+      live. ticket-lifecycle reproduced on both runs; onboarding failed once and
+      passed on re-run. Decisive control, which is what settles it: stat the file
+      directly over a 45 second window with NO graph running -- the mtime moves
+      on its own, and the value it moves to (1790191140) is the exact value the
+      next ticket-lifecycle run then reported as a leak.
+    why_out_of_scope: >-
+      The fix belongs to the skill-manager repository, which has its own epic
+      branch and its own PR flow; this row exists so the flake is written down
+      rather than rediscovered. It did not block the SI-18 merge because it is
+      not an SI-18 regression and CI cannot hit it.
+    suggested_fix: >-
+      Either exclude .claude/skills/synced/ from the watched set -- it is the
+      agent client's own sync area, not a home skill-manager ever writes -- or
+      compare a content hash instead of an mtime, which would be strictly
+      stronger than the present check and immune to a touch. The oracle's
+      in-place-rewrite self-test changes content, so it would still pass under
+      hashing.
+    blast_radius: >-
+      Local development only, and it is worth being precise about that: there is
+      no Claude Code client in CI, so ~/.claude/skills/synced/ does not exist
+      there and the nightly sweep cannot hit this. What it costs is an agent's
+      trust in a red graph on a workstation, which is the expensive kind of
+      false alarm -- it invites reading a real leak as noise next time.
+    evidence:
+      - "failureMessage on ticket.lifecycle.global.home.untouched: size 6501 both sides, mtime 1790191140556 -> 1790191370172, differencesFound 2 of baselineEntries 75466"
+      - "the oracle's own self-tests all PASSED: planted unit directory, planted symlink, in-place rewrite, repointed agent skill link, config coverage"
+      - "neither skill-manager nor tla-spec-dev-plugin contains any reference to skills/synced (0 hits in each)"
+    skill_change: "none"
+    disposition: still-true
+    disposition_ticket: "SI-18"
+    disposition_note: >-
+      Filed 2026-09-23 by the epic agent while validating PR #397 locally,
+      because CI never runs the graphs on a PR. Not repaired here: the oracle is
+      skill-manager's code, and PR #397 was merged on the strength of the
+      environmental proof above rather than by weakening the instrument.
