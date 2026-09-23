@@ -224,6 +224,11 @@ def test_a_family_prefix_reaches_its_columns() -> None:
     assert {"corpus-slice-led", "corpus-slice-res", "corpus-whole"} <= preds["N05"].instruments
 
 
+#: Trees under the repo root that are not the repo's source: build output and
+#: the per-checkout agent homes `wt new` creates.
+NOT_THIS_REPO = {"build", ".skill-manager", ".claude", ".codex", ".gemini"}
+
+
 def test_the_checker_gates_nothing_in_the_toolchain() -> None:
     """No new gates. Nothing invokes this; its exit code is for the human
     sealing the file."""
@@ -236,6 +241,15 @@ def test_the_checker_gates_nothing_in_the_toolchain() -> None:
         if not root.exists():
             continue
         for path in root.rglob("*.py"):
+            # Not this repository: per-checkout agent homes and `test_graph`
+            # build output both carry whole COPIES of the plugin -- including a
+            # copy of this very file, whose text names the checker. Scanning
+            # them reported 72 "consumers" of a checker nothing consumes
+            # (SI-27), the same shape as HP-01-DF-01. Pruned by name because
+            # these trees are gitignored, so a plain clone has none and the
+            # walk looks correct until a ticket agent runs the graphs first.
+            if NOT_THIS_REPO.intersection(path.parts):
+                continue
             if "check_prediction_seal" in path.read_text(encoding="utf-8", errors="ignore"):
                 consumers.append(str(path.relative_to(REPO_ROOT)))
     assert consumers == [], consumers

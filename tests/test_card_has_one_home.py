@@ -183,8 +183,15 @@ TEXTY = (".md", ".py", ".toml", ".yaml", ".yml", ".txt", ".tla", ".json", ".sh")
 # for the wrong reason.
 AGENT_HOMES = {".skill-manager", ".claude", ".codex", ".gemini"}
 
+# Build output is the same argument one directory over: `test_graph` writes
+# whole plugin trees as fixtures under `test_graph/build/validation-reports/`,
+# which carry real copies of the card. Running the test graphs and then this
+# tripwire reported the card "stated outside its one home" at a path that is a
+# fixture of itself (SI-27). Nothing tracked lives under a `build/`.
+BUILD_OUTPUT = {"build"}
+
 PRUNE = {".git", "__pycache__", ".venv", "node_modules", ".pytest_cache",
-         ".mypy_cache"} | AGENT_HOMES
+         ".mypy_cache"} | AGENT_HOMES | BUILD_OUTPUT
 
 STOPWORDS = {"a", "an", "the", "is", "are", "was", "were", "be", "and", "or", "of",
              "to", "in", "on", "it", "its", "that", "this", "by", "as"}

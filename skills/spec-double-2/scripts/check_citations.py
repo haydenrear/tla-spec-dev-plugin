@@ -72,7 +72,17 @@ BARE_CITATION = re.compile(r"(?<![\w.:/\[\d])(?<!\.\.)\:(\d{2,4})\b")
 #: cited here by name. It is gitignored, so a plain clone has none and a
 #: basename resolver looked correct, but `wt new` creates one in every ticket
 #: worktree, which is the only place ticket agents ever run (HP-01-DF-01).
-EXCLUDED_DIRS = {".git", "generated", ".skill-manager", ".claude", ".codex", ".gemini"}
+#:
+#: `build` is the SAME CLASS, found again by SI-27: `test_graph` materialises
+#: whole plugin trees as fixtures under `test_graph/build/validation-reports/`,
+#: so running the test graphs and then this checker made five citations
+#: "ambiguous" that name exactly one source file. Nothing tracked lives under a
+#: `build/` (`.gitignore:3` ignores it repo-wide), so the name is safe to prune,
+#: and pruning by NAME rather than by asking git is deliberate: this checker
+#: also runs in staged copies with no repository around them, where
+#: `git check-ignore` decides nothing.
+EXCLUDED_DIRS = {".git", "generated", "build",
+                 ".skill-manager", ".claude", ".codex", ".gemini"}
 
 
 @dataclass(frozen=True)
@@ -98,16 +108,56 @@ def scoped_files(root: Path = REPO_ROOT) -> list[Path]:
     return found
 
 
+#: basename -> source files carrying it, built once per root. See `_index`.
+_INDEX_CACHE: dict[Path, dict[str, list[Path]]] = {}
+
+
+def _index(root: Path) -> dict[str, list[Path]]:
+    """Every source file under `root`, by basename, pruning as it descends.
+
+    Two things here are load-bearing, and both were measured rather than
+    assumed (SI-27):
+
+    1. **The prune happens DURING the walk, not after it.** `rglob` filtered by
+       `EXCLUDED_DIRS` still descends into every excluded tree. With
+       `test_graph/build/validation-reports/` present -- whole plugin trees
+       materialised as fixtures -- that is ~360k entries to walk past.
+    2. **The index is built once per root, not once per citation.** The
+       previous resolver called `rglob` for EVERY citation, so the cost was
+       (citations x tree), and on a polluted tree the shipped checker exceeded
+       a 300s timeout without ever reporting a result. A checker too slow to
+       finish reports nothing, which is worse than reporting wrongly.
+    """
+    cached = _INDEX_CACHE.get(root)
+    if cached is not None:
+        return cached
+    index: dict[str, list[Path]] = {}
+    stack = [root]
+    while stack:
+        current = stack.pop()
+        try:
+            children = list(current.iterdir())
+        except OSError:
+            continue
+        for child in children:
+            if child.name in EXCLUDED_DIRS:
+                continue
+            if child.is_symlink():
+                continue
+            if child.is_dir():
+                stack.append(child)
+            elif child.is_file():
+                index.setdefault(child.name, []).append(child)
+    _INDEX_CACHE[root] = index
+    return index
+
+
 def resolve_cited(name: str, root: Path = REPO_ROOT) -> Path | None:
     """A cited path, resolved from the repo root or by unique basename."""
     direct = root / name
     if direct.is_file():
         return direct
-    matches = [
-        path
-        for path in root.rglob(Path(name).name)
-        if path.is_file() and not EXCLUDED_DIRS.intersection(path.parts)
-    ]
+    matches = _index(root).get(Path(name).name, [])
     return matches[0] if len(matches) == 1 else None
 
 
