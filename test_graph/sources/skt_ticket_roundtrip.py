@@ -85,15 +85,29 @@ def _resolve_giw(workdir: Path) -> tuple[Path, str]:
     for base in (os.environ.get("SKILL_MANAGER_HOME"), str(Path.home() / ".skill-manager")):
         if not base:
             continue
-        candidate = Path(base) / "skills" / "git-issue-workflow"
-        # SI-17: `wt` and `wt.py` are skt's now, so neither is evidence that
-        # THIS unit is usable. What makes it usable is the lifecycle `wt`
-        # delegates to, and lib.sh is the file every one of those scripts
-        # sources first — so it is the honest probe.
-        if (candidate / "scripts" / "lib.sh").is_file() and (
-            candidate / "scripts" / "new-change.sh"
-        ).is_file():
-            return candidate, f"installed:{candidate}"
+        # BOTH RUNGS, and the second one is why this node went red on
+        # 2026-09-23. A unit installed STANDALONE lives at
+        # `<home>/skills/<unit>`; a unit CONTAINED in a plugin lives at
+        # `<home>/plugins/*/skills/<unit>`. git-issue-workflow is contained in
+        # the tla-spec-dev plugin now and is absent from the standalone rung in
+        # every home, so a single-rung search finds nothing, falls through, and
+        # clones GIW_REMOTE — a DIFFERENT, archived repository. The node then
+        # tests upstream main instead of the code under review, and the
+        # dangerous outcome is not this red: it is the green it would report
+        # when the clone succeeds. Filed as SI-25-DF-06 and left unrepaired
+        # until it actually broke something.
+        for candidate in [
+            Path(base) / "skills" / "git-issue-workflow",
+            *sorted((Path(base) / "plugins").glob("*/skills/git-issue-workflow")),
+        ]:
+            # SI-17: `wt` and `wt.py` are skt's now, so neither is evidence that
+            # THIS unit is usable. What makes it usable is the lifecycle `wt`
+            # delegates to, and lib.sh is the file every one of those scripts
+            # sources first — so it is the honest probe.
+            if (candidate / "scripts" / "lib.sh").is_file() and (
+                candidate / "scripts" / "new-change.sh"
+            ).is_file():
+                return candidate, f"installed:{candidate}"
     target = workdir / "git-issue-workflow"
     if not target.exists():
         clone = subprocess.run(
@@ -139,6 +153,25 @@ def main(ctx):
     except RuntimeError as exc:
         return NodeResult.fail(ctx.node_id, str(exc))
     result.log(f"git-issue-workflow from {source}")
+    # THE SOURCE WAS LOGGED AND NEVER ASSERTED, which is why a single-rung
+    # resolver could silently test a DIFFERENT repository for as long as it did
+    # (SI-25-DF-06). A log is read by whoever already suspects something. Assert
+    # it, so the fallback cannot pass quietly: when a local install exists, using
+    # the upstream clone instead means the round trip is measuring upstream main
+    # rather than the code under review, and "passed" would name the wrong code.
+    allow_clone = os.environ.get("SKT_TG_ALLOW_CLONE") == "1"
+    if not (source.startswith("installed:") or source.startswith("SKT_TG_GIW=") or allow_clone):
+        result.log(
+            f"RESOLVED {source} WHILE A LOCAL INSTALL WAS EXPECTED. A contained unit "
+            f"lives at <home>/plugins/*/skills/<unit>, not only <home>/skills/<unit>. "
+            f"Set SKT_TG_ALLOW_CLONE=1 on a hosted runner that genuinely has no home."
+        )
+    result.assertion(
+        "git-issue-workflow resolved to a local install, not an upstream clone",
+        source.startswith("installed:") or source.startswith("SKT_TG_GIW=") or allow_clone,
+    )
+    # metric() takes a number; the source string stays in the log above.
+    result.metric("giwResolvedLocally", 1 if source.startswith(("installed:", "SKT_TG_GIW=")) else 0)
     # What this unit must supply AFTER SI-17: the lifecycle, not the door.
     # Asserting `scripts/wt` here would now be asserting something about skt
     # through a git-issue-workflow checkout, which is exactly the confusion
@@ -176,6 +209,14 @@ def main(ctx):
         result.log(f"stderr: {created.stderr[-1200:]}")
         return result
     contract = _contract(created.stdout)
+    # LOG THE CONTRACT ON SUCCESS TOO. stdout was logged only when `ticket new`
+    # exited non-zero, so the case that actually happened -- exit 0 with a
+    # worktree somewhere other than expected -- produced thirteen red assertions
+    # and NO record of what the command printed. A node that cannot say what it
+    # saw makes the next reader reproduce it by hand before they can even start.
+    result.log(f"ticket new contract: {contract}")
+    result.log(f"expected worktree: {expected_worktree.resolve()}")
+    result.log(f"worktree exists: {expected_worktree.is_dir()}")
     result.assertion(
         "new prints the worktree and branch keys",
         contract.get("worktree") == str(expected_worktree.resolve())
