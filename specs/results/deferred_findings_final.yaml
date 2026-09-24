@@ -8261,3 +8261,58 @@ findings:
       something its own setup cannot produce. That is now twice in this epic, which makes it a
       class rather than an instance: a grader''s precondition is part of the grader, and nothing
       checks that one exists.'
+  - id: EA-DF-10
+    severity: major
+    found_by: epic agent, checking whether its own commit had contained what it said it did
+    found_at_commit: 169267c3
+    schedule_revision: 9
+    surface:
+      production:
+      - .gitignore:98
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: 'AN EVAL FIXTURE THAT IS A HOME CANNOT BE COMMITTED, AND NOTHING SAYS SO. `.gitignore:98`
+      is `.skill-manager/`, which git matches at ANY depth, so `evals/<unit>/<case>/fixture/.skill-manager/`
+      is ignored exactly like a real home. `git add` reports success and stages nothing. The eval
+      view is built by `git archive HEAD`, i.e. TRACKED CONTENT ONLY, so such a fixture can never
+      reach a run however complete it looks on disk. Measured by committing one: 37 files written,
+      `git commit` reported "4 files changed" and the two files being REPLACED were the only fixture
+      entries in it. The case shipped with no fixture at all, and was pushed.'
+    reproduction: '`mkdir -p evals/skt/<case>/fixture/.skill-manager/bin/cli && touch evals/skt/<case>/fixture/.skill-manager/bin/cli/skt
+      && git add evals/ && git ls-files evals/skt/<case>/fixture` prints nothing. `git check-ignore
+      -v` on the same path names `.gitignore:98:.skill-manager/`.'
+    why_out_of_scope: Not out of scope; fixed in the same commit as the finding. Recorded because
+      the FAILURE MODE outlives the fix.
+    suggested_fix: 'Done. Two negations appended to `.gitignore`, and both are needed: git cannot
+      re-include a file whose parent DIRECTORY is excluded, so `!evals/**/fixture/.skill-manager/`
+      must un-exclude the directory before `!evals/**/fixture/.skill-manager/**` can reach its
+      contents. Verified by `git check-ignore` returning the negation line, and by 37 files staging
+      where 0 staged before.'
+    blast_radius: 'Wider than the one case. Any future eval fixture that reproduces a home --
+      which is the natural fixture for a substrate whose central defect class is three-rung unit
+      resolution -- hits this silently. It also compounds EA-DF-09: the reason that case lost
+      its home in SI-15''s move is that the home could not travel, and this is a second, independent
+      mechanism by which a home cannot travel. Two different causes, one symptom, and the symptom
+      is a case that looks complete and tests nothing.'
+    evidence:
+    - git check-ignore -v ...fixture/.skill-manager/bin/cli/skt -> .gitignore:98:.skill-manager/
+    - commit 169267c3 reported "4 files changed, 18 insertions(+), 113 deletions(-)" for a change
+      that wrote 37 new files
+    - git ls-files on the fixture directory returned 0 entries after `git add evals/`
+    - 'after the negation: 37 staged, check-ignore names the negation rule instead'
+    skill_change: proposed(unit-authoring, a repository whose .gitignore hides a runtime directory
+      must negate that pattern under any fixture tree, because a fixture is content and not runtime
+      state)
+    attribution: UNMODELED/eval-harness
+    disposition: fixed
+    fixed_by: .gitignore negation, 2026-09-24
+    disposition_ticket: EPIC-AGENT
+    disposition_note: 'THE INSTRUMENT THAT CAUGHT THIS WAS READING THE COMMIT''S OWN STAT LINE,
+      not any check. Nothing in the repository would have failed: the case would have run, placed
+      nothing, and scored whatever an agent makes of an empty directory. That is the third instrument
+      defect in this epic whose only symptom is a plausible number -- after EA-DF-08 (an UNDECIDED
+      verdict that never reaches the screen) and EA-DF-09 (a grader asserting what its own fixture
+      denies). The common shape is worth naming for the next epic: every one of them produces
+      a score that is wrong in the direction of looking fine.'

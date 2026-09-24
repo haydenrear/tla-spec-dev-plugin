@@ -100,3 +100,11 @@ skill-dev/
 .codex/
 .gemini/
 examples/distributed_history/specs/generated
+
+# EA-DF-10: an eval fixture that IS a home must be tracked. `.skill-manager/`
+# above matches at any depth, so a fixture home is invisible to git and to
+# `git archive`, which is what builds the eval view -- the case would ship with
+# no fixture and nobody would be told. Negate the directory itself, not just its
+# contents: git cannot re-include a file whose parent directory is excluded.
+!evals/**/fixture/.skill-manager/
+!evals/**/fixture/.skill-manager/**
