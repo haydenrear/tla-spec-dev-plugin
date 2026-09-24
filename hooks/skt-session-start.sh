@@ -45,7 +45,25 @@ log_line() {
 
 SKT_CMD="$(resolve_skt)" || { log_line "skt-unresolvable"; exit 0; }
 
-REPORT="$($SKT_CMD status 2>/dev/null)" || { log_line "status-failed"; exit 0; }
+# A REPORT IS A REPORT WHATEVER THE EXIT CODE (EA-DF-14). `skt status` exits 1
+# when it finds no home, and prints the one line a session most needs to see:
+#   skt status: no skill-manager home found (checked $SKILL_MANAGER_HOME,
+#   ancestor .skill-manager dirs, and the operator root)
+# The previous form was `... || { log_line "status-failed"; exit 0; }`, which
+# threw that away and injected nothing. The session then had no orientation AND
+# no reason given, in exactly the situation -- a fresh workspace with no home --
+# where orientation is worth the most. Measured in the eval lane: six runs, the
+# hook returned 0 bytes every time, and the agent spent 7 to 11 Bash calls
+# rediscovering what this line states.
+#
+# So the emptiness of the report decides, not the exit code. Nothing about the
+# contract changes: still never exits non-zero, still bounded, still silent when
+# there is genuinely nothing to say.
+REPORT="$($SKT_CMD status 2>/dev/null)"
+if [ -z "$REPORT" ]; then
+  log_line "status-empty"
+  exit 0
+fi
 log_line "status-injected"
 printf '%s\n' "$REPORT"
 # `check --cached` is contract-cache-only: it reports a typed

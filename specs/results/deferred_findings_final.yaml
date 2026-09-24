@@ -8472,6 +8472,28 @@ findings:
     skill_change: proposed(skt, print one line to stdout when the orientation hook cannot resolve
       an interpreter or skt, instead of exiting 0 silently)
     attribution: UNMODELED/skt-hook
+    correction: >-
+      THE ROOT CAUSE NAMED ABOVE IS SECONDARY, and this row is corrected rather
+      than rewritten so the wrong diagnosis stays visible. The python gate is
+      real -- with PATH=/usr/bin:/bin the hook does emit 0 bytes -- but it is
+      NOT what silenced the hook in the eval lane. Exporting SKT_PYTHON fixed
+      the interpreter and the hook STILL returned 0 bytes in all six runs of a
+      --runs 6 sample. `bash -x` shows why: `skt status` exits 1 when it finds
+      no home, while printing the single most useful line a fresh session can
+      get -- "skt status: no skill-manager home found (checked
+      $SKILL_MANAGER_HOME, ancestor .skill-manager dirs, and the operator
+      root)" -- and the hook's `|| { log_line "status-failed"; exit 0; }`
+      DISCARDED it on the exit code. Orientation was thrown away in exactly the
+      situation where it is worth the most. Fixed by deciding on the EMPTINESS
+      of the report rather than its exit code; the contract is untouched and the
+      hook still never exits non-zero. Falsified both ways: no home now prints
+      the diagnostic where it printed nothing, and a real home still prints the
+      full report plus check notifications.
+    measurement_note: >-
+      An earlier reading in this session recorded `skt status` exiting 0 with no
+      home. That was measured through a pipe into `head`, so the code belonged
+      to `head`. Re-measured as `out=$(cmd); rc=$?` it is 1. Same defect as the
+      `skt ticket new` exit code earlier in this epic, which is twice.
     disposition: still-true
     disposition_ticket: SI-21
     disposition_note: 'The eval half is fixed and the product half is filed. Worth stating the
