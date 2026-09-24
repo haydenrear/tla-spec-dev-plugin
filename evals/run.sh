@@ -381,6 +381,35 @@ fi
 export SI10_CHECKOUT="$repo"
 export PATH="$repo/evals/bin:$PATH"
 export CLAUDE_CODE_WALNUT_SPIRE=1
+
+# ------------------------------------------- the orientation hook's interpreter
+#
+# EA-DF-14. skt's SessionStart hook is what tells a session `next  skt check`,
+# and it resolves skt through a python of at least 3.11. macOS ships 3.9.6 at
+# /usr/bin/python3, which the gate REJECTS, and the hook then exits 0 with no
+# output -- deliberately, because "a broken orientation hook must not break the
+# session it orients". The cost is that a session on a stock macOS PATH gets NO
+# orientation and no sign that any was attempted.
+#
+# Measured here: both SessionStart hooks fired, place.sh returned 1098 bytes and
+# skt's returned ZERO, and the agent then spent nine Bash calls rediscovering
+# what the hook would have handed it in one line.
+#
+# `pick_python` honours SKT_PYTHON before it scans PATH, so this names an
+# interpreter rather than reordering PATH for the whole run.
+if [ -z "${SKT_PYTHON:-}" ]; then
+    for _c in python3.14 python3.13 python3.12 python3.11; do
+        _p=$(command -v "$_c" 2>/dev/null) || continue
+        SKT_PYTHON="$_p"; break
+    done
+fi
+if [ -n "${SKT_PYTHON:-}" ]; then
+    export SKT_PYTHON
+    echo "eval: SKT_PYTHON=$SKT_PYTHON (the orientation hook needs >= 3.11; the system python3 is 3.9)"
+else
+    echo 'eval: WARNING -- no python >= 3.11 found, so skt SessionStart will inject nothing' >&2
+    echo 'eval:   and every case grades an agent with no orientation. Not refusing.' >&2
+fi
 [ -n "${EVAL_HOME:-}" ] && export HOME="$EVAL_HOME"
 
 # --------------------------------------------- the CLI's interpreter and cache

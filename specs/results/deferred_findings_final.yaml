@@ -8377,3 +8377,104 @@ findings:
       JDK 17 from api.foojay.io and the network is blocked. That is not this finding, but it bounds
       what any skill-manager case in this lane can measure, and SI-22 should know it before writing
       more of them.'
+  - id: EA-DF-13
+    severity: major
+    found_by: epic agent, asked why the agent had to search for a command the product announces
+    found_at_commit: ec364c60
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/run.sh (stages <view>/hooks/hooks.json over the plugin's own)
+      - evals/hooks/hooks.json
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: THE SUITE GRADED AN AGENT THAT THE PRODUCT WOULD HAVE TOLD. `run.sh` copies `evals/hooks/hooks.json`
+      over `<view>/hooks/hooks.json`, which overwrites the plugin's own hook registration. Its
+      comment stated this as a bounded limitation -- "AN EVAL RUN DOES NOT EXERCISE THE SHIPPED
+      HOOKS" -- but the suppressed hook is skt's SessionStart, whose injected report ends `next
+      skt check`, and that is the exact command `w-sm-verify-is-not-currency` scores an agent
+      for finding. Every w-* score in this corpus was measured without the orientation the product
+      ships.
+    reproduction: 'Three runs on an unchanged commit with the hook suppressed: `runs-a-currency-check`
+      present 1 of 3, judge votes splitting (PASS FAIL PASS / PASS PASS PASS / FAIL PASS FAIL),
+      scores 0.50 / 1.00 / 0.17. The shipped hook script was already in the view; only hooks.json
+      was replaced.'
+    why_out_of_scope: Not out of scope. Fixed by appending skt's SessionStart to the staged hooks,
+      ordered second so orientation runs after place.sh has built the workspace it describes.
+    suggested_fix: 'Done, and it revealed EA-DF-14 immediately: staging the hook was necessary
+      and not sufficient, because the hook then ran and printed nothing.'
+    blast_radius: 'The whole corpus, in one direction: scores were biased DOWN against the substrate,
+      so every number reported before this -- 12 of 14 skt, 5 of 6 skill-manager -- understates
+      it. Nothing needs re-reading as worse; several things may read better once re-measured.
+      SI-16 declined this merge because it "would move scores in a ticket that is not about evals",
+      which was right then and is exactly what is wanted now: a score should describe what ships.'
+    evidence:
+    - 'hook-off, three runs: check 1/3, judge split in 2 of 3, scores 0.50/1.00/0.17'
+    - '`skt status` ends with the line: next       skt check — new-version and sync notifications'
+    - 'run.sh step 2 comment: "AN EVAL RUN DOES NOT EXERCISE THE SHIPPED HOOKS -- so this suite
+      is not evidence about them"'
+    - the shipped hooks/skt-session-start.sh was already present in the staged view
+    skill_change: applied(evals/hooks/hooks.json stages skt SessionStart second, after place.sh)
+    attribution: UNMODELED/eval-harness
+    disposition: fixed
+    fixed_by: e2a89e81
+    disposition_ticket: EPIC-AGENT
+    disposition_note: 'Also closes SI-16-DF-02''s gap by a side door: this suite is now evidence
+      about the shipped hooks, which SI-16 had left to hook.log and the sktSurface graph alone.'
+  - id: EA-DF-14
+    severity: major
+    found_by: epic agent, after staging the hook and finding it emitted zero bytes
+    found_at_commit: e2a89e81
+    schedule_revision: 9
+    surface:
+      production:
+      - hooks/skt-session-start.sh (pick_python, resolve_skt)
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: 'THE ORIENTATION HOOK SILENTLY PRODUCES NOTHING ON A STOCK macOS PATH, AND THIS IS
+      A PRODUCT DEFECT, NOT AN EVAL ONE. `pick_python` requires an interpreter of at least 3.11;
+      macOS ships 3.9.6 at /usr/bin/python3, which the gate rejects. `resolve_skt` then fails
+      at every rung, the hook logs "skt-unresolvable" and exits 0 with no output. The contract
+      that produced this is a good one -- "a broken orientation hook must not break the session
+      it orients" -- but the failure is invisible in the session itself: a user on a machine whose
+      PATH carries only the system python gets no orientation, no `next skt check`, and no indication
+      that any was attempted.'
+    reproduction: '`env -u SKILL_MANAGER_HOME CLAUDE_PLUGIN_ROOT=<view> PATH=/usr/bin:/bin bash
+      hooks/skt-session-start.sh` prints nothing, exit 0. The same command with /opt/homebrew/bin
+      prepended prints the full report ending `next skt check` plus two notifications. In the
+      eval trace both SessionStart hooks fired: place.sh returned 1098 bytes, skt''s returned
+      0.'
+    why_out_of_scope: 'The EVAL side is fixed here (run.sh exports SKT_PYTHON, which pick_python
+      honours ahead of its PATH scan). The PRODUCT side is not, and is left deliberately: changing
+      what the hook does when it cannot resolve an interpreter is a change to shipped behaviour
+      and belongs in a ticket.'
+    suggested_fix: 'Keep exit 0 -- the contract is right -- but stop being silent. One line to
+      stdout naming what was missing ("skt: no python >= 3.11 on PATH; run `skt status` manually
+      or set SKT_PYTHON") costs nothing, cannot refuse anything, and turns an invisible no-op
+      into a fixable message. Consider also whether the 3.11 floor is real for `status` alone;
+      if the floor exists for the ticket verbs rather than the report, orientation could degrade
+      to a shorter report instead of none.'
+    blast_radius: 'Every session on a machine without a modern python early on PATH -- which is
+      the default macOS shell -- silently loses the substrate''s single discoverability mechanism.
+      This epic''s whole progressive-disclosure goal runs through that hook. Measured cost in
+      one eval case: nine Bash calls spent rediscovering a command the hook would have named in
+      one line, with the agent reaching `git ls-remote` and a `curl` to api.github.com along the
+      way.'
+    evidence:
+    - /usr/bin/python3 --version -> Python 3.9.6; the hook gate rejects it (rc=1)
+    - hook with PATH=/usr/bin:/bin -> 0 bytes; with /opt/homebrew/bin first -> full report
+    - 'eval trace: hook_response 1105c6e8 len 1098 (place.sh), hook_response 8304ecaf len 0 (skt)'
+    - the agent then used 9 Bash calls, exactly at the 9-call budget
+    skill_change: proposed(skt, print one line to stdout when the orientation hook cannot resolve
+      an interpreter or skt, instead of exiting 0 silently)
+    attribution: UNMODELED/skt-hook
+    disposition: still-true
+    disposition_ticket: SI-21
+    disposition_note: 'The eval half is fixed and the product half is filed. Worth stating the
+      shape because it is this session''s eighth instrument-or-substrate defect whose only symptom
+      is a plausible outcome: the hook did not error, did not warn, and did not appear in any
+      verdict -- it simply returned nothing, and the cost showed up as an agent that looked slow.'
