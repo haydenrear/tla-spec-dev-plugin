@@ -17,3 +17,24 @@ absorbed_ids:
   - SI-20-DF-07
   - SI-20-DF-08
 findings: []
+
+unexercised:
+  - verb: skt publish <unit>
+    reason: writes outside the worktree (parent home, then the unit's git repo); forbidden by this issue. `publish --check` was run and is read-only.
+  - verb: skill-manager home sync
+    reason: same, and the assignment reserves home reconciliation for the epic agent at wave close.
+  - verb: skt ticket sweep --yes
+    reason: the dry run says it would remove 23 worktrees including this epic's own.
+  - verb: skt build (for real)
+    reason: needs `skill-manager home shims`, which writes a home. --dry-run reached the same refusal, so the refusal is the observation.
+  - verb: skill-manager home close-out --into <the operator's project home>
+    reason: >-
+      NOT unexercised in the end. The FIRST attempt was refused by this
+      session's sandbox as a shared-resource write, although the verb's own
+      --help says "Writes nothing; safe to run repeatedly"; re-attempted at the
+      end of the ticket it ran, exit 0, verdict "holds nothing that removing it
+      would destroy" (close-out-verdict.txt). Kept in this list because the
+      intermittency is the finding: the command the assignment REQUIRES before
+      stopping was not reliably reachable from a ticket agent's seat, and an
+      agent that took the first refusal at face value would have stopped
+      without it.
