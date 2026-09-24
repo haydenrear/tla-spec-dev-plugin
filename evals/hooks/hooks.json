@@ -18,27 +18,49 @@
     "skill-manager wide lane (2026-09-14, 2.1.270), a run that ends",
     "error_max_turns fires SessionEnd and NOT Stop, and a round registered only",
     "on Stop lost every verdict on 12 capped runs and scored them red. Both",
-    "derive the same verdicts, so the second write is harmless."
+    "derive the same verdicts, so the second write is harmless.",
+    "SI-21/EA-DF-13: skt's SHIPPED SessionStart hook is staged alongside place.sh, second so it runs after the fixture exists. Before this, run.sh overwrote hooks.json and the shipped orientation never fired, so every case graded an agent working WITHOUT the report the product injects -- and `skt status` ends with the line `next  skt check`, which is the exact command w-sm-verify-is-not-currency scored an agent for not finding. The suite was measuring a counterfactual and charging the substrate for it. The hook never exits non-zero by contract, so it cannot refuse a run (GOAL-no-new-gates), and staging it makes this suite evidence about the shipped hooks for the first time."
   ],
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/place.sh", "timeout": 300 }
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/place.sh",
+            "timeout": 300
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/skt-session-start.sh\"",
+            "timeout": 30
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/verify.sh", "timeout": 900 }
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/verify.sh",
+            "timeout": 900
+          }
         ]
       }
     ],
     "SessionEnd": [
       {
         "hooks": [
-          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/verify.sh", "timeout": 900 }
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/evals/lib/verify.sh",
+            "timeout": 900
+          }
         ]
       }
     ]
