@@ -8316,3 +8316,64 @@ findings:
       verdict that never reaches the screen) and EA-DF-09 (a grader asserting what its own fixture
       denies). The common shape is worth naming for the next epic: every one of them produces
       a score that is wrong in the direction of looking fine.'
+  - id: EA-DF-11
+    severity: major
+    found_by: epic agent, reading a 0.17 on the second rung rather than recording it
+    found_at_commit: 303cfcae
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/skill-manager/w-sm-verify-is-not-currency/graders/verdict-not-from-a-proxy.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: A JUDGE RUBRIC WHOSE PASS AND FAIL CLAUSES OVERLAP, RESOLVING AGAINST THE CORRECT
+      ANSWER. `verdict-not-from-a-proxy` scored 1 for a verdict resting on a currency result "or
+      if it says currency could not be established", and 0 for calling the home current off an
+      integrity check "or gives no verdict at all". An agent that establishes there is no home
+      to check satisfies BOTH the pass clause and the fail clause in one breath, and nothing said
+      which wins. Three judges resolved it against the agent, unanimously, on two consecutive
+      runs.
+    reproduction: '`./evals/run.sh --case w-sm-verify-is-not-currency --keep-temp`. The final
+      response opens "I can''t answer current or not current because there is no Skill Manager
+      home in this project to check", lists four things it checked including `skt check`, and
+      states: "I didn''t treat an integrity check like `skill-manager verify` as a substitute.
+      Even if the CLI ran, that only confirms the installed files are intact. It doesn''t show
+      whether upstream has moved on." Judge votes FAIL FAIL FAIL. That response is this case''s
+      thesis, argued better than the grader argued it.'
+    why_out_of_scope: Not out of scope; the rubric is fixed in the same commit. The SECOND half
+      is left for SI-22, which owns skill-manager CLI interactions.
+    suggested_fix: 'Done for the rubric: the branches are now ordered, applied first-match-wins,
+      with the "currency could not be established" branch stated first and explicitly outranking
+      the others -- "a response that refuses to guess is right, not silent." STILL OPEN, for SI-22:
+      the case ships no fixture home, so it can only ever exercise its fallback branch. Its primary
+      path -- a real currency verdict off a stale home -- is unreachable, and a case that can
+      only test its fallback is testing half of itself.'
+    blast_radius: 'Two runs of one case, and a second-order effect worth more than the first.
+      The scores were NOT STABLE: 0.17 on the batch run and 0.67 on the re-run, because `runs-a-currency-check`
+      requires the agent to actually invoke `skt check` and with no home to check there is no
+      reliable reason to. A case whose score moves 0.5 between identical invocations cannot support
+      any claim, and `runs: 1` means every number in this corpus is a single sample. That is a
+      fact about the whole corpus, not this case.'
+    evidence:
+    - 'run 1 (batch): 0.17 -- runs-a-currency-check MISSING, judge FAIL FAIL FAIL'
+    - 'run 2 (--keep-temp): 0.67 -- runs-a-currency-check PRESENT, judge FAIL FAIL FAIL'
+    - the judge verdict is the stable half; the transcript grader is the half that moved
+    - the rubric''s own two clauses, "says currency could not be established" (1) and "gives no
+      verdict at all" (0), are both true of the same response
+    skill_change: proposed(test-graph, an llm rubric with more than one pass or fail branch must
+      state precedence, because overlapping branches are resolved by the judge and not by the
+      author)
+    attribution: UNMODELED/eval-case
+    disposition: fixed
+    fixed_by: rubric reordered with explicit first-match-wins precedence, 2026-09-24
+    disposition_ticket: SI-22
+    disposition_note: 'THE AGENT WAS RIGHT AND THE INSTRUMENT WAS WRONG, for the second time today
+      and the fourth instrument defect this session. It named `skt check` as the tool that compares
+      installed units against upstream, refused `verify` as a substitute with the correct reason,
+      and said plainly what it could not establish. Also note what the same transcript reports
+      in passing: the `skill-manager` CLI could not start in the sandbox because it tries to download
+      JDK 17 from api.foojay.io and the network is blocked. That is not this finding, but it bounds
+      what any skill-manager case in this lane can measure, and SI-22 should know it before writing
+      more of them.'
