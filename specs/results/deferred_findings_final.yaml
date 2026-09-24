@@ -8023,3 +8023,67 @@ findings:
       was the thing refusing. A hierarchy whose bookkeeping survives the deletion
       of its root is not obviously wrong, but it is surprising, and the surprise
       is what made 17 protective refusals look like a tool defect.
+  - id: EA-DF-06
+    severity: major
+    found_by: "epic agent, completing the move at the owner's direction"
+    found_at_commit: "bfaa3321"
+    schedule_revision: 9
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "skill-project.toml across 74 projects on this machine (NOT files of this repository)"
+    summary: >-
+      THE SOURCE OF THE DUPLICATE, not just its instances. 74 project manifests
+      declared units that tla-spec-dev-plugin now CONTAINS -- 239 blocks across
+      all eleven: discovery, git-epic-workflow, git-integration-repo, git-issue,
+      git-issue-workflow, plugin-repository, skill-manager, skt, spec-double-2,
+      test-graph, unit-authoring, plus the legacy spellings
+      (spec-double-compiler, skill-publisher, skill-manager-skill,
+      git-issue-skill, skill-dev-skill). Each declaration installs a SECOND copy
+      beside the contained one, which is what EA-DF-05 swept out of 46 homes and
+      what `project resolve` would have put straight back.
+    reproduction: >-
+      Parse every skill-project.toml, map each [skills.X]/[plugins.X] through the
+      legacy aliases, and intersect with the eleven units under the plugin's
+      skills/. Before: 74 projects matched. After: 1, and that one is correct.
+    why_out_of_scope: >-
+      Not out of scope; sweeping it is what the owner asked for. Each removed
+      block was replaced by ONE declaration --
+      [plugins.tla-spec-dev] source = "github:haydenrear/tla-spec-dev-plugin" --
+      and five manifests carrying the retired vendored rung
+      (from_unit = "tla-spec-dev" with a hand-baked
+      from_subpath = "skills/test-graph/...") were repointed to the unit that
+      owns the trees, from_unit = "test-graph", which is the form 34 other
+      manifests already used.
+    suggested_fix: >-
+      Done. The guard against recurrence is already in place from f212cbe3:
+      `skt status` now reports the INSTALLED duplicate as well as the declared
+      one, and references/projects.md no longer prints [plugins.skt] as its
+      example.
+    blast_radius: >-
+      Deliberately bounded, and the boundary is the interesting part. THE
+      PLUGIN'S OWN REPOSITORY WAS SWEPT AND THEN REVERTED: the rule "a manifest
+      must not declare a unit the carrier contains" is exactly wrong for the
+      carrier itself, which SHIPS those units -- it briefly declared
+      [plugins.tla-spec-dev] pointing at itself, a dependency loop. Every other
+      source repository was checked for the same shape and none had it: they
+      declared OTHER contained units as dependencies, never themselves, so
+      replacing those with the carrier is correct for them.
+    evidence:
+      - "before: 74 projects / 239 blocks; after: 82 manifests scanned, 0 invalid TOML, 74 declaring the carrier correctly, 0 vendored old rungs"
+      - "the single remaining match is tla-spec-dev's own manifest, reverted on purpose"
+      - "backups of every modified file kept before writing; each result validated with tomllib and any failure would have been left alone (0 failed)"
+    skill_change: "none"
+    attribution: UNMODELED/project-manifest
+    disposition: fixed
+    fixed_by: "manifest sweep 2026-09-24"
+    disposition_ticket: "EPIC-AGENT"
+    disposition_note: >-
+      THESE EDITS ARE NOT COMMITTED. skill-project.toml is a tracked file in each
+      of those 74 repositories, so this sweep leaves 74 uncommitted working-tree
+      changes in projects that are not this one. That is stated rather than
+      buried: the change is correct and reversible, backups exist, and committing
+      them belongs to whoever owns each repository.
