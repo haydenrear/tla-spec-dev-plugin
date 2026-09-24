@@ -1,0 +1,10 @@
+Verdicts read from each run's own summary.json, never from an exit code.
+  passed   specWorkflow             9/9 nodes   20260923-235325
+  passed   cliWorkflow              2/2 nodes   20260923-235548
+  passed   effectProviderExamples   1/1 nodes   20260923-235605
+  passed   sktSurface               5/5 nodes   20260923-234901
+
+sweep ledger: selected=3 executed=3 passed=3 failed=0 not_run=0
+
+sktHooks: NOT RUN here. The epic agent reported it passing; that is its evidence, not mine.
+NON-VACUITY OK: 4 graph reports read

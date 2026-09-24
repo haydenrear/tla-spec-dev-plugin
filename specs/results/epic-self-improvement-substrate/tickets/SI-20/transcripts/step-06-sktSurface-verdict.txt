@@ -1,0 +1,31 @@
+run           20260923-232634
+graph         sktSurface
+summary.json  status = errored   (read from the report, not an exit code)
+  passed   skt.check-cached-costs-one-read
+  passed   skt.hook-contract
+  passed   skt.status-tiers
+  failed   skt.ticket-roundtrip
+  passed   skt.wrapper-installed
+
+skt.ticket-roundtrip: 40 assertions, 13 failed
+  FAIL new prints the worktree and branch keys
+  FAIL the worktree directory exists
+  FAIL it is a LINKED worktree, not a copy
+  FAIL git knows about it
+  FAIL refusal [no home at all]: names 'no skill-manager home was found from here'
+  FAIL refusal [no home at all]: names 'agent-home.sh'
+  FAIL refusal [installed but no importable surface]: names 'carries no worktree lifecycle scripts'
+  FAIL refusal [installed but no importable surface]: names 'sync git-issue-workflow --git-latest'
+  FAIL refusal [declared in skill-project.toml but not installed]: names 'is not installed in'
+  FAIL refusal [declared in skill-project.toml but not installed]: names 'project resolve'
+  FAIL refusal [neither installed nor declared]: names 'is neither installed'
+  FAIL refusal [neither installed nor declared]: names '`sync` cannot install it'
+  FAIL refusal [neither installed nor declared]: names 'install github:haydenrear/'
+
+logs:
+  * git-issue-workflow from installed:/Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow
+  * ticket new contract: {'worktree': '/Users/hayde/IdeaProjects/subject-repo-TG-1', 'branch': 'feature/TG-1 (constituent repo subject-repo)', 'launch': "none — this worktree has no home; an agent here uses the operator's GLOBAL home", 'close': 'skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-1'}
+  * expected worktree: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-ticket/subject-repo-TG-1
+  * worktree exists: False
+
+NON-VACUITY OK: 40 assertions read, 13 red

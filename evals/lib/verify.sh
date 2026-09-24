@@ -636,6 +636,14 @@ case "$case_name" in
   w-tg-run-a-graph-not-bare-gradle)
     verify_from_expect
     ;;
+
+  w-skt-worktree-leaves-the-integration-repo)
+    verify_from_expect
+    ;;
+
+  w-skt-which-copy-of-skt-ran)
+    verify_from_expect
+    ;;
   "")
     say "EVAL_CASE unset; nothing verified"
     verdict UNDECIDED-nocase "EVAL_CASE was not set, so no case arm ran and nothing was checked"

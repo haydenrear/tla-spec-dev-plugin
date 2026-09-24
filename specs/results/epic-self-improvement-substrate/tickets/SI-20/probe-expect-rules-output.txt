@@ -1,0 +1,37 @@
+ok    w-skt-worktree-leaves-the-integration-repo  [read lib.sh with Read -> earned]  require-read-the-lifecycle-source = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [read lib.sh with Read -> earned]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped lib.sh -> earned]  require-read-the-lifecycle-source = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped lib.sh -> earned]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [only read the python copy -> NOT earned]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [only read the python copy -> NOT earned]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `git worktree add` -> forbid RED]  require-read-the-lifecycle-source = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `git worktree add` -> forbid RED]  forbid-made-a-worktree = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `skt ticket new` -> forbid RED]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [ran `skt ticket new` -> forbid RED]  forbid-made-a-worktree = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped FOR the phrase -> forbid still GREEN]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [grepped FOR the phrase -> forbid still GREEN]  forbid-made-a-worktree = True (want True)
+ok    w-skt-worktree-leaves-the-integration-repo  [idle run earns nothing]  require-read-the-lifecycle-source = False (want False)
+ok    w-skt-worktree-leaves-the-integration-repo  [idle run earns nothing]  forbid-made-a-worktree = False (want False)
+ok    w-skt-which-copy-of-skt-ran  [read the generated wrapper -> earned]  require-read-the-wrapper-or-its-installer = True (want True)
+ok    w-skt-which-copy-of-skt-ran  [read the installer -> earned]  require-read-the-wrapper-or-its-installer = True (want True)
+ok    w-skt-which-copy-of-skt-ran  [read only cli.py -> NOT earned]  require-read-the-wrapper-or-its-installer = False (want False)
+ok    w-skt-which-copy-of-skt-ran  [idle run earns nothing]  require-read-the-wrapper-or-its-installer = False (want False)
+
+NON-VACUITY: 11 synthetic transcripts, 18 verdict assertions
+
+ok    GOOD names-the-marker: The location was decided by an `integration.toml` in an ancestor
+ok    GOOD names-the-marker: Because integration.toml sits at the repo root, the fixture is a
+ok    BAD  names-the-marker: This is a bug in skt ticket new; it put the worktree in the wron
+ok    GOOD names-the-rule-and-its-reason: worktree_parent_dir() returns dirname of the outermost integrati
+ok    GOOD names-the-rule-and-its-reason: A parent `git add -A` would stage it as a gitlink (mode 160000).
+ok    GOOD names-the-rule-and-its-reason: It goes beside the outermost enclosing integration repo.
+ok    BAD  names-the-rule-and-its-reason: skt classified the repo as a constituent, so the path differs.
+ok    GOOD names-what-the-wrapper-resolves: It runs .skill-manager/plugins/tla-spec-dev/skills/skt/src/skt/c
+ok    GOOD names-what-the-wrapper-resolves: The wrapper resolves skt from the home it lives in, not from the
+ok    BAD  names-what-the-wrapper-resolves: Your PATH is picking up a different skt; clear the cache.
+ok    GOOD gives-a-command-that-runs-the-edit: Run `python3 skills/skt/src/skt/cli.py status`.
+ok    GOOD gives-a-command-that-runs-the-edit: Re-run skill-scripts/install-skt.sh against a home holding your 
+ok    BAD  gives-a-command-that-runs-the-edit: Run `skill-manager sync skt` and try again.
+
+NON-VACUITY: 13 strings against 4 committed grader patterns, both arms
+both directions hold for every rule and every response grader

@@ -1,0 +1,39 @@
+FALSIFICATION ARM: the ONLY change is the fixture root, moved back to
+ctx.report_dir (inside this repository, which carries integration.toml).
+Everything else is the repaired node. If the new assertions could not
+fail, they are not regression tests.
+
+summary.json status = errored
+skt.ticket-roundtrip: 51 assertions, 13 failed
+
+  FAIL standalone: new prints the worktree and branch keys
+  FAIL standalone: new says which classification decided the location
+  FAIL standalone: the worktree skt created is inside THIS NODE'S fixture tree
+  FAIL standalone: nothing was created beside the repository under test
+  FAIL standalone: the worktree directory exists
+  FAIL standalone: it is a LINKED worktree, not a copy
+  FAIL standalone: git knows about it
+  FAIL constituent: new prints the worktree and branch keys
+  FAIL constituent: the worktree skt created is inside THIS NODE'S fixture tree
+  FAIL constituent: nothing was created beside the repository under test
+  FAIL constituent: the worktree directory exists
+  FAIL constituent: it is a LINKED worktree, not a copy
+  FAIL constituent: git knows about it
+
+logs:
+  * fixture root, OUTSIDE the repository on purpose: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-235012/fixtures/skt-ticket
+  * git-issue-workflow from installed:/Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow
+  * standalone: ticket new contract: {'worktree': '/Users/hayde/IdeaProjects/subject-repo-TG-STAN', 'branch': 'feature/TG-STAN (constituent repo subject-repo)', 'launch': "none — this worktree has no home; an agent here uses the operator's GLOBAL home", 'close': 'skt ticket close — or: /Users/hayde/Idea
+  * standalone: expected worktree: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-235012/fixtures/skt-ticket/standalone/subject-repo-TG-STAN
+  * standalone: worktree exists: False
+  * standalone: STRAY beside the repository under test: ['/Users/hayde/IdeaProjects/subject-repo-TG-STAN']
+  * constituent: ticket new contract: {'worktree': '/Users/hayde/IdeaProjects/subject-repo-TG-CONS', 'branch': 'feature/TG-CONS (constituent repo subject-repo)', 'launch': "none — this worktree has no home; an agent here uses the operator's GLOBAL home", 'close': 'skt ticket close — or: /Users/hayde/Ide
+  * constituent: expected worktree: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-235012/fixtures/skt-ticket/constituent/subject-repo-TG-CONS
+  * constituent: worktree exists: False
+  * constituent: STRAY beside the repository under test: ['/Users/hayde/IdeaProjects/subject-repo-TG-CONS']
+  * refusal [not a git repository at all] rc=1: error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-g4_dyuy9
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-235012/fixtures/skt-wrapper/3.11/pl
+  * refusal [a git repository with no project home] rc=3: error: no Skill Manager home could be created for this worktree (usually: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-235012/fixtures/skt-ticket/standalone/subject-repo has no project home yet)
+fi
+
+NON-VACUITY OK: 13 assertions went red when the fixture moved back inside the repo

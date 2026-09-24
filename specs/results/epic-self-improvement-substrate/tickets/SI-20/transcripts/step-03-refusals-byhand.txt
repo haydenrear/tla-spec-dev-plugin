@@ -1,0 +1,45 @@
+==============================================================================
+CASE: no home at all
+cwd : /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-71b8aa9q
+rc  : 1
+--- stdout ---
+error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-71b8aa9q
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt new TG-REFUSED --verbose
+--- stderr ---
+
+leaked worktree /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-71b8aa9q-TG-REFUSED: False
+==============================================================================
+CASE: installed but no importable surface
+cwd : /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo
+rc  : 3
+--- stdout ---
+error: no Skill Manager home could be created for this worktree (usually: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo has no project home yet)
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo
+log:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-C4RKyW-run.log
+--- stderr ---
+
+leaked worktree /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo-TG-REFUSED: False
+==============================================================================
+CASE: declared in skill-project.toml but not installed
+cwd : /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/declared-repo
+rc  : 3
+--- stdout ---
+error: no Skill Manager home could be created for this worktree (usually: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/declared-repo has no project home yet)
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/declared-repo
+log:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-nLUx6V-run.log
+--- stderr ---
+
+leaked worktree /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/declared-repo-TG-REFUSED: False
+==============================================================================
+CASE: neither installed nor declared
+cwd : /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo
+rc  : 3
+--- stdout ---
+error: no Skill Manager home could be created for this worktree (usually: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo has no project home yet)
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-232634/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo
+log:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-l4Vt8r-run.log
+--- stderr ---
+
+leaked worktree /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/si20/work-nonintegration/subject-repo-TG-REFUSED: False
+
+NON-VACUITY OK: 4 refusal cases driven by hand

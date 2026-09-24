@@ -46,6 +46,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -55,7 +56,14 @@ from pathlib import Path
 from testgraphsdk import NodeResult, NodeSpec, node
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "support"))
-from skt_fixture import build_home, child_env, git, init_repo, unit_record  # noqa: E402
+from skt_fixture import (  # noqa: E402
+    REPO_ROOT,
+    build_home,
+    child_env,
+    git,
+    init_repo,
+    unit_record,
+)
 
 UPSTREAM = "skt.wrapper-installed"
 GIW_REMOTE = "https://github.com/haydenrear/git-issue-workflow-skill.git"
@@ -127,6 +135,142 @@ def _skt(wrapper: str, args: list[str], *, cwd: Path, env: dict) -> subprocess.C
     )
 
 
+def _remedy_scripts(blob: str) -> list[Path]:
+    """Every absolute script path a refusal offers as its `fix:`.
+
+    A remedy is scored on whether it RUNS, not on its wording, so the path has
+    to come out of the text. Only absolute paths are taken: a relative one is
+    ambiguous about which directory it is relative to, and that ambiguity is
+    itself something a remedy should not have.
+    """
+    found: list[Path] = []
+    for line in blob.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("fix:"):
+            continue
+        for token in re.findall(r"/[^\s]+", stripped):
+            candidate = Path(token)
+            if candidate.name.endswith(".sh") or candidate.name == "wt":
+                if candidate not in found:
+                    found.append(candidate)
+    return found
+
+
+def _arm(result, wrapper: str, version: str, repo: Path, wt_parent: Path,
+         work: Path, label: str, env: dict) -> bool:
+    """One placement classification, new -> info -> close, asserted throughout.
+
+    Returns False when `ticket new` refused, so the caller can hand back the
+    ACCUMULATED result rather than a bare fail(): NodeResult.fail builds a
+    fresh object and every assertion gathered so far would be dropped.
+    """
+    ticket = f"TG-{label.upper()[:4]}"
+    expected = wt_parent / f"{repo.name}-{ticket}"
+    created = _skt(wrapper, ["ticket", "new", ticket], cwd=repo, env=env)
+    result.assertion(f"{version}/{label}: ticket new exits zero", created.returncode == 0)
+    if created.returncode != 0:
+        result.log(f"{label} stdout: {created.stdout[-1200:]}")
+        result.log(f"{label} stderr: {created.stderr[-1200:]}")
+        return False
+    contract = _contract(created.stdout)
+    # LOG THE CONTRACT ON SUCCESS TOO. stdout was logged only on a non-zero
+    # exit, so the case that actually happened -- exit 0 with the worktree
+    # somewhere other than expected -- produced red assertions and NO record of
+    # what the command printed, and the next reader had to reproduce it by hand
+    # before they could start.
+    result.log(f"{label}: ticket new contract: {contract}")
+    result.log(f"{label}: expected worktree: {expected.resolve()}")
+    result.log(f"{label}: worktree exists: {expected.is_dir()}")
+    result.assertion(
+        f"{label}: new prints the worktree and branch keys",
+        contract.get("worktree") == str(expected.resolve())
+        and contract.get("branch", "").startswith(f"feature/{ticket}"),
+    )
+    # THE CLASSIFICATION IS ASSERTED, NOT INFERRED FROM THE PATH. `new` prints
+    # it in the branch key, and a fixture that silently changed classification
+    # would otherwise make BOTH arms measure the same rule.
+    result.assertion(
+        f"{label}: new says which classification decided the location",
+        f"{label} repo" in contract.get("branch", ""),
+    )
+    # THE ASSERTION THAT WAS MISSING (SI-20-DF-01). This node declares
+    # `side_effects("fs:tmp")`. Nothing checked it, and for as long as the
+    # fixture sat under `report_dir` -- inside an integration repo -- every run
+    # created a real linked worktree in the OPERATOR'S checkout directory. A
+    # path assertion against one expected location cannot catch that: it just
+    # goes red, and red about `skt`.
+    result.assertion(
+        f"{label}: the worktree skt created is inside THIS NODE'S fixture tree",
+        _inside(Path(contract.get("worktree", "/nowhere")), work),
+    )
+    # CHECKED WHILE IT IS STANDING, not after `close`. The same sweep at the
+    # end of the node would pass on a leak that `close` then tidied away --
+    # and tidying away is exactly what happened: the worktree WAS created in
+    # the operator's directory and WAS removed again, so only a check taken
+    # between `new` and `close` can see it.
+    strays = sorted(str(c) for c in Path(REPO_ROOT).parent.glob(f"*-{ticket}"))
+    if strays:
+        result.log(f"{label}: STRAY beside the repository under test: {strays}")
+    result.assertion(
+        f"{label}: nothing was created beside the repository under test", not strays
+    )
+    result.assertion(
+        f"{label}: new names its own close command",
+        contract.get("close", "").startswith("skt ticket close"),
+    )
+    result.assertion(
+        f"{label}: new warns that home-side skill edits are in no git diff",
+        "no git diff" in created.stdout and "skt publish" in created.stdout,
+    )
+    result.assertion(f"{label}: the worktree directory exists", expected.is_dir())
+    result.assertion(
+        f"{label}: it is a LINKED worktree, not a copy", (expected / ".git").is_file()
+    )
+    listing = git("worktree", "list", "--porcelain", cwd=repo).stdout
+    result.assertion(
+        f"{label}: git knows about it",
+        str(expected.resolve()) in listing.replace("/private", "")
+        or str(expected.resolve()) in listing,
+    )
+    branches = git("branch", "--list", "--format=%(refname:short)", cwd=repo).stdout.split()
+    result.assertion(f"{label}: the branch feature/{ticket} exists", f"feature/{ticket}" in branches)
+
+    info = _skt(wrapper, ["ticket", "info", ticket], cwd=repo, env=env)
+    info_keys = _contract(info.stdout)
+    result.assertion(
+        f"{label}: info answers about the same worktree",
+        info.returncode == 0 and info_keys.get("worktree") == contract.get("worktree"),
+    )
+    result.assertion(
+        f"{label}: info reports the worktree's base against its parent",
+        "in sync with parent" in info.stdout,
+    )
+
+    closed = _skt(wrapper, ["ticket", "close", ticket], cwd=repo, env=env)
+    result.assertion(f"{version}/{label}: ticket close exits zero", closed.returncode == 0)
+    if closed.returncode != 0:
+        result.log(f"{label} close stdout: {closed.stdout[-800:]}")
+        result.log(f"{label} close stderr: {closed.stderr[-800:]}")
+    result.assertion(f"{label}: close removes the worktree directory", not expected.exists())
+    after = git("worktree", "list", "--porcelain", cwd=repo).stdout
+    result.assertion(f"{label}: git no longer lists it", f"{repo.name}-{ticket}" not in after)
+    branches_after = git("branch", "--list", "--format=%(refname:short)", cwd=repo).stdout.split()
+    result.assertion(
+        f"{label}: close KEEPS the branch \u2014 the work is not what is being torn down",
+        f"feature/{ticket}" in branches_after,
+    )
+    result.assertion(f"{label}: close says the branch was kept", "kept" in closed.stdout)
+    return True
+
+
+def _inside(path: Path, ancestor: Path) -> bool:
+    try:
+        path.resolve().relative_to(ancestor.resolve())
+        return True
+    except (ValueError, OSError):
+        return False
+
+
 @node(SPEC)
 def main(ctx):
     result = NodeResult.pass_(ctx.node_id)
@@ -145,9 +289,18 @@ def main(ctx):
     # reportDir failed for exactly that reason.)
     cache = ctx.report_dir / "fixtures" / "giw-source"
     cache.mkdir(parents=True, exist_ok=True)
-    work = ctx.report_dir / "fixtures" / "skt-ticket"
-    shutil.rmtree(work, ignore_errors=True)
-    work.mkdir(parents=True, exist_ok=True)
+    # THE FIXTURE TREE LEAVES THE REPORT DIRECTORY, and that is a repair, not a
+    # tidy-up. `report_dir` is inside THIS repository; this repository carries
+    # `integration.toml` at its root; and a ticket worktree goes beside the
+    # OUTERMOST enclosing integration repo. So every `skt ticket new` driven
+    # from a fixture under `report_dir` created a real linked worktree in the
+    # OPERATOR'S checkout directory, beside their live work, while this node
+    # declared `side_effects("fs:tmp")`. It was removed again only because
+    # `close` resolves by search; a run interrupted between the two left it
+    # standing. Measured by hand in SI-20 (the epic's `EA-DF-02`, filed as
+    # `SI-20-DF-01`), and the containment assertion that was missing is below.
+    work = Path(tempfile.mkdtemp(prefix="skt-ticket-roundtrip-"))
+    result.log(f"fixture root, OUTSIDE the repository on purpose: {work}")
     try:
         giw, source = _resolve_giw(cache)
     except RuntimeError as exc:
@@ -187,156 +340,125 @@ def main(ctx):
     )
 
     # ------------------------------------------------------------ round trip
+    #
+    # TWO ARMS, ONE VARIABLE, because the placement rule IS an skt claim and a
+    # single arm cannot tell a right answer from a lucky one.
+    #
+    # Where a ticket worktree lands is decided by exactly one thing: whether an
+    # ANCESTOR of the repo carries `integration.toml`. The rule is
+    # `skills/git-issue-workflow/scripts/lib.sh:341 (worktree_parent_dir)` --
+    # beside the OUTERMOST enclosing integration repo, never inside one,
+    # because a linked worktree's `.git` is a FILE and a parent `git add -A`
+    # stages the whole directory as a gitlink (mode 160000), which
+    # INTEGRATION.md rule 1 forbids and no .gitignore glob can separate from a
+    # real constituent. This node used to drive ONE arm and hard-code the
+    # standalone answer, so when its fixture came to sit inside an integration
+    # repo it went red -- about `skt`, which was behaving correctly.
     home = build_home(work / "home", units=[unit_record("skt", version="0.3.1", kind="PLUGIN")])
     skills = home / "skills"
     skills.mkdir(parents=True, exist_ok=True)
     link = skills / "git-issue-workflow"
     if not link.exists():
         link.symlink_to(giw)
-
-    repo = init_repo(work / "subject-repo")
     env = child_env(SKILL_MANAGER_HOME=str(home), INTEGRATION_SKIP_HOME="1")
-    ticket = "TG-1"
-    expected_worktree = work / f"subject-repo-{ticket}"
 
-    created = _skt(wrapper, ["ticket", "new", ticket], cwd=repo, env=env)
-    result.assertion(f"{version}: ticket new exits zero", created.returncode == 0)
-    if created.returncode != 0:
-        # Return the ACCUMULATED result, not a bare fail(): NodeResult.fail
-        # builds a fresh object, so every assertion and log gathered so far
-        # would be dropped and the envelope would say only "it failed".
-        result.log(f"stdout: {created.stdout[-1200:]}")
-        result.log(f"stderr: {created.stderr[-1200:]}")
-        return result
-    contract = _contract(created.stdout)
-    # LOG THE CONTRACT ON SUCCESS TOO. stdout was logged only when `ticket new`
-    # exited non-zero, so the case that actually happened -- exit 0 with a
-    # worktree somewhere other than expected -- produced thirteen red assertions
-    # and NO record of what the command printed. A node that cannot say what it
-    # saw makes the next reader reproduce it by hand before they can even start.
-    result.log(f"ticket new contract: {contract}")
-    result.log(f"expected worktree: {expected_worktree.resolve()}")
-    result.log(f"worktree exists: {expected_worktree.is_dir()}")
-    result.assertion(
-        "new prints the worktree and branch keys",
-        contract.get("worktree") == str(expected_worktree.resolve())
-        and contract.get("branch", "").startswith(f"feature/{ticket}"),
-    )
-    result.assertion(
-        "new names its own close command",
-        contract.get("close", "").startswith("skt ticket close"),
-    )
-    result.assertion(
-        "new warns that home-side skill edits are in no git diff",
-        "no git diff" in created.stdout and "skt publish" in created.stdout,
-    )
-    result.assertion("the worktree directory exists", expected_worktree.is_dir())
-    result.assertion(
-        "it is a LINKED worktree, not a copy",
-        (expected_worktree / ".git").is_file(),
-    )
-    listing = git("worktree", "list", "--porcelain", cwd=repo).stdout
-    result.assertion(
-        "git knows about it", str(expected_worktree.resolve()) in listing.replace("/private", "")
-        or str(expected_worktree.resolve()) in listing,
-    )
-    branches = git("branch", "--list", "--format=%(refname:short)", cwd=repo).stdout.split()
-    result.assertion(f"the branch feature/{ticket} exists", f"feature/{ticket}" in branches)
+    arms = [
+        # label, the repo, the directory the worktree MUST appear in, where to
+        # plant integration.toml (None: none anywhere above the repo)
+        ("standalone", work / "standalone" / "subject-repo", work / "standalone", None),
+        ("constituent", work / "constituent" / "outer" / "inner" / "subject-repo",
+         work / "constituent", work / "constituent" / "outer"),
+    ]
+    arms_driven = 0
+    for label, repo_path, wt_parent, plant in arms:
+        repo_path.parent.mkdir(parents=True, exist_ok=True)
+        if plant is not None:
+            plant.mkdir(parents=True, exist_ok=True)
+            (plant / "integration.toml").write_text('[integration]\nname = "fixture"\n')
+        arms_driven += 1
+        repo_arm = init_repo(repo_path)
+        if not _arm(result, wrapper, version, repo_arm, wt_parent, work, label, env):
+            return result
+    result.metric("placementArms", arms_driven)
+    # A GUARD ON THE GUARD. Two arms that both ran the standalone fixture would
+    # assert the same thing twice and read as coverage; the metric is the only
+    # thing a reader sees, so it is asserted rather than merely published.
+    result.assertion("both placement classifications were driven", arms_driven == 2)
 
-    info = _skt(wrapper, ["ticket", "info", ticket], cwd=repo, env=env)
-    info_keys = _contract(info.stdout)
-    result.assertion(
-        "info answers about the same worktree",
-        info.returncode == 0 and info_keys.get("worktree") == contract.get("worktree"),
-    )
-    result.assertion(
-        "info reports the worktree's base against its parent",
-        "in sync with parent" in info.stdout,
-    )
-
-    closed = _skt(wrapper, ["ticket", "close", ticket], cwd=repo, env=env)
-    result.assertion(f"{version}: ticket close exits zero", closed.returncode == 0)
-    if closed.returncode != 0:
-        result.log(f"stdout: {closed.stdout[-800:]}")
-        result.log(f"stderr: {closed.stderr[-800:]}")
-    result.assertion("close removes the worktree directory", not expected_worktree.exists())
-    after = git("worktree", "list", "--porcelain", cwd=repo).stdout
-    result.assertion("git no longer lists it", f"subject-repo-{ticket}" not in after)
-    branches_after = git("branch", "--list", "--format=%(refname:short)", cwd=repo).stdout.split()
-    result.assertion(
-        "close KEEPS the branch — the work is not what is being torn down",
-        f"feature/{ticket}" in branches_after,
-    )
-    result.assertion("close says the branch was kept", "kept" in closed.stdout)
+    # The refusal cases below need one repo and the bare env.
+    repo = work / "standalone" / "subject-repo"
 
     # ------------------------------------------------------------- refusals
     #
-    # Four homes, four different faults, four remedies that must each be
-    # runnable in the home they are printed for.
+    # WHAT THESE USED TO ASSERT, AND WHY THEY CANNOT ANY MORE.
+    #
+    # Four fixtures -- no home; installed but no importable surface; declared
+    # but not installed; neither -- each asserted a DISTINCT remedy from
+    # `skills/skt/src/skt/ticket.py:66 (_giw_remedy)`, the merged fix that told
+    # not-installed from not-synced (#25). `skt ticket new` can no longer reach
+    # that function: it is called from `ticket.py:122 (_import_wrapper)` only
+    # when `import skt.wt` FAILS, and SI-17 moved `wt` into skt, so the import
+    # always succeeds. The only other caller is `epic_new`, the `--path` route
+    # this node does not take.
+    #
+    # Driven by hand in SI-20, three of the four fixtures produced the SAME
+    # message -- "no Skill Manager home could be created for this worktree" --
+    # and the fourth never reached the home check at all, because a bare
+    # `mkdtemp()` is not a git repository, so skt refused one step earlier.
+    # With the home step skipped (`INTEGRATION_SKIP_HOME=1`) all three
+    # home-bearing fixtures SUCCEED in homes carrying no git-issue-workflow in
+    # any form, because `wt` resolves the lifecycle from the plugin it ships in
+    # rather than from `$SKILL_MANAGER_HOME`. The fault those four remedies
+    # describe cannot occur once skt and git-issue-workflow are contained in
+    # one plugin. Filed as `SI-20-DF-02` and `SI-20-DF-03`; transcripts in
+    # `specs/results/epic-self-improvement-substrate/tickets/SI-20/transcripts/`,
+    # `step-03-refusals-byhand.txt` and `step-04-refusals-skip-home.txt`.
+    #
+    # Asserting those phrases again would encode the DOCUMENTATION rather than
+    # the behaviour, and an eval that does that passes forever and tells you
+    # nothing. Asserting their ABSENCE would encode a defect as desired.
+    #
+    # ASSERTED INSTEAD: the property #25 was actually defending -- "a remedy
+    # that cannot run is worse than no remedy: it costs the agent a failed
+    # command and a wrong mental model" -- which NOTHING here checked before.
+    # The refusal names a script, and THAT SCRIPT MUST EXIST AND BE
+    # EXECUTABLE. A remedy naming the standalone rung of a unit that is now
+    # contained is exactly the failure this repository has hit nine times
+    # (SI-25-DF-06), and it is invisible to a phrase match.
     bare_env = child_env(PYTHONPATH="")
     orphan = Path(tempfile.mkdtemp(prefix="skt-ticket-nohome-"))
     cases = [
         (
-            "no home at all",
-            child_env(
-                PYTHONPATH="",
-                SKT_ROOT_HOME=str(work / "does-not-exist"),
-            ),
+            "not a git repository at all",
+            child_env(PYTHONPATH="", SKT_ROOT_HOME=str(work / "does-not-exist")),
             orphan,
-            ["no skill-manager home was found from here", "agent-home.sh"],
-            ["skill-manager sync"],
+            ["not inside a git repository"],
+        ),
+        (
+            # A home that is PERFECTLY FINE -- it is the one both arms above
+            # round-tripped through -- and a repo that has no project home of
+            # its own. Without `INTEGRATION_SKIP_HOME` that is where `new`
+            # stops, and the remedy it prints is the one that has to run.
+            "a git repository with no project home",
+            {**bare_env, "SKILL_MANAGER_HOME": str(home)},
+            repo,
+            ["no Skill Manager home could be created"],
         ),
     ]
 
-    installed_no_surface = build_home(work / "home-installed-no-surface", units=[])
-    (installed_no_surface / "skills" / "git-issue-workflow").mkdir(parents=True, exist_ok=True)
-    cases.append(
-        (
-            "installed but no importable surface",
-            {**bare_env, "SKILL_MANAGER_HOME": str(installed_no_surface)},
-            repo,
-            ["carries no worktree lifecycle scripts", "sync git-issue-workflow --git-latest"],
-            ["is neither installed", "project resolve"],
-        )
-    )
-
-    declared_repo = init_repo(work / "declared-repo")
-    (declared_repo / "skill-project.toml").write_text(
-        '[skills.git-issue-workflow]\nsource = "github:haydenrear/git-issue-workflow-skill"\n'
-    )
-    git("add", "-A", cwd=declared_repo)
-    git("commit", "-q", "-m", "declare", cwd=declared_repo)
-    declared_home = build_home(work / "home-declared", units=[])
-    cases.append(
-        (
-            "declared in skill-project.toml but not installed",
-            {**bare_env, "SKILL_MANAGER_HOME": str(declared_home)},
-            declared_repo,
-            ["is not installed in", "project resolve"],
-            ["sync git-issue-workflow --git-latest"],
-        )
-    )
-
-    undeclared_home = build_home(work / "home-undeclared", units=[])
-    cases.append(
-        (
-            "neither installed nor declared",
-            {**bare_env, "SKILL_MANAGER_HOME": str(undeclared_home)},
-            repo,
-            ["is neither installed", "`sync` cannot install it", "install github:haydenrear/"],
-            ["project resolve"],
-        )
-    )
-
-    for name, case_env, cwd, expected, forbidden in cases:
+    for name, case_env, cwd, expected in cases:
         proc = _skt(wrapper, ["ticket", "new", "TG-REFUSED"], cwd=cwd, env=case_env)
         blob = proc.stdout + proc.stderr
+        result.log(f"refusal [{name}] rc={proc.returncode}: {blob.strip()[:600]}")
         result.assertion(f"refusal [{name}]: exits non-zero", proc.returncode != 0)
         for needle in expected:
             result.assertion(f"refusal [{name}]: names {needle!r}", needle in blob)
-        for needle in forbidden:
+        remedies = _remedy_scripts(blob)
+        result.assertion(f"refusal [{name}]: prints a remedy", bool(remedies))
+        for remedy in remedies:
             result.assertion(
-                f"refusal [{name}]: does NOT prescribe {needle!r}", needle not in blob
+                f"refusal [{name}]: the remedy it names EXISTS and runs -- {remedy.name}",
+                remedy.is_file() and os.access(remedy, os.X_OK),
             )
         result.assertion(
             f"refusal [{name}]: creates no worktree",
@@ -345,6 +467,20 @@ def main(ctx):
 
     shutil.rmtree(orphan, ignore_errors=True)
     result.metric("refusalCases", len(cases))
+
+    # NOTHING OUTSIDE THE FIXTURE TREE, asserted before it is swept away. The
+    # sweep below would hide a leak: a worktree created beside the repository
+    # under test is not in `work`, so removing `work` removes no evidence of
+    # it. This is the declared `side_effects("fs:tmp")` turned into a check.
+    strays = sorted(
+        str(c) for c in Path(REPO_ROOT).parent.glob("subject-repo-TG-*")
+    )
+    if strays:
+        result.log(f"STRAY WORKTREES beside the repository under test: {strays}")
+    result.assertion(
+        "no ticket worktree was created outside the fixture tree", not strays
+    )
+    shutil.rmtree(work, ignore_errors=True)
     return result.publish("giwSource", source)
 
 

@@ -1,0 +1,11 @@
+# The contract-mandated close-out, on the second attempt
+
+First attempt, earlier in this session, was REFUSED by the session sandbox as a
+shared-resource write, and was recorded as unexercised. Re-attempted at the end
+of the ticket and it ran. Both facts are kept: the verb was not always
+reachable from this seat.
+
+$ skill-manager home close-out --home <worktree>/.skill-manager --into <main>/.skill-manager
+rc=0
+! Telemetry export unavailable; continuing without telemetry.
+✓ /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/.skill-manager holds nothing that removing it would destroy

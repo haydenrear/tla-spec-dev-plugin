@@ -26,7 +26,7 @@ direction: **the cases moved here.**
 | `spec-double-2` | 12 |
 | `git-issue-workflow` | 9 |
 | `git-epic-workflow` | 7 |
-| `skt` | 14 |
+| `skt` | 16 |
 | `skill-manager` | 9 |
 | `git-issue` | 3 |
 | `plugin-repository` | 2 |
@@ -89,6 +89,22 @@ treatment were both run in the SI-19 worktree at `f4b42169` on 2026-09-23,
 and `specs/results/epic-self-improvement-substrate/tickets/SI-19/manual-verification.md`
 is committed in an EARLIER commit than the case. That ordering is the whole
 of `GOAL-evals-earned`, and it is checkable with `git log`.
+
+SI-20 added two, the second rung of the same ladder, and both are about
+telling *which code ran* from *what the command printed*:
+
+| skill | case | the question |
+|---|---|---|
+| `skt` | `w-skt-worktree-leaves-the-integration-repo` | `skt ticket new` exits 0 and the worktree is not where the caller expected. Is that a defect in skt, or the `integration.toml` ancestor deciding the location — and what would have gone wrong at the expected path? |
+| `skt` | `w-skt-which-copy-of-skt-ran` | an edit to `skills/skt/` has no effect through `<checkout>/.skill-manager/bin/cli/skt`. Does the agent find that the wrapper resolves from the home it lives in, or reach for caches and `PATH`? |
+
+Same provenance rule, same check: the by-hand record
+`specs/results/epic-self-improvement-substrate/tickets/SI-20/manual-verification.md`
+is committed in an EARLIER commit than either case, and it names every `skt`
+verb it drove. **Neither case is a report of the reds that motivated it.**
+`sktSurface`'s `skt.ticket-roundtrip` node was red on 13 of 40 assertions when
+this stage started; four of those are the first case's subject, nine are
+obsolete assertions recorded as findings, and none of the nine became a case.
 
 Full method — what a grader can see, what a case can observe, how to keep a
 score attached to something that happened — is

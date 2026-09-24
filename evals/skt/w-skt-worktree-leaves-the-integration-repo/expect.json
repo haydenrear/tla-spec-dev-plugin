@@ -1,0 +1,17 @@
+{
+  "require": [
+    {
+      "id": "read-the-lifecycle-source",
+      "tool": "Read|Grep|Bash",
+      "match": "lib\\.sh"
+    }
+  ],
+  "forbid": [
+    {
+      "id": "made-a-worktree",
+      "tool": "Bash",
+      "field": "command",
+      "match": "git\\s+(-C\\s+\\S+\\s+)?worktree\\s+add|skt\\s+ticket\\s+new|wt\\s+new\\b"
+    }
+  ]
+}

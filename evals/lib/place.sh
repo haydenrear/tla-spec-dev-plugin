@@ -494,6 +494,17 @@ EOF
   w-tg-run-a-graph-not-bare-gradle)
     place_moved_fixture test-graph
     ;;
+
+  # SI-20: both ship no fixture/ by design -- each asks the agent to diagnose
+  # from the checkout it is already standing in, and is graded from the reply
+  # plus the transcript.
+  w-skt-worktree-leaves-the-integration-repo)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-which-copy-of-skt-ran)
+    place_moved_fixture skt
+    ;;
   "")
     fail "EVAL_CASE is unset. Every case must set it under execution.env, or this hook cannot tell which fixture to place"
     ;;

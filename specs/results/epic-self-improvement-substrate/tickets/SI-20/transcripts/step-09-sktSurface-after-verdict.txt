@@ -1,0 +1,77 @@
+run           20260923-234901   (the repaired node, both arms)
+summary.json  status = passed   (read from the report, not an exit code)
+  passed   skt.check-cached-costs-one-read
+  passed   skt.hook-contract
+  passed   skt.status-tiers
+  passed   skt.ticket-roundtrip
+  passed   skt.wrapper-installed
+
+skt.ticket-roundtrip: 51 assertions, 0 failed   metrics: {'giwResolvedLocally': 1, 'placementArms': 2, 'refusalCases': 2, 'durationMs': 6280}
+  passed  git-issue-workflow resolved to a local install, not an upstream clone
+  passed  git-issue-workflow supplies the shared lifecycle helpers
+  passed  and the scripts `wt` delegates to
+  passed  3.11/standalone: ticket new exits zero
+  passed  standalone: new prints the worktree and branch keys
+  passed  standalone: new says which classification decided the location
+  passed  standalone: the worktree skt created is inside THIS NODE'S fixture tree
+  passed  standalone: nothing was created beside the repository under test
+  passed  standalone: new names its own close command
+  passed  standalone: new warns that home-side skill edits are in no git diff
+  passed  standalone: the worktree directory exists
+  passed  standalone: it is a LINKED worktree, not a copy
+  passed  standalone: git knows about it
+  passed  standalone: the branch feature/TG-STAN exists
+  passed  standalone: info answers about the same worktree
+  passed  standalone: info reports the worktree's base against its parent
+  passed  3.11/standalone: ticket close exits zero
+  passed  standalone: close removes the worktree directory
+  passed  standalone: git no longer lists it
+  passed  standalone: close KEEPS the branch — the work is not what is being torn down
+  passed  standalone: close says the branch was kept
+  passed  3.11/constituent: ticket new exits zero
+  passed  constituent: new prints the worktree and branch keys
+  passed  constituent: new says which classification decided the location
+  passed  constituent: the worktree skt created is inside THIS NODE'S fixture tree
+  passed  constituent: nothing was created beside the repository under test
+  passed  constituent: new names its own close command
+  passed  constituent: new warns that home-side skill edits are in no git diff
+  passed  constituent: the worktree directory exists
+  passed  constituent: it is a LINKED worktree, not a copy
+  passed  constituent: git knows about it
+  passed  constituent: the branch feature/TG-CONS exists
+  passed  constituent: info answers about the same worktree
+  passed  constituent: info reports the worktree's base against its parent
+  passed  3.11/constituent: ticket close exits zero
+  passed  constituent: close removes the worktree directory
+  passed  constituent: git no longer lists it
+  passed  constituent: close KEEPS the branch — the work is not what is being torn down
+  passed  constituent: close says the branch was kept
+  passed  both placement classifications were driven
+  passed  refusal [not a git repository at all]: exits non-zero
+  passed  refusal [not a git repository at all]: names 'not inside a git repository'
+  passed  refusal [not a git repository at all]: prints a remedy
+  passed  refusal [not a git repository at all]: the remedy it names EXISTS and runs -- wt
+  passed  refusal [not a git repository at all]: creates no worktree
+  passed  refusal [a git repository with no project home]: exits non-zero
+  passed  refusal [a git repository with no project home]: names 'no Skill Manager home could be created'
+  passed  refusal [a git repository with no project home]: prints a remedy
+  passed  refusal [a git repository with no project home]: the remedy it names EXISTS and runs -- bootstrap-home.sh
+  passed  refusal [a git repository with no project home]: creates no worktree
+  passed  no ticket worktree was created outside the fixture tree
+
+logs:
+  * fixture root, OUTSIDE the repository on purpose: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-t0m1ahmc
+  * git-issue-workflow from installed:/Users/hayde/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow
+  * standalone: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-t0m1ahmc/standalone/subject-repo-TG-STAN', 'branch': 'feature/TG-STAN (standalone repo subject-repo)', 'launch': "none — this worktree has no home; an agent here uses the operator's GLOBAL home", 'close': 'skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladder-s
+  * standalone: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-t0m1ahmc/standalone/subject-repo-TG-STAN
+  * standalone: worktree exists: True
+  * constituent: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-t0m1ahmc/constituent/subject-repo-TG-CONS', 'branch': 'feature/TG-CONS (constituent repo subject-repo)', 'launch': "none — this worktree has no home; an agent here uses the operator's GLOBAL home", 'close': 'skt ticket close — or: /Users/hayde/IdeaProjects/wt-369-eval-ladde
+  * constituent: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-t0m1ahmc/constituent/subject-repo-TG-CONS
+  * constituent: worktree exists: True
+  * refusal [not a git repository at all] rc=1: error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-jnqodowc
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-234901/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt new TG-REFUSED --verbose
+  * refusal [a git repository with no project home] rc=3: error: no Skill Manager home could be created for this worktree (usually: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-t0m1ahmc/standalone/subject-repo has no project home yet)
+fix:   /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/test_graph/build/validation-reports/20260923-234901/fixtures/skt-wrapper/3.11/pl
+
+node source sha256 in the working tree now: 350663d575458e960d4d9adfc3c175118150c03cc6785be5cf6ce543f1c936cd
+NON-VACUITY OK: 51 assertions, 0 red, 2 placement arms, 2 refusal cases
