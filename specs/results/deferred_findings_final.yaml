@@ -7959,3 +7959,67 @@ findings:
     disposition_note: >-
       Worked around with SKILL_MANAGER_HOME for the 23 legacy homes swept today.
       Not repaired: the code is skill-manager's.
+  - id: EA-DF-05
+    severity: major
+    found_by: "epic agent, sweeping skt out of every home at the owner's direction"
+    found_at_commit: "09cb115f"
+    schedule_revision: 9
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "every <home>/plugins/skt and <home>/installed/skt.json on this machine"
+    summary: >-
+      skt WAS INSTALLED AS ITS OWN PLUGIN IN 46 HOMES, none of them live. The
+      carrier tla-spec-dev already contains skt, so each of those homes held two
+      copies, and every single-rung resolver picks whichever it finds first --
+      the defect class that made sktSurface test a different repository
+      (SI-25-DF-06). All 46 are clean now, and every live home keeps exactly one
+      copy, the contained one.
+    reproduction: >-
+      Probe all THREE rungs per home -- skills/skt, plugins/skt, and
+      plugins/*/skills/skt. The middle rung is the one a two-rung habit misses,
+      and the epic agent's own first survey missed it for exactly that reason,
+      reporting "no standalone skt anywhere" while 46 homes carried it.
+    why_out_of_scope: >-
+      Not out of scope; swept. 29 homes yielded to
+      `SKILL_MANAGER_HOME=<home> skill-manager uninstall skt -y`. The other 17
+      refused PROTECTIVELY -- "claimed by child skill-manager home(s)" or
+      "claimed by skill project(s)" -- and were cleared by removing skt's files
+      directly, which the owner had authorised as strictly less destructive than
+      the alternative they offered (nuking those homes outright, which would
+      have taken every unrelated unit with them).
+    suggested_fix: >-
+      The removal is done; the SOURCE is not. 43 projects on this machine still
+      declare `[plugins.skt]`, and that coordinate still resolves and ships skt
+      0.8.2, so `project resolve` in any of them re-adds the duplicate. The
+      reference page that taught the shape is corrected (f212cbe3) and
+      `skt status` now reports the INSTALLED form as well as the declared one,
+      so a re-add is at least visible. Migrating those 43 manifests is the
+      remaining work.
+    blast_radius: >-
+      Bounded, and worth stating in the direction that matters: each of those 46
+      homes could have resolved skt to either copy and nothing said which. The
+      four live homes were already clean, so no eval or graph result in this
+      epic rests on the ambiguity -- established by measuring every home today,
+      not by having assumed it earlier.
+    evidence:
+      - "before: 46 homes carrying plugins/skt or installed/skt.json, 0 of them live"
+      - "after: 0 homes carry a separate skt; all four live homes keep the contained copy at carrier a3761e30 with today's skt fixes"
+      - "the skt CLI still resolves and answers after the sweep, from the root home's carrier"
+      - "a previously-blocked legacy home now prints 0 duplicate-skt notices"
+    skill_change: "applied(f212cbe3)"
+    attribution: UNMODELED/home-install-shape
+    disposition: fixed
+    fixed_by: "home sweep 2026-09-24"
+    disposition_ticket: "EPIC-AGENT"
+    disposition_note: >-
+      THE OWNER'S QUESTION WAS THE USEFUL ONE: having nuked the root home, how
+      did anything still know about these? Because the claim is not held by the
+      root. Each home keeps its OWN child registry at
+      <home>/child-homes/<project>, so wt-216's home -- not ~/.skill-manager --
+      was the thing refusing. A hierarchy whose bookkeeping survives the deletion
+      of its root is not obviously wrong, but it is surprising, and the surprise
+      is what made 17 protective refusals look like a tool defect.
