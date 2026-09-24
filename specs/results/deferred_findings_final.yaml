@@ -8500,3 +8500,111 @@ findings:
       shape because it is this session''s eighth instrument-or-substrate defect whose only symptom
       is a plausible outcome: the hook did not error, did not warn, and did not appear in any
       verdict -- it simply returned nothing, and the cost showed up as an agent that looked slow.'
+  - id: EA-DF-15
+    severity: major
+    found_by: epic agent, triaging the thirteen decidable cases below 1.00
+    found_at_commit: 3fe0888f
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/run.sh
+      - every skills/*/scripts/*.py carrying a `# /// script` header
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: 'NO `uv run --script` SKILL SCRIPT CAN START IN A SANDBOXED RUN. Those scripts resolve
+      their dependencies at invocation time, uv looks for its cache under the CURRENT home, a
+      sandboxed run''s home is empty, and the sandbox has no network -- so uv reaches for pypi.org
+      and is denied. The operator''s 21G cache at ~/.cache/uv is never consulted. Every case whose
+      subject is one of those scripts therefore grades an agent that could not run the tool the
+      case is about, and the run does not fail: a plausible number comes out.'
+    reproduction: 'From a run''s own transcript, verbatim: "uv run --script .../validate_epic_plan.py
+      --help" then "error: Failed to fetch: https://pypi.org/simple/pyyaml/" and "<sandbox_violations>
+      deny network-outbound pypi.org:443 (user denied)". The agent then said so plainly -- "I
+      couldn''t validate the plan: the validator never ran, so it printed no findings. What follows
+      is my own reading of the plan, not a validator result" -- reasoned its way to a correct
+      reading by hand, and scored 0.75.'
+    why_out_of_scope: 'Not out of scope; fixed in the same commit. The eval half only: whether
+      a skill script should degrade when its interpreter cannot resolve deps is a product question
+      and is not touched here.'
+    suggested_fix: Done. run.sh exports UV_CACHE_DIR to .toolchain/uv-cache -- beside the pinned
+      checkout and the jbang cache, gitignored, 1.8M -- and PRIMES it operator-side before the
+      sandbox starts, by running the validator's --help once. Verified to resolve with UV_OFFLINE=1,
+      which is what "no network" looks like from inside the sandbox. Warns and carries on if priming
+      fails.
+    blast_radius: 81 files in skills/ carry a `# /// script` header and 10 cases name a validator
+      or a script directly, so this is not one case. It is the THIRD instance of one shape in
+      a single session -- skill-manager could not start for want of a JDK (EA-DF-12), the orientation
+      hook could not start for want of a python (EA-DF-14), and now every uv script for want of
+      a warm cache. In all three the tool was absent, the run scored anyway, and the number looked
+      like a statement about the agent.
+    evidence:
+    - 'transcript: deny network-outbound pypi.org:443, validator never started'
+    - 'primed cache resolves offline: UV_OFFLINE=1 uv run --script validate_epic_plan.py --help
+      -> rc=0'
+    - 1.8M cache vs the operator's 21G ~/.cache/uv, which a sandbox cannot see
+    - w-epic-retire-part-of-goal-warns-only scored 0.75 with judge FAIL FAIL FAIL on a case it
+      could not perform
+    skill_change: applied(run.sh primes and exports an isolated UV_CACHE_DIR)
+    attribution: UNMODELED/eval-harness
+    disposition: fixed
+    fixed_by: uv cache priming, 2026-09-24
+    disposition_ticket: EPIC-AGENT
+    disposition_note: 'THE PATTERN IS NOW NAMED, because three instances in one day is a class
+      and not a coincidence: a sandboxed run inherits an empty HOME, every toolchain that caches
+      under HOME is therefore cold, and every one of them fails by reaching for a network that
+      is not there. jbang, uv and skt''s python all did it. Anything else that caches under HOME
+      will do it too, silently, and the only symptom will be a score. The general remedy is the
+      one applied three times here: name the cache explicitly, keep it in .toolchain, prime it
+      operator-side.'
+  - id: EA-DF-16
+    severity: minor
+    found_by: epic agent, asking why a case that passed every substantive grader scored 0.86
+    found_at_commit: 3fe0888f
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/skt/w-skt-migration-delete-project-block/expect.json
+      - evals/skt/w-skt-stale-artifacts-are-not-stale-home/expect.json
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: A `require` RULE MATCHED A PATH SPELLING RATHER THAN THE ACT OF READING, so the same
+      correct behaviour scored 0.86 or 1.00 depending on which tool the agent reached for. The
+      rule's pattern was the full `cases/<case>/<file>`; an agent that runs `cd cases/<case> &&
+      cat <file>` reads exactly that file and produces a command string that does not contain
+      the prefix, so the rule misses. An agent that uses Read with an absolute path matches. Both
+      read the file.
+    reproduction: 'Same case, same commit, two runs: 0.86 in the corpus run with `read-the-output`
+      missing, 1.00 on re-run with it present. The passing run''s two tool calls were `cd cases/<case>
+      && ls -la && cat status-output.txt && cat -A skill-project.toml` (Bash, relative -- does
+      NOT match) and a Read of the absolute path (DOES match). The rule passed only because the
+      agent happened to do both.'
+    why_out_of_scope: Not out of scope; fixed in the same commit.
+    suggested_fix: Done. Both rules now match the FILENAME -- `skill-project\\.toml`, `artifact-report\\.txt`
+      -- which is what "the agent opened the manifest" actually means, and within a case's sandbox
+      there is only one such file. The grader docs say "necessary, not sufficient" and that is
+      still true; what changed is that it is now decidable.
+    blast_radius: 'Two cases fixed, and a third left open because it is a different question:
+      `w-giw-wt-close-no-force-on-unpublished` requires reading `close.txt`, which is already
+      a bare filename, and the agent scored 0.86 having surfaced the blocker correctly (judge
+      PASS PASS PASS) in three turns without opening that file. That rule over-specifies the MEANS
+      rather than mis-spelling the path, and deciding it needs a transcript this session did not
+      take.'
+    evidence:
+    - 'tool calls from the passing run: Bash `cd cases/<case> && ... cat skill-project.toml`;
+      Read `/abs/.../cases/<case>/skill-project.toml`'
+    - 'corpus run: read-the-output MISSING, 0.86.  re-run: PRESENT, 1.00.  Same commit.'
+    - 'both rules declared tool: "Bash|Read", so tool choice was never the intended constraint'
+    skill_change: proposed(test-graph, a require rule should match the act it names, not a path
+      spelling; prefer the filename over the full path because an agent may cd first)
+    attribution: UNMODELED/eval-case
+    disposition: fixed
+    fixed_by: filename matching, 2026-09-24
+    disposition_ticket: EPIC-AGENT
+    disposition_note: This is the fourth grader this session that punished correct behaviour performed
+      differently than the author imagined -- after answers-yes (EA-DF-09), the overlapping judge
+      branches (EA-DF-11) and the budget calibrated for a different fixture. The common error
+      is writing down the path the author walked instead of the destination.

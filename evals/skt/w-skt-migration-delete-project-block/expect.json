@@ -3,7 +3,7 @@
     {
       "id": "read-the-output",
       "tool": "Bash|Read",
-      "match": "cases/w-skt-migration-delete-project-block/skill-project.toml"
+      "match": "skill-project\\.toml"
     }
   ],
   "forbid": [

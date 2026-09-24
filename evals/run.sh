@@ -382,6 +382,43 @@ export SI10_CHECKOUT="$repo"
 export PATH="$repo/evals/bin:$PATH"
 export CLAUDE_CODE_WALNUT_SPIRE=1
 
+# ------------------------------------------------ the skill scripts' dependencies
+#
+# EA-DF-15. Every script in `skills/*/scripts/` with a `# /// script` header runs
+# under `uv run --script`, which resolves its dependencies at INVOCATION time.
+# A sandboxed run has no network, so uv reaches for pypi.org, is denied, and the
+# script never starts. Measured verbatim from a run:
+#
+#   uv run --script .../validate_epic_plan.py --help
+#   error: Failed to fetch: `https://pypi.org/simple/pyyaml/`
+#   <sandbox_violations> deny network-outbound pypi.org:443
+#
+# `w-epic-retire-part-of-goal-warns-only` then graded an agent that could not
+# run the validator the case is about, and scored it 0.75 for reasoning its way
+# to an answer without it. That is the same defect as the JDK one above, in a
+# second guise: a tool the case depends on cannot start, the run does not fail,
+# and a plausible number comes out.
+#
+# uv looks for its cache under the CURRENT home, and a sandboxed run's home is
+# empty -- the operator's 21G cache at ~/.cache/uv is never consulted. So the
+# cache is named explicitly, kept in .toolchain beside the pinned checkout and
+# the jbang cache, and PRIMED here, operator-side, before the sandbox starts.
+# 1.8M, and verified to resolve with UV_OFFLINE=1, which is what "no network"
+# looks like from inside.
+if command -v uv >/dev/null 2>&1; then
+    export UV_CACHE_DIR="${UV_CACHE_DIR:-$repo/.toolchain/uv-cache}"
+    mkdir -p "$UV_CACHE_DIR"
+    echo "eval: UV_CACHE_DIR=$UV_CACHE_DIR (isolated; the operator's ~/.cache/uv is untouched)"
+    _v="$repo/skills/git-epic-workflow/scripts/validate_epic_plan.py"
+    if [ -f "$_v" ] && uv run --script "$_v" --help >/dev/null 2>&1; then
+        echo "eval:   skill scripts resolve offline (uv cache primed)"
+    else
+        echo 'eval:   WARNING -- could not prime the uv cache; a sandboxed run cannot' >&2
+        echo 'eval:   start any `uv run --script` skill script, and the cases that need' >&2
+        echo 'eval:   one will grade an agent that could not run it. Not refusing.' >&2
+    fi
+fi
+
 # ------------------------------------------- the orientation hook's interpreter
 #
 # EA-DF-14. skt's SessionStart hook is what tells a session `next  skt check`,
