@@ -35,13 +35,26 @@ Each unit is one table, keyed by its kind and its installed name:
 [skills.git-issue]
 source = "github:haydenrear/git-issue-skill"
 
-[plugins.skt]
-source = "github:haydenrear/skt"
+[plugins.tla-spec-dev]
+source = "github:haydenrear/tla-spec-dev-plugin"
 ```
 
+**NOT `[plugins.skt]`.** This example used to spell exactly that, and the
+coordinate `github:haydenrear/skt` STILL RESOLVES -- it ships skt 0.8.2 -- so
+following it installs a standalone skt beside the `tla-spec-dev` plugin that
+already contains one. Two copies, and a single-rung resolver picks whichever it
+finds first, which is the defect class this bundle has spent an epic removing.
+Measured across 86 skill projects on one machine, `[plugins.skt]` was the most
+common unmigrated declaration of any shape: 14 of them. A reference page that
+prints the wrong coordinate is not a documentation defect, it is a supply of
+them.
+
+`skt status` reports both halves now: a manifest that DECLARES the retired
+carrier, and a home that has already INSTALLED it as `plugins/skt`.
+
 A plugin declared as `[skills.<name>]` is refused by `project resolve`, and a
-unit that skt now provides (`skill-manager`, `skill-publisher`) is deleted from
-the manifest rather than re-declared.
+unit that `tla-spec-dev` now provides (`skill-manager`, `skill-publisher`,
+`skt`) is deleted from the manifest rather than re-declared.
 
 Project resolution also treats the checkout as a harness descriptor:
 

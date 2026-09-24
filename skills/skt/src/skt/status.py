@@ -231,6 +231,20 @@ _VENDORED_OLD_RUNG = re.compile(
 
 def _migration(home: Path, start: str | Path) -> dict | None:
     standalone = [n for n in RETIRED_UNITS if (home / "skills" / n).is_dir()]
+    # THE INSTALLED SHAPE, not just the declared one. The comment above
+    # `_RETIRED_CARRIER_AS_PLUGIN` measured `[plugins.skt]` as the most common
+    # unmigrated declaration in the wild (14 of 86 projects) -- but the detector
+    # it added reads the MANIFEST TEXT. A home that resolved such a manifest
+    # once carries `plugins/skt` on disk, and nothing looked there: `standalone`
+    # above probes `skills/<n>` only. So the migration notice fired on the
+    # advice and never on its outcome, and the duplicate it warns about could
+    # sit in a home indefinitely without a word.
+    #
+    # Measured on this machine, 2026-09-24: `plugins/skt` present in 24 ticket
+    # worktree homes and absent from all four live homes and from every worktree
+    # created after the migration -- so the migration stopped CREATING it and
+    # never removed what it had already created.
+    as_plugin = [n for n in RETIRED_UNITS if (home / "plugins" / n).is_dir()]
     manifest = ctx_mod.checkout_root(start) / "skill-project.toml"
     declared: list[str] = []
     text = ""
@@ -250,11 +264,12 @@ def _migration(home: Path, start: str | Path) -> dict | None:
     m_plugin = _RETIRED_CARRIER_AS_PLUGIN.search(text) if manifest.is_file() else None
     carrier_as_plugin = m_plugin.group(1) if m_plugin else None
     vendored_old_rung = bool(manifest.is_file() and _VENDORED_OLD_RUNG.search(text))
-    if not (standalone or declared or carrier_as_skill or carrier_as_plugin
-            or vendored_old_rung):
+    if not (standalone or as_plugin or declared or carrier_as_skill
+            or carrier_as_plugin or vendored_old_rung):
         return None
     names_manifest = declared or carrier_as_skill or carrier_as_plugin or vendored_old_rung
     return {"standalone": standalone,
+            "as_plugin": as_plugin,
             "manifest": str(manifest) if names_manifest else None,
             "declared": declared, "carrier_as_skill": carrier_as_skill,
             "carrier_as_plugin": carrier_as_plugin,
@@ -270,6 +285,12 @@ def _migration_lines(block: dict | None) -> list[str]:
     if block["standalone"]:
         lines.append(f"           this home still holds {', '.join(block['standalone'])} — run once: "
                      f"skill-manager sync {CARRIER}   (retires it automatically)")
+    if block.get("as_plugin"):
+        names = ", ".join(block["as_plugin"])
+        lines.append(f"           this home INSTALLS {names} as its own plugin "
+                     f"(plugins/{block['as_plugin'][0]}) while {CARRIER} already contains it — "
+                     f"two copies, and a single-rung resolver picks whichever it finds first. "
+                     f"Run once: skill-manager uninstall {block['as_plugin'][0]}")
     if block["declared"]:
         blocks = ", ".join(f"[skills.{n}]" for n in block["declared"])
         lines.append(f"           skill-project.toml declares {blocks} — delete that block; "
