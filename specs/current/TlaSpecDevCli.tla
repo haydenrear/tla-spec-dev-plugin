@@ -772,12 +772,17 @@ GenerateCases(root) ==
 \* worktree in this epic that its ticket was not in the plan.
 \* @command SktStatus
 \* @result CliWorkflowResult
-SktStatus(unique, joined) ==
-  /\ skt_answer' = [ skt_answer EXCEPT
-                       !.epic_unique       = unique,
-                       !.epic_named        = unique,
-                       !.membership_joined = joined,
-                       !.membership_claim  = joined ]
+\* NULLARY, deliberately: nobody PASSES "is the epic unique" to `skt status`.
+\* The nondeterminism is the checkout's, so it is quantified INSIDE the action
+\* rather than supplied as an argument, and the parameter-recovery audit has
+\* nothing to recover because there is nothing a caller chose.
+SktStatus ==
+  /\ \E unique \in BOOLEAN, joined \in BOOLEAN:
+       skt_answer' = [ skt_answer EXCEPT
+                            !.epic_unique       = unique,
+                            !.epic_named        = unique,
+                            !.membership_joined = joined,
+                            !.membership_claim  = joined ]
   /\ lastCommand' = "SktStatus"
   /\ result' = CommandResult(TRUE, NoReason, "skt check")
   /\ UNCHANGED << setup_phase,
@@ -793,10 +798,11 @@ SktStatus(unique, joined) ==
 \* artifact probe that timed out is a verdict about something never looked at.
 \* @command SktCheck
 \* @result CliWorkflowResult
-SktCheck(measured) ==
-  /\ skt_answer' = [ skt_answer EXCEPT
-                       !.surfaces_measured = measured,
-                       !.verdict_current   = measured ]
+SktCheck ==
+  /\ \E measured \in BOOLEAN:
+       skt_answer' = [ skt_answer EXCEPT
+                            !.surfaces_measured = measured,
+                            !.verdict_current   = measured ]
   /\ lastCommand' = "SktCheck"
   /\ result' = CommandResult(TRUE, NoReason, "skt sync")
   /\ UNCHANGED << setup_phase,
@@ -813,10 +819,11 @@ SktCheck(measured) ==
 \* @command SktTicketSweep
 \* @result CliWorkflowResult
 \* @port SktPort.worktree_removal
-SktTicketSweep(contained) ==
-  /\ skt_answer' = [ skt_answer EXCEPT
-                       !.containment_known = contained,
-                       !.sweep_planned     = contained ]
+SktTicketSweep ==
+  /\ \E contained \in BOOLEAN:
+       skt_answer' = [ skt_answer EXCEPT
+                            !.containment_known = contained,
+                            !.sweep_planned     = contained ]
   /\ lastCommand' = "SktTicketSweep"
   /\ result' = CommandResult(TRUE, NoReason, "skt ticket sweep --yes")
   /\ UNCHANGED << setup_phase,
@@ -858,12 +865,9 @@ Next ==
       CloseTicket(root, ticket)
   \/ \E root \in SpecRoots, ticket \in Tickets:
       CloseTicketWeakened(root, ticket)
-  \/ \E unique \in BOOLEAN, joined \in BOOLEAN:
-      SktStatus(unique, joined)
-  \/ \E measured \in BOOLEAN:
-      SktCheck(measured)
-  \/ \E contained \in BOOLEAN:
-      SktTicketSweep(contained)
+  \/ SktStatus
+  \/ SktCheck
+  \/ SktTicketSweep
   \/ Stutter
 
 TypeInvariant ==

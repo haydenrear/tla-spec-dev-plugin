@@ -89,11 +89,34 @@ def effects_action_ports(manifest_path: Path) -> dict[str, set[str]]:
 
 
 def declared_ports(manifest_path: Path) -> set[str]:
-    """Every port name under ``effects.components.<component>.ports``."""
+    """Every port name under ``effects.components.<component>.ports``.
+
+    EVERY component, which is what the docstring always said and what the
+    schema always allowed. This read `block_after(text, "\\n      ports:\\n")`,
+    which takes the FIRST match and stops -- so it described one component while
+    the manifest's shape is `effects.components.<component>.ports`. It went
+    unnoticed because there was exactly one component for the life of the file.
+    Adding `SktPort` (SI-20, the skt model surface) made the first block the new
+    one, and all fourteen of TlaSpecDevCliPort's ports read as UNDECLARED --
+    reported as "action rows name ports that are not declared", which points at
+    the rows rather than at the reader.
+
+    A reader that answers about less than it claims is the defect this
+    repository has spent the epic on, and it had one in its own checker.
+    """
     text = manifest_path.read_text(encoding="utf-8")
     assert "\n      ports:\n" in text, f"{manifest_path}: no ports block"
-    body = block_after(text, "\n      ports:\n", "        ")
-    return set(re.findall(r"^        (\w+):$", body, flags=re.MULTILINE))
+    names: set[str] = set()
+    cursor = 0
+    header = "\n      ports:\n"
+    while True:
+        at = text.find(header, cursor)
+        if at == -1:
+            break
+        body = block_after(text[at:], header, "        ")
+        names |= set(re.findall(r"^        (\w+):$", body, flags=re.MULTILINE))
+        cursor = at + len(header)
+    return names
 
 
 def annotated_ports(tla_path: Path) -> dict[str, set[str]]:

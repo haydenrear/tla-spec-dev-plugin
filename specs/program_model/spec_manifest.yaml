@@ -83,9 +83,16 @@ case_codegen:
 # skills/spec-double-2/scripts/new_ticket_workflow.py and are filled only when
 # case_codegen.generation_status (above) reaches `generated`. Empty here
 # claims "no generated case index yet" -- generation_status is `planned` --
-# NOT "the model has no state, actions, or ports": this tree's model has 8
-# variables and 16 Next disjuncts (15 @command actions plus Stutter), and its
+# NOT "the model has no state, actions, or ports": this tree's model has 9
+# variables and 19 Next disjuncts (18 @command actions plus Stutter), and its
 # declared effect ports live in effects.components below.
+#
+# SI-20: 8 -> 9 variables and 16 -> 19 disjuncts, when the skt surface was
+# modelled (skt_answer; SktStatus, SktCheck, SktTicketSweep). Updated
+# deliberately, for the same reason CA-04 states below: this sentence is a
+# CLAIM about the module beside it, checked by
+# tests/test_spec_manifest_records.py, and a claim nobody updates is the
+# stale-pointer defect this file keeps recording.
 #
 # CA-04: 9 -> 8 variables and 17 -> 16 disjuncts, when the mutation kill test
 # was removed (RM-03-DF-05). Updated deliberately, for the reason the paragraph
@@ -486,6 +493,15 @@ notes:
 # Evidence, Not By Transcription"). `tla-spec-dev analyze complexity` reads
 # this table and flags any variable with no linkage as dead weight.
 justification:
+  # SI-20: the skt surface. Every one of the four defects behind these
+  # invariants was a CLAIM made over something unmeasured, so one record of
+  # what skt has answered carries all four. No effects: SktStatus and SktCheck
+  # read and print. SktTicketSweep's delete is declared on SktPort and attached
+  # to the action, not to the variable.
+  skt_answer:
+    invariants: [TypeInvariant, SktNamesNoEpicItCannotResolve, SktClaimsNoMembershipItDidNotJoin, SktVerdictCoversEverySurfaceItNames, SktPlansNoRemovalWithoutContainment]
+    effects: []
+    kill_tests: []
   setup_phase:
     invariants: [TypeInvariant, CliInstalledRequiresBuilt, WorkflowRequiresProject, BudgetsRequireProject, WorkflowRequiresBudgets, ProjectChoosesKnownSpecRoot]
     effects: []

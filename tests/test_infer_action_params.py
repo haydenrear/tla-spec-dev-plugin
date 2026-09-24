@@ -77,6 +77,13 @@ ALL_ACTIONS = (
     "RunSpecUnitTests",
     "CloseTicket",
     "CloseTicketWeakened",
+    # SI-20: the skt surface. All three are NULLARY -- the nondeterminism is the
+    # checkout's, quantified inside the action, because nobody passes "is the
+    # epic unique" to `skt status`. So there is nothing for a caller to have
+    # chosen and nothing for recovery to recover, which is what EXPECTED says.
+    "SktStatus",
+    "SktCheck",
+    "SktTicketSweep",
 )
 
 
@@ -91,6 +98,18 @@ def recipes():
 
 TICKETS = ("cli_entrypoint", "cli_workflow", "cli_validation")
 
+# SI-20: the skt surface's resting answer. Mirrors SktSilent in the module.
+SKT_SILENT = {
+    "epic_named": False,
+    "epic_unique": False,
+    "membership_claim": False,
+    "membership_joined": False,
+    "verdict_current": False,
+    "surfaces_measured": False,
+    "sweep_planned": False,
+    "containment_known": False,
+}
+
 
 def state(
     *,
@@ -101,6 +120,7 @@ def state(
     complexity_gate: str = "unknown",
     corpus_gate: str = "unknown",
     effect_conformance: str = "unknown",
+    skt_answer: dict | None = None,
 ) -> dict:
     base = {ticket: 0 for ticket in TICKETS}
     base.update(ticket_state or {})
@@ -113,11 +133,30 @@ def state(
         "complexity_gate": complexity_gate,
         "corpus_gate": corpus_gate,
         "effect_conformance": effect_conformance,
+        "skt_answer": skt_answer or SKT_SILENT,
     }
 
 
 def pair(action: str) -> tuple[dict, dict]:
     """One legitimate before/after state pair per action label."""
+    if action in ("SktStatus", "SktCheck", "SktTicketSweep"):
+        # Only skt_answer moves, and it moves to the honest answer: the guarded
+        # field and the claim it licenses go TRUE together, which is exactly
+        # what the four invariants require. A pair where the claim outran its
+        # evidence would be a model violation, not a fixture.
+        answered = dict(SKT_SILENT)
+        if action == "SktStatus":
+            answered.update(epic_unique=True, epic_named=True,
+                            membership_joined=True, membership_claim=True)
+        elif action == "SktCheck":
+            answered.update(surfaces_measured=True, verdict_current=True)
+        else:
+            answered.update(containment_known=True, sweep_planned=True)
+        return (
+            state(setup_phase=5, spec_root="custom_specs"),
+            state(setup_phase=5, spec_root="custom_specs",
+                  last_command=action, skt_answer=answered),
+        )
     if action == "BuildSkillCli":
         return (
             state(setup_phase=0, spec_root="NoRoot"),
@@ -249,11 +288,17 @@ EXPECTED = {
     },
     "CloseTicket": {"root": "default_specs", "ticket": "cli_validation"},
     "CloseTicketWeakened": {"root": "default_specs", "ticket": "cli_entrypoint"},
+    "SktStatus": {},
+    "SktCheck": {},
+    "SktTicketSweep": {},
 }
 
 # A deliberately WRONG expectation per action. Each must make the check fail.
 NEGATIVE_CONTROLS = {
     # Nullary actions: claiming any argument at all must fail.
+    "SktStatus": {"root": "default_specs"},
+    "SktCheck": {"ticket": "cli_workflow"},
+    "SktTicketSweep": {"root": "custom_specs"},
     "BuildSkillCli": {"root": "default_specs"},
     "InstallLocalCli": {"ticket": "cli_workflow"},
     # written-through: the other root in SpecRoots.

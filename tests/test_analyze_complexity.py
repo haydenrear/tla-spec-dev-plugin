@@ -508,7 +508,22 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     assert pre_mf025 // 3 // 6 * 32 == 1_179_648
     # ...and divide out the 3-valued complexity gate for the MF-020 figure.
     assert (pre_mf025 // 3 // 6 * 32) // 3 == 393_216
-    assert set(result.unbounded) == {"lastCommand", "result"}
+    # SI-20 ADDED A VARIABLE AND MOVED NO FIGURE IN THE CHAIN ABOVE, which is
+    # the first time that has happened here and is worth stating rather than
+    # leaving as an absence. `skt_answer` is a RECORD of eight booleans, so the
+    # resolver sees no domain for it: it joins `lastCommand` and `result` in the
+    # unresolved set, contributes no factor, and every recorded figure --
+    # 277,830, 174,960, 34,992, 663,552, 221,184, 1,179,648, 393,216 -- is
+    # unchanged and still asserted.
+    #
+    # That is not a free lunch and the completeness assertions below say so: the
+    # product is now over 6 of NINE variables rather than 6 of eight, so the
+    # measured bound is a weaker lower bound than it was yesterday. The model
+    # surface grew, the STATED bound did not, and the gap between them widened.
+    # A future ticket that wants a comparable figure must resolve `skt_answer`
+    # -- unfolding the record into named domains would do it -- and not quote
+    # 277,830 as though the addition were free.
+    assert set(result.unbounded) == {"lastCommand", "result", "skt_answer"}
 
     # RP-04: the chain is a product over 6 of 8 variables, and says so.
     # The 2026-08-04 removal took two variables the resolver COULD see (both had
@@ -522,9 +537,11 @@ def test_repository_own_model_reproduces_the_recorded_state_space_bound() -> Non
     # unchanged: 7/9 -> 6/8.
     completeness = result.completeness
     assert completeness.resolved == 6
-    assert completeness.total == 8
+    # SI-20: 8 -> 9. The resolved count did NOT move, which is the whole content
+    # of the change: the skt surface added state the resolver cannot see.
+    assert completeness.total == 9
     assert completeness.complete is False
-    assert completeness.unresolved == ["lastCommand", "result"]
+    assert completeness.unresolved == ["lastCommand", "result", "skt_answer"]
     # CA-04: THIS ASSERTION FLIPPED FROM `False` TO `None`, AND THE DIFFERENCE
     # IS THE POINT RP-04 BUILT THIS CLASS TO MAKE. `False` meant "incomplete,
     # but already over the cap" -- a claim that is sound in the direction it is
