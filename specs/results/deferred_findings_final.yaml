@@ -7205,6 +7205,14 @@ findings:
       because CI never runs the graphs on a PR. Not repaired here: the oracle is
       skill-manager's code, and PR #397 was merged on the strength of the
       environmental proof above rather than by weakening the instrument.
+    recurrence_note: >-
+      OBSERVED A THIRD TIME on 2026-09-24, in skill-manager's dependent graph
+      sweep: 7 of 8 passed and `ticket-lifecycle` failed on the same node, the
+      same file, the same 6501 bytes, mtime 1790255991949 -> 1790256215343 --
+      a delta of ~223s, matching the client's ~4-minute sync interval. Recorded
+      because a flake seen three times with an identical signature is no longer
+      a suspicion, and because the next agent to see this red should not spend
+      the diagnosis again.
 
   - id: SI-19-DF-01
     severity: major
@@ -7376,9 +7384,25 @@ findings:
     evidence:
       - "specs/results/epic-self-improvement-substrate/tickets/SI-19/transcripts/step-C-discover-list.txt"
     skill_change: "none"
-    disposition: still-true
+    disposition: fixed
     disposition_ticket: "SI-19"
     disposition_note: "Observed 2026-09-23. Not repaired: another ticket's evidence."
+    fixed_by: "graph run 2026-09-24"
+    fix_note: >-
+      THE UNDECIDED HALF IS DECIDED. SI-19 listed `sktSurface` and `sktHooks`
+      and did not run them, recording them UNDECIDED rather than green, which
+      was the correct entry. Both have now been run by the epic agent and both
+      PASS -- sktSurface 5/5 nodes and 51 assertions after the two-rung
+      resolver repair (b6608763), sktHooks clean. All five registered graphs
+      are green together: specWorkflow, cliWorkflow, effectProviderExamples,
+      sktSurface, sktHooks.
+
+      The stale-table half stands and is the part worth keeping: nothing
+      consumes SI-13's committed classification.md programmatically -- the
+      epic agent measured ZERO program references, the only hit being a string
+      inside this ledger row -- while `discover.py` enumerates five graphs at
+      run time. A committed population that agents are told to trust is the
+      staleness generator; the runtime enumerator is the repair.
 
   - id: SI-19-DF-04
     severity: major
