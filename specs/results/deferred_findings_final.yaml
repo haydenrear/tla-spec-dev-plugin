@@ -8146,3 +8146,118 @@ findings:
       resolution finding, because it is the same shape one layer up: a checker that answers a
       narrower question than the one its caller believes it asked, and reports nothing when the
       difference bites.'
+  - id: EA-DF-08
+    severity: major
+    found_by: epic agent, running the first billed rung of the eval ladder
+    found_at_commit: 10e16817
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/lib/verify.sh:168
+      - evals/lib/place.sh:118
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: 'AN UNDECIDED VERDICT IS WRITTEN AND THEN DOES NOT REACH THE ONE PLACE A SCORE IS
+      READ. Six cases cannot run in the staged plugin view -- their fixture is a real branched
+      Skill Manager home, ~41,000 entries against the CLI''s hard 20,000 ceiling. That is handled
+      with care: `place.sh` prints the reason into the run trace and `verify.sh` writes `.eval/UNDECIDED-needs-home`.
+      But `claude plugin eval`''s summary table knows nothing about `.eval/`, so the operator
+      sees `✗ ticket-agent-opens-a-ticket score 0.27` with a NOTES column quoting a grader message,
+      and no indication the case was never decidable. The reason was written; it does not travel
+      to where the score is read.'
+    reproduction: '`EVAL_HOME=<scratch> ./evals/run.sh --case ''ticket-agent-*''` scores 0.30
+      and 0.27 with NOTES "front-door missing (expected present)". Re-run either with `--keep-temp`,
+      then `chmod 700 <kept> <kept>/sealed` and read `sealed/home/cwd/.eval/` -- `UNDECIDED-needs-home`
+      is present and `verify.log` says "needs a branched Skill Manager home, which the view cannot
+      carry". Both facts are true of the same run; only one is on screen.'
+    why_out_of_scope: Out of scope to fix here. `evals/**` is SI-21's conflict key and SI-21 has
+      not been dispatched, so an edit now collides with the ticket that owns the surface. Filed
+      for SI-21 to consume.
+    suggested_fix: The verdict already exists as a file; the gap is that nothing reads it back.
+      `run.sh` harvests results already, so have the harvest step glob each run's `.eval/UNDECIDED-*`
+      and print a post-table stanza naming every case that was undecidable and why -- the summary
+      table is the CLI's and cannot be changed, but the line after it is ours. A count ("2 of
+      16 cases UNDECIDED") is the part that stops a reader averaging them into a score.
+    blast_radius: 'Reading only, but in the direction this project says an instrument may not
+      fail. The epic agent did exactly the misreading the design was written to prevent: reported
+      0.30/0.27 as "the agent never issued the front door", called them the highest-value cases
+      in the corpus, and drew a conclusion about the substrate from an instrument that had already
+      declared itself undecided. Four more of the six sit in later stages -- three in the skill-manager
+      stage, one in the workflow stage -- so the same misreading is available three more times
+      in this ladder.'
+    evidence:
+    - 'the six: bootstraps-a-home-for-a-repo, reconciles-a-worktree-into-the-project-home, syncs-a-stale-home-from-root,
+      epic-provisions-a-ticket-worktree, ticket-agent-opens-a-ticket, ticket-agent-closes-a-ticket'
+    - 'kept sandbox /private/tmp/e-QUMkuv: .eval/UNDECIDED-needs-home present, verify.log names
+      the reason'
+    - 'summary table for the same run: "✗ ticket-agent-opens-a-ticket score 0.27" with no UNDECIDED
+      anywhere'
+    - evals/README.md 'The six that need a home' documents the intent exactly; the defect is delivery,
+      not design
+    skill_change: proposed(test-graph, harvest .eval/UNDECIDED-* after a run and print the undecided
+      cases and their count beneath the CLI's summary table)
+    attribution: UNMODELED/eval-harness
+    disposition: still-true
+    disposition_ticket: SI-21
+    disposition_note: 'Filed against the harness, not the six cases. The cases are correct to
+      be undecided and correct to move with the corpus; what is missing is one line of harvest.
+      Note for whoever fixes it: the fix must not turn UNDECIDED into a refusal -- GOAL-no-new-gates,
+      and an eval that blocks is a gate wearing a lab coat.'
+  - id: EA-DF-09
+    severity: minor
+    found_by: epic agent, reading a 0.67 rather than recording it
+    found_at_commit: 10e16817
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/skt/w-skt-is-a-plugin-not-a-skill/graders/answers-yes.md
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: A CONTENT GRADER ASSERTS AN ANSWER THAT ITS OWN FIXTURE MAKES FALSE. `w-skt-is-a-plugin-not-a-skill`
+      ships no fixture -- by design; it is one of ~20 cases graded from the transcript. Its prompt
+      asks whether the one-command front door is "available from this checkout's home at ./.skill-manager",
+      and its `answers-yes` grader requires the literal word Yes in the last message. Nothing
+      in the case, in `place.sh`, or in the shared fixture ever creates `./.skill-manager`. The
+      honest answer is therefore No, the agent gave it with evidence, and the grader is unearnable
+      as written -- a standing 0.67 that reads as a substrate defect.
+    reproduction: '`./evals/run.sh --case w-skt-is-a-plugin-not-a-skill --keep-temp`, twice: 0.67
+      both times, `answers-yes` red both times. The trace''s last assistant message opens "**No.**
+      This checkout has no `./.skill-manager` home" and tabulates five read-only checks, the first
+      being `ls -la .skill-manager` -> No such file or directory. The case''s two TRANSCRIPT graders
+      both PASS: `checked-the-cli` (the agent ran `command -v skt`) and `no-manual-route` (it
+      did not replay bootstrap-home.sh or git worktree add).'
+    why_out_of_scope: 'Out of scope to fix here for the same reason as EA-DF-08: `evals/**` belongs
+      to SI-21, undispatched. Recorded rather than patched so the ladder''s third rung inherits
+      a reason instead of a mystery.'
+    suggested_fix: Two honest repairs, and the choice is a real one. EITHER drop `answers-yes`
+      and let the case grade what it can actually observe -- it still tests the thing it was written
+      for, which is whether the agent probes the CLI path instead of concluding absence from `skills/`
+      -- OR give it a minimal home fixture and keep the assertion. The second is better if a home
+      small enough to clear the 20,000-entry ceiling can be built; if it cannot, the case joins
+      the six of EA-DF-08 and is declared UNDECIDED rather than scored.
+    blast_radius: 'One case, one grader, two weight-units. Its danger is entirely in what it invites
+      a reader to conclude: the case''s description is about skt being a PLUGIN and not a SKILL,
+      so a red here reads as "the agent still cannot find skt", which is this epic''s central
+      defect class and is NOT what happened.'
+    evidence:
+    - 'graders: answers-yes FAIL (regex \b(Yes|yes|YES)\b on last_message); checked-the-cli PASS;
+      no-manual-route PASS'
+    - the case directory holds case.yaml, expect.json and graders/ only -- no fixture/
+    - place.sh calls place_moved_fixture skt, which prints "ships no fixture/ -- by design; it
+      is graded from the transcript"
+    - the agent answered No with five cited read-only checks and created nothing, which is correct
+      conduct for the workspace it was given
+    skill_change: proposed(test-graph, a response grader asserting a specific answer requires
+      a fixture that makes that answer true; otherwise grade the transcript)
+    attribution: UNMODELED/eval-case
+    disposition: still-true
+    disposition_ticket: SI-21
+    disposition_note: 'Same shape as SI-20-DF-03, where the "no home at all" refusal fixture never
+      reached the home check because a bare mkdtemp is not a git repository. Both are a case asserting
+      something its own setup cannot produce. That is now twice in this epic, which makes it a
+      class rather than an instance: a grader''s precondition is part of the grader, and nothing
+      checks that one exists.'
