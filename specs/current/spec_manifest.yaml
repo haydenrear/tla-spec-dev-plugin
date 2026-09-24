@@ -137,6 +137,18 @@ ports: {}
 # either is rejected, not defaulted.
 effects:
   components:
+    # SI-20 added the skt surface to the model, and this is its one OBSERVABLE
+    # port. `skt ticket sweep --yes` removes worktree directories; that is a
+    # filesystem delete and it is the effect SI-20-DF-04 was about -- a plan to
+    # remove 23 of them built without ever measuring containment. SktStatus and
+    # SktCheck carry NO port deliberately: they read and print, and a port whose
+    # effect does not exist is dead model surface by the rule stated above.
+    SktPort:
+      ports:
+        worktree_removal:
+          type: filesystem.delete
+          target: "**/wt-*/**"
+
     TlaSpecDevCliPort:
       ports:
         spec_tree:
@@ -323,6 +335,9 @@ effects:
           type: process.spawn
           target: "*"
   actions:
+    SktTicketSweep: [worktree_removal]
+    SktStatus: []
+    SktCheck: []
     BuildSkillCli: [cli_artifact]
     # RC-02 (MF-026 round-3 N-1): cli_download, cli_artifact_delete and
     # cli_selftest_process ATTACHED. RC-01 declared all three in the ports

@@ -134,7 +134,8 @@ VARIABLES
   result,
   complexity_gate,
   corpus_gate,
-  effect_conformance
+  effect_conformance,
+  skt_answer
 
 vars ==
   << setup_phase,
@@ -144,7 +145,43 @@ vars ==
      result,
      complexity_gate,
      corpus_gate,
-     effect_conformance >>
+     effect_conformance,
+     skt_answer >>
+
+\* ---------------------------------------------------------------- skt surface
+\*
+\* SI-20 ADDED THIS, AND BUG ATTRIBUTION IS WHY IT EXISTS. Four findings from
+\* the by-hand gamut attributed to `UNMODELED/` bins -- checkout-context,
+\* notification-check, worktree-sweep -- which is the record saying "the model
+\* has nothing to attach this to". Each invariant below IS one repaired defect,
+\* so a regression has somewhere to land that is not a bin.
+\*
+\* MODELLED AS ONE VARIABLE, DELIBERATELY. MF-023 measured modularity at
+\* Q=0.012, found no clean cut, and kept a single module; a second module for
+\* skt would decide that question by accident. What is modelled is skt's ANSWERS
+\* -- what it claims after being asked -- because every one of the four defects
+\* was a claim made over something unmeasured, never a wrong computation.
+\*
+\* NOT MODELLED: refusal wording, test graphs, fixtures. semantic_model_rule.
+SktSilent ==
+  [ epic_named        |-> FALSE,
+    epic_unique       |-> FALSE,
+    membership_claim  |-> FALSE,
+    membership_joined |-> FALSE,
+    verdict_current   |-> FALSE,
+    surfaces_measured |-> FALSE,
+    sweep_planned     |-> FALSE,
+    containment_known |-> FALSE ]
+
+SktAnswers ==
+  [ epic_named        : BOOLEAN,
+    epic_unique       : BOOLEAN,
+    membership_claim  : BOOLEAN,
+    membership_joined : BOOLEAN,
+    verdict_current   : BOOLEAN,
+    surfaces_measured : BOOLEAN,
+    sweep_planned     : BOOLEAN,
+    containment_known : BOOLEAN ]
 
 \* MF-025: the lifecycle stages by name. Guards and invariants below read as a
 \* lifecycle rather than as arithmetic on an integer.
@@ -207,6 +244,7 @@ Init ==
   /\ complexity_gate = "unknown"
   /\ corpus_gate = "unknown"
   /\ effect_conformance = "unknown"
+  /\ skt_answer = SktSilent
 
 \* CD-11 (audit run 4, ESC-R4-3): `@port TlaSpecDevCliPort.<name>` names a
 \* DECLARED EFFECT PORT -- an entry of
@@ -231,7 +269,7 @@ BuildSkillCli ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* The local environment can invoke `tla-spec-dev ...` after install.
 \* RC-02 (MF-026 round-3 N-1): three @port lines ADDED so this action's
@@ -256,7 +294,7 @@ InstallLocalCli ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold project`
 \* Creates the accepted `program_model` baseline only.
@@ -273,7 +311,7 @@ ScaffoldProject(root) ==
   /\ UNCHANGED << ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: scaffold emits a `budgets:` block into spec_manifest.yaml and
 \* instructs the agent to propose the documented defaults to the user, ask
@@ -294,7 +332,7 @@ RecordBudgets(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> scaffold workflow`
 \* Creates project `current/`, `desired_program_model/`, and ticket plan.
@@ -311,7 +349,7 @@ ScaffoldWorkflow(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> open ticket <ticket-name>`
 \* Creates ticket-local desired/results/Test Graph workspace (current/ only with --with-current, since 2026-09-14).
@@ -333,7 +371,7 @@ OpenTicket(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* Agent step: update ticket desired model, adapters, and Test Graph bindings.
 \* This is intentionally modeled because the CLI must print this instruction.
@@ -350,7 +388,7 @@ UpdateTicketDesired(ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* Agent step: production implementation has landed (a current/ exists, and must match desired/, only when opened --with-current).
 \* @command UpdateTicketCurrent
@@ -366,7 +404,7 @@ UpdateTicketCurrent(ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze complexity <spec> <cfg>`
 \* MF-011, amended by CD-09 (G2): measures the model against the manifest
@@ -391,7 +429,7 @@ AnalyzeComplexity(root) ==
                   spec_root,
                   ticket_state,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> analyze corpus <cases-dir>`
 \* MF-014: measures the GENERATED CORPUS against the manifest case caps
@@ -423,7 +461,7 @@ AnalyzeCorpus(root) ==
                   spec_root,
                   ticket_state,
                   complexity_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run effect-conformance`
 \* MF-013: executes component adapters in a sandbox (temp dirs, fake
@@ -477,7 +515,7 @@ RunEffectConformance(root) ==
                   spec_root,
                   ticket_state,
                   complexity_gate,
-                  corpus_gate >>
+                  corpus_gate, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> run spec-unit-tests`
 \* Runs generated/adapted spec-unit validation for the ticket model: current/ when seeded, otherwise desired/.
@@ -554,7 +592,7 @@ RunSpecUnitTests(root, ticket) ==
                       -> CommandResult(TRUE, NoReason, "tla-spec-dev close ticket <ticket>")
   /\ UNCHANGED << setup_phase,
                   spec_root,
-                  complexity_gate >>
+                  complexity_gate, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>`
 \* Closes ticket after spec-unit tests passed and promotes desired/ (desired-only since 2026-09-14; current == desired applies only to --with-current tickets).
@@ -580,7 +618,7 @@ CloseTicket(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* CLI: `tla-spec-dev --spec-root <root> close ticket <ticket-name>` taken under
 \* one of the six GUARD-WEAKENING FLAGS.
@@ -641,7 +679,7 @@ CloseTicketWeakened(root, ticket) ==
                   spec_root,
                   complexity_gate,
                   corpus_gate,
-                  effect_conformance >>
+                  effect_conformance, skt_answer >>
 
 \* REMOVED 2026-08-04 (owner direction): the state variables architecture_scan
 \* and architecture_delta, and the action AnalyzeArchitecture that was the only
@@ -724,6 +762,68 @@ GenerateCases(root) ==
                   ticket_state,
                   complexity_gate,
                   corpus_gate,
+                  effect_conformance, skt_answer >>
+
+\* CLI: `skt status`
+\* SI-20-DF-05 and SI-20-DF-06. `unique` is whether the checkout carries exactly
+\* one epic/* ref; `joined` is whether the branch was joined to a spec id
+\* through `github_issue`. Naming an epic without uniqueness reported an epic
+\* closed on 2026-08-03; claiming membership without the join told every ticket
+\* worktree in this epic that its ticket was not in the plan.
+\* @command SktStatus
+\* @result CliWorkflowResult
+SktStatus(unique, joined) ==
+  /\ skt_answer' = [ skt_answer EXCEPT
+                       !.epic_unique       = unique,
+                       !.epic_named        = unique,
+                       !.membership_joined = joined,
+                       !.membership_claim  = joined ]
+  /\ lastCommand' = "SktStatus"
+  /\ result' = CommandResult(TRUE, NoReason, "skt check")
+  /\ UNCHANGED << setup_phase,
+                  spec_root,
+                  ticket_state,
+                  complexity_gate,
+                  corpus_gate,
+                  effect_conformance >>
+
+\* CLI: `skt check`
+\* SI-20-DF-07. `measured` is whether EVERY surface the command reports on was
+\* measured -- units and artifacts both. A headline of "all current" over an
+\* artifact probe that timed out is a verdict about something never looked at.
+\* @command SktCheck
+\* @result CliWorkflowResult
+SktCheck(measured) ==
+  /\ skt_answer' = [ skt_answer EXCEPT
+                       !.surfaces_measured = measured,
+                       !.verdict_current   = measured ]
+  /\ lastCommand' = "SktCheck"
+  /\ result' = CommandResult(TRUE, NoReason, "skt sync")
+  /\ UNCHANGED << setup_phase,
+                  spec_root,
+                  ticket_state,
+                  complexity_gate,
+                  corpus_gate,
+                  effect_conformance >>
+
+\* CLI: `skt ticket sweep`
+\* SI-20-DF-04, severity data-loss-adjacent. `contained` is whether containment
+\* against a resolved target was actually measured. Planning removals without it
+\* offered to retire 23 worktrees, including in-flight ticket worktrees.
+\* @command SktTicketSweep
+\* @result CliWorkflowResult
+\* @port SktPort.worktree_removal
+SktTicketSweep(contained) ==
+  /\ skt_answer' = [ skt_answer EXCEPT
+                       !.containment_known = contained,
+                       !.sweep_planned     = contained ]
+  /\ lastCommand' = "SktTicketSweep"
+  /\ result' = CommandResult(TRUE, NoReason, "skt ticket sweep --yes")
+  /\ UNCHANGED << setup_phase,
+                  spec_root,
+                  ticket_state,
+                  complexity_gate,
+                  corpus_gate,
                   effect_conformance >>
 
 Stutter ==
@@ -758,6 +858,12 @@ Next ==
       CloseTicket(root, ticket)
   \/ \E root \in SpecRoots, ticket \in Tickets:
       CloseTicketWeakened(root, ticket)
+  \/ \E unique \in BOOLEAN, joined \in BOOLEAN:
+      SktStatus(unique, joined)
+  \/ \E measured \in BOOLEAN:
+      SktCheck(measured)
+  \/ \E contained \in BOOLEAN:
+      SktTicketSweep(contained)
   \/ Stutter
 
 TypeInvariant ==
@@ -774,6 +880,7 @@ TypeInvariant ==
   /\ complexity_gate \in {"unknown", "pass", "fail"}
   /\ corpus_gate \in {"unknown", "pass", "fail"}
   /\ effect_conformance \in {"unknown", "clean", "gaps", "dead_surface", "unobservable"}
+  /\ skt_answer \in SktAnswers
 
 \* MF-022: the four bootstrap ordering invariants below are retained by name
 \* even though the setup_phase ordinal now enforces them structurally, so each
@@ -926,6 +1033,29 @@ ClosedTicketsPassedSpecUnitTests ==
 WeakenedClosesCertifyNothing ==
   \A ticket \in WeakenedClosedTickets:
     ~TicketReached(ticket, TicketSpecUnitTestsPassed)
+
+\* ---- the four skt honesty invariants; each one is a repaired defect --------
+\*
+\* They share a shape, and the shape is the finding: an answer is only allowed
+\* when the thing it answers about was measured. `blockers` in sweep.py states
+\* it in prose -- "an evidence gap is not a clean bill of health ... could not
+\* tell must never read as nothing here" -- and three commands did not obey it.
+
+\* SI-20-DF-05: `skt status` named the FIRST of sixteen epic refs.
+SktNamesNoEpicItCannotResolve ==
+  skt_answer.epic_named => skt_answer.epic_unique
+
+\* SI-20-DF-06: membership was decided by comparing a branch slug to a spec id.
+SktClaimsNoMembershipItDidNotJoin ==
+  skt_answer.membership_claim => skt_answer.membership_joined
+
+\* SI-20-DF-07: "all current" over an artifact probe that timed out.
+SktVerdictCoversEverySurfaceItNames ==
+  skt_answer.verdict_current => skt_answer.surfaces_measured
+
+\* SI-20-DF-04: 23 worktrees planned for removal with containment never asked.
+SktPlansNoRemovalWithoutContainment ==
+  skt_answer.sweep_planned => skt_answer.containment_known
 
 Spec ==
   Init /\ [][Next]_vars

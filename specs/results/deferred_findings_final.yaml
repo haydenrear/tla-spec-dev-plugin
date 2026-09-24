@@ -7557,7 +7557,7 @@ findings:
       - "log 'ticket new contract: {worktree: /Users/hayde/IdeaProjects/subject-repo-TG-1, branch: feature/TG-1 (constituent repo subject-repo), ...}' with 'worktree exists: False'"
       - "by-hand control, standalone repo, TRUE exit code 3 (captured without a pipe): 'no Skill Manager home could be created for this worktree'"
     skill_change: "none"
-    disposition: still-true
+    disposition: not-a-defect
     disposition_ticket: "SI-20"
     disposition_note: >-
       Handed to SI-20 as the starting evidence for the manual skt gamut rather
@@ -7565,6 +7565,25 @@ findings:
       this was nearly filed as "exits 0 while refusing" -- wrong, and caught only
       because `$?` after a pipe is the pipe's last command, so the 0 belonged to
       `head`. Re-measured without the pipe it is 3.
+    superseded_by: "SI-20-DF-01"
+    resolution_note: >-
+      RESOLVED BY SI-20 AS NOT A DEFECT IN `skt ticket new`, and the epic agent
+      filed it, so the correction is recorded rather than quietly dropped.
+      Falsified both ways on one fixture with one variable -- an integration.toml
+      planted above the repo or not. With it: branch key "constituent repo",
+      worktree beside the planted root. Without it: "standalone repo", beside the
+      repo. Both exit 0, both round-trip. The rule is worktree_parent_dir
+      (skills/git-issue-workflow/scripts/lib.sh:341) and it is correct: a linked
+      worktree's `.git` is a FILE, so a parent `git add -A` would stage it as a
+      gitlink (160000).
+
+      The epic agent's `checkout_kind` lead was right about the mechanism and
+      wrong about the blame. The defect was the NODE building its fixture under
+      ctx.report_dir -- inside a repository that carries integration.toml -- so
+      it created a real linked worktree in the operator's projects directory
+      beside 23 live ticket worktrees while declaring side_effects("fs:tmp").
+      That is SI-20-DF-01, fixed. Filing this as an skt defect would have sent
+      the next reader to the wrong file.
 
   - id: SI-20-DF-01
     status: fixed_here
@@ -7592,7 +7611,7 @@ findings:
       fail on reintroduction: 13 red, including the two new stray assertions.
 
   - id: SI-20-DF-02
-    status: open
+    status: decided-keep
     title: >-
       `skt ticket new` can no longer reach _giw_remedy, so the four-way refusal
       discrimination merged as #25 is dead code on that route
@@ -7618,6 +7637,23 @@ findings:
       (the remedy it prints must exist and be executable), and the reason is a
       comment in the node with this id on it. The decision for the epic agent is
       whether _giw_remedy is deleted, or reached again from the wt route.
+    decision_note: >-
+      DECIDED BY THE EPIC AGENT: KEEP THE CODE, DELETE THE CLAIM. SI-20 asked for
+      a ruling between deleting `_giw_remedy` and reaching it again from the `wt`
+      route. Neither, because the premise needs correcting first: the finding
+      says the only other caller is `epic_new`'s `--path` route, so the function
+      is dead on ONE route, not dead. Deleting it would break the route that
+      still reaches it, and "reaching it again" from `ticket new` would restore a
+      discrimination whose failure mode one-plugin containment DELETED -- `wt`
+      resolves the lifecycle from the plugin it ships in, so a home carrying no
+      git-issue-workflow is no longer a failure at all.
+
+      What was actually wrong was the assertions claiming the discrimination was
+      live on the `ticket new` route, and SI-20 already removed those, replacing
+      them with the property #25 was defending: the remedy a refusal prints must
+      EXIST and be executable. That is the stronger check and a phrase match
+      could never have made it. No code change here; the row is closed as a
+      decision so the next reader does not re-open the same question.
 
   - id: SI-20-DF-03
     status: open
@@ -7656,7 +7692,8 @@ findings:
       only thing between that plan and 23 deletions.
     evidence:
       - transcripts/step-02-verb-gamut.txt   # `skt ticket sweep`, dry run
-    attribution: UNMODELED/worktree-sweep
+    attribution: SktTicketSweep
+    attribution_was: UNMODELED/worktree-sweep
     status: fixed
     fixed_by: "2035c3cb"
     disposition: >-
@@ -7685,7 +7722,7 @@ findings:
       than designed, which is the same hazard stated more precisely.
 
   - id: SI-20-DF-05
-    status: open
+    status: fixed
     title: >-
       `skt status` names a long-closed epic as "available"; its docstring claims
       a derivation it does not share with the sweep
@@ -7699,11 +7736,20 @@ findings:
       commands, one checkout, two different answers to "which epic is this".
     evidence:
       - transcripts/step-02-verb-gamut.txt   # `skt status` and `skt ticket sweep`
-    attribution: UNMODELED/checkout-context
+    attribution: SktStatus
+    attribution_was: UNMODELED/checkout-context
     disposition: Deferred; same conflict-key reason as SI-20-DF-04.
+    fixed_by: "3ff232bb"
+    fix_note: >-
+      FIXED in 3ff232bb. One derivation now: context.epic_slug_from_refs, refusing when the
+      slug is not unique, and sweep.discover_epic_slug CALLS it rather than describing
+      it. Measured before/after on the primary checkout: "(epic
+      architectural-coherence available)" -> the clause is gone. A regression test
+      asserts the sharing, not a matching pair of behaviours -- a matching pair is
+      what drifted.
 
   - id: SI-20-DF-06
-    status: open
+    status: fixed
     title: >-
       every epic ticket worktree is told its ticket is NOT in the plan, because
       the branch spells the issue slug and the plan spells the spec id
@@ -7716,14 +7762,21 @@ findings:
       that is about whether the agent is where it should be.
     evidence:
       - transcripts/step-02-verb-gamut.txt
-    attribution: UNMODELED/checkout-context
+    attribution: SktStatus
+    attribution_was: UNMODELED/checkout-context
     disposition: >-
       Deferred. Related to the recorded disagreement between what the epic skill
       and the spec compiler call a ticket; the fix is a mapping, not a
       comparison, and it belongs with whoever owns the assignment schema.
+    fixed_by: "3ff232bb"
+    fix_note: >-
+      FIXED in 3ff232bb. context.plan_issue_index reads the branch-to-spec-id mapping out of
+      `github_issue`, the only field carrying the number, and gather falls back to it
+      when the literal comparison misses. Measured in wt-368: "this branch's ticket is
+      NOT in the plan" -> "IS in the plan".
 
   - id: SI-20-DF-07
-    status: open
+    status: fixed
     title: >-
       `skt check` exits 0 with the headline "all current" after not checking one
       of the two surfaces it reports on
@@ -7736,11 +7789,19 @@ findings:
       shape: could-not-do-the-task and did-the-task rendering the same.
     evidence:
       - transcripts/step-02-verb-gamut.txt   # skt check, live
-    attribution: UNMODELED/notification-check
+    attribution: SktCheck
+    attribution_was: UNMODELED/notification-check
     disposition: >-
       Deferred. The honest half is already there — it says what it skipped — so
       the fix is small: a distinct exit code, or a headline that names the
       partial measurement.
+    fixed_by: "3ff232bb"
+    fix_note: >-
+      FIXED in 3ff232bb, for `timeout` and `error` only. The headline now reads "units
+      current (...); ARTIFACTS NOT CHECKED (timeout) -- this is not a verdict on the
+      artifacts". `unsupported` and `no-cli` deliberately stay quiet: those say the
+      surface does not apply here, not that it was skipped. This is the rule the
+      `unverifiable` branch four lines above already stated and artifacts never got.
 
   - id: SI-20-DF-08
     status: open
