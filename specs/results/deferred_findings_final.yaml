@@ -7847,4 +7847,115 @@ findings:
       gate the epic agent runs at wave close. Worth knowing before anyone writes
       a filter for it — a blank result read as a failure has already happened
       once in this epic.
+  - id: EA-DF-03
+    severity: major
+    found_by: "epic agent, refreshing the homes at the owner's direction"
+    found_at_commit: "f212cbe3"
+    schedule_revision: 9
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "installed home records: <home>/installed/tla-spec-dev.json origin"
+    summary: >-
+      TWO OF THE FOUR LIVE HOMES INSTALLED THE PLUGIN FROM THE ARCHIVED
+      REPOSITORY. The checkout under `<home>/plugins/tla-spec-dev` had
+      `origin = https://github.com/haydenrear/tla-spec-dev.git` and sat on that
+      repository's stale `epic/self-improvement-substrate` branch at 1efa0b4b.
+      The delivery surface has been tla-spec-dev-plugin/main since the wave-10
+      cutover, so no amount of syncing could ever reach the shipped code: a
+      `skill-manager sync tla-spec-dev --git-latest` ran cleanly, reported
+      success, and left the rev exactly where it was.
+    reproduction: >-
+      In each home, `git -C <home>/plugins/tla-spec-dev remote get-url origin`.
+      Two answered tla-spec-dev.git (the tla-spec-dev project home and the epic
+      worktree home) and two answered tla-spec-dev-plugin (the root home and
+      skill-manager's project home). The two wrong ones also carried the
+      pre-fix skt, which is how this was noticed: a grep for
+      `epic_slug_from_refs` in the installed copy came back empty after a
+      successful sync.
+    why_out_of_scope: >-
+      Not out of scope; repaired in the same pass. `sync` cannot repoint an
+      origin, so each wrong home needed `skill-manager uninstall tla-spec-dev`
+      followed by `install github:haydenrear/tla-spec-dev-plugin`. All four
+      homes now report origin tla-spec-dev-plugin at a3761e30 and carry the
+      fixes.
+    suggested_fix: >-
+      Teach the migration notice to compare the INSTALLED origin against the
+      carrier coordinate, the way it now compares the installed plugin form
+      against the contained one. The shape is identical to the defect repaired
+      beside it: a check that reads the declaration and never the outcome. A
+      home whose plugin origin names a retired repository is not a stale home,
+      it is a home pointed at the wrong program, and `sync` reporting success
+      over it is the worst possible rendering of that.
+    blast_radius: >-
+      Every eval, graph and manual check run out of those two homes measured the
+      archived repository rather than the shipped plugin, and reported green for
+      it. This is the same failure the sktSurface repair removed from the test
+      graph on the same day -- green against the wrong code -- one layer further
+      out, in the thing that installs the code. It also silently bounded the
+      whole refresh the owner asked for: without repointing, the eval ladder
+      would have scored a plugin nobody has been editing since the cutover.
+    evidence:
+      - "before: origin=tla-spec-dev.git rev=1efa0b4b, grep epic_slug_from_refs -> absent, after a successful --git-latest sync"
+      - "after:  origin=tla-spec-dev-plugin rev=a3761e30, fix present, in all four live homes"
+    skill_change: "proposed(skt, EA-DF-03: _migration compares the installed plugin origin against CARRIER_COORD and reports a home pointed at the retired repository)"
+    attribution: UNMODELED/home-install-coordinate
+    disposition: fixed
+    fixed_by: "home repair 2026-09-24 (no code change; uninstall+install per home)"
+    disposition_ticket: "EPIC-AGENT"
+    disposition_note: >-
+      Found only because the owner asked for the homes to be refreshed before
+      the evals and the refresh was VERIFIED rather than assumed. A sync that
+      exits zero and moves nothing is indistinguishable from a sync that had
+      nothing to do, which is why the check that caught it was a grep for the
+      fix in the installed bytes rather than the command's own report.
 
+  - id: EA-DF-04
+    severity: minor
+    found_by: "epic agent, removing the duplicate skt"
+    found_at_commit: "f212cbe3"
+    schedule_revision: 9
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+        - "skill-manager uninstall vs skt status home resolution"
+    summary: >-
+      `skill-manager uninstall skt` and `skt status` RESOLVE DIFFERENT HOMES
+      FROM THE SAME DIRECTORY. In a ticket worktree carrying its own home,
+      `skt status` reported the worktree home and `skill-manager uninstall skt`
+      answered `unit not found: skt` -- because it had resolved a different home,
+      where skt genuinely is not installed. Pinning SKILL_MANAGER_HOME made the
+      same command produce a correct ten-effect removal plan.
+    reproduction: >-
+      In a worktree with its own .skill-manager holding installed/skt.json:
+      `skt status` names that home; `skill-manager uninstall skt --dry-run`
+      says unit not found; `SKILL_MANAGER_HOME=<that home> skill-manager
+      uninstall skt --dry-run` prints the plan.
+    why_out_of_scope: >-
+      skill-manager is a separate repository with its own epic branch. Recorded
+      here because the workaround is one environment variable and the next agent
+      should not spend the diagnosis.
+    suggested_fix: >-
+      One derivation, shared -- the repair SI-20-DF-05 made for `skt status` and
+      `skt ticket sweep`, which had the same disagreement about which epic a
+      checkout is in. Two commands answering differently about which HOME they
+      are in is the same defect one noun over.
+    blast_radius: >-
+      An operator or agent who trusts `unit not found` concludes the unit is
+      absent when it is installed one directory away. It reads as good news,
+      which is the direction that costs the most.
+    evidence:
+      - "unpinned: '! unit not found: skt'; pinned: 'DRY RUN ... effects (10): ... remove skt (PLUGIN) from store'"
+    skill_change: "proposed(skill-manager, EA-DF-04: uninstall resolves the home the way skt status does)"
+    attribution: UNMODELED/home-resolution
+    disposition: still-true
+    disposition_ticket: "EPIC-AGENT"
+    disposition_note: >-
+      Worked around with SKILL_MANAGER_HOME for the 23 legacy homes swept today.
+      Not repaired: the code is skill-manager's.
