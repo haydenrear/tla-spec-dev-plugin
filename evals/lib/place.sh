@@ -489,6 +489,22 @@ EOF
 
   w-sm-verify-is-not-currency)
     place_moved_fixture skill-manager
+    # THE HOME GOES WHERE A REAL SESSION HAS ONE: the workspace root, which is
+    # what `./.skill-manager` means to every other part of this substrate and
+    # what `skt status` looks for. Left under cases/<case>/ the hook reports,
+    # truthfully and uselessly, "no skill-manager home found" -- and the agent
+    # spends its budget hunting for a home the orientation just told it was
+    # absent. Measured: 123 bytes of orientation, 8.3 Bash calls, no better than
+    # with the hook suppressed entirely.
+    #
+    # The workspace root is <sandbox>/home/cwd, a throwaway made per run, so
+    # this is exactly as isolated as the cases/ subdirectory was -- same tree,
+    # same lifetime, and nothing here can reach the operator's home or this
+    # repository's own .skill-manager.
+    if [ -d "cases/$case_name/.skill-manager" ] && [ ! -e ".skill-manager" ]; then
+        mv "cases/$case_name/.skill-manager" ".skill-manager"
+        echo "place: the home is at ./.skill-manager, where a real session keeps one"
+    fi
     ;;
 
   w-tg-run-a-graph-not-bare-gradle)
