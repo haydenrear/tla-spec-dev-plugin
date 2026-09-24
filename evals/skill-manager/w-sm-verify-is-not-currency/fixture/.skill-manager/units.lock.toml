@@ -1,0 +1,15 @@
+# A STALE LOCK, ON PURPOSE. `resolved_sha` below is an ANCESTOR of what the
+# origin carries, which is the whole point of the case: `home verify` exits 0
+# because these files are intact, `home drift` exits 0 because nothing changed
+# IN the home, and neither asks whether upstream has moved on. Only a currency
+# check does.
+schema_version = 1
+
+[[units]]
+name = "tla-spec-dev"
+kind = "plugin"
+version = "0.1.0"
+install_source = "GIT"
+origin = "https://github.com/haydenrear/tla-spec-dev-plugin"
+ref = "main"
+resolved_sha = "d4eb1abbaf6184bcdc0d02c0ad24bb75ae34f88c"

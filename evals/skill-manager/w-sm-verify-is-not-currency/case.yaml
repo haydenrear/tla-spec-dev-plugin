@@ -15,9 +15,9 @@ execution:
   allowed_tools: [Read, Glob, Grep, Skill, Bash]
   prompt: |
     Several tickets are about to be dispatched, and each ticket worktree will
-    get a copy of this project's Skill Manager home (./.skill-manager). Before
-    that happens, find out whether the home is current with the upstream
-    sources of its units. Answer "current" or "not current", and say what you
-    checked.
+    get a copy of this project's Skill Manager home, which is at
+    cases/w-sm-verify-is-not-currency/.skill-manager. Before that happens, find
+    out whether that home is current with the upstream sources of its units.
+    Answer "current" or "not current", and say what you checked.
 
     EVAL-CASE: w-sm-verify-is-not-currency
