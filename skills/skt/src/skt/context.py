@@ -129,6 +129,54 @@ _TICKET_RE = re.compile(r"^feature/(.+)$")
 _EPIC_RE = re.compile(r"^epic/(.+)$")
 
 
+def epic_slug_from_refs(refs_text: str) -> str | None:
+    """The epic slug a checkout implies, or None when it is not unique.
+
+    ONE derivation, and it is shared. `sweep.discover_epic_slug`'s docstring
+    said "same derivation as context.gather" while the two disagreed: gather
+    took the FIRST of however many `epic/*` refs existed and broke, sweep
+    refused unless there was exactly one. In this checkout that is sixteen refs,
+    so `skt status` reported `epic architectural-coherence available` -- closed
+    on 2026-08-03 -- while the active epic was self-improvement-substrate. Two
+    commands, one checkout, two different answers to "which epic is this"
+    (SI-20-DF-05).
+
+    Refusing on ambiguity is the safe half of the disagreement: a wrong epic
+    name is worse than none, because the field is consumed as JSON by a hook.
+    """
+    slugs: list[str] = []
+    for ref in (refs_text or "").splitlines():
+        _, sep, tail = ref.partition("epic/")
+        if sep and tail and tail not in slugs:
+            slugs.append(tail)
+    return slugs[0] if len(slugs) == 1 else None
+
+
+def plan_issue_index(text: str) -> dict[str, str]:
+    """Issue number -> spec ticket id, from a plan's text.
+
+    A ticket worktree's branch spells the ISSUE (`feature/369-eval-ladder-skt`)
+    and the plan spells the SPEC ID (`SI-20`), so comparing them literally told
+    every ticket worktree in this epic that its ticket was not in the plan --
+    the one line of `skt status` that answers "am I where I should be"
+    (SI-20-DF-06). The two are joined by `github_issue`, which is the only field
+    carrying the number, so the mapping is read rather than guessed.
+    """
+    index: dict[str, str] = {}
+    current = None
+    for line in text.splitlines():
+        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
+        if m:
+            current = m.group(1).strip("'\"")
+            continue
+        m = re.match(r"^\s*github_issue:\s*(\S+)", line)
+        if m and current:
+            num = m.group(1).strip("'\"").rstrip("/").rsplit("/", 1)[-1]
+            if num.isdigit():
+                index[num] = current
+    return index
+
+
 def parse_ticket_plan(text: str) -> tuple[str | None, list[str], list[str]]:
     """(workflow name, open ticket ids, ALL ticket ids) from a plan's TEXT.
 
@@ -189,15 +237,25 @@ def gather(start: str | Path, home: Path) -> TicketContext:
             "for-each-ref", "--format=%(refname:short)",
             "refs/heads/epic/*", "refs/remotes/*/epic/*", cwd=root,
         )
-        for ref in refs.splitlines():
-            short = ref.split("epic/", 1)
-            if len(short) == 2:
-                epic = short[1]
-                break
+        epic = epic_slug_from_refs(refs)
     name, open_tickets, all_tickets = spec_workflow(root)
     ticket_in_plan = None
     if name is not None and ticket is not None:
+        # The branch spells the ISSUE, the plan spells the SPEC ID. Try the
+        # literal first (a branch named for the spec id is still valid), then
+        # join them through `github_issue` (SI-20-DF-06).
         ticket_in_plan = ticket in all_tickets
+        if not ticket_in_plan:
+            lead = re.match(r"^(\d+)", ticket)
+            if lead is not None:
+                plan = root / "specs" / "desired_program_model" / "ticket_plan.yaml"
+                try:
+                    mapped = plan_issue_index(plan.read_text()).get(lead.group(1))
+                except OSError:
+                    mapped = None
+                if mapped is not None:
+                    ticket = mapped
+                    ticket_in_plan = mapped in all_tickets
     return TicketContext(
         branch=branch,
         ticket=ticket,

@@ -411,12 +411,11 @@ def discover_epic_slug(root: Path) -> str | None:
         "for-each-ref", "--format=%(refname:short)",
         "refs/heads/epic/*", "refs/remotes/*/epic/*", cwd=root,
     )
-    slugs = []
-    for ref in (refs or "").splitlines():
-        head, _, tail = ref.partition("epic/")
-        if tail and tail not in slugs:
-            slugs.append(tail)
-    return slugs[0] if len(slugs) == 1 else None
+    # SHARED, not merely "the same idea". This function's docstring claimed
+    # "same derivation as context.gather" while gather took the FIRST of however
+    # many epic/* refs there were and this one refused unless there was exactly
+    # one (SI-20-DF-05). There is one implementation now and both call it.
+    return ctx_mod.epic_slug_from_refs(refs or "")
 
 
 def epic_ticket_ids(root: Path, epic_ref: str) -> set[str] | None:

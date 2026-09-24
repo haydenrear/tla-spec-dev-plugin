@@ -1503,7 +1503,28 @@ def render_text(report: dict) -> str:
                     f" current, tier {report['tier']}")
             body = [line, f"  unverifiable (remote unreachable): {', '.join(unverifiable)}"]
         else:
-            body = [f"skt check: all current ({scope}, tier {report['tier']})"]
+            # THE SAME RULE AS `unverifiable` ABOVE, one surface over. `skt
+            # check` reports on units AND artifacts; when the artifact probe
+            # times out or errors it is "could not tell", and the headline said
+            # "all current" anyway with its own refutation on the next line:
+            #
+            #   skt check: all current (11 change-managed unit(s), tier worktree)
+            #   artifacts not checked (timeout): … did not finish inside 6.0s
+            #
+            # Exit 0. A caller reading the exit code or the headline gets
+            # "everything is fine" from a run that measured one of the two
+            # surfaces it names (SI-20-DF-07). `unsupported` and `no-cli` are
+            # different and stay quiet: those say the surface does not apply
+            # here, not that it was skipped.
+            art_state = (report.get("artifacts") or {}).get("state")
+            if art_state in ("timeout", "error"):
+                body = [
+                    f"skt check: units current ({scope}, tier {report['tier']});"
+                    f" ARTIFACTS NOT CHECKED ({art_state}) — this is not a"
+                    " verdict on the artifacts"
+                ]
+            else:
+                body = [f"skt check: all current ({scope}, tier {report['tier']})"]
         return "\n".join(
             [*body, *_artifact_lines(report), *_ref_lines(stale_ref, ahead_of_remote),
              *_pinned_lines(report), _build_line(report)]
