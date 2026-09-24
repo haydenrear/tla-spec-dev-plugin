@@ -1,0 +1,46 @@
+# `find .skill-manager -maxdepth 3` in a real project home, 2026-09-24.
+# Trimmed to the directories that answer the question; nothing is invented.
+
+$ ls .skill-manager/skills/
+  acp-cdc-ai-python
+  debugging
+  deploy-helm
+  hyper-experiments
+  hyper-experiments-finance
+  llm-wiki
+  slm-agent
+  tracer-agent
+  tracing-observability
+  vision-toolbelt-skill
+
+$ ls .skill-manager/plugins/
+  andrej-karpathy-skills
+  cdc-agent-substrate-plugin
+  tla-spec-dev
+
+$ ls .skill-manager/plugins/tla-spec-dev/skills/
+  discovery
+  git-epic-workflow
+  git-integration-repo
+  git-issue
+  git-issue-workflow
+  plugin-repository
+  skill-manager
+  skt
+  spec-double-2
+  test-graph
+  unit-authoring
+
+$ ls .skill-manager/bin/cli/
+  computeq
+  helm-deploy
+  jinja2
+  monitoring
+  skill-dev
+  skill-manager
+  skt
+  tla-spec-dev
+  tlc2
+  tofu
+  tracing-observability-install
+  vision-toolbelt

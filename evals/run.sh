@@ -402,6 +402,27 @@ claude plugin eval "$view" \
 status=$?
 set -e
 
+# ----------------------------------------------------------- undecided
+# SAY WHICH SCORES ABOVE ARE NOT VERDICTS, WHILE THE TABLE IS STILL ON SCREEN.
+# Six cases cannot be decided in this view -- their fixture is a real branched
+# Skill Manager home, ~41,000 entries against the CLI's 20,000 ceiling.
+# `place.sh` already says so in the run's trace and `verify.sh` already writes
+# `.eval/UNDECIDED-needs-home` beside the verdicts, but the trace scrolls past
+# and the sandbox holding that file is deleted unless `--keep-temp` was passed.
+# What is left on screen is `â ... score 0.27` and a grader message.
+#
+# EA-DF-08, measured on this epic's first billed rung: the epic agent read two
+# such scores as substrate failures and wrote them up as "the agent never
+# issued the front door", calling them the highest-value cases in the corpus.
+# Every safeguard the design put in place had fired correctly, and not one of
+# them was where the number was. This prints after the table, which is the one
+# place that gets read.
+#
+# It never refuses, and its own failure is never the run's (`|| true`): a case
+# being undecidable is a fact about the view, not a fault in the work, and
+# GOAL-no-new-gates means no line in this script may block on one.
+python3 "$here/lib/undecided.py" "$here" "$case_glob" || true
+
 # -------------------------------------------------------------- harvest
 if [ -d "$view/evals/results" ]; then
     mkdir -p "$repo/evals/results"

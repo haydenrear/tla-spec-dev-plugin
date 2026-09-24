@@ -15,8 +15,10 @@ execution:
   prompt: |
     Before I start a ticket: is the one-command front door that creates a ticket
     worktree together with its own Skill Manager home available from this
-    checkout's home at ./.skill-manager? Answer yes or no and show the evidence you
-    checked. Do not create anything.
+    checkout's home? The home's directory listing is in
+    cases/w-skt-is-a-plugin-not-a-skill/home-listing.txt and the front-door
+    wrapper it ships is cases/w-skt-is-a-plugin-not-a-skill/skt-wrapper.sh.
+    Answer yes or no and show the evidence you checked. Do not create anything.
 
 
     EVAL-CASE: w-skt-is-a-plugin-not-a-skill
