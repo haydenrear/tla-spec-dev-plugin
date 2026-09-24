@@ -1730,7 +1730,41 @@ tickets:
 
   - id: SI-20
     title: "Eval ladder 2/4: skt, all functionalities, manual first"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-23 as PR #2 on tla-spec-dev-plugin. Record-before-case
+      verified from git: 70549f90 (record, 0 files under evals/) is an ancestor
+      of 7daa8e18 (two cases), and the case commit does not touch the record.
+      Suite by NAME against the ten known: no new, no disappeared.
+
+      EA-DF-02 RESOLVED AS NOT A DEFECT IN skt. Falsified both ways on one
+      fixture with one variable: with an integration.toml planted above, skt
+      prints "constituent repo" and places the worktree beside the planted root;
+      without it, "standalone repo" and beside the repo. worktree_parent_dir
+      (lib.sh:341) is correct -- a linked worktree's .git is a FILE, so a parent
+      `git add -A` would stage it as a gitlink. The defect was the NODE building
+      its fixture under ctx.report_dir, inside a repository carrying
+      integration.toml, which made it create a real linked worktree in the
+      operator's projects directory beside 23 live ticket worktrees while
+      declaring side_effects("fs:tmp"). sktSurface: errored 4/5 nodes and 13/40
+      red -> passed 5/5, 51 assertions, 0 red, with the repair proven to fail on
+      reintroduction.
+
+      THE NINE REFUSAL REDS WERE DECIDED, NOT ASSUMED: obsolete, not reworded.
+      They exercise _giw_remedy's four-way discrimination, reachable only when
+      `import skt.wt` FAILS -- and SI-17 made that import always succeed. By
+      hand, three fixtures differing in installed/declared/neither produce a
+      byte-identical message. One-plugin containment deleted the failure mode
+      the assertions were defending.
+
+      SI-20-DF-04 is data-loss-adjacent and the epic agent repaired it rather
+      than carrying it into the eval ladder: `skt ticket sweep` resolved no epic
+      (sweep.py:419 wants exactly one epic/* ref; this repository has sixteen),
+      never asked whether commits were contained, and printed "would remove" for
+      23 worktrees. Measured both ways: installed skt 0.8.2 -> 23; repaired
+      source -> 0, each SKIPPED "refusing to guess".
+
+      Still no scored `claude plugin eval` run and no score claimed.
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/369"
     schedule_revision: 4
     depends_on: ["SI-16", "SI-17", "SI-19"]
