@@ -577,6 +577,30 @@ def inspect(wt: Worktree, *, root: Path, target: str | None) -> Status:
         not_in_target = _count("rev-list", "--count", f"{target}..{wt.rev}", cwd=root)
         if not_in_target is None:
             unmeasured.append(f"whether its commits are contained in {target}")
+    else:
+        # NO TARGET IS AN EVIDENCE GAP, NOT A CLEAN BILL OF HEALTH, and this is
+        # the one branch that used to treat it as the latter. `blockers` says it
+        # four lines down -- "could not tell" must never read as "nothing here"
+        # -- and `unpushed is None` already obeys it. Containment did not: with
+        # target None the question was never ASKED, so it never became a blocker
+        # and never appeared in `unmeasured` either.
+        #
+        # It is reachable in the ordinary case. `discover_epic_slug` returns a
+        # slug only when exactly one `epic/*` ref exists (sweep.py:419); this
+        # repository has sixteen, so it returns None, `epic_ref` is None, and
+        # `resolved_target` is None. Without an explicit --epic the worktree and
+        # narrowing exclusions above are also skipped, because both are guarded
+        # on `epic` being truthy. A pushed, clean worktree then read
+        # "clean -- no blocker", and a sweep planned to retire 23 of them
+        # including the epic's own and every in-flight ticket worktree of the
+        # wave (SI-20-DF-04, severity data-loss-adjacent).
+        #
+        # Refusing here costs a flag and nothing else: pass --epic <slug> or
+        # --target <ref> and the question becomes answerable again.
+        unmeasured.append(
+            "whether its commits are contained anywhere — no target could be "
+            "resolved; pass --epic <slug> or --target <ref>"
+        )
 
     return Status(
         dirty=dirty,
