@@ -22,14 +22,24 @@ With no home anywhere, the honest answer to the prompt was NO. The agent gave
 it, with five cited read-only checks, and lost two weight-units for being right.
 Measured twice at 0.67 on this epic's first billed rung.
 
-The fixture now carries the EVIDENCE rather than the live tree: a real listing
-of a real project home, and the real generated wrapper that home ships. Neither
-is invented -- both were taken from `.skill-manager/` on 2026-09-24 -- and
-together they are what the question is actually about. This also keeps the case
-inside the corpus convention (fixtures here are one or two recorded files) and
-away from the 20,000-entry ceiling that leaves six other cases UNDECIDED.
+THE FIXTURE IS A REAL HOME TREE, AND THE FIRST ATTEMPT AT IT WAS WRONG.
+The first repair handed the agent two recorded files -- a directory listing and
+the wrapper, renamed. `answers-yes` went green and `checked-the-cli` went red,
+for 0.50, because with the evidence handed over there was no longer any reason
+to probe the CLI path. That is the behaviour this case exists to measure, so
+the repair had quietly deleted the case while appearing to fix it.
 
-THE DISCRIMINATION THIS CASE MEASURES. In the listing, `skills/` holds ten
+What is placed now is a real home tree, 37 files: `skills/` with the ten units
+that home actually carries, `plugins/` with its three plugins,
+`plugins/tla-spec-dev/skills/` with the eleven contained units including skt,
+and `bin/cli/` with the twelve shims -- `bin/cli/skt` being the REAL generated
+wrapper, copied verbatim. Only `src/skt/cli.py` is a stub, and it is stubbed on
+purpose: the fixture answers "where does skt live", not "what does skt do", and
+vendoring 52 real files would be the duplication this epic spent eleven tickets
+removing. At 37 files it is nowhere near the 20,000-entry ceiling that leaves
+six other cases UNDECIDED.
+
+THE DISCRIMINATION THIS CASE MEASURES. In the home, `skills/` holds ten
 units and skt is NOT among them. skt appears only under
 `plugins/tla-spec-dev/skills/skt`, because it is a CONTAINED skill of the
 tla-spec-dev plugin, and `bin/cli/skt` is the front door that resolves it --
