@@ -82,7 +82,66 @@ for case, label, rules, calls, want in CHECKS:
 assert len(CHECKS) == 11, f"non-vacuity: the probe drove {len(CHECKS)} transcripts, not 11"
 print(f"\nNON-VACUITY: {len(CHECKS)} synthetic transcripts, "
       f"{sum(len(w) for *_, w in CHECKS)} verdict assertions")
+
+# ---------------------------------------------------------------- the response
+# graders, driven the same way. A regex that cannot fail scores every answer
+# green; a regex that cannot pass scores every answer red. Neither is visible
+# from reading it, so each pattern gets an answer it must match and an answer it
+# must not -- and the BAD arms are the wrong answers actually worth separating
+# out, not strawmen: "this is a bug in skt", "PATH / clear the cache",
+# "skill-manager sync skt" for a unit that is not standalone any more.
+import re  # noqa: E402
+
+RESPONSE = [
+    ("names-the-marker", A, r"integration\.toml",
+     ["The location was decided by an `integration.toml` in an ancestor directory.",
+      "Because integration.toml sits at the repo root, the fixture is a constituent."],
+     ["This is a bug in skt ticket new; it put the worktree in the wrong place."]),
+    ("names-the-rule-and-its-reason", A,
+     r"worktree_parent_dir|outermost|gitlink|160000",
+     ["worktree_parent_dir() returns dirname of the outermost integration root.",
+      "A parent `git add -A` would stage it as a gitlink (mode 160000).",
+      "It goes beside the outermost enclosing integration repo."],
+     ["skt classified the repo as a constituent, so the path differs."]),
+    ("names-what-the-wrapper-resolves", B,
+     r"plugins/\S*skills/skt|home (it|this wrapper|the wrapper|the shim|this shim) lives in",
+     ["It runs .skill-manager/plugins/tla-spec-dev/skills/skt/src/skt/cli.py",
+      "The wrapper resolves skt from the home it lives in, not from the checkout."],
+     ["Your PATH is picking up a different skt; clear the cache."]),
+    ("gives-a-command-that-runs-the-edit", B,
+     r"install-skt\.sh|src/skt/cli\.py",
+     ["Run `python3 skills/skt/src/skt/cli.py status`.",
+      "Re-run skill-scripts/install-skt.sh against a home holding your copy."],
+     ["Run `skill-manager sync skt` and try again."]),
+]
+
+print()
+strings = 0
+for name, case, pattern, good, bad in RESPONSE:
+    # The pattern is read back OUT OF THE COMMITTED GRADER, not retyped here --
+    # a probe that tests its own copy of a regex proves nothing about the file
+    # the CLI will load.
+    grader = pathlib.Path("evals/skt") / case / "graders" / f"{name}.md"
+    body = grader.read_text()
+    committed = [ln.split("pattern:", 1)[1].strip().strip("'\"")
+                 for ln in body.splitlines() if ln.startswith("pattern:")]
+    assert len(committed) == 1, f"{grader}: expected one pattern line, got {committed}"
+    rx = re.compile(committed[0])
+    for text in good:
+        strings += 1
+        ok = bool(rx.search(text))
+        fails += 0 if ok else 1
+        print(f"{'ok  ' if ok else 'FAIL'}  GOOD {name}: {text[:64]}")
+    for text in bad:
+        strings += 1
+        ok = not rx.search(text)
+        fails += 0 if ok else 1
+        print(f"{'ok  ' if ok else 'FAIL'}  BAD  {name}: {text[:64]}")
+
+assert strings == 13, f"non-vacuity: the probe drove {strings} strings, not 13"
+print(f"\nNON-VACUITY: {strings} strings against 4 committed grader patterns, both arms")
+
 if fails:
     print(f"{fails} FAILED")
     raise SystemExit(1)
-print("both directions hold for every rule")
+print("both directions hold for every rule and every response grader")

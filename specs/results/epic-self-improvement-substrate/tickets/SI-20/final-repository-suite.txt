@@ -1,0 +1,727 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+..................................F..................................... [ 11%]
+........................................................................ [ 15%]
+........................................................................ [ 19%]
+........................................................................ [ 23%]
+.F.....................................................s................ [ 27%]
+........................................................................ [ 30%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+......................F................................................. [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+..................................................F....F................ [ 57%]
+........................................................................ [ 61%]
+........................................................................ [ 65%]
+........................................................................ [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 77%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+...........FFF.......................................................... [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+...................F............................F..sssss.......          [100%]
+=================================== FAILURES ===================================
+_______________________ test_the_same_tag_control_holds ________________________
+
+at = <module 'architecture_tags_rd05' from '/Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/examples/validation/scorecards/architecture_tags.py'>
+world = {'subjects': {'arm_b': {'name': 'arm_b', 'example': 'ab_quota_ledger', 'scope': ['specs/results/scorecards/ports-as-ad...ful-vs-ports-and-adapters', 'axis': 'effect_boundary', 'example': 'eval_toolchain', 'dimension': 'D2', ...}, ...], ...}
+
+    def test_the_same_tag_control_holds(at, world) -> None:
+        """Without it any two artifacts pass, because any two differ in something.
+    
+        **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+    
+        It is not pinned to a count the corpus grew. It is a CONTROL, it is now
+        reporting a real result, and the result is unflattering: nine same-tag pairs
+        separate — eight on D2 and one on D5 — every one of them a before-tree
+        scoring disjointly from an after-tree at the SAME derived value. RD-06's
+        three revision pairs gave this control its first within-value TREATMENT
+        difference and it cannot tell that apart from a difference in architecture
+        (`RD-03-DF-12`).
+    
+        The two repairs that would clear it were both rejected. Scoping the control
+        to the dimension the separation is claimed on (D3, where it still holds)
+        would make it a check about the row rather than about the axis. Excluding
+        revision pairs from the population would remove exactly the evidence the
+        control exists to see. Either one converts a measurement into a tautology,
+        which is the failure this epic family exists to prevent.
+    
+        Filed as `RM-06-DF-01`. It goes green when the axis can distinguish
+        treatment from architecture, or when the epic decides it cannot and says so.
+        """
+    
+        controls = at.same_tag_controls(world["rows"], world["derived"], world["subjects"])
+        assert controls, "no same-tag control is available; the separation is uncontrolled"
+        failed = [c for c in controls if c["separates"]]
+>       assert failed == [], (
+            f"{len(failed)} same-tag pair(s) separate: "
+            f"{[(c['dimension'], c['a'], c['b']) for c in failed]}. "
+            f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+            f"is reporting a real result and may not be narrowed to silence it."
+        )
+E       AssertionError: 9 same-tag pair(s) separate: [('D2', 'arm_a', 'rd06_artifact_D'), ('D2', 'arm_a', 'rd06_artifact_M'), ('D2', 'arm_c', 'rd06_artifact_D'), ('D2', 'arm_c', 'rd06_artifact_M'), ('D2', 'rd06_artifact_D', 'rd06_artifact_N'), ('D2', 'rd06_artifact_D', 'rd06_artifact_Z'), ('D5', 'rd06_artifact_E', 'rd06_artifact_F'), ('D2', 'rd06_artifact_M', 'rd06_artifact_N'), ('D2', 'rd06_artifact_M', 'rd06_artifact_Z')]. EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control is reporting a real result and may not be narrowed to silence it.
+E       assert [{'example': ...l', ...}, ...] == []
+E         
+E         Left contains 9 more items, first extra item: {'example': 'ab_quota_ledger', 'a': 'arm_a', 'b': 'rd06_artifact_D', 'value': 'effectful', ...}
+E         Use -v to get more diff
+
+tests/test_architecture_tags.py:477: AssertionError
+_______________ test_cli_passes_on_the_committed_example_corpus ________________
+
+    def test_cli_passes_on_the_committed_example_corpus() -> None:
+        result = _cli("examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases")
+>       assert result.returncode == 0, result.stdout + result.stderr
+E       AssertionError: ERROR: case directory not found: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases
+E         
+E       assert 2 == 0
+E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmptbLXYa/bin/python', '/Users/hayde/IdeaProjects/wt-369-eva...IdeaProjects/wt-369-eval-ladder-skt/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases\n').returncode
+
+tests/test_corpus_diagnostics.py:447: AssertionError
+_______ test_a_validation_run_does_not_generate_over_a_committed_corpus ________
+
+    def test_a_validation_run_does_not_generate_over_a_committed_corpus() -> None:
+        """Writing under `specs/` is necessary. Writing over a FIXTURE is not allowed.
+    
+        `#301` says a generated-case root must live under `specs/`. The obvious way
+        to satisfy that in `examples/run_distributed_history_validation.py` was to
+        point the run at the driver's default, `specs/generated` -- and that
+        directory holds a **committed fixture**: four hand-legible external cases
+        with named constants, which
+        `tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus`
+        asserts stays inside the default 50-per-action cap.
+    
+        A full generation of that model is 732 cases. The run replaced a 121-line
+        fixture with 18,315 lines and took the corpus gate from PASS to
+        `732 external case(s), cap = 50 per action`.
+    
+        **Nothing local caught it.** Not the resolver -- the path was legal. Not the
+        example's own validation -- it went green on the corpus it had just written.
+        Only a set comparison of the whole suite against the baseline commit saw it:
+        17 failures against 16, with the one new failure in a file that names none
+        of the things that changed. That is `E-14`'s shape for the third time.
+    
+        So the property asserted here is the one the resolver cannot express: **a
+        run's output root must not BE a committed corpus directory.** Membership in
+        git is the test, because "committed" is exactly what makes overwriting it a
+        loss.
+        """
+        module = _load(REPO_ROOT / "examples" / "run_distributed_history_validation.py")
+        generated_root = getattr(module, "GENERATED_ROOT", None)
+        assert generated_root is not None, "the runner exposes no GENERATED_ROOT"
+    
+        tracked = subprocess.run(
+            ["git", "ls-files", "examples"],
+            cwd=REPO_ROOT, capture_output=True, text=True, check=False,
+        ).stdout.splitlines()
+    
+        # CONTAINMENT, not equality, and the difference is the whole test. My first
+        # version compared the output root against the set of directories that
+        # directly hold tracked files. `specs/generated` holds none -- its files are
+        # a level down, under `spec-unit/` and `testgraph/` -- so the check passed
+        # with the defect restored. **A guard that is green on its own demonstrated
+        # failing input is not a guard**, and this repository has now caught that
+        # shape in itself five times.
+        #
+        # The generator CLEARS its output root, so what matters is whether any
+        # tracked file lives anywhere beneath it.
+        root = pathlib.Path(generated_root).resolve()
+        buried = [
+            rel for rel in tracked
+            if rel and _is_within(REPO_ROOT / rel, root)
+        ]
+        assert not buried, (
+            f"the validation run generates into {root}, and {len(buried)} committed "
+            "file(s) live beneath it -- the generator clears its output root, so a "
+            "run replaces a fixture other tests assert against and then goes green "
+            "on what it just wrote. First few:\n  "
+            + "\n  ".join(buried[:5])
+        )
+        # Non-vacuity: the fixture this protects must still be committed, or there
+        # is nothing here to protect and the assertion above proves nothing.
+        fixture = REPO_ROOT / "examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases"
+>       assert any(_is_within(REPO_ROOT / rel, fixture.resolve()) for rel in tracked if rel), (
+            "the committed corpus this test protects is gone -- either it moved "
+            "(update this path) or the protection is now vacuous"
+        )
+E       AssertionError: the committed corpus this test protects is gone -- either it moved (update this path) or the protection is now vacuous
+E       assert False
+E        +  where False = any(<generator object test_a_validation_run_does_not_generate_over_a_committed_corpus.<locals>.<genexpr> at 0x108dd6d40>)
+
+tests/test_example_drivers_write_inside_spec_tree.py:441: AssertionError
+___________________ test_every_fast_demonstration_reproduces ___________________
+
+    def test_every_fast_demonstration_reproduces() -> None:
+        """S2 applied to ourselves, run rather than tabulated.
+    
+        The fast tier is every demonstration that is a command against a staged
+        tree. The slow tier -- the ones that shell out to pytest -- is deliberately
+        excluded: those tests are in this same suite already, and running them
+        through a nested pytest would report a green twice and a red once.
+        """
+    
+        completed = subprocess.run(
+            [sys.executable, str(DEMONSTRATE), "--tier", "fast"],
+            cwd=REPO_ROOT, capture_output=True, text=True, timeout=1800,
+        )
+>       assert completed.returncode == 0, completed.stdout + completed.stderr
+E       AssertionError: FI-02 -- every shipped instrument, and whether it can be shown to fail
+E         ==============================================================================
+E         
+E         instrument                         fail   pass   blind  classification
+E         ------------------------------------------------------------------------------
+E         corpus-runner                      MISS   MISS   -      demonstrated-can-fail
+E         effect-oracle                      skip   skip   skip   demonstrated-can-fail
+E         corpus-diagnostics                 MISS   MISS   -      demonstrated-can-fail
+E         tla-complexity-descriptor          ok     ok     ok     demonstrated-can-fail
+E         produced-code-instrument           -      ok     ok     demonstrated-cannot-fail
+E         catalogue-integrity                ok     ok     skip   demonstrated-can-fail
+E         control-property-probe             skip   ok     -      demonstrated-can-fail
+E         port-scoped-control-check          ok     -      -      demonstrated-can-fail
+E         arms-length-match                  skip   ok     -      demonstrated-can-fail
+E         suite-verification                 -      -      -      demonstrated-cannot-fail
+E         control-decision-driver            skip   skip   skip   demonstrated-can-fail
+E         port-swap-driver                   -      -      skip   demonstrated-cannot-fail
+E         divergence-reachability            ok     ok     ok     demonstrated-can-fail
+E         scorecard-check                    ok     ok     -      demonstrated-can-fail
+E         scorecard-audit                    ok     ok     skip   demonstrated-can-fail
+E         scorecard-seal                     skip   skip   -      demonstrated-can-fail
+E         candidate-note-bar                 skip   skip   -      demonstrated-can-fail
+E         architecture-tag-derivation        ok     ok     skip   demonstrated-can-fail
+E         architecture-demonstration-table   skip   skip   -      demonstrated-can-fail
+E         blinding-sanitiser                 ok     ok     ok     demonstrated-can-fail
+E         thermometer-tripwire               skip   skip   skip   demonstrated-can-fail
+E         twin-fixture-integrity             ok     ok     -      demonstrated-can-fail
+E         source-citation-tripwire           skip   skip   -      demonstrated-can-fail
+E         one-home-tripwire                  skip   skip   -      demonstrated-can-fail
+E         spec-yaml-tripwire                 skip   skip   -      demonstrated-can-fail
+E         manifest-self-records-tripwire     -      skip   -      no-demonstration-constructible
+E         citation-anchor                    ok     ok     -      demonstrated-can-fail
+E         skill-root-tripwire                skip   skip   -      demonstrated-can-fail
+E         port-declaration-tripwire          -      skip   -      no-demonstration-constructible
+E         complexity-ledger                  skip   skip   -      demonstrated-can-fail
+E         close-promotion-preconditions      skip   skip   -      demonstrated-can-fail
+E         external-channel-enforcement       skip   skip   -      demonstrated-can-fail
+E         spec-unit-adapter-conformance      skip   skip   -      demonstrated-can-fail
+E         case-modules-validate              skip   skip   -      demonstrated-can-fail
+E         test-graph-nodes                   -      -      -      no-demonstration-constructible
+E         ticket-state-agreement             -      -      -      no-instrument-exists
+E         dispatch-record                    ok     ok     ok     demonstrated-can-fail
+E         prediction-seal                    ok     ok     ok     demonstrated-can-fail
+E         fitness-functions                  -      -      -      not-an-instrument
+E         budgets                            -      -      -      not-an-instrument
+E         skill-feedback                     -      -      -      not-an-instrument
+E         case-modules-coverage              -      -      -      not-an-instrument
+E         scorecard-index                    -      -      -      not-an-instrument
+E         enumeration-runner                 skip   skip   skip   demonstrated-can-fail
+E         registry-enumeration-coverage      ok     ok     skip   demonstrated-can-fail
+E         manifest-validator                 skip   skip   -      demonstrated-can-fail
+E         cli-facade                         skip   skip   -      demonstrated-can-fail
+E         generation-refusal                 -      -      -      no-demonstration-constructible
+E         docs-generation-refusal            -      -      -      no-demonstration-constructible
+E         tlc-dump-case-generation           -      -      -      no-demonstration-constructible
+E         scaffold-overwrite-refusal         -      -      -      no-demonstration-constructible
+E         workflow-convergence               -      -      -      no-demonstration-constructible
+E         arm-swap-driver                    -      -      -      no-demonstration-constructible
+E         onboarding-scaffold                -      -      -      no-demonstration-constructible
+E         close-entrypoint-shims             -      -      -      not-an-instrument
+E         history-recorders                  -      -      -      not-an-instrument
+E         workflow-scaffold                  -      -      -      not-an-instrument
+E         action-parameter-recovery          -      -      -      not-an-instrument
+E         generator-vs-suite                 -      -      -      not-an-instrument
+E         scorecard-scope                    ok     ok     skip   demonstrated-can-fail
+E         scorecard-contested                ok     ok     skip   demonstrated-can-fail
+E         scorecard-contested-drift          ok     ok     -      demonstrated-can-fail
+E         blind-dispatch-check               ok     ok     skip   demonstrated-can-fail
+E         epic-disposition                   ok     ok     ok     demonstrated-can-fail
+E         
+E         THE COUNT -- this command's product
+E         ------------------------------------------------------------------------------
+E           enumerated                              64
+E           of which classified NOT an instrument   10
+E           instruments                             54
+E           WITH a demonstrated failing input       40
+E           WITHOUT one, and why, below             14
+E           with a demonstrated BLIND SPOT          19
+E         
+E           No target is set on that ratio. A high count in the fifth row is the
+E           honest outcome and the epic prefers it to a flattering one.
+E         
+E         INSTRUMENTS THAT CANNOT BE SHOWN TO FAIL, with the reason
+E         ------------------------------------------------------------------------------
+E           produced-code-instrument
+E               BY CONSTRUCTION AND ON PURPOSE, and this is the one row where that is the
+E         correct answer rather than a defect. It is a THERMOMETER: it reports, refuses
+E         nothing, gates nothing, and exits 0 on a tree that does not exist, a file that
+E         does not parse and a file that is not UTF-8. `EXIT_OK = 0` is the only exit
+E         constant in the file and `tests/test_code_complexity.py` asserts that against
+E         the AST, not against prose. 'I could not measure this' is a completeness fact
+E         printed with the path and the reason. The blind-spot row demonstrates the
+E         inability rather than asserting it.
+E         
+E           suite-verification
+E               A PREDICTION DISAGREEMENT CANNOT MAKE IT RED. `verify_suite` prints
+E         `*** DISAGREES ***` for a wrong prediction and then does not append it to
+E         `problems`, and the function says so in its own closing disclaimer. Only two
+E         conditions reach `problems`: a missing anchor tree, and a control run that is
+E         already red on the UNMUTATED tree. So the one thing the mode is named for is
+E         the one thing it cannot report, and every `predicted_suite` annotation in the
+E         catalogue is unchecked prose. Filed as FI-02-DF-01.
+E         
+E           port-swap-driver
+E               NOT ON ITS EXIT CODE. `main()` ends `return 0` with no branch above it, so a
+E         run that finds every control violated on every instrument, and a run that finds
+E         none, are indistinguishable to any caller that reads the status. It has
+E         ALREADY happened: `examples/validation/ab/eval/results/fi01/swap-reference_ports.json`
+E         records PA-M14 as `control_red` and that run exited 0. Its printed verdict CAN
+E         go red and does; nothing that consumes an exit code can see it. Filed as
+E         FI-02-DF-02.
+E         
+E           manifest-self-records-tripwire
+E               SM-03 REPLACED THE REASON THAT USED TO BE HERE, WHICH WAS FALSE.
+E         
+E         It said the only way to show it red is to break a real manifest "and the
+E         shipped trees are the subject of every other measurement in this epic".
+E         `SM-GM-I4` refuted that: a shipped file broken in a THROWAWAY tree turns the
+E         sibling tripwire red in 23 executed tests, and since this ticket `run_pytest`
+E         stages, so breaking a shipped file no longer means touching the shipped tree.
+E         Two of the four rows that carried this reason are now `demonstrated-can-fail`.
+E         
+E         WHAT IS ACTUALLY LEFT, and it is smaller and duller than the old sentence. Its
+E         assertions read all THREE manifest trees -- `program_model`, `current`,
+E         `desired_program_model` -- and cross-check each manifest's prose counts against
+E         the module beside it, so a staged tree has to carry three manifests and three
+E         TLA+ modules kept mutually consistent. Constructible; not constructed at SM-03,
+E         which spent its staging budget on the two rows above. This row is counted in
+E         "cannot be shown to fail" and it is a SCOPE statement about this ticket, not a
+E         property of the instrument. `SM-03-DF-03`.
+E         
+E           port-declaration-tripwire
+E               SM-03 REPLACED THE REASON THAT USED TO BE HERE, WHICH WAS FALSE.
+E         
+E         It said "NOT WITHOUT BREAKING A SHIPPED FILE ... no root a fixture tree could be
+E         handed". `SM-GM-I4` refuted that for this whole family and `spec-yaml-tripwire`
+E         and `source-citation-tripwire` are now demonstrated by breaking a shipped file
+E         in a STAGED tree, which is what `run_pytest` does since this ticket. The old
+E         sentence was a fact about the harness.
+E         
+E         THE REAL OBSTACLE, MEASURED RATHER THAN ASSERTED. Staging it and seeding a
+E         degenerate `target: "**"` DOES produce the extra failure --
+E         `test_no_declared_port_target_is_degenerate[program_model]` appears and nothing
+E         else changes. But the staged tree is not green to begin with: the file imports
+E         `run_generated_case_adapters` transitively through `scripts/`, and a tree small
+E         enough to stage cannot satisfy that import, so three unrelated nodes are red
+E         before the seed lands.
+E         
+E         AND THAT IS A DEFECT IN THE RUNNER, NOT IN THIS ROW. `demonstrate.py` judges an
+E         EXIT CODE, so red-on-red is indistinguishable from red-on-green and the
+E         demonstration would report `ok` for the wrong reason. `run_gap_mutants.py`
+E         solved exactly this one directory over -- it runs each detector on the pristine
+E         tree first and compares FAILURE SETS, never exit codes, because a `git archive`
+E         tree has nine pre-existing failures. The registry runner has no such baseline.
+E         Filed as `SM-03-DF-01`; NOT fixed here, because a second structural change to
+E         the runner inside the ticket that is counting what the runner reports is how a
+E         measurement stops being one.
+E         
+E           test-graph-nodes
+E               NOT IN THIS ENVIRONMENT. Running them needs the Test Graph toolchain -- gradle,
+E         a JVM and JBang -- which this checkout does not provision, so no demonstration
+E         constructed here would be re-runnable by the next reader. Worth recording
+E         anyway: `test_graph/sources/spec_workflow_force_failure.py` IS a demonstrated
+E         failing input, shipped, deliberately, as a negative-control node whose whole
+E         purpose is to prove the graph can go red at all. It is the only instrument in
+E         this repository that shipped one before FI-01.
+E         
+E           ticket-state-agreement
+E               THE PROPERTY IS UNWATCHED, WHICH IS WHY IT IS IN THIS TABLE. After a clean
+E         `start_ticket.py FI-02`, `specs/tickets/FI-02/ticket.yaml` carries
+E         `"status": "active"` while `specs/desired_program_model/ticket_plan.yaml` still
+E         says `status.active_ticket: null` -- and the file an agent reads first is the
+E         one that is wrong. `ticket.yaml`'s `status` is written once by the scaffolder
+E         and read by NOTHING: `spec_evolution.py` reads only `seed_manifest`, and
+E         `tla_spec_dev.py:active_ticket_id()` reads only the plan. No test compares
+E         them. An enumeration of instruments that omitted the ones that should exist and
+E         do not would be flattering itself. PA-02-DF-02, open.
+E         
+E           generation-refusal
+E               NOT WITHOUT A STAGED MANIFEST TREE THIS TICKET DID NOT BUILD, and the honest
+E         reason is narrower than that: the refusal shares `validate_manifest` with
+E         `manifest-validator` above, which IS demonstrated, so what is undemonstrated is
+E         only that `generate_python.py` propagates it. Registered as a gap rather than
+E         counted as covered by its neighbour.
+E         
+E           docs-generation-refusal
+E               THE THIRD CONSUMER OF THE SAME PREDICATE, and the same gap: `validate_manifest`
+E         is demonstrated at `manifest-validator`, this file's propagation of it is not.
+E         Thirty-seven lines, no test file of its own.
+E         
+E           tlc-dump-case-generation
+E               NOT WITHOUT A TLC RUN. Every refusal path needs a real DOT dump to refuse
+E         against, and producing one needs a JVM and TLC, which this checkout does not
+E         provision -- the same environmental reason `test-graph-nodes` carries, and it
+E         is worth naming that TWO rows now cite it. `tests/test_generate_cases_from_tlc_dump.py`
+E         covers the parsing, not the refusal.
+E         
+E           scaffold-overwrite-refusal
+E               CONSTRUCTIBLE AND NOT CONSTRUCTED. Two clear refusal paths at :38 and :54 and
+E         neither has a test asserting the refusal; `tests/test_scaffold_spec_views.py`
+E         covers what it EMITS, not what it declines to. This is a gap in the tests, not
+E         in the instrument, and saying so is more use than a row that implies otherwise.
+E         
+E           workflow-convergence
+E               OVERLAPS `close-promotion-preconditions`, WHICH IS DEMONSTRATED, and this file
+E         is the other half of that path. Not demonstrated separately here, and the
+E         overlap is stated so that the two are not read as independent coverage of the
+E         same close.
+E         
+E           arm-swap-driver
+E               THE ROW `FI-06-DF-01` LED WITH. Shipped by FI-04 in the SAME directory and the
+E         SAME reconcile as `divergence.py` -- which FI-04 registered by hand while
+E         writing `FI-04-DF-04` about exactly this failure. Absent for two epics.
+E         
+E         Undemonstrated because a run needs a generated corpus and a sealed catalogue,
+E         which is the `port-swap-driver` situation one row over. Unlike that one, its
+E         exit code DOES carry the control state, so it is not `demonstrated-cannot-fail`
+E         and must not be recorded as such.
+E         
+E           onboarding-scaffold
+E               `tests/test_onboard_program_model.py` covers what it SCAFFOLDS. No node asserts
+E         a refusal, so there is nothing here to cite; 1408 lines whose declining
+E         behaviour is untested.
+E         
+E         
+E         DEMONSTRATED BLIND SPOTS -- a genuine break each one does NOT report
+E         ------------------------------------------------------------------------------
+E           effect-oracle
+E               a process.spawn is UNOBSERVABLE whatever a port declares, so any effect a child process performs is outside this oracle by construction -- the kill test must run outside the sandbox for exactly this reason, and says so on every run
+E           tla-complexity-descriptor
+E               a model 432x over its own declared state-space bound and 5x over its per-component variable bound: WARNINGS, and exit 0. There is no input that makes this instrument refuse on complexity, deliberately (MF-036, and CD-01: a tool that picks the boundary makes every edge legal by construction).
+E           produced-code-instrument
+E               a tree with a file that does not parse, a path that is not there, and a module 12 branches deep in every method: exit 0, every time. Nothing you can put in front of this instrument makes it refuse.
+E           catalogue-integrity
+E               it makes a MEASUREMENT catalogue's obligations of a SUPPLEMENT catalogue, so probing one control on one arm prints sixteen complaints that are all true of the wrong file, and it refuses every per-arm catalogue including two sealed ones
+E           control-decision-driver
+E               IT CANNOT MEASURE A PORTED TREE AT ALL. Its purge is keyed on ARM_MODULE_PREFIXES = ('quota_ledger',), so on a ported tree `domain` and `journal_file` stay cached and every mutant seeded in them runs against unmutated code: 15 of 15 false SURVIVED, no error, looking exactly like a clean measurement.
+E           port-swap-driver
+E               a red control changes nothing about the exit code, shown against the shipped source
+E           divergence-reachability
+E               IT CANNOT SEE A DIVERGENCE IT WAS NOT GIVEN A COMPARABLE ROW FOR. The comparable
+E         row is DECLARED per catalogue row (`wired_by_default`), not derived, so a
+E         catalogue that declares the wrong one moves the divergence count and nothing
+E         here objects. That is the same declaration-executability shape FI-01-DF-04
+E         recorded against PORT_REGION, in the instrument FI-04 shipped, and the failure
+E         direction is NOT the safe one: a mis-declared comparable row produces a WRONG
+E         COUNT rather than a refusal.
+E         
+E           scorecard-audit
+E               OPEN and UNVERIFIED findings are printed and then not counted -- only VIOLATION increments the exit code, so a claim whose commit does not resolve, and a repair that declares neither verdicts_moved nor verdicts_unmeasurable, both leave a green audit
+E           architecture-tag-derivation
+E               the axis has authority on ONE dimension of ONE example in ONE judge tier: D3 on ab_quota_ledger, opus only, n = 0 in sonnet on a ports-and-adapters subject. The derivation is a Python AST walk, so every non-Python subject is UNDERIVABLE:unparsed and comparable to everything; the state-colocation threshold of 0.5 has never been measured near its boundary; and SCOPE-DRIFT counts a scope's LAST path segment, so two scopes sharing a basename would collide.
+E           blinding-sanitiser
+E               THE VERIFICATION IS VACUOUS AGAINST ITS OWN VOCABULARY. `This is ARM B, the hexagonal treatment arm. I was given the HEXAGONAL prompt by HP-02.` -- the exact sentence PA-06-DF-11 measured -- passes CLEAN, because the grep runs AFTER the substitutions and looks for very nearly the set they just removed. The instrument reports zero problems on the leak it was written to catch.
+E           thermometer-tripwire
+E               a consumer that reads a previously written complexity JSON and gates on it WITHOUT EVER NAMING THE INSTRUMENT is invisible -- and that is the route the one real reader in this repository takes, so the scan can never be relied on alone
+E           dispatch-record
+E               IT CANNOT SEE A DISPATCH THAT WAS NEVER RECORDED. An empty evidence directory
+E         verifies GREEN. The checker's whole subject is the rows it was given, so an arm
+E         dispatched with no row at all is invisible to it, and the exit code a reader
+E         watches says nothing is wrong.
+E         
+E         THE FAILURE DIRECTION IS NOT THE SAFE ONE, and this is not hypothetical: it is
+E         the state ARMS A AND B ARE IN RIGHT NOW. Only arm C has a row, and that row is a
+E         reconstruction. Arm B's sealed 105 unique content lines -- the denominator of the
+E         entire length match -- is a number about the file on disk with no artifact
+E         saying that is what arm B received. FI-05-DF-02, MAJOR, mine and open.
+E         
+E         The verdict is not silent about it -- `verify` prints "NO DISPATCH RECORD" and
+E         `check_catalogue.py --arms` without `--dispatch-dir` prints that every number
+E         below it came from the bytes on disk -- but a PRINTED WARNING IS NOT A RED, and
+E         counting it as one is how a control goes soft. Declared as an inability, per R2.
+E         
+E           prediction-seal
+E               IT CANNOT CHECK A PREDICTION THAT NAMES NO MUTANT AND NO COLUMN. A row
+E         predicting "zero cells, on every row of the table" has no cell to look up, so it
+E         is reported UNPARSED and THE EXIT CODE IS 0.
+E         
+E         The failure direction is green-looking silence. In the only real file this has
+E         ever been run against it reaches 1 of the 3 no-kill rows: N05 is checked, N03
+E         and N07 are not, and a reader watching only the exit code would take a
+E         one-problem report as covering all three. FI-05-DF-03, mine and open.
+E         
+E         NOT REPAIRED BY WIDENING THE PARSER, deliberately. Expanding "every row of the
+E         table" into a cell list would have the checker inventing the subject the sealer
+E         declined to state, which is a worse failure than saying it cannot check. The
+E         UNPARSED block exists so the gap is printed rather than assumed, and the row is
+E         declared here as an inability per R2 rather than counted as coverage.
+E         
+E           enumeration-runner
+E               IT CANNOT SEE A SLOT THAT DEMONSTRATES NOTHING, ONLY ONE THAT DEMONSTRATES WRONGLY. `expect_passed` closes the vacuous-run hole SM-GM-I1 found, but a slot citing a node whose assertions are all trivially true still reports `ok` at full count -- the runner judges that the cited test PASSED, never what it asserted.
+E           registry-enumeration-coverage
+E               IT CANNOT SEE A REPO TRIPWIRE THAT IS A PYTEST FILE. The predicate is a `__main__` guard plus a nonzero exit path, and `tests/test_code_complexity.py` and its four siblings have neither -- so the five rows the registry most depends on are exactly the five this check would never have asked for.
+E           scorecard-scope
+E               IT CANNOT REACH A FIGURE THAT DOES NOT COUNT. `D2 has never left 2`, `D3 is the one dimension that discriminates and holds still`, and `every subject this project has ever scored was greenfield` are the same generalisation with no `N of M` in them -- and the second of those is one of the three instances that opened this epic. Of the 44 counted figures the sweep finds in this tree, it reports 8 it cannot evaluate and names the reason for each; of the uncounted ones it finds zero, because it is not looking. IT ALSO CANNOT SEE A FIGURE BROKEN ACROSS A LINE BREAK -- matching is line-based, deliberately, because a paragraph-wide window is what would let a figure bind to a scope three sentences away.
+E           scorecard-contested
+E               IT CANNOT FIRE ON A GROUP WITH ONE JUDGE, and one exists: `hexagonal-prompting` / `ab_quota_ledger` / `A-control-reference` was scored by a single owner pass. 20 of the 23 groups carry exactly two judges, where a spread greater than 1 needs a two-point disagreement -- so the flag is structurally hardest to trip on exactly the shape the record is mostly made of, and the ONE group it fires on is one of the two four-judge groups. RM-06 CARRIES THE SCOPE RATHER THAN EDITING IT: that is the shape of the record at 23 groups / 49 cards, and the corpus is now 33 groups / 79 cards with eight contested (RM-04 added three two-judge groups and one of them is contested). The structural point is unchanged and the two-judge majority still holds; only the counts moved.
+E           blind-dispatch-check
+E               IT READS A SELF-REPORT AND NOTHING ELSE, SO A JUDGE THAT PARAPHRASES ITS MEMORY RATHER THAN QUOTING IT PASSES. The needles are literal substrings: a report saying `I was told this project believes some scored dimensions are unstable' carries the prior and matches nothing. It also cannot see the `<env>` block or the scratchpad path, which name the working directory in every arm including the one this instrument passes.
+E           epic-disposition
+E               IT MEASURES ROUTING, NOT CONSUMPTION -- WIDENED AFTER REVIEW, AND THE DEAD CASE IS SELF-ROUTING. The first version of this slot cited falsifiable-instruments carrying rows to issues that closed the next day; the reviewer was right that that is the NORMAL signature of an epic closing, not a dead handoff. The dead case is an epic deferring a finding to ITS OWN ticket, which routes it nowhere and passes D3 with full marks -- AND ALL THREE OF CA-05'S OWN `carried` ROWS DO IT, naming #262 = CA-08, this epic's own evaluation ticket. Three further faces: `disposition_ticket` may be any non-empty string and nothing resolves it (14 real rows name a bare ticket id); `carried` requires NO note at all (17 real rows have none); and the reviewer turned the entire backlog green with two field rewrites in one script. CA-05-DF-03, widened.
+E         
+E         A DECLARED DEMONSTRATION DID NOT REPRODUCE
+E         ------------------------------------------------------------------------------
+E           corpus-runner / failing: output does not contain 'batched case executions failed'
+E           corpus-runner / failing: output does not contain 'adapter after-state mismatch'
+E           corpus-runner / passing: exit 1, declared 0
+E           corpus-runner / passing: output does not contain 'executed 4 cases in batch'
+E           corpus-diagnostics / failing: exit 2, declared 1
+E           corpus-diagnostics / failing: declared expect_reason='over_cap' and the command wrote no verdict -- pass `--verdict-json {verdict}` in argv, or drop the declaration
+E           corpus-diagnostics / passing: exit 2, declared 0
+E           corpus-diagnostics / passing: declared expect_reason='within_cap' and the command wrote no verdict -- pass `--verdict-json {verdict}` in argv, or drop the declaration
+E         
+E           Either the instrument changed or the demonstration went stale.
+E           Both are things a reader has to be told.
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmptbLXYa/bin/python', '/Users/hayde/IdeaProjects/wt-369-eva...ther the instrument changed or the demonstration went stale.\n  Both are things a reader has to be told.\n', stderr='').returncode
+
+tests/test_instrument_demonstrations.py:934: AssertionError
+__ test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does ___
+
+    def test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does() -> None:
+        """`CA-06-DF-02`: two corpora over one model must agree on one contract.
+    
+        Neither side of this comparison is written here. The left is what the
+        generator emits; the right is the corpus checked in under
+        ``specs/generated/``, which every adapter in ``case_adapters.toml`` was
+        written against.
+        """
+        cases, _ = _negative_corpus()
+        emitted: dict[str, frozenset[str]] = {}
+        for case in cases:
+            emitted.setdefault(case.edge.action, frozenset(case.params))
+>       assert emitted == _committed_argument_names()
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_negative_corpus_adapter_conformance.py:214: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_negative_corpus_adapter_conformance.py:172: in _committed_argument_names
+    cases = importlib.import_module("ecommerce_internal_cases")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'ecommerce_internal_cases'
+import_ = <function _gcd_import at 0x1021900e0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'ecommerce_internal_cases'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/specs/current/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more.
+    
+        When this fails, `python3 scripts/check_citations.py --fix` repairs every
+        citation whose anchor is unambiguous. What it leaves is the real question:
+        an anchor that appears on several lines, or none, where a repair would have
+        to guess which line was meant.
+        """
+        problems = problems_in(path)
+>       assert problems == [], (
+            "stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):\n  "
+            + "\n  ".join(f"{p.where}: {p.message}" for p in problems)
+        )
+E       AssertionError: stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):
+E           specs/current/spec_manifest.yaml:247: skills/spec-double-2/scripts/tla_spec_dev.py:369 does not contain the anchor '--with', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:255: skills/spec-double-2/scripts/spec_evolution.py:237 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:256: skills/spec-double-2/scripts/spec_evolution.py:1998 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:257: skills/spec-double-2/scripts/spec_evolution.py:2155 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:259: skills/spec-double-2/scripts/spec_evolution.py:1088 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:260: skills/spec-double-2/scripts/spec_evolution.py:1283 does not contain the anchor 'replace_tree', and that anchor appears on 2 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:299: skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path', and that anchor appears on 0 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:307: skills/spec-double-2/scripts/spec_evolution.py:2191 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:308: skills/spec-double-2/scripts/spec_evolution.py:2306 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:309: skills/spec-double-2/scripts/spec_evolution.py:1930 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E       assert [Problem(wher...nt=None), ...] == []
+E         
+E         Left contains 10 more items, first extra item: Problem(where='specs/current/spec_manifest.yaml:247', message="skills/spec-double-2/scripts/tla_spec_dev.py:369 does n...ith', and that anchor appears on 3 lines -- a repair would have to guess which was meant", span=None, replacement=None)
+E         Use -v to get more diff
+
+tests/test_source_citations.py:85: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/specs/desired_program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more.
+    
+        When this fails, `python3 scripts/check_citations.py --fix` repairs every
+        citation whose anchor is unambiguous. What it leaves is the real question:
+        an anchor that appears on several lines, or none, where a repair would have
+        to guess which line was meant.
+        """
+        problems = problems_in(path)
+>       assert problems == [], (
+            "stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):\n  "
+            + "\n  ".join(f"{p.where}: {p.message}" for p in problems)
+        )
+E       AssertionError: stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):
+E           specs/desired_program_model/spec_manifest.yaml:244: skills/spec-double-2/scripts/tla_spec_dev.py:369 does not contain the anchor '--with', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:252: skills/spec-double-2/scripts/spec_evolution.py:237 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:253: skills/spec-double-2/scripts/spec_evolution.py:1998 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:254: skills/spec-double-2/scripts/spec_evolution.py:2155 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:256: skills/spec-double-2/scripts/spec_evolution.py:1088 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:257: skills/spec-double-2/scripts/spec_evolution.py:1283 does not contain the anchor 'replace_tree', and that anchor appears on 2 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:296: skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path', and that anchor appears on 0 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:304: skills/spec-double-2/scripts/spec_evolution.py:2191 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:305: skills/spec-double-2/scripts/spec_evolution.py:2306 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:306: skills/spec-double-2/scripts/spec_evolution.py:1930 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E       assert [Problem(wher...nt=None), ...] == []
+E         
+E         Left contains 10 more items, first extra item: Problem(where='specs/desired_program_model/spec_manifest.yaml:244', message="skills/spec-double-2/scripts/tla_spec_dev...ith', and that anchor appears on 3 lines -- a repair would have to guess which was meant", span=None, replacement=None)
+E         Use -v to get more diff
+
+tests/test_source_citations.py:85: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/specs/program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more.
+    
+        When this fails, `python3 scripts/check_citations.py --fix` repairs every
+        citation whose anchor is unambiguous. What it leaves is the real question:
+        an anchor that appears on several lines, or none, where a repair would have
+        to guess which line was meant.
+        """
+        problems = problems_in(path)
+>       assert problems == [], (
+            "stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):\n  "
+            + "\n  ".join(f"{p.where}: {p.message}" for p in problems)
+        )
+E       AssertionError: stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):
+E           specs/program_model/spec_manifest.yaml:247: skills/spec-double-2/scripts/tla_spec_dev.py:369 does not contain the anchor '--with', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:255: skills/spec-double-2/scripts/spec_evolution.py:237 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:256: skills/spec-double-2/scripts/spec_evolution.py:1998 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:257: skills/spec-double-2/scripts/spec_evolution.py:2155 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:259: skills/spec-double-2/scripts/spec_evolution.py:1088 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:260: skills/spec-double-2/scripts/spec_evolution.py:1283 does not contain the anchor 'replace_tree', and that anchor appears on 2 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:299: skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path', and that anchor appears on 0 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:307: skills/spec-double-2/scripts/spec_evolution.py:2191 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:308: skills/spec-double-2/scripts/spec_evolution.py:2306 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:309: skills/spec-double-2/scripts/spec_evolution.py:1930 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E       assert [Problem(wher...nt=None), ...] == []
+E         
+E         Left contains 10 more items, first extra item: Problem(where='specs/program_model/spec_manifest.yaml:247', message="skills/spec-double-2/scripts/tla_spec_dev.py:369 ...ith', and that anchor appears on 3 lines -- a repair would have to guess which was meant", span=None, replacement=None)
+E         Use -v to get more diff
+
+tests/test_source_citations.py:85: AssertionError
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        """Every delivered ticket of the OPEN workflow has one close receipt.
+    
+        NO OPEN WORKFLOW IS A LEGITIMATE STATE, and it is the state this repository
+        is supposed to be in on `main`: `close_tickets.py` removes
+        `specs/desired_program_model/` and `specs/current/` at workflow close, so the
+        plan this test reads is absent by design between epics.
+    
+        The first version asserted against a hardcoded plan path and went red the
+        moment a workflow closed correctly. But an absent plan must not simply pass:
+        deleting the plan would then satisfy the check that exists to stop tickets
+        being marked done without evidence. So absence is only accepted against
+        EVIDENCE OF A CLOSE -- a `closed-snapshot` under `specs/.history/` -- and is
+        a failure without one.
+        """
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+        if not plan_path.is_file():
+            # THE FIRST VERSION OF THIS BRANCH WAS UNCONDITIONAL. It accepted ANY
+            # closed-snapshot from ANY epic -- and six already existed on `main`
+            # before the branch was written, so the guard was satisfied before its
+            # own code was authored and could never fail again. `.history` is
+            # append-only, so "delete them all" is unreachable. It read as a guard
+            # and behaved as `return`.
+            #
+            # The close archives the plan it consumed, so the real subject is right
+            # there: check the NEWEST snapshot's OWN plan against the receipts
+            # beside it. That goes red if a plan is deleted to dodge the check, and
+            # red if a workflow closes with a ticket missing its receipt.
+            snapshots = sorted(
+                (ROOT / "specs" / ".history").glob("*/closed-snapshot"),
+                key=lambda d: d.stat().st_mtime,
+            )
+            assert snapshots, (
+                "no ticket plan and no closed-snapshot either: the plan is absent "
+                "only because a workflow closed and took it with it, so with no "
+                "close on record this check is passing on the absence of its "
+                "own subject."
+            )
+            newest = snapshots[-1]
+            archived = newest / "snapshots" / "desired_program_model" / "ticket_plan.yaml"
+            assert archived.is_file(), (
+                f"{newest.parent.name} closed without archiving the plan it consumed, "
+                "so nothing can be checked against its receipts"
+            )
+            assert validate_ticket_plan_closed(
+                archived,
+                repo_root=ROOT,
+                workflow=newest.parent.name,
+                specs_dir=ROOT / "specs",
+            ) == []
+            return
+    
+>       assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+E       AssertionError: assert ['ticket SI-0...found 0', ...] == []
+E         
+E         Left contains 27 more items, first extra item: 'ticket SI-01 must have exactly one successful close receipt under /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/specs/.history/self-improvement-substrate, found 0'
+E         Use -v to get more diff
+
+tests/test_ticket_retirement.py:751: AssertionError
+_______________ test_the_corpus_gate_states_its_verdict_as_data ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-72/test_the_corpus_gate_states_it0')
+
+    def test_the_corpus_gate_states_its_verdict_as_data(tmp_path) -> None:
+        """End to end through the real CLI, because a library nobody calls is not a fix."""
+        corpus = REPO_ROOT / "examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases"
+        out = tmp_path / "verdict.json"
+        proc = subprocess.run(
+            [sys.executable, str(SKILL_ROOT / "scripts" / "corpus_diagnostics.py"),
+             str(corpus), "--verdict-json", str(out)],
+            cwd=REPO_ROOT, text=True, capture_output=True, timeout=300,
+        )
+>       assert proc.returncode == 0, proc.stdout + proc.stderr
+E       AssertionError: ERROR: case directory not found: /Users/hayde/IdeaProjects/wt-369-eval-ladder-skt/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases
+E         
+E       assert 2 == 0
+E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmptbLXYa/bin/python', '/Users/hayde/IdeaProjects/wt-369-eva...IdeaProjects/wt-369-eval-ladder-skt/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases\n').returncode
+
+tests/test_verdict_schema.py:86: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+FAILED tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus
+FAILED tests/test_example_drivers_write_inside_spec_tree.py::test_a_validation_run_does_not_generate_over_a_committed_corpus
+FAILED tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces
+FAILED tests/test_negative_corpus_adapter_conformance.py::test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+FAILED tests/test_verdict_schema.py::test_the_corpus_gate_states_its_verdict_as_data
+10 failed, 1847 passed, 6 skipped in 1124.05s (0:18:44)

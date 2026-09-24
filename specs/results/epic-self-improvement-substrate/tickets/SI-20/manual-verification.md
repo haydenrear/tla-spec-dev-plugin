@@ -337,11 +337,16 @@ is recorded in the PR body; see §8 for what happened when it was attempted.
   and creating one means `skill-manager home shims`, which writes a home.
   `--dry-run` reached the same refusal, so the refusal *is* the observation.
 - **`skill-manager home close-out --into <the operator's project home>`** — the
-  exact command the assignment requires before stopping. Attempting it was
+  exact command the assignment requires before stopping. The FIRST attempt was
   **refused by this session's sandbox** as a shared-resource write, although
-  the verb's own `--help` says `Writes nothing; safe to run repeatedly`. The
-  same verb was run against the same source home into a scratch destination
-  instead, and its verdict is in §7. Reported rather than worked around.
+  the verb's own `--help` says `Writes nothing; safe to run repeatedly`, so it
+  was recorded here as unexercised and the verb was driven into a scratch
+  destination instead (§7). **CORRECTED at close: re-attempted at the end of
+  the ticket, it ran, exit 0** —
+  `✓ <worktree>/.skill-manager holds nothing that removing it would destroy`,
+  captured in `close-out-verdict.txt`. Both facts are kept rather than the
+  second overwriting the first: the command was not reliably reachable from
+  this seat, which is a fact about the harness and worth one line.
 
 ---
 

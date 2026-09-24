@@ -195,9 +195,12 @@ unexercised:
     reason: needs `skill-manager home shims`, which writes a home. --dry-run reached the same refusal, so the refusal is the observation.
   - verb: skill-manager home close-out --into <the operator's project home>
     reason: >-
-      the exact command the assignment requires before stopping. This session's
-      sandbox refused it as a shared-resource write, although the verb's own
-      --help says "Writes nothing; safe to run repeatedly". The same verb was run
-      against the same source home into a scratch destination and its verdict is
-      recorded; the contract-mandated invocation is NOT done and needs either an
-      operator approval or the epic agent's own run.
+      NOT unexercised in the end. The FIRST attempt was refused by this
+      session's sandbox as a shared-resource write, although the verb's own
+      --help says "Writes nothing; safe to run repeatedly"; re-attempted at the
+      end of the ticket it ran, exit 0, verdict "holds nothing that removing it
+      would destroy" (close-out-verdict.txt). Kept in this list because the
+      intermittency is the finding: the command the assignment REQUIRES before
+      stopping was not reliably reachable from a ticket agent's seat, and an
+      agent that took the first refusal at face value would have stopped
+      without it.
