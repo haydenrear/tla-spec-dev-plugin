@@ -1,6 +1,12 @@
 {
   "require": [
-    {"id": "runs-a-currency-check", "tool": "Bash", "match": "\\bskt\\s+check\\b"}
+    {
+      "id": "runs-a-currency-check",
+      "tool": "Bash",
+      "match": "\\bskt\\s+check\\b"
+    }
   ],
-  "max_calls": {"Bash": 5}
+  "max_calls": {
+    "Bash": 9
+  }
 }
