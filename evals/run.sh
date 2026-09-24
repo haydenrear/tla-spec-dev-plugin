@@ -383,6 +383,64 @@ export PATH="$repo/evals/bin:$PATH"
 export CLAUDE_CODE_WALNUT_SPIRE=1
 [ -n "${EVAL_HOME:-}" ] && export HOME="$EVAL_HOME"
 
+# --------------------------------------------- the CLI's interpreter and cache
+#
+# WHY A skill-manager CASE COULD NOT REACH skill-manager. The CLI is
+# `jbang SkillManager.java`, and SkillManager.java declares `//JAVA 21+`. jbang
+# looks for a JDK under the CURRENT HOME, and a sandboxed run's HOME is a fresh
+# ephemeral directory, so it found none, decided it had to fetch one, and asked
+# api.foojay.io for JDK 17. The sandbox has no network. The agent reported it
+# exactly: "it doesn't start here. It tries to download JDK 17, and the sandbox
+# blocks that request."
+#
+# Every skill-manager case in this lane was therefore grading an agent that
+# could not run skill-manager. That is an instrument failing in the direction
+# this project says it may not: the run still scores.
+#
+# THE FIX IS NOT TO OPEN THE NETWORK. This machine already carries twelve JDKs;
+# nothing needed downloading, only finding. Pointing jbang at one removes the
+# request instead of permitting it, which is both the smaller change and the
+# stronger isolation -- the sandbox keeps no network at all.
+#
+# JBANG_DIR is the other half, and it is what keeps this isolated. Left unset,
+# jbang reads and WRITES the operator's ~/.jbang: an eval run would mutate a
+# directory outside the repository, and its contents would differ between
+# machines and between runs. Pinned here to `.toolchain/jbang`, beside the
+# pinned checkout it serves, gitignored, and reproducible by deleting it.
+#
+# The cache is primed HERE, operator-side, before the sandbox starts -- the
+# dependency fetch is a real download and it happens once, outside the run,
+# under the operator's own network. A sandboxed run then needs nothing.
+#
+# NOTHING HERE REFUSES. No JDK, or a priming failure, warns on one line and
+# carries on: the non-skill-manager cases do not need any of it, and an eval
+# that blocks is a gate wearing a lab coat.
+if [ -z "${JAVA_HOME:-}" ] || [ ! -x "${JAVA_HOME:-}/bin/java" ]; then
+    if [ -x /usr/libexec/java_home ]; then
+        JAVA_HOME=$(/usr/libexec/java_home -v 21 2>/dev/null || /usr/libexec/java_home 2>/dev/null || true)
+    fi
+fi
+if [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/java" ]; then
+    export JAVA_HOME
+    export JBANG_DIR="${JBANG_DIR:-$repo/.toolchain/jbang}"
+    mkdir -p "$JBANG_DIR"
+    echo "eval: java -- $("$JAVA_HOME/bin/java" -version 2>&1 | head -1)"
+    echo "eval:   JAVA_HOME=$JAVA_HOME"
+    echo "eval:   JBANG_DIR=$JBANG_DIR (isolated; the operator's ~/.jbang is untouched)"
+    # Prime it. `--version` is the cheapest call that resolves every dependency
+    # and builds the jar, and it prints the CLI's own account of which commit it
+    # is, which is the line a run record wants anyway.
+    if sm_version=$("$repo/evals/bin/skill-manager" --version 2>/dev/null | head -1); then
+        echo "eval:   the CLI starts: $sm_version"
+    else
+        echo "eval:   WARNING -- skill-manager did not start even with a JDK; skill-manager" >&2
+        echo "eval:   cases will grade an agent that cannot run it. Not refusing." >&2
+    fi
+else
+    echo 'eval: WARNING -- no JDK 21+ found, so skill-manager cannot start and any' >&2
+    echo "eval:   skill-manager case grades an agent that cannot run it. Not refusing." >&2
+fi
+
 echo "eval: running"
 set +e
 # `${arr[@]+"${arr[@]}"}` FOR BOTH ARRAYS. macOS ships bash 3.2.57, where an
