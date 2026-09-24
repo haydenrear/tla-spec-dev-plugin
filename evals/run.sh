@@ -410,7 +410,21 @@ else
     echo 'eval: WARNING -- no python >= 3.11 found, so skt SessionStart will inject nothing' >&2
     echo 'eval:   and every case grades an agent with no orientation. Not refusing.' >&2
 fi
-[ -n "${EVAL_HOME:-}" ] && export HOME="$EVAL_HOME"
+# THE SCRATCH HOME, FOUND RATHER THAN DEMANDED. `evals/setup-eval-home.sh`
+# builds one at .toolchain/evalhome and everything about why it is needed is
+# documented there. Using it when it exists means a future run needs no
+# incantation and nobody rediscovers the Docker refusal at the cost of a
+# confusing 0.00 -- which has now happened twice.
+: "${EVAL_HOME:=$repo/.toolchain/evalhome}"
+if [ -d "$EVAL_HOME" ]; then
+    export HOME="$EVAL_HOME"
+    echo "eval: HOME -> $EVAL_HOME (scratch home; see evals/setup-eval-home.sh)"
+else
+    echo 'eval: NOTE -- no scratch eval home. On a machine with Docker Desktop the' >&2
+    echo 'eval:   Bash sandbox refuses every Bash-granting case (60 of 64) with a' >&2
+    echo 'eval:   credential-store message that reads like a broken substrate.' >&2
+    echo 'eval:   Build one once:  evals/setup-eval-home.sh' >&2
+fi
 
 # --------------------------------------------- the CLI's interpreter and cache
 #

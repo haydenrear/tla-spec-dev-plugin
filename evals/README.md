@@ -3,10 +3,59 @@
 **61 cases, one place, one command**, run against **this checkout**.
 
 ```bash
+evals/setup-eval-home.sh --smoke              # ONCE per machine, first
 evals/run.sh                                  # all of them
 evals/run.sh --case use-the-front-door        # one
 evals/run.sh --case 'w-sdc-*'                 # a glob
+evals/run.sh --case 'w-sm-*' --runs 6         # six samples, for an unstable case
 ```
+
+## Run this first, once per machine
+
+```bash
+evals/setup-eval-home.sh            # build it (idempotent)
+evals/setup-eval-home.sh --check    # check it, change nothing
+evals/setup-eval-home.sh --smoke    # check it, then bill ONE case and prove the lane
+```
+
+It builds a scratch HOME at `.toolchain/evalhome` and `run.sh` picks that path
+up on its own, so after the first run there is no incantation to remember. The
+script carries the reasoning for every piece; the short version is below because
+**two of these were rediscovered the expensive way, one of them twice in a
+single day.**
+
+| prerequisite | what happens without it |
+| --- | --- |
+| scratch `HOME` with a symlink-free `.docker` | **60 of 64 cases score 0.00.** The Bash sandbox refuses while the Docker credential store holds a symlink, and stock Docker Desktop puts 18 of its own CLI shims in `~/.docker`. None is a credential. |
+| `Library/Keychains` linked into it | every run fails to authenticate — the login credential is in the keychain and the keychain path is HOME-relative |
+| a JDK 21+ | `skill-manager` never starts, so its cases grade an agent that cannot run it — **silently, at 1.00 in five of six cases** |
+| a python 3.11+ | skt's SessionStart hook injects nothing, and the session loses the line naming the next command |
+
+### `HOME`, not `SKILL_MANAGER_HOME`, and not `DOCKER_CONFIG`
+
+The obvious two levers do not work, and both were tried:
+
+* **`DOCKER_CONFIG` pointed elsewhere does nothing.** The check reads `~/.docker`
+  regardless and the refusal message is byte-identical. Measured.
+* **`SKILL_MANAGER_HOME` is a different question.** It selects which skill-manager
+  home a run uses; it has no bearing on the sandbox's credential-store scan. Set
+  it when a case needs a particular home, not to fix this.
+
+`HOME` is the only lever that moves the Docker check, which is why the scratch
+home exists at all — and overriding `HOME` is also what breaks authentication,
+which is why it must link the keychain. The two constraints are only satisfiable
+together.
+
+### Proving the setup rather than assuming it
+
+`--check` inspects the *shape* of the setup. `--smoke` bills one case
+(`w-harness-smoke`, 3 turns, about $0.11) and **asserts a 1.00** — because a run
+that fails to place its fixture, or whose tool grant is wrong, still exits 0
+with a score of 0.00. "The script ran" proves nothing.
+
+`w-harness-smoke` is built for exactly this and says so itself: *a red here means
+no other `w-*` score means anything.* Run `--smoke` after any change to
+`run.sh`, `lib/place.sh`, `lib/verify.sh` or the hooks.
 
 ## One place (SI-15)
 
