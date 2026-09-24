@@ -8087,3 +8087,62 @@ findings:
       changes in projects that are not this one. That is stated rather than
       buried: the change is correct and reversible, backups exist, and committing
       them belongs to whoever owns each repository.
+  - id: EA-DF-07
+    severity: major
+    found_by: epic agent, validating the wave-17-18 review artifact it had just written
+    found_at_commit: d4eb1abb
+    schedule_revision: 9
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow:
+      - skills/git-epic-workflow/scripts/validate_epic_plan.py:98
+    summary: 'THE WAVE-ARTIFACT CHECK SILENTLY SKIPS EVERY COMBINED-WAVE DIRECTORY, AND ITS SILENCE
+      READS AS A PASS. `WAVE_DIR = re.compile(r"\Awave-(\d+)\Z")` matches `wave-1` and `wave-16`
+      and does NOT match `wave-11-12`, `wave-13-15` or `wave-17-18` -- the naming this epic actually
+      used whenever two or more waves were reviewed together. The validator therefore warns about
+      waves 1, 2 and 3, whose artifacts predate the five-block rule, and says nothing at all about
+      the three combined directories, not because they satisfy the rule but because it never opened
+      them. A reviewer reading `OK: ... has a valid epic schedule` with no wave warning for 11
+      through 18 would conclude those artifacts were checked. They were not.'
+    reproduction: '`uv run --python 3.12 --with pyyaml python skills/git-epic-workflow/scripts/validate_epic_plan.py
+      specs/desired_program_model/ticket_plan.yaml --verbose` warns for wave-1, wave-2 and wave-3
+      only. Read line 98: the regex is anchored `\A...\Z` around `(\d+)`, so a second hyphenated
+      number cannot match. Confirmed non-vacuously by checking the five block substrings by hand
+      against all four post-rule artifacts -- wave-11-12, wave-13-15, wave-16 and wave-17-18 each
+      carry ALL FIVE, so the checker''s silence and the artifacts'' correctness are independent
+      facts that happen to agree here.'
+    why_out_of_scope: Out of scope to fix now. This is the epic's own review-gate instrument,
+      two tickets from the end, and changing what it matches would change which artifacts warn
+      at finalization -- a schedule-visible effect that belongs in a ticket, not in an epic agent's
+      housekeeping commit. The condition is recorded so finalization does not read the silence
+      as coverage.
+    suggested_fix: 'Widen to `\Awave-(\d+)(?:-\d+)*\Z` and key the wave number off the FIRST group,
+      or, better, have the checker enumerate the waves the PLAN declares and look for a directory
+      covering each, so a wave with no artifact under any spelling is the thing that warns. The
+      second form is the one that would have caught this: the defect is that the checker''s universe
+      is the filesystem''s names rather than the plan''s waves.'
+    blast_radius: Advisory only, and that is why it survived. Every diagnostic this function produces
+      is appended to `warnings`, which no flag can promote to a refusal -- deliberately, per GOAL-no-new-gates.
+      So a missing or unchecked wave artifact has never blocked anything and never will; the cost
+      is entirely in what a human or an agent believes after reading a clean run. Three of this
+      epic's eight review artifacts are in the unchecked set.
+    evidence:
+    - regex at validate_epic_plan.py:98 is `\Awave-(\d+)\Z`; `wave-17-18` does not match
+    - validator output names wave-1, wave-2, wave-3 and no others; rc=0
+    - 'hand check of the five WAVE_BLOCKS substrings: wave-11-12, wave-13-15, wave-16, wave-17-18
+      all carry 5/5'
+    - the three combined directories were created by this epic agent, so the naming that defeats
+      the checker is ours
+    skill_change: proposed(git-epic-workflow, widen WAVE_DIR to cover combined-wave
+      directories or enumerate waves from the plan)
+    attribution: UNMODELED/epic-workflow-checker
+    disposition: still-true
+    disposition_ticket: DEFERRED
+    disposition_note: 'Filed against the instrument, not the artifacts. The artifacts are correct;
+      the checker cannot see them. Worth carrying into the next epic alongside the three-rung
+      resolution finding, because it is the same shape one layer up: a checker that answers a
+      narrower question than the one its caller believes it asked, and reports nothing when the
+      difference bites.'

@@ -1,14 +1,54 @@
 # All five test graphs, with stated verdicts
-# HEAD ab99d575, recorded 2026-09-21T01:35:34Z
+# HEAD d4eb1abb, recorded 2026-09-24T17:14Z
+#
+# WHY THIS FILE WAS REWRITTEN. It previously recorded the run at ab99d575
+# (2026-09-21), where sktSurface was ERRORED at 4/5 nodes. Two things happened
+# after that and neither reached this file: the graphs went green at a3761e30,
+# recorded only in a commit message, and then f212cbe3 changed
+# skills/skt/src/skt/status.py, which invalidated that record. Anyone reading
+# the artifact got a verdict three code-changes old. A verdict that lives only
+# in a commit message is not a record. The previous content is in git history.
 
-  PASSED   specWorkflow             9/9 nodes
-  PASSED   cliWorkflow              2/2 nodes
-  PASSED   effectProviderExamples   1/1 node
-  PASSED   sktHooks                 3/3 nodes
-  ERRORED  sktSurface               4/5 nodes; skt.ticket-roundtrip red (13 of 39 assertions)
+  PASSED   specWorkflow              9 nodes,  74/74  assertions
+  PASSED   cliWorkflow               2 nodes,  41/41  assertions
+  PASSED   effectProviderExamples    1 node,    8/8   assertions
+  PASSED   sktSurface                5 nodes, 318/318 assertions
+  PASSED   sktHooks                  3 nodes, 167/167 assertions
+  ---------------------------------------------------------------
+           TOTAL                    20 nodes, 608/608 assertions, 0 failed
 
-skt.status-tiers -- the node SI-25 named -- PASSES after the fixture-locality fix.
-The tree was clean before the default-set run and clean after it (dirty_count=0).
+sktSurface was ERRORED at 4/5 nodes in the record this replaces. It is now
+5/5 with every assertion green, against the post-fix code.
 
-Each graph appears exactly once in the runner's verdict table; the
-double-print defect that printed an opt-in graph twice is fixed.
+All five ran in `mode=full` with zero missingNodeIds, zero duplicates and zero
+unexpected ids. Every verdict is read from that run's own fresh summary.json,
+never from a runner exit code: the runner always exits 0, and
+build/validation-reports/ keeps passing reports from earlier runs, so a graph
+that never executed looks green there.
+
+  specWorkflow             build/validation-reports/20260924-171107
+  cliWorkflow              build/validation-reports/20260924-171344
+  effectProviderExamples   build/validation-reports/20260924-171406
+  sktSurface               build/validation-reports/20260924-170747
+  sktHooks                 build/validation-reports/20260924-170916
+
+THE PART WORTH KNOWING BEFORE THE NEXT PERSON RUNS THESE.
+
+sktSurface and sktHooks are OPT-IN. The bare command
+
+    python3 test_graph/run-graphs.py
+
+runs three graphs, prints PASSED three times, and reports the other two as
+NOT RUN in a line that is easy to read past. The two it skips are the ones
+covering skt -- the surface this epic changed repeatedly on 2026-09-24. A green
+default-set run is therefore NOT evidence that skt is green. Both must be
+named:
+
+    python3 test_graph/run-graphs.py --only sktSurface --only sktHooks
+
+Each graph appears exactly once in the runner's verdict table; the double-print
+defect that printed an opt-in graph twice is still fixed.
+
+The tree was clean before these runs and clean after them: dirty_count=0,
+counting this session's own written artifacts (this file and the wave-17-18
+review) as the only additions, which are writing and not run output.
