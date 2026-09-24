@@ -7659,7 +7659,7 @@ findings:
       - transcripts/step-02-verb-gamut.txt   # `skt ticket sweep`, dry run
     attribution: UNMODELED/worktree-sweep
     status: fixed
-    fixed_by: "PENDING"
+    fixed_by: "2035c3cb"
     disposition: >-
       FIXED by the epic agent at wave-18 close, in sweep.py's `_local_state`.
       SI-20 filed it deferred because skills/skt/ is outside its conflict keys,
