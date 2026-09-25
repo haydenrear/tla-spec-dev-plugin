@@ -123,10 +123,32 @@ def main(ctx):
         cache_dir = home_dir / "cache"
         unit_dir = home_dir / "plugins" / "tla-spec-dev"
         if not unit_dir.exists():
-            shutil.copytree(REPO_ROOT, unit_dir,
+            # `symlinks=True` AND `.toolchain` IGNORED, both for the same
+            # reason, measured on 2026-09-25.
+            #
+            # copytree dereferences links by default. `.toolchain/` holds eval
+            # scratch homes, and a scratch home is MOSTLY SYMLINKS INTO THE
+            # OPERATOR'S HOME -- .claude, .config, .local, .cache,
+            # Library/Keychains -- because overriding HOME is the only way to
+            # get past the Docker sandbox check while keeping authentication.
+            # Dereferencing those copies the operator's home into a build
+            # directory: this call wrote a 57 GB fixture, took a 926 GB disk to
+            # 532 MB free, and both skt graphs then errored with
+            # "[Errno 28] No space left on device" while every node after the
+            # first was skipped. They had passed 318/318 and 167/167 the same
+            # day with nothing in them changed.
+            #
+            # `.toolchain` is toolchain state and was never plugin content, so
+            # it does not belong in a fixture of the plugin either way. The
+            # `symlinks=True` is the belt: it stops the NEXT link anyone adds
+            # from doing this again, and there is already a second one waiting
+            # -- .toolchain/skill-manager/specs/evals/harness/.evalhome/ carries
+            # the same five links, from skill-manager's own harness.
+            shutil.copytree(REPO_ROOT, unit_dir, symlinks=True,
                             ignore=shutil.ignore_patterns(
                                 ".git", "test_graph", ".venv", "specs",
-                                "evals", "tickets", ".skill-manager"))
+                                "evals", "tickets", ".skill-manager",
+                                ".toolchain", ".history"))
         record = procs.run(
             ctx,
             f"install-skt-{version}",

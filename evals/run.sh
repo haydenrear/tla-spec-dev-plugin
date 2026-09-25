@@ -451,7 +451,13 @@ fi
 # documented there. Using it when it exists means a future run needs no
 # incantation and nobody rediscovers the Docker refusal at the cost of a
 # confusing 0.00 -- which has now happened twice.
-: "${EVAL_HOME:=$repo/.toolchain/evalhome}"
+#
+# IT LIVES OUTSIDE THE CHECKOUT. It holds symlinks into the operator's home, so
+# inside the repository anything that copies the checkout and dereferences links
+# copies the operator's home too -- measured on 2026-09-25 as a 57 GB fixture
+# directory that filled a 926 GB disk and errored both skt graphs. See
+# setup-eval-home.sh.
+: "${EVAL_HOME:=${XDG_STATE_HOME:-$HOME/.local/state}/tla-spec-dev/evalhome}"
 if [ -d "$EVAL_HOME" ]; then
     export HOME="$EVAL_HOME"
     echo "eval: HOME -> $EVAL_HOME (scratch home; see evals/setup-eval-home.sh)"

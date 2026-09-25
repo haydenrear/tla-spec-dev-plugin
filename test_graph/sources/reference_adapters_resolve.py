@@ -86,11 +86,18 @@ def main(ctx):
     # which is `E-13`'s lesson and `H-03`'s, arriving a third time.
     scratch = Path(tempfile.mkdtemp(prefix="reference-adapters-resolve-"))
     checkout = scratch / "checkout"
+    # `.toolchain` and `.history` added to the ignore list on 2026-09-25.
+    # `symlinks=True` was ALREADY here and is what kept this copier safe: the
+    # sibling node skt_wrapper_installed.py lacked it, dereferenced a scratch
+    # eval home's links into the operator's home, and wrote a 57 GB fixture that
+    # took a 926 GB disk to 532 MB free. This one only ever copied the
+    # .toolchain BULK -- a pinned checkout and caches, never plugin content and
+    # no business in a fixture -- which is worth not copying on its own.
     shutil.copytree(
         repo, checkout,
         ignore=shutil.ignore_patterns(
             ".git", "__pycache__", ".skill-manager", "build", ".gradle",
-            "evidence", "node_modules", ".venv",
+            "evidence", "node_modules", ".venv", ".toolchain", ".history",
         ),
         symlinks=True,
     )

@@ -88,12 +88,33 @@ set -euo pipefail
 here=$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 repo=$(CDPATH= cd -- "$here/.." && pwd)
 
-EVAL_HOME_DEFAULT="$repo/.toolchain/evalhome"
+# OUTSIDE THE REPOSITORY, AND THAT IS NOT A PREFERENCE.
+#
+# This home contains SYMLINKS INTO THE OPERATOR'S HOME -- .claude, .config,
+# .local, Library/Keychains -- because that is the only way to override HOME for
+# the Docker sandbox and keep authentication working. Put that inside the
+# checkout and anything which copies the checkout and dereferences links copies
+# the operator's home with it.
+#
+# Measured, 2026-09-25, the day it was first placed at .toolchain/evalhome: the
+# sktSurface graph provisions a fixture by copying the plugin checkout, followed
+# the links, and wrote a 57 GB fixture directory. A 926 GB disk went to 532 MB
+# free, both skt graphs errored with "[Errno 28] No space left on device", and
+# every node after the first was skipped. The graphs had passed 318/318 and
+# 167/167 hours earlier; nothing in them had changed.
+#
+# So it lives beside the operator's other caches instead. The cost is that
+# `rm -rf .toolchain` no longer resets it -- `--reset` does, and the README says
+# so.
+EVAL_HOME_DEFAULT="${XDG_STATE_HOME:-$HOME/.local/state}/tla-spec-dev/evalhome"
 EVAL_HOME="${EVAL_HOME:-$EVAL_HOME_DEFAULT}"
 
 mode=build
 case "${1:-}" in
     --check) mode=check ;;
+    --reset) rm -rf "${EVAL_HOME:-$EVAL_HOME_DEFAULT}"
+             echo "removed ${EVAL_HOME:-$EVAL_HOME_DEFAULT}"
+             exit 0 ;;
     --smoke) mode=smoke ;;
     -h|--help)
         sed -n '2,12p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
