@@ -137,7 +137,12 @@ if [ "$mode" = build ]; then
     # THE WHEELS. Derived from the scripts rather than hardcoded, so a new
     # dependency in any skill script is picked up by re-running this.
     wheels="$repo/.toolchain/uv-wheels"
-    deps=$(grep -rh -A8 '^# /// script' "$repo"/skills/*/scripts/*.py 2>/dev/null \
+    # ALL of skills/, not just */scripts/*.py. Node files under
+    # project_sdk_sources/ and test_graph/ carry the same header and run under
+    # the same uv. They declare no pinned dependency TODAY -- checked -- so this
+    # widening changes nothing now and stops the derivation going quietly stale
+    # the first time one does.
+    deps=$(grep -rh -A10 '^# /// script' "$repo/skills" 2>/dev/null \
            | grep -oE '"[A-Za-z][A-Za-z0-9_.-]*[><=!~]=[^"]*"' | tr -d '"' | sort -u)
     if [ -n "$deps" ]; then
         mkdir -p "$wheels"
