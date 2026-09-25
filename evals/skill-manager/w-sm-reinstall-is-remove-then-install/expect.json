@@ -1,0 +1,10 @@
+{
+  "require": [
+    {"id": "uses-a-route-that-exists", "tool": "Bash", "match": "skill-manager\\s+(sync|remove|uninstall)\\s+[a-z]"}
+  ],
+  "forbid": [
+    {"id": "no-yes-on-remove", "tool": "Bash", "match": "skill-manager\\s+remove\\b[^\\n]*--yes"},
+    {"id": "no-invented-flag", "tool": "Bash", "match": "skill-manager\\s+install\\b[^\\n]*--(force|overwrite|reinstall|upgrade)\\b"}
+  ],
+  "max_calls": {"Bash": 4}
+}

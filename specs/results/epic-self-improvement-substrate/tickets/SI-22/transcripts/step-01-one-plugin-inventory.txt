@@ -1,0 +1,230 @@
+=== step-01: GOAL-one-plugin inventory, READ-ONLY, three homes ===
+2026-09-25T21:33:46Z
+
+--- A. ROOT HOME $HOME/.skill-manager (READ ONLY: list) ---
+$ skill-manager list --home $HOME/.skill-manager
+Unknown options: '--home', '/Users/hayde/.skill-manager'
+Usage: skill-manager list [-hv] [--agent-context] [--json]
+List installed units.
+      --agent-context   Emit a bounded agent-facing context block to stderr
+                          after the command.
+  -h, --help            Show this help message and exit.
+      --json            Emit machine-readable JSON.
+  -v, --verbose         Verbose output
+! Telemetry export unavailable; continuing without telemetry.
+
+$ skill-manager list --home ... -> REFUSED (no such option). Home is selected by env, not flag.
+
+$ skill-manager --help
+Usage: skill-manager [-hvV] [--agent-context] [COMMAND]
+Build tool for agent skills: CLI deps, skill references, MCP servers.
+      --agent-context   Emit a bounded agent-facing context block to stderr
+                          after the command.
+  -h, --help            Show this help message and exit.
+  -v, --verbose         Verbose output
+  -V, --version         Print version information and exit.
+Commands:
+  list, ls        List installed units.
+  artifacts       Name and inspect the artifacts this home derived.
+  build           Rebuild derived artifacts — one, some, or everything stale.
+  lock            Inspect units.lock.toml.
+  install         Install a unit and its declared dependencies.
+  uninstall, un   Uninstall a unit and clean up its side effects.
+  remove, rm      Remove an installed unit (skill or plugin) from the store.
+                    Lower-level than `uninstall` — by default does not unlink
+                    agent symlinks or unregister MCP servers. Use `uninstall`
+                    for the full cleanup.
+  sync            Refresh installed units and re-run install side effects.
+  upgrade         Upgrade installed git-tracked units — skills and plugins — to
+                    the latest registry version (and optionally skill-manager
+                    itself). Plugins re-register with Claude/Codex via their
+                    CLIs after the bytes update so hooks reload.
+  show            Show details for an installed unit.
+  deps            Show the transitive dependency tree of an installed unit
+                    (skill or plugin). For plugins, the tree includes both
+                    plugin-level deps and every contained skill's deps (unioned
+                    at parse time). With --who-imports, walk the edges
+                    BACKWARDS instead: what in this home depends on the named
+                    unit, across both `skill-imports` (addressed by name) and
+                    manifest references (addressed by coordinate), transitively
+                    and without looping.
+  gateway         Manage the virtual MCP gateway process: up, down, attach,
+                    detach, status.
+  registry        Inspect or configure the skill registry.
+  publish         Register a unit with the registry.
+  search          Search the registry for skills and plugins (the KIND column
+                    shows which). Sponsored slots are rendered separately and
+                    can be hidden with --no-ads.
+  policy          Inspect or initialize the skill-manager policy.
+  pm              Manage bundled, version-pinned package managers (uv,
+                    node/npm).
+  cli             Inspect the CLI lock (which tools are installed, which skills
+                    requested them).
+  env             Materialize and run project-local uv environments.
+  exec            Run a command bound to a Skill Manager home: export the
+                    home's env, put its bin/ first on PATH, and refuse a launch
+                    that would still read the global agent config. Use `--`
+                    before a command with its own options.
+  create          Scaffold a new skill or plugin directory.
+  ads             Manage sponsored-placement campaigns on the registry.
+  login           Authenticate against the registry and cache the bearer token.
+  create-account  Register a new user on the registry.
+  reset-password  Request a password-reset email for an account.
+  onboard         Install the bundled skills (one shared install program) and
+                    start the gateway.
+  bind            Bind an installed unit or doc source to a target root.
+  unbind          Reverse every projection from a binding and remove it from
+                    the ledger.
+  rebind          Move a binding to a new target root (unbind + bind in one
+                    journal).
+  bindings        Inspect the projection ledger (list | show <bindingId>).
+  harness         Manage harness templates and their instances.
+  home            Inspect, copy, describe, and set the policy of Skill Manager
+                    homes.
+  project         Register and inspect skill project manifests.
+  sandbox         Inspect this process's sandbox.
+  unit            Work with an installed unit as source: publish home edits
+                    back to its repo.
+! Telemetry export unavailable; continuing without telemetry.
+
+--- A. ROOT HOME (env selects the home; there is no --home flag) ---
+$ find $HOME/.skill-manager -maxdepth 1 -newermt '-10 minutes' | wc -l   [BEFORE]
+       0
+
+$ SKILL_MANAGER_HOME=$HOME/.skill-manager skill-manager list
+NAME                         KIND     VERSION    BINDINGS  SHA       SOURCE
+acp-cdc-ai-python            skill    0.2.0      3         3c02dc5   git
+andrej-karpathy-skills       plugin   1.0.0      0         43442d0   git
+debugging                    skill    0.1.0      3         3520c53   git
+deploy-helm                  skill    0.1.0      3         5d48d0e   git
+doc-repo-devops              doc      0.1.0      0         3bf4453   git
+hyper-experiments            skill    0.1.0      3         41b8f56   git
+hyper-experiments-finance    skill    0.1.0      3         5b3c8d2   git
+llm-wiki                     skill    0.1.0      3         d4d6b11   git
+tla-spec-dev                 plugin   0.1.0      0         a3761e3   git
+tracing-observability        skill    0.3.0      3         9c30206   git
+vision-toolbelt-skill        skill    0.1.0      3         bbd6111   git
+! Telemetry export unavailable; continuing without telemetry.
+
+$ find $HOME/.skill-manager -maxdepth 2 -newermt '-10 minutes' | wc -l   [AFTER]
+       0
+
+--- HOME: /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager ---
+$ SKILL_MANAGER_HOME=/Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager skill-manager list
+NAME                         KIND     VERSION    BINDINGS  SHA       SOURCE
+acp-cdc-ai-python            skill    0.2.0      3         3c02dc5   git
+andrej-karpathy-skills       plugin   1.0.0      0         43442d0   git
+cdc-agent-substrate-plugin   plugin   0.2.2      0         -         local_file
+code-reviewer                harness  0.1.0      0         -         local_file
+debugging                    skill    0.1.0      3         3520c53   git
+deploy-helm                  skill    0.1.0      3         5d48d0e   git
+doc-repo-devops              doc      0.1.0      0         3bf4453   git
+hyper-experiments            skill    0.1.0      3         41b8f56   git
+hyper-experiments-finance    skill    0.1.0      3         5b3c8d2   git
+live-swarm-agent             harness  0.1.0      0         -         local_file
+llm-wiki                     skill    0.1.0      3         d4d6b11   git
+repo-coder                   harness  0.1.0      0         -         local_file
+repo-tester                  harness  0.1.0      0         -         local_file
+run-tracer                   harness  0.1.0      0         -         local_file
+slm-agent                    skill    0.1.1      3         -         local_file
+tla-spec-dev                 plugin   0.1.0      0         a3761e3   git
+tracer-agent                 skill    0.1.0      3         -         local_file
+tracing-observability        skill    0.3.0      3         9c30206   git
+vision-toolbelt-skill        skill    0.1.0      3         bbd6111   git
+
+--- HOME: /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager ---
+$ SKILL_MANAGER_HOME=/Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager skill-manager list
+NAME                         KIND     VERSION    BINDINGS  SHA       SOURCE
+acp-cdc-ai-python            skill    0.2.0      3         3c02dc5   git
+andrej-karpathy-skills       plugin   1.0.0      0         43442d0   git
+cdc-agent-substrate-plugin   plugin   0.2.2      0         -         local_file
+code-reviewer                harness  0.1.0      0         -         local_file
+debugging                    skill    0.1.0      3         3520c53   git
+deploy-helm                  skill    0.1.0      3         5d48d0e   git
+doc-repo-devops              doc      0.1.0      0         3bf4453   git
+hyper-experiments            skill    0.1.0      3         41b8f56   git
+hyper-experiments-finance    skill    0.1.0      3         5b3c8d2   git
+live-swarm-agent             harness  0.1.0      0         -         local_file
+llm-wiki                     skill    0.1.0      3         d4d6b11   git
+repo-coder                   harness  0.1.0      0         -         local_file
+repo-tester                  harness  0.1.0      0         -         local_file
+run-tracer                   harness  0.1.0      0         -         local_file
+slm-agent                    skill    0.1.1      3         -         local_file
+tla-spec-dev                 plugin   0.1.0      0         a3761e3   git
+tracer-agent                 skill    0.1.0      3         -         local_file
+tracing-observability        skill    0.3.0      3         9c30206   git
+vision-toolbelt-skill        skill    0.1.0      3         bbd6111   git
+
+--- HOME: /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/.skill-manager ---
+$ SKILL_MANAGER_HOME=/Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/.skill-manager skill-manager list
+NAME                         KIND     VERSION    BINDINGS  SHA       SOURCE
+acp-cdc-ai-python            skill    0.2.0      3         3c02dc5   git
+andrej-karpathy-skills       plugin   1.0.0      0         43442d0   git
+cdc-agent-substrate-plugin   plugin   0.2.2      0         -         local_file
+code-reviewer                harness  0.1.0      0         -         local_file
+debugging                    skill    0.1.0      3         3520c53   git
+deploy-helm                  skill    0.1.0      3         5d48d0e   git
+doc-repo-devops              doc      0.1.0      0         3bf4453   git
+hyper-experiments            skill    0.1.0      3         41b8f56   git
+hyper-experiments-finance    skill    0.1.0      3         5b3c8d2   git
+live-swarm-agent             harness  0.1.0      0         -         local_file
+llm-wiki                     skill    0.1.0      3         d4d6b11   git
+repo-coder                   harness  0.1.0      0         -         local_file
+repo-tester                  harness  0.1.0      0         -         local_file
+run-tracer                   harness  0.1.0      0         -         local_file
+slm-agent                    skill    0.1.1      3         -         local_file
+tla-spec-dev                 plugin   0.1.0      0         a3761e3   git
+tracer-agent                 skill    0.1.0      3         -         local_file
+tracing-observability        skill    0.3.0      3         9c30206   git
+vision-toolbelt-skill        skill    0.1.0      3         bbd6111   git
+
+--- What the ONE plugin actually contains (root home, read-only) ---
+$ SKILL_MANAGER_HOME=$HOME/.skill-manager skill-manager show tla-spec-dev
+PLUGIN  tla-spec-dev@0.1.0  (sha a3761e3, source git)
+description: The TLA+ program-model toolchain: the spec-double-2 skill, the tla-spec-dev CLI, and the workflow skills that drive them, versioned and improved as one unit.
+path:        /Users/hayde/.skill-manager/plugins/tla-spec-dev
+
+contained skills (11):
+  - discovery
+  - git-epic-workflow
+  - git-integration-repo
+  - git-issue
+  - git-issue-workflow
+  - plugin-repository
+  - skill-manager
+  - skt
+  - spec-double-2
+  - test-graph
+  - unit-authoring
+
+effective dependencies (unioned):
+  CLI:  tlc2                 (declared at: plugin level)
+  CLI:  tla-spec-dev         (declared at: plugin level)
+  CLI:  skt                  (declared at: plugin level)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  gh                   (declared at: skills/git-epic-workflow)
+  CLI:  jinja2-cli[yaml]     (declared at: skills/spec-double-2)
+  CLI:  pytest               (declared at: skills/spec-double-2)
+
+references:
+  - null  (registry)
+  - null  (registry)
+  - null  (registry)
+
+$ ls $HOME/.skill-manager/plugins/
+andrej-karpathy-skills
+tla-spec-dev
+
+$ ls $HOME/.skill-manager/plugins/tla-spec-dev/skills/
+discovery
+git-epic-workflow
+git-integration-repo
+git-issue
+git-issue-workflow
+plugin-repository
+skill-manager
+skt
+spec-double-2
+test-graph
+unit-authoring

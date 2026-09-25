@@ -1,0 +1,9 @@
+$ skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main -y
+→ cloning https://github.com/haydenrear/tla-spec-dev-plugin.git
+→ cloning https://github.com/haydenrear/deploy-cdc
+→ cloning https://github.com/haydenrear/tracing_skill
+✓ resolve: 3 unit(s)
+✗ ✋ halted: unit 'tla-spec-dev' is already installed at /Users/dev/.skill-manager/plugins/tla-spec-dev — remove it first (skill-manager remove tla-spec-dev)
+
+$ echo $?
+4

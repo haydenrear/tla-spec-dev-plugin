@@ -1,0 +1,38 @@
+schema_version: "1.0"
+name: w-sm-reinstall-is-remove-then-install
+description: >-
+  `skill-manager install` REFUSES to replace an installed plugin — "halted: unit
+  'tla-spec-dev' is already installed … remove it first" (rc=4) — so there is no
+  install-over path. TWO routes exist past it and both are accepted: `sync
+  <unit>`, which the installer's own help points at for refreshing an installed
+  unit, and remove-then-install. The trap is not the route, it is the flags:
+  `remove` REJECTS `--yes` (exit 2) while `uninstall` accepts it, so an agent
+  adding `--yes` by reflex turns the refusal's own printed remedy into a usage
+  error; and `install` has no `--force`/`--overwrite` to fall back on. Does the
+  agent take a route that exists, without inventing a flag?
+  Provenance: the halt and the `--yes` rejection were measured by hand in SI-22
+  (transcript step-11, re-verifying SI-12-DF-06); `sync tla-spec-dev
+  --git-latest` was measured by hand afterwards (step-23) BECAUSE an eval run
+  answered with it and this grader had wrongly required remove-then-install.
+  Only the home path is genericised.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sm-reinstall-is-remove-then-install
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    We need this machine's `tla-spec-dev` plugin refreshed from the tip of
+    `main`. The install command we tried, and what it printed, is in
+    cases/w-sm-reinstall-is-remove-then-install/install-halted.txt.
+
+    Get the refresh done.
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so a command
+    that writes will fail with "Operation not permitted" however correct it is.
+    That is expected and is not yours to solve. Issue the commands you would
+    use, once each, and report them. Do not probe for a writable location or try
+    a different route.
+
+    EVAL-CASE: w-sm-reinstall-is-remove-then-install

@@ -1,0 +1,106 @@
+=== step-09: what loads at SESSION START, from the fresh home ===
+2026-09-25T21:45:01Z
+$ ls <fresh home>/plugins/tla-spec-dev/hooks/
+hooks.json
+skt-post-tool.sh
+skt-session-start.sh
+
+$ cat <fresh home>/plugins/tla-spec-dev/hooks/hooks.json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/skt-session-start.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/skt-post-tool.sh\"",
+            "timeout": 2
+          }
+        ]
+      }
+    ]
+  }
+}
+
+--- run the shipped SessionStart hook by hand, in each of the three places an agent lands ---
+
+### cwd = <fresh>/plainrepo
+skt status — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo
+checkout   standalone repo, branch main
+home       /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager — tier: project, policy: live
+parent     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager — this home was cloned from it and syncs back to it
+publish    edited a unit here? `skt publish <unit>` — syncs it to the parent above, then publishes to the unit's own git repo. Nothing else carries an edit out of this home; git does not.
+writes     this session writes /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager. Never write /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager, or any other home, by hand.
+cli        computeq, docker, gh, helm, helm-deploy, jinja2-cli[yaml], k3d, kubernetes-cli, monitoring, opentofu +5 more
+units      3 installed (3 change-managed)
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  tla-spec-dev 0.1.0 plugin [cm] ac5f7491
+  tracing-observability 0.3.0 skill [loaded] [cm] 9c302067
+plugins    tla-spec-dev
+next       skt check — new-version and sync notifications
+rc=0  bytes=1541
+
+### cwd = <fresh>/plainrepo-demo-1
+skt status — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1
+checkout   standalone repo, branch feature/demo-1 (ticket demo-1)
+home       /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1/.skill-manager — tier: worktree, policy: live
+parent     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager — this home was cloned from it and syncs back to it
+publish    edited a unit here? `skt publish <unit>` — syncs it to the parent above, then publishes to the unit's own git repo. Nothing else carries an edit out of this home; git does not.
+writes     this session writes /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1/.skill-manager. Never write /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager, or any other home, by hand.
+base       in sync with parent @ebcd66e5 (0 commit(s) ahead)
+cli        computeq, docker, gh, helm, helm-deploy, jinja2-cli[yaml], k3d, kubernetes-cli, monitoring, opentofu +5 more
+units      3 installed (3 change-managed)
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  tla-spec-dev 0.1.0 plugin [cm] ac5f7491
+  tracing-observability 0.3.0 skill [loaded] [cm] 9c302067
+plugins    tla-spec-dev
+next       skt check — new-version and sync notifications
+rc=0  bytes=1660
+
+### cwd = <TICKET WORKTREE, this repo>
+skt status — /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager
+checkout   integration repo, branch feature/371-eval-ladder-skill-manager (ticket SI-22)
+home       /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/.skill-manager — tier: worktree, policy: live
+parent     /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager — this home was cloned from it and syncs back to it
+publish    edited a unit here? `skt publish <unit>` — syncs it to the parent above, then publishes to the unit's own git repo. Nothing else carries an edit out of this home; git does not.
+writes     this session writes /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/.skill-manager. Never write /Users/hayde/IdeaProjects/tla-spec-dev/.skill-manager, or any other home, by hand.
+spec       workflow 'self-improvement-substrate' active; no open tickets — this branch's ticket IS in the plan
+base       in sync with parent @5d05ba7f (607 commit(s) ahead)
+cli        @google/gemini-cli, claude, codex, computeq, docker, gemini-cli, gh, google, google-gemini-cli, helm +15 more
+units      19 installed (11 change-managed)
+  acp-cdc-ai-python 0.2.0 skill [loaded] [cm] 3c02dc52
+  andrej-karpathy-skills 1.0.0 plugin [cm] 43442d0f
+  cdc-agent-substrate-plugin 0.2.2 plugin [loaded]
+  code-reviewer 0.1.0 harness
+  debugging 0.1.0 skill [loaded] [cm] 3520c531
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  doc-repo-devops 0.1.0 doc [loaded] [cm] 3bf44536
+  hyper-experiments-finance 0.1.0 skill [loaded] [cm] 5b3c8d2b
+  hyper-experiments 0.1.0 skill [loaded] [cm] 41b8f560
+  live-swarm-agent 0.1.0 harness
+  llm-wiki 0.1.0 skill [loaded] [cm] d4d6b11a
+  repo-coder 0.1.0 harness
+  repo-tester 0.1.0 harness
+  run-tracer 0.1.0 harness
+  slm-agent 0.1.1 skill [loaded]
+  … +4 more (skt status --json for all)
+plugins    andrej-karpathy-skills, cdc-agent-substrate-plugin, tla-spec-dev
+next       skt check — new-version and sync notifications
+
+skt check: 1 notification(s), tier worktree
+  new version available for tla-spec-dev — pull with: skt sync tla-spec-dev
+  artifacts not checked (timeout): skill-manager artifacts stale --json did not finish inside 6.0s
+  build: skt 0.8.2; skill-manager 0.28.1 @ artifact 641625cd3baf built 2026-09-17T17:34:42Z (skill-manager.jar)
+rc=0  bytes=2290

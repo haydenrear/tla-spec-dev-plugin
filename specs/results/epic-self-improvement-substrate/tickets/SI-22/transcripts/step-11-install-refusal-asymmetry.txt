@@ -1,0 +1,101 @@
+=== step-11: SI-12-DF-06 re-verified in the DISPOSABLE fresh home ===
+2026-09-25T21:46:28Z
+recorded claim: install REFUSES over an installed plugin; 'remove' rejects --yes while 'uninstall' accepts it.
+
+$ skill-manager install <plugin> --ref main -y   # already installed
+env: skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main -y: No such file or directory
+rc=127
+
+$ skill-manager remove tla-spec-dev --yes
+env: skill-manager remove tla-spec-dev --yes: No such file or directory
+rc=127
+
+$ skill-manager uninstall tla-spec-dev --yes  (NOT RUN YET -- see below)
+env: skill-manager uninstall tla-spec-dev --yes: No such file or directory
+rc=127
+
+--- NOTE: the first attempt at this step scored rc=127 three times because my helper passed an unquoted $VAR to env,
+    and in zsh an unquoted $VAR does NOT word-split. The whole string became one command name. Redone with explicit args. ---
+
+$ skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main -y   # ALREADY INSTALLED
+→ cloning https://github.com/haydenrear/tla-spec-dev-plugin.git
+→ cloning https://github.com/haydenrear/deploy-cdc
+→ cloning https://github.com/haydenrear/tracing_skill
+✓ resolve: 3 unit(s)
+✗ ✋ halted: unit 'tla-spec-dev' is already installed at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/plugins/tla-spec-dev — remove it first (skill-manager remove tla-spec-dev)
+rc=4
+
+$ skill-manager remove tla-spec-dev --yes
+Unknown option: '--yes'
+Usage: skill-manager remove [-hv] [--agent-context] [--dry-run] [--from=<unlink>
+                            [,<unlink>...]]... <name>
+Remove an installed unit (skill or plugin) from the store. Lower-level than
+`uninstall` — by default does not unlink agent symlinks or unregister MCP
+servers. Use `uninstall` for the full cleanup.
+      <name>            Unit name (skill or plugin)
+      --agent-context   Emit a bounded agent-facing context block to stderr
+                          after the command.
+      --dry-run         Print the effects the program would run without
+                          mutating filesystem or gateway.
+      --from=<unlink>[,<unlink>...]
+                        Also unlink from the given agent(s)
+  -h, --help            Show this help message and exit.
+rc=2
+
+NOTE: the refusal's own printed remedy is 'skill-manager remove tla-spec-dev' WITHOUT --yes, so the printed remedy is correct.
+The asymmetry bites only an agent that adds --yes by habit -- which is what a non-interactive agent does.
+ALSO: resolve ran and cloned all THREE repos BEFORE the already-installed check fired (effect [3] runs after effect [1]). The refusal is late, not cheap.
+
+$ skill-manager remove tla-spec-dev   (the printed remedy, verbatim, stdin closed)
+✓ removed tla-spec-dev from store
+✓ units.lock.toml: wrote 2 unit(s) → /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/units.lock.toml
+  log: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skill-manager/logs/remove-20260925-174712-97a3.log
+rc=0
+
+$ skill-manager list   (after remove)
+NAME                         KIND     VERSION    BINDINGS  SHA       SOURCE
+deploy-helm                  skill    0.1.0      3         5d48d0e   git
+tracing-observability        skill    0.3.0      3         9c30206   git
+
+$ test -x <fresh>/bin/cli/skt   (does removing the plugin take the front door with it?)
+skt STILL PRESENT in bin/cli after the plugin was removed
+
+--- does the ORPHANED front door still run, and does it say what is wrong? ---
+$ <fresh home>/bin/cli/skt status   (plugin removed from the store, shim still in bin/cli)
+skt: the home at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager holds no copy of skt (plugins/tla-spec-dev/skills/skt/src/skt/cli.py),
+  and this wrapper is not a link into a home that does.
+  Install skt into this home, or run the home that owns it.
+rc=127
+
+$ <fresh home>/bin/cli/skt ticket new demo-2
+skt: the home at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager holds no copy of skt (plugins/tla-spec-dev/skills/skt/src/skt/cli.py),
+  and this wrapper is not a link into a home that does.
+  Install skt into this home, or run the home that owns it.
+rc=127
+$ path test:
+(count: 0)
+
+--- close the loop: remove-then-install is the ONLY re-install route ---
+$ skill-manager install git+...tla-spec-dev-plugin.git --ref main -y   (after remove)
+✓ resolve: 3 unit(s)
+✓ installed tla-spec-dev
+✓ installed deploy-helm
+✓ installed tracing-observability
+✓ units.lock.toml: wrote 3 unit(s) → /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/units.lock.toml
+✓ agents: 2 unit(s) linked into claude, codex, gemini
+✓ cli: 17 installed
+markdown skill-import violations (2) — fix these references:
+✗   - tla-spec-dev (plugin): evals/skt/w-skt-migration-no-import-edits/fixture/my-skill/SKILL.md
+✗     skill-imports[0] is missing required `reason`; explain why the import exists
+✗   - tla-spec-dev (plugin): evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/fixture/demo-skill/SKILL.md
+✗     invalid YAML frontmatter: mapping values are not allowed here
+REINSTALL rc=11
+
+$ <fresh home>/bin/cli/skt status | head -3
+skt status — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo
+checkout   standalone repo, branch main
+home       /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager — tier: project, policy: live
+parent     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager — this home was cloned from it and syncs back to it
+
+$ df
+/dev/disk3s5   926Gi   859Gi    45Gi    95%     25M  476M    5%   /System/Volumes/Data

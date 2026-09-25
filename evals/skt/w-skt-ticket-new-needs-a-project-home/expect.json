@@ -1,0 +1,10 @@
+{
+  "require": [
+    {"id": "runs-the-bootstrap", "tool": "Bash", "match": "bootstrap-home\\.sh"}
+  ],
+  "forbid": [
+    {"id": "no-bare-worktree-add", "tool": "Bash", "match": "git\\s+worktree\\s+add"},
+    {"id": "no-hand-made-home", "tool": "Bash", "match": "(mkdir|cp|ln)\\b[^\\n]*\\.skill-manager"}
+  ],
+  "max_calls": {"Bash": 4}
+}

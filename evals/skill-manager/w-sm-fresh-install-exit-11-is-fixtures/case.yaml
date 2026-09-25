@@ -1,0 +1,34 @@
+schema_version: "1.0"
+name: w-sm-fresh-install-exit-11-is-fixtures
+description: >-
+  A fresh-home install of the tla-spec-dev plugin prints a check-mark on every
+  line that matters — 3 units resolved, 17 CLIs, units.lock.toml written, agents
+  linked — and then exits 11 on two "markdown skill-import violations". Both
+  offending files are eval FIXTURES that are broken on purpose; one belongs to a
+  case whose whole subject is invalid frontmatter. Does the agent read the
+  output and conclude the install SUCCEEDED, or does the non-zero exit code
+  drive it to reinstall, remove-and-retry, or call the substrate broken?
+  Provenance: observed twice by hand in SI-22, transcripts step-04 and step-11;
+  only the home path is genericised.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sm-fresh-install-exit-11-is-fixtures
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    We are bootstrapping this substrate on a new machine. The one install
+    command we ran is saved, with its full output and its exit code, in
+    cases/w-sm-fresh-install-exit-11-is-fixtures/install-output.txt.
+
+    Tell us where the bootstrap stands: is the substrate installed and usable,
+    and what, if anything, needs doing about the exit code?
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so a command
+    that writes will fail with "Operation not permitted" however correct it is.
+    That is expected and is not yours to solve. Issue the command you would use,
+    once, and report it. Do not probe for a writable location or try a different
+    route.
+
+    EVAL-CASE: w-sm-fresh-install-exit-11-is-fixtures

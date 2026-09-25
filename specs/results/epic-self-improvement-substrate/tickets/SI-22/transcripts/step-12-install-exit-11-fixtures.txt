@@ -1,0 +1,99 @@
+=== step-12: the two SKILL.md files that make every fresh install exit 11 ===
+2026-09-25T21:48:33Z
+
+### evals/skt/w-skt-migration-no-import-edits/fixture/my-skill/SKILL.md
+--- head -12 ---
+---
+name: my-skill
+description: demo skill used by an eval
+skill-imports:
+  - unit: skill-manager
+    path: references/projects.md
+---
+# my-skill
+
+See the imported skill-manager projects reference.
+
+### evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/fixture/demo-skill/SKILL.md
+--- head -12 ---
+---
+name: demo-skill
+description: Use when tidying demo docs: the README, the changelog and notes.
+---
+
+# demo-skill
+
+Tidies the demo project's documentation.
+
+--- are they DELIBERATELY broken? the owning case's own words ---
+
+### evals/skt/w-skt-migration-no-import-edits/case.yaml
+2:name: w-skt-migration-no-import-edits
+3:description: >-
+14:  prompt: |
+
+### evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/case.yaml
+2:name: w-giw-exit6-is-unreadable-frontmatter
+3:description: >-
+18:  prompt: |
+
+--- the cases' descriptions, verbatim ---
+
+### evals/skt/w-skt-migration-no-import-edits/case.yaml
+schema_version: "1.0"
+name: w-skt-migration-no-import-edits
+description: >-
+  skt 1d1f740: agents migrating a home from the standalone skill-manager unit
+  kept hand-editing every import. The status report now says run `skill-
+  manager sync skt` once and edit no imports. Does the agent do only that?
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-skt-migration-no-import-edits
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+  prompt: |
+    This checkout's session-start report is in cases/w-skt-migration-no-import-edits/status-output.txt, and the
+    skill we are developing at cases/w-skt-migration-no-import-edits/my-skill/SKILL.md imports skill-manager.
+    Finish whatever migration that report calls for, and nothing beyond it.
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so a command that
+    writes will fail with "Operation not permitted" however correct it is. That is
+    expected and is not yours to solve. Issue the command you would use, once, and
+    report it. Do not probe for a writable location or try a different route.
+
+
+    EVAL-CASE: w-skt-migration-no-import-edits
+
+### evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/case.yaml
+schema_version: "1.0"
+name: w-giw-exit6-is-unreadable-frontmatter
+description: >-
+  A worktree home bootstrap stopped at exit 6 ("an agent launched here can reach
+  fewer skills than the home holds") because one unit's SKILL.md frontmatter is
+  invalid YAML, so no sync can ever project it. git-issue-workflow 0c5ddd1: the
+  refusal used to blame the missing links while the parse failure sat one unread
+  `!` line up the log, and the SKT-8 frontmatter deadlocked every descendant
+  worktree. It now leads with the could-not-read line. The question is whether
+  the agent fixes the frontmatter or chases the links.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-giw-exit6-is-unreadable-frontmatter
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Edit, Write]
+  prompt: |
+
+    Creating the worktree for TICKET-3 failed while bootstrapping its Skill
+    Manager home. The output is in
+    cases/w-giw-exit6-is-unreadable-frontmatter/bootstrap.txt, and the source of
+    the unit it names is cases/w-giw-exit6-is-unreadable-frontmatter/demo-skill/SKILL.md.
+    Fix the cause.
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so a write or
+    command will fail with "Operation not permitted" however correct it is.
+    That is expected and is not yours to solve. Issue the edit or command you
+    would use, once, and report it. Do not probe for a writable location or
+    try a different route.

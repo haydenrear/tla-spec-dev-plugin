@@ -1,0 +1,64 @@
+=== step-25: SAMPLE B -- a SECOND runs 6 of the same case, same commit, nothing changed ===
+2026-09-25T22:23:25Z
+why: --runs 6 does not pin a score. Sample A was 0.97 [0.83, 1.00 x5].
+eval: staging a plugin view of /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager
+eval: the view is commit c5ab61eb908f840aec97d7eaca542041e800ffdb
+eval: the view holds 8965 entries (the limit is 20000; tracked at this commit is 26124, and the working tree on disk is 144030)
+cases selected: w-sm-fresh-install-exit-11-is-fixtures
+graders: 40 regex grader(s) compile under the JS engine
+eval: granting Bash (derived from the cases' allowed_tools)
+eval: NOTE -- a Bash-granted case may need EVAL_HOME (see evals/README.md, 'The home').
+eval: toolchain -- 1 case selector(s) ('w-sm-fresh-install-exit-11-is-fixtures'); DEFAULTING to the pinned ?
+eval:   (override with --toolchain-ref <commit>)
+eval: materialising the toolchain (this fetches pinned commits)
+  skill-manager: 7941f4e1dd9e (pinned in evals/lib/toolchain.lock.toml)
+      the CLI says: skill-manager 0.28.1+g7941f4e1dd9e
+  drift: skill-manager: epic/self-improvement-substrate HAS MOVED to 6536defb8d02 since the pin at 7941f4e1dd9e -- the pin is doing its job
+  record -> /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/evals/results/toolchain/20260925T222336Z.json
+eval: the run record is /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/evals/results/toolchain/20260925T222336Z.json (and staged for the hook to print)
+eval: the view carries skt, skill-manager and unit-authoring from this branch
+eval: the view holds 8967 entries after staging the toolchain
+eval: staged 4 wheel(s) into the view for offline uv
+eval: SKT_PYTHON=/opt/homebrew/bin/python3.14 (the orientation hook needs >= 3.11; the system python3 is 3.9)
+eval: HOME -> /Users/hayde/.local/state/tla-spec-dev/evalhome (scratch home; see evals/setup-eval-home.sh)
+eval: java -- java version "21" 2023-09-19 LTS
+eval:   JAVA_HOME=/Users/hayde/.sdkman/candidates/java/current
+eval:   JBANG_DIR=/Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/.toolchain/jbang (isolated; the operator's ~/.jbang is untouched)
+eval:   the CLI starts: skill-manager 0.28.1+g7941f4e1dd9e
+eval: running
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-sm-fresh-install-exit-11-is-fixtures run 1/6: score 1.00  $0.16
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✓ no-blind-retry (weight 2): .eval/forbid-no-blind-retry exists as expected
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+  w-sm-fresh-install-exit-11-is-fixtures run 2/6: score 1.00  $0.17
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✓ no-blind-retry (weight 2): .eval/forbid-no-blind-retry exists as expected
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+  w-sm-fresh-install-exit-11-is-fixtures run 3/6: score 1.00  $0.17
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✓ no-blind-retry (weight 2): .eval/forbid-no-blind-retry exists as expected
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+  w-sm-fresh-install-exit-11-is-fixtures run 4/6: score 0.83  $0.23
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✓ no-blind-retry (weight 2): .eval/forbid-no-blind-retry exists as expected
+    ✗ within-budget (weight 1): .eval/within-budget missing (expected present)
+  w-sm-fresh-install-exit-11-is-fixtures run 5/6: score 1.00  $0.25
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✓ no-blind-retry (weight 2): .eval/forbid-no-blind-retry exists as expected
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+  w-sm-fresh-install-exit-11-is-fixtures run 6/6: score 0.83  $0.29
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✓ no-blind-retry (weight 2): .eval/forbid-no-blind-retry exists as expected
+    ✗ within-budget (weight 1): .eval/within-budget missing (expected present)
+✗ w-sm-fresh-install-exit-11-is-fixtures  score 0.94  (6 runs)  $1.27
+
+CASE                                    SCORE PASS% RUNS COST    NOTES
+w-sm-fresh-install-exit-11-is-fixtures  0.94  67%   6    $1.27   within-budget: .eval/within-budget missing (expected present)
+
+1 case(s) · 229s · $1.27
+
+Re-run with --keep-temp to preserve each run's sandbox (workspace + trace.jsonl) for debugging.
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T22-23-40-128Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+eval: results harvested into /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/evals/results
+run.sh rc=1

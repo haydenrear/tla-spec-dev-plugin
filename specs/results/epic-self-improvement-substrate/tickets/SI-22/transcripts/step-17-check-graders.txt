@@ -1,0 +1,19 @@
+=== step-17: check_graders BEFORE billing anything (SI-21's lesson) ===
+2026-09-25T21:59:18Z
+graders: 40 regex grader(s) compile under the JS engine
+check_graders rc=0
+
+--- and my expect.json regexes, compiled by the SAME engine (node) ---
+### evals/skill-manager/w-sm-fresh-install-exit-11-is-fixtures/expect.json
+  ok   no-blind-retry  /skill-manager\s+(install|remove|uninstall|sync)\b/
+  patterns compiled: 1
+### evals/skill-manager/w-sm-reinstall-is-remove-then-install/expect.json
+  ok   removes-first  /skill-manager\s+(remove|uninstall)\s+tla-spec-dev/
+  ok   no-yes-on-remove  /skill-manager\s+remove\b[^\n]*--yes/
+  ok   no-install-over  /skill-manager\s+install\b[^\n]*--(force|overwrite)/
+  patterns compiled: 3
+### evals/skt/w-skt-ticket-new-needs-a-project-home/expect.json
+  ok   runs-the-bootstrap  /bootstrap-home\.sh/
+  ok   no-bare-worktree-add  /git\s+worktree\s+add/
+  ok   no-hand-made-home  /(mkdir|cp|ln)\b[^\n]*\.skill-manager/
+  patterns compiled: 3

@@ -1,0 +1,134 @@
+=== step-02: what a fresh machine would have to name to install ===
+2026-09-25T21:34:41Z
+
+$ SKILL_MANAGER_HOME=$HOME/.skill-manager skill-manager lock | head -40
+Usage: skill-manager lock [-hv] [--agent-context] [COMMAND]
+Inspect units.lock.toml.
+      --agent-context   Emit a bounded agent-facing context block to stderr
+                          after the command.
+  -h, --help            Show this help message and exit.
+  -v, --verbose         Verbose output
+Commands:
+  status  Show drift between units.lock.toml and the live install set.
+
+$ skill-manager registry
+Usage: registry [COMMAND]
+Inspect or configure the skill registry.
+Commands:
+  set     Persist the registry URL.
+  status  Show the configured registry + reachability.
+
+$ grep -A12 'tla-spec-dev' $HOME/.skill-manager/units.lock.toml | head -40
+74:name = "tla-spec-dev"
+75-kind = "plugin"
+76-version = "0.1.0"
+77-install_source = "GIT"
+78:origin = "https://github.com/haydenrear/tla-spec-dev-plugin.git"
+79-ref = "main"
+80-resolved_sha = "a3761e309a9c63bd36b9bddfd0c2652e17543d31"
+81-
+82-[[units]]
+83-name = "tracing-observability"
+84-kind = "skill"
+85-version = "0.3.0"
+86-install_source = "GIT"
+87-origin = "https://github.com/haydenrear/tracing_skill"
+88-ref = "main"
+89-resolved_sha = "9c302067028d18e9616f23059607a3409de7c67f"
+90-
+
+$ skill-manager registry status
+base:    http://127.0.0.1:8090
+status:  unreachable
+
+$ skill-manager install --help
+Usage: skill-manager install [-hvy] [--agent-context] [--dry-run]
+                             [--force-scripts] [--json] [--no-bind-default]
+                             [--ref=<version>] [--registry=<registryUrl>]
+                             <source>
+Install a unit and its declared dependencies.
+      <source>            Source: name[@version] (registry), skill:<name> /
+                            plugin:<name> (kind-pinned), github:user/repo,
+                            git+https://..., or a local directory (./path,
+                            /abs/path, file:<path>) — local sources do not
+                            contact the registry. Plugins detected by the
+                            presence of `.claude-plugin/plugin.json` at the
+                            unit root.
+      --agent-context     Emit a bounded agent-facing context block to stderr
+                            after the command.
+      --dry-run           Resolve, plan, and print the install effects without
+                            committing to the store, contacting the gateway, or
+                            running side effects.
+      --force-scripts     Rerun skill-script CLI deps even when the previous
+                            fingerprint matches and the declared binary already
+                            exists. Does not bypass policy.install gates.
+  -h, --help              Show this help message and exit.
+      --json              Emit machine-readable JSON.
+      --no-bind-default   Skip the default-agent projection — install the unit
+                            into the store (and write the lock) but don't
+                            symlink it into any agent's dir or record a
+                            DEFAULT_AGENT binding. Useful for harness
+                            instantiation and profile sync, which create their
+                            own bindings.
+      --ref, --version=<version>
+                          Registry version / git ref
+      --registry=<registryUrl>
+                          Registry URL override for this invocation (persisted
+                            so `search` and `install` stay consistent). Can
+                            also be set via SKILL_MANAGER_REGISTRY_URL.
+  -v, --verbose           Verbose output
+  -y, --yes               Skip interactive confirmation. Blocked by policy.
+                            install gates when the plan emits a `!`-marked
+                            category that policy still requires confirmation
+                            for — error names the specific policy flag to flip.
+
+Sources:
+  - name[@version] - registry lookup
+  - skill:<name> / plugin:<name> - kind-pinned registry lookup
+  - github:user/repo[@ref] - direct git
+  - git+https://... - direct git URL
+  - ./path, /abs/path, file:<path> - local directory
+
+Local-directory installs do not contact the registry — useful
+for iterating from a working tree without publishing first.
+
+Plugin vs skill detection (at parse time, after fetch):
+  - PLUGIN if the unit's root contains `.claude-plugin/plugin.json`
+    (Claude Code's runtime manifest). An optional sidecar
+    `skill-manager-plugin.toml` adds skill-manager metadata
+    (CLI deps, MCP deps, references); a plugin without the
+    sidecar still installs.
+  - SKILL if the unit's root contains `SKILL.md` (and is not
+    nested in a plugin).
+Resolver errors out if the source matches neither shape.
+
+What install does:
+  1. Fetch + stage the unit (and every transitive reference).
+  2. Plan + show CLI / MCP / hooks the install will register
+     (gated by `policy.install.*`; `--yes` is blocked when a
+     `!`-marked category still requires confirmation).
+  3. Commit bytes — skills land at
+     `$SKILL_MANAGER_HOME/skills/<name>/`; plugins at
+     `plugins/<name>/`.
+  4. Install CLI deps (`bin/cli/`) + register MCP servers
+     with the gateway. For plugins, the install pipeline
+     walks the plugin's `skill-manager-plugin.toml` AND
+     every contained skill's `skill-manager.toml` and
+     unions the deps — no need to declare twice.
+     `--force-scripts` reruns `skill-script:` CLI deps
+     even when their fingerprint and binary already match;
+     policy.install gates still apply before execution.
+  5. Project units into each agent's tree:
+     - Skills → symlinks at `<agentHome>/skills/<name>/`.
+     - Plugins → entries in the skill-manager-owned
+       marketplace at `<store>/plugin-marketplace/`, then
+       `claude plugin install <name>@skill-manager` (and
+       `codex plugin marketplace add` if either CLI is on
+       PATH; otherwise the plugin records a
+       `HARNESS_CLI_UNAVAILABLE` error with a brew-install
+       hint that self-clears on the next sync).
+  6. Atomically flip `units.lock.toml` at commit.
+
+Use `skill-manager sync <name> --from <dir>` to refresh an
+already-installed unit from the same directory.
+

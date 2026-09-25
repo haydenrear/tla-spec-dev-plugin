@@ -1,0 +1,58 @@
+=== step-22: --keep-temp, to MEASURE the call count instead of guessing it (EA-DF-08) ===
+2026-09-25T22:09:30Z
+eval: staging a plugin view of /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager
+eval: the view is commit 614bce3905694fbba011272a8c2be1fdfaa4bdf8
+eval: the view holds 8962 entries (the limit is 20000; tracked at this commit is 26121, and the working tree on disk is 144010)
+cases selected: w-sm-fresh-install-exit-11-is-fixtures, w-sm-reinstall-is-remove-then-install
+graders: 40 regex grader(s) compile under the JS engine
+eval: granting Bash (derived from the cases' allowed_tools)
+eval: NOTE -- a Bash-granted case may need EVAL_HOME (see evals/README.md, 'The home').
+eval: toolchain -- 2 case selector(s) ('w-sm-fresh-install-exit-11-is-fixtures w-sm-reinstall-is-remove-then-install'); DEFAULTING to the pinned ?
+eval:   (override with --toolchain-ref <commit>)
+eval: materialising the toolchain (this fetches pinned commits)
+  skill-manager: 7941f4e1dd9e (pinned in evals/lib/toolchain.lock.toml)
+      the CLI says: skill-manager 0.28.1+g7941f4e1dd9e
+  drift: skill-manager: epic/self-improvement-substrate HAS MOVED to 6536defb8d02 since the pin at 7941f4e1dd9e -- the pin is doing its job
+  record -> /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/evals/results/toolchain/20260925T220939Z.json
+eval: the run record is /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/evals/results/toolchain/20260925T220939Z.json (and staged for the hook to print)
+eval: the view carries skt, skill-manager and unit-authoring from this branch
+eval: the view holds 8964 entries after staging the toolchain
+eval: staged 4 wheel(s) into the view for offline uv
+eval: SKT_PYTHON=/opt/homebrew/bin/python3.14 (the orientation hook needs >= 3.11; the system python3 is 3.9)
+eval: HOME -> /Users/hayde/.local/state/tla-spec-dev/evalhome (scratch home; see evals/setup-eval-home.sh)
+eval: java -- java version "21" 2023-09-19 LTS
+eval:   JAVA_HOME=/Users/hayde/.sdkman/candidates/java/current
+eval:   JBANG_DIR=/Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/.toolchain/jbang (isolated; the operator's ~/.jbang is untouched)
+eval:   the CLI starts: skill-manager 0.28.1+g7941f4e1dd9e
+eval: running
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  kept temp: /private/tmp/e-p6CA9t
+⚠ kept /private/tmp/e-p6CA9t: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-p6CA9t/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-p6CA9t /private/tmp/e-p6CA9t/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  w-sm-fresh-install-exit-11-is-fixtures run 1/1: score 0.67  $0.17
+    ✓ install-succeeded-despite-the-code (weight 3): judge votes: PASS PASS PASS
+    ✗ no-blind-retry (weight 2): .eval/forbid-no-blind-retry missing (expected present)
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+✗ w-sm-fresh-install-exit-11-is-fixtures  score 0.67  (1 run)  $0.17
+
+CASE                                    SCORE PASS% RUNS COST    NOTES
+w-sm-fresh-install-exit-11-is-fixtures  0.67  0%    1    $0.17   no-blind-retry: .eval/forbid-no-blind-retry missing (expected present)
+
+1 case(s) · 27s · $0.17
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T22-09-43-103Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  kept temp: /private/tmp/e-5KGTa0
+⚠ kept /private/tmp/e-5KGTa0: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-5KGTa0/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-5KGTa0 /private/tmp/e-5KGTa0/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  w-sm-reinstall-is-remove-then-install run 1/1: score 0.57  $0.24
+    ✓ no-install-over (weight 1): .eval/forbid-no-install-over exists as expected
+    ✓ no-yes-on-remove (weight 2): .eval/forbid-no-yes-on-remove exists as expected
+    ✗ removes-first (weight 3): .eval/require-removes-first missing (expected present)
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+✗ w-sm-reinstall-is-remove-then-install  score 0.57  (1 run)  $0.24
+
+CASE                                   SCORE PASS% RUNS COST    NOTES
+w-sm-reinstall-is-remove-then-install  0.57  0%    1    $0.24   removes-first: .eval/require-removes-first missing (expected present)
+
+1 case(s) · 31s · $0.24
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T22-10-10-775Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+eval: results harvested into /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/evals/results
+run.sh rc=1

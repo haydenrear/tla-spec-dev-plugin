@@ -1,0 +1,62 @@
+=== step-26: test graphs, through the skill runner (never bare gradlew) ===
+2026-09-25T22:28:14Z
+df before:
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  474M    5%   /System/Volumes/Data
+
+########## python3 skills/test-graph/scripts/run.py cliWorkflow ##########
+		... 19 more
+	Caused by: java.io.EOFException: \n not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: \n not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :cliWorkflow
+testGraph 'cliWorkflow' done. traceId=225a25bbca8cdd880adc308aec89d47f reports: /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/test_graph/build/validation-reports/20260925-222843
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 40s
+5 actionable tasks: 5 executed
+runner rc=0 (ALWAYS 0 -- read summary.json, not this)
+
+########## python3 skills/test-graph/scripts/run.py specWorkflow ##########
+	Caused by: java.io.EOFException: \n not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: \n not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+wrote /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/test_graph/build/validation-reports/20260925-222906/summary.json + /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/test_graph/build/validation-reports/20260925-222906/report.md
+testGraph 'specWorkflow' done. traceId=6aa4c1a7084b77447ceca12fa1fbfabb reports: /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/test_graph/build/validation-reports/20260925-222906
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 56s
+5 actionable tasks: 1 executed, 4 up-to-date
+runner rc=0 (ALWAYS 0 -- read summary.json, not this)
+df after:
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  471M    5%   /System/Volumes/Data
