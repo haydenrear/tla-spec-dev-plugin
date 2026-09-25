@@ -252,6 +252,13 @@ fi
 
 grant=$(python3 "$here/lib/grant.py" "$here" "${case_globs[@]}") || grant=""
 
+# SI-21: a `type: regex` grader is compiled by the harness's JavaScript engine.
+# Three of mine used Python inline flags `(?is)`, every grader in the case threw
+# at scoring time, and the case came back 0.00 -- a red row with a score, not an
+# error, and billed. This says so BEFORE the money is spent. It never refuses
+# (GOAL-no-new-gates) and `|| true` keeps its own failure off the run.
+python3 "$here/lib/check_graders.py" "$here" || true
+
 if [ -n "$grant" ]; then
     echo "eval: granting $grant (derived from the cases' allowed_tools)"
     # shellcheck disable=SC2206

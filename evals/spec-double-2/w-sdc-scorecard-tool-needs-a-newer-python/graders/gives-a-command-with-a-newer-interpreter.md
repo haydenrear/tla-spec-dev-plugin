@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?is)(python3\.1[1-9]|python ?3\.1[1-9]|uv run|--python 3\.1[1-9]|a (newer|different) (python|interpreter))[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(python3\.1[1-9]|uv run)'
+pattern: '(?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)'
 weight: 2
 ---
 

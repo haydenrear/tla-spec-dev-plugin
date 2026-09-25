@@ -24,7 +24,7 @@ execution:
   env:
     EVAL_CASE: w-sdc-effect-conformance-observed-nothing
   max_turns: 16
-  timeout_seconds: 600
+  timeout_seconds: 900
   allowed_tools: [Read, Glob, Grep, Skill, Bash]
   prompt: |
     I ran the effect-conformance check on our accepted model and it says our

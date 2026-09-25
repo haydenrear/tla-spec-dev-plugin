@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?is)(0|zero|no) (observed|effects?|cases?|adapters?)[^.\n]{0,60}(observed|executed|ran|run)|nothing (was )?(observed|executed|ran|run)|no (adapter|case)s? (were|was) (run|executed)|empty (observation|result|corpus)|did ?n.t (observe|execute|run) anything'
+pattern: '(?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|was) (?:run|executed)|[Ee]mpty (?:observation|result|corpus|set)|did\s*n.?t (?:observe|execute|run) anything|over 0 case|0 case\(s\)'
 weight: 4
 ---
 

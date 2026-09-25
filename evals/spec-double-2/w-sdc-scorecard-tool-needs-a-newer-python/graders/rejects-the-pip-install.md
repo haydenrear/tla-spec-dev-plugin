@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?is)(no|not|won.t|will not|do ?n.t|don.t|avoid|never)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(no|not|won.t|wrong|will not)|there is (no|nothing) (such )?(package|distribution|module to install)|nothing to install'
+pattern: '(?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:such )?(?:package|distribution|module to install)|[Nn]othing to install|not (?:a|an) (?:pip|PyPI|third[- ]party) (?:package|module)'
 weight: 3
 ---
 

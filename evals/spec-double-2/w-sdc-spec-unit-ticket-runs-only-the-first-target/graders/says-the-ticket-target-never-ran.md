@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?is)(only|just)\s+(the\s+)?(one|first|project|specs/current)|never (ran|executed|reached)|did ?n.t (run|execute|reach)|second target .{0,40}(not|never)|one `?running`? line'
+pattern: '(?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a single|only one)[^\n]{0,20}running[^\n]{0,10}line|1 of 2|one of (?:the )?two'
 weight: 3
 ---
 

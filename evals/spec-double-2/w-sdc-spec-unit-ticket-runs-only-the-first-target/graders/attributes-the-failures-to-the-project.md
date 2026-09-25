@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?is)(9|nine)[^.\n]{0,80}(project|specs/current|baseline)|(project|specs/current|baseline)[^.\n]{0,80}(9|nine) fail|failures? (are|belong|come from)[^.\n]{0,60}(project|specs/current|baseline)|not SI-17|are ?n.t SI-17'
+pattern: '(?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?:project|specs/current|baseline)|not SI-17|are\s*n.?t SI-17|[Nn]ot[^.\n]{0,30}SI-17.{0,20}(?:failures|tests)'
 weight: 3
 ---
 

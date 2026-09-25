@@ -1,6 +1,6 @@
 ---
 type: regex
-pattern: '(?is)(3\.11|python ?3\.1[1-9]|standard library|stdlib|built[- ]?in)'
+pattern: '3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython'
 weight: 4
 ---
 
