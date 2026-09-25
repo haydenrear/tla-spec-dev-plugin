@@ -372,6 +372,22 @@ fi
 # The entry count above was taken BEFORE the toolchain was staged, so re-check:
 # a view that crosses 20,000 is refused by the CLI with a message about plugin
 # directory size, which reads as a repository problem rather than as this.
+# STAGE THE uv CACHE INTO THE VIEW, so the hook needs no environment at all.
+# Four attempts failed because the cache kept being addressed through something
+# the SessionStart hook cannot see: run.sh's exported UV_CACHE_DIR (the agent's
+# sandbox does not inherit it), $HOME in a hook (that is the operator's), and
+# SI10_CHECKOUT (not visible either -- the guard fell through printing neither
+# success nor its own warning, which is how two runs looked identical).
+#
+# The view is the one thing place.sh can always resolve, from its own location.
+# 126 entries against a 20,000 ceiling and ~8,700 already used, so it costs
+# nothing to carry.
+if [ -d "$repo/.toolchain/uv-cache" ]; then
+    rm -rf "$view/.uv-cache"
+    cp -R "$repo/.toolchain/uv-cache" "$view/.uv-cache" 2>/dev/null \
+        && echo "eval: staged the uv cache into the view ($(find "$view/.uv-cache" | wc -l | tr -d ' ') entries)"
+fi
+
 entries_after=$(find "$view" | wc -l | tr -d ' ')
 echo "eval: the view holds $entries_after entries after staging the toolchain"
 if [ "$entries_after" -ge 20000 ]; then

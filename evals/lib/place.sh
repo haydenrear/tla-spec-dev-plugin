@@ -73,8 +73,10 @@ case_name="${EVAL_CASE:-}"
 # So the contents are merged into the directory that is already there. 1.8M per
 # run, which is the price of not caring what the harness pre-creates.
 _agent_home=$(CDPATH= cd -- ".." 2>/dev/null && pwd) || _agent_home=""
-_uv_src="${SI10_CHECKOUT:-}/.toolchain/uv-cache"
-if [ -n "${SI10_CHECKOUT:-}" ] && [ -d "$_uv_src" ] && [ -n "$_agent_home" ]; then
+# FROM THE VIEW, NOT FROM AN ENVIRONMENT VARIABLE. $plugin is this hook's own
+# location and is always resolvable; SI10_CHECKOUT is not visible here.
+_uv_src="$plugin/.uv-cache"
+if [ -d "$_uv_src" ] && [ -n "$_agent_home" ]; then
     if mkdir -p "$_agent_home/.cache/uv" 2>/dev/null \
        && cp -R "$_uv_src/." "$_agent_home/.cache/uv/" 2>/dev/null; then
         echo "place: uv cache seeded into $_agent_home/.cache/uv (uv scripts resolve offline)"
