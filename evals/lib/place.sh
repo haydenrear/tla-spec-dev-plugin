@@ -447,6 +447,18 @@ EOF
     place_moved_fixture spec-double-2
     ;;
 
+  w-sdc-effect-conformance-observed-nothing)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-scorecard-tool-needs-a-newer-python)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-sdc-spec-unit-ticket-runs-only-the-first-target)
+    place_moved_fixture spec-double-2
+    ;;
+
   w-sdc-ticket-binding-bare-adapter-module)
     place_moved_fixture spec-double-2
     ;;

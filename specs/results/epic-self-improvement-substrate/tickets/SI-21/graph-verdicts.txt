@@ -1,0 +1,9 @@
+SI-21 test-graph verdicts, read from each run's OWN fresh summary.json
+(never from the runner's exit code, which is always 0)
+
+graph                     status   complete  nodes  asserts  failed  runId
+specWorkflow              passed   True      9      74       0       20260925-174540
+cliWorkflow               passed   True      2      41       0       20260925-174732
+effectProviderExamples    passed   True      1      8        0       20260925-174753
+
+TOTAL 123 assertions, 0 failed

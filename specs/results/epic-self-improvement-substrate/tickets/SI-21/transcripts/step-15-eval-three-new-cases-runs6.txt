@@ -1,0 +1,125 @@
+eval: staging a plugin view of /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli
+eval: the view is commit 5d75cfc6f0ecea126d3f1fa3c5ae5f60aed7c881
+eval: the view holds 8896 entries (the limit is 20000; tracked at this commit is 26066, and the working tree on disk is 154535)
+cases selected: w-sdc-effect-conformance-observed-nothing, w-sdc-scorecard-tool-needs-a-newer-python, w-sdc-spec-unit-ticket-runs-only-the-first-target
+graders: 40 regex grader(s) compile under the JS engine
+eval: granting Bash (derived from the cases' allowed_tools)
+eval: NOTE -- a Bash-granted case may need EVAL_HOME (see evals/README.md, 'The home').
+eval: toolchain -- 3 case selector(s) ('w-sdc-spec-unit-ticket-runs-only-the-first-target w-sdc-effect-conformance-observed-nothing w-sdc-scorecard-tool-needs-a-newer-python'); DEFAULTING to the pinned ?
+eval:   (override with --toolchain-ref <commit>)
+eval: materialising the toolchain (this fetches pinned commits)
+  skill-manager: 7941f4e1dd9e (pinned in evals/lib/toolchain.lock.toml)
+      the CLI says: skill-manager 0.28.1+g7941f4e1dd9e
+  drift: skill-manager: epic/self-improvement-substrate HAS MOVED to 6536defb8d02 since the pin at 7941f4e1dd9e -- the pin is doing its job
+  record -> /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/evals/results/toolchain/20260925T181959Z.json
+eval: the run record is /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/evals/results/toolchain/20260925T181959Z.json (and staged for the hook to print)
+eval: the view carries skt, skill-manager and unit-authoring from this branch
+eval: the view holds 8898 entries after staging the toolchain
+eval: staged 4 wheel(s) into the view for offline uv
+eval: SKT_PYTHON=/opt/homebrew/bin/python3.14 (the orientation hook needs >= 3.11; the system python3 is 3.9)
+eval: HOME -> /Users/hayde/.local/state/tla-spec-dev/evalhome (scratch home; see evals/setup-eval-home.sh)
+eval: java -- java version "21" 2023-09-19 LTS
+eval:   JAVA_HOME=/Users/hayde/.sdkman/candidates/java/current
+eval:   JBANG_DIR=/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/.toolchain/jbang (isolated; the operator's ~/.jbang is untouched)
+eval:   the CLI starts: skill-manager 0.28.1+g7941f4e1dd9e
+eval: running
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-sdc-spec-unit-ticket-runs-only-the-first-target run 1/6: score 1.00  $0.30
+    ✓ attributes-the-failures-to-the-project (weight 3): matched (?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?… [+108 chars]
+    ✓ gives-the-target-flag (weight 2): matched --target
+    ✓ says-the-ticket-target-never-ran (weight 3): matched (?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a … [+76 chars]
+  w-sdc-spec-unit-ticket-runs-only-the-first-target run 2/6: score 1.00  $0.29
+    ✓ attributes-the-failures-to-the-project (weight 3): matched (?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?… [+108 chars]
+    ✓ gives-the-target-flag (weight 2): matched --target
+    ✓ says-the-ticket-target-never-ran (weight 3): matched (?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a … [+76 chars]
+  w-sdc-spec-unit-ticket-runs-only-the-first-target run 3/6: score 1.00  $0.24
+    ✓ attributes-the-failures-to-the-project (weight 3): matched (?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?… [+108 chars]
+    ✓ gives-the-target-flag (weight 2): matched --target
+    ✓ says-the-ticket-target-never-ran (weight 3): matched (?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a … [+76 chars]
+  w-sdc-spec-unit-ticket-runs-only-the-first-target run 4/6: score 1.00  $0.29
+    ✓ attributes-the-failures-to-the-project (weight 3): matched (?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?… [+108 chars]
+    ✓ gives-the-target-flag (weight 2): matched --target
+    ✓ says-the-ticket-target-never-ran (weight 3): matched (?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a … [+76 chars]
+  w-sdc-spec-unit-ticket-runs-only-the-first-target run 5/6: score 1.00  $0.26
+    ✓ attributes-the-failures-to-the-project (weight 3): matched (?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?… [+108 chars]
+    ✓ gives-the-target-flag (weight 2): matched --target
+    ✓ says-the-ticket-target-never-ran (weight 3): matched (?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a … [+76 chars]
+  w-sdc-spec-unit-ticket-runs-only-the-first-target run 6/6: score 1.00  $0.28
+    ✓ attributes-the-failures-to-the-project (weight 3): matched (?:9|[Nn]ine)[^.\n]{0,80}(?:project|specs/current|baseline)|(?:project|specs/current|baseline)[^.\n]{0,80}(?:9|nine)[^.\n]{0,20}fail|failures?[^.\n]{0,25}(?:are|belong|come from)[^.\n]{0,60}(?… [+108 chars]
+    ✓ gives-the-target-flag (weight 2): matched --target
+    ✓ says-the-ticket-target-never-ran (weight 3): matched (?:[Oo]nly|[Jj]ust)\s+(?:the\s+)?(?:one|1|first|project|specs/current)|[Nn]ever (?:ran|executed|reached|got)|did\s*n.?t (?:run|execute|reach)|[Ss]econd target[^\n]{0,40}(?:not|never)|(?:one|a … [+76 chars]
+✓ w-sdc-spec-unit-ticket-runs-only-the-first-target  score 1.00  (6 runs)  $1.65
+
+CASE                                               SCORE PASS% RUNS COST    NOTES
+w-sdc-spec-unit-ticket-runs-only-the-first-target  1.00  100%  6    $1.65   
+
+1 case(s) · 309s · $1.65
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T18-20-02-392Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-sdc-effect-conformance-observed-nothing run 1/6: score 1.00  $0.14
+    ✓ names-the-cases-dir-remedy (weight 2): matched --cases-dir|cases[_ -]dir|generated case|case (package|corpus)
+    ✓ refuses-the-deletion (weight 3): matched (?:[Dd]o\s*n.?t|[Dd]o not|[Nn]ever|[Ss]hould\s*n.?t|[Dd]on.t)\s+(?:delete|remove|drop)|[Hh]old off|[Nn]o[,.—-]?\s*(?:do not|don.t)|not the right move|[Ww]rong move|[Dd]o NOT (?:delete|remove)|… [+14 chars]
+    ✓ says-nothing-was-observed (weight 4): matched (?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|w… [+131 chars]
+  w-sdc-effect-conformance-observed-nothing run 2/6: score 0.78  $0.16
+    ✗ names-the-cases-dir-remedy (weight 2): pattern not found in last_message
+    ✓ refuses-the-deletion (weight 3): matched (?:[Dd]o\s*n.?t|[Dd]o not|[Nn]ever|[Ss]hould\s*n.?t|[Dd]on.t)\s+(?:delete|remove|drop)|[Hh]old off|[Nn]o[,.—-]?\s*(?:do not|don.t)|not the right move|[Ww]rong move|[Dd]o NOT (?:delete|remove)|… [+14 chars]
+    ✓ says-nothing-was-observed (weight 4): matched (?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|w… [+131 chars]
+  w-sdc-effect-conformance-observed-nothing run 3/6: score 0.78  $0.14
+    ✗ names-the-cases-dir-remedy (weight 2): pattern not found in last_message
+    ✓ refuses-the-deletion (weight 3): matched (?:[Dd]o\s*n.?t|[Dd]o not|[Nn]ever|[Ss]hould\s*n.?t|[Dd]on.t)\s+(?:delete|remove|drop)|[Hh]old off|[Nn]o[,.—-]?\s*(?:do not|don.t)|not the right move|[Ww]rong move|[Dd]o NOT (?:delete|remove)|… [+14 chars]
+    ✓ says-nothing-was-observed (weight 4): matched (?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|w… [+131 chars]
+  w-sdc-effect-conformance-observed-nothing run 4/6: score 1.00  $0.31
+    ✓ names-the-cases-dir-remedy (weight 2): matched --cases-dir|cases[_ -]dir|generated case|case (package|corpus)
+    ✓ refuses-the-deletion (weight 3): matched (?:[Dd]o\s*n.?t|[Dd]o not|[Nn]ever|[Ss]hould\s*n.?t|[Dd]on.t)\s+(?:delete|remove|drop)|[Hh]old off|[Nn]o[,.—-]?\s*(?:do not|don.t)|not the right move|[Ww]rong move|[Dd]o NOT (?:delete|remove)|… [+14 chars]
+    ✓ says-nothing-was-observed (weight 4): matched (?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|w… [+131 chars]
+  w-sdc-effect-conformance-observed-nothing run 5/6: score 1.00  $0.23
+    ✓ names-the-cases-dir-remedy (weight 2): matched --cases-dir|cases[_ -]dir|generated case|case (package|corpus)
+    ✓ refuses-the-deletion (weight 3): matched (?:[Dd]o\s*n.?t|[Dd]o not|[Nn]ever|[Ss]hould\s*n.?t|[Dd]on.t)\s+(?:delete|remove|drop)|[Hh]old off|[Nn]o[,.—-]?\s*(?:do not|don.t)|not the right move|[Ww]rong move|[Dd]o NOT (?:delete|remove)|… [+14 chars]
+    ✓ says-nothing-was-observed (weight 4): matched (?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|w… [+131 chars]
+  w-sdc-effect-conformance-observed-nothing run 6/6: score 0.78  $0.13
+    ✗ names-the-cases-dir-remedy (weight 2): pattern not found in last_message
+    ✓ refuses-the-deletion (weight 3): matched (?:[Dd]o\s*n.?t|[Dd]o not|[Nn]ever|[Ss]hould\s*n.?t|[Dd]on.t)\s+(?:delete|remove|drop)|[Hh]old off|[Nn]o[,.—-]?\s*(?:do not|don.t)|not the right move|[Ww]rong move|[Dd]o NOT (?:delete|remove)|… [+14 chars]
+    ✓ says-nothing-was-observed (weight 4): matched (?:0|[Zz]ero|[Nn]o)\s+(?:observed|effects?|cases?|adapters?)[^.\n]{0,60}(?:observed|executed|ran|run)|[Nn]othing (?:was |were )?(?:observed|executed|ran|run)|[Nn]o (?:adapter|case)s? (?:were|w… [+131 chars]
+✗ w-sdc-effect-conformance-observed-nothing  score 0.89  (6 runs)  $1.11
+
+CASE                                       SCORE PASS% RUNS COST    NOTES
+w-sdc-effect-conformance-observed-nothing  0.89  50%   6    $1.11   names-the-cases-dir-remedy: pattern not found in last_message
+
+1 case(s) · 281s · $1.11
+
+Re-run with --keep-temp to preserve each run's sandbox (workspace + trace.jsonl) for debugging.
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T18-25-12-294Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-sdc-scorecard-tool-needs-a-newer-python run 1/6: score 1.00  $0.17
+    ✓ gives-a-command-with-a-newer-interpreter (weight 2): matched (?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)
+    ✓ names-tomllib-as-stdlib-from-311 (weight 4): matched 3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython
+    ✓ rejects-the-pip-install (weight 3): matched (?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:suc… [+128 chars]
+  w-sdc-scorecard-tool-needs-a-newer-python run 2/6: score 1.00  $0.30
+    ✓ gives-a-command-with-a-newer-interpreter (weight 2): matched (?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)
+    ✓ names-tomllib-as-stdlib-from-311 (weight 4): matched 3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython
+    ✓ rejects-the-pip-install (weight 3): matched (?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:suc… [+128 chars]
+  w-sdc-scorecard-tool-needs-a-newer-python run 3/6: score 1.00  $0.39
+    ✓ gives-a-command-with-a-newer-interpreter (weight 2): matched (?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)
+    ✓ names-tomllib-as-stdlib-from-311 (weight 4): matched 3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython
+    ✓ rejects-the-pip-install (weight 3): matched (?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:suc… [+128 chars]
+  w-sdc-scorecard-tool-needs-a-newer-python run 4/6: score 1.00  $0.32
+    ✓ gives-a-command-with-a-newer-interpreter (weight 2): matched (?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)
+    ✓ names-tomllib-as-stdlib-from-311 (weight 4): matched 3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython
+    ✓ rejects-the-pip-install (weight 3): matched (?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:suc… [+128 chars]
+  w-sdc-scorecard-tool-needs-a-newer-python run 5/6: score 1.00  $0.29
+    ✓ gives-a-command-with-a-newer-interpreter (weight 2): matched (?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)
+    ✓ names-tomllib-as-stdlib-from-311 (weight 4): matched 3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython
+    ✓ rejects-the-pip-install (weight 3): matched (?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:suc… [+128 chars]
+  w-sdc-scorecard-tool-needs-a-newer-python run 6/6: score 1.00  $0.32
+    ✓ gives-a-command-with-a-newer-interpreter (weight 2): matched (?:python\s?3\.1[1-9]|uv run|--python 3\.1[1-9])[^\n]{0,200}score_tools|score_tools[^\n]{0,200}(?:python\s?3\.1[1-9]|uv run)
+    ✓ names-tomllib-as-stdlib-from-311 (weight 4): matched 3\.11|[Pp]ython\s?3\.1[1-9]|[Ss]tandard [Ll]ibrary|stdlib|STDLIB|[Bb]uilt[- ]?in to (?:the )?[Pp]ython
+    ✓ rejects-the-pip-install (weight 3): matched (?:[Nn]o|[Nn]ot|[Ww]on.?t|[Ww]ill not|[Dd]o\s*n.?t|[Aa]void|[Nn]ever)[^.\n]{0,70}pip install|pip install tomllib[^.\n]{0,70}(?:no|not|won.?t|wrong|will not|fail)|there is (?:no|nothing) (?:suc… [+128 chars]
+✓ w-sdc-scorecard-tool-needs-a-newer-python  score 1.00  (6 runs)  $1.79
+
+CASE                                       SCORE PASS% RUNS COST    NOTES
+w-sdc-scorecard-tool-needs-a-newer-python  1.00  100%  6    $1.79   
+
+1 case(s) · 2749s · $1.79
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T18-29-54-317Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+eval: results harvested into /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/evals/results
+EXIT_RC=1

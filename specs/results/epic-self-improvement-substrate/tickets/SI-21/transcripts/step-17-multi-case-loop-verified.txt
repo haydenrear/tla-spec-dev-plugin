@@ -1,0 +1,52 @@
+eval: staging a plugin view of /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli
+eval: the view is commit 5d75cfc6f0ecea126d3f1fa3c5ae5f60aed7c881
+eval: the view holds 8896 entries (the limit is 20000; tracked at this commit is 26066, and the working tree on disk is 154528)
+cases selected: w-harness-smoke, w-sdc-out-path-is-absolute
+graders: 40 regex grader(s) compile under the JS engine
+eval: granting Bash (derived from the cases' allowed_tools)
+eval: NOTE -- a Bash-granted case may need EVAL_HOME (see evals/README.md, 'The home').
+eval: toolchain -- 2 case selector(s) ('w-harness-smoke w-sdc-out-path-is-absolute'); DEFAULTING to the pinned ?
+eval:   (override with --toolchain-ref <commit>)
+eval: materialising the toolchain (this fetches pinned commits)
+  skill-manager: 7941f4e1dd9e (pinned in evals/lib/toolchain.lock.toml)
+      the CLI says: skill-manager 0.28.1+g7941f4e1dd9e
+  drift: skill-manager: epic/self-improvement-substrate HAS MOVED to 6536defb8d02 since the pin at 7941f4e1dd9e -- the pin is doing its job
+  record -> /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/evals/results/toolchain/20260925T181206Z.json
+eval: the run record is /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/evals/results/toolchain/20260925T181206Z.json (and staged for the hook to print)
+eval: the view carries skt, skill-manager and unit-authoring from this branch
+eval: the view holds 8898 entries after staging the toolchain
+eval: staged 4 wheel(s) into the view for offline uv
+eval: SKT_PYTHON=/opt/homebrew/bin/python3.14 (the orientation hook needs >= 3.11; the system python3 is 3.9)
+eval: HOME -> /Users/hayde/.local/state/tla-spec-dev/evalhome (scratch home; see evals/setup-eval-home.sh)
+eval: java -- java version "21" 2023-09-19 LTS
+eval:   JAVA_HOME=/Users/hayde/.sdkman/candidates/java/current
+eval:   JBANG_DIR=/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/.toolchain/jbang (isolated; the operator's ~/.jbang is untouched)
+eval:   the CLI starts: skill-manager 0.28.1+g7941f4e1dd9e
+eval: running
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-harness-smoke run 1/1: score 1.00  $0.10
+    ✓ no-writes-attempted (weight 1): .eval/forbid-no-writes exists as expected
+    ✓ the-command-was-recorded (weight 2): .eval/require-read-the-marker exists as expected
+    ✓ the-fixture-was-placed (weight 2): matched wide-fixture-placed-7f3a
+    ✓ the-hook-found-the-case (weight 2): .eval/case exists as expected
+    ✓ within-budget (weight 1): .eval/within-budget exists as expected
+✓ w-harness-smoke  score 1.00  (1 run)  $0.10
+
+CASE             SCORE PASS% RUNS COST    NOTES
+w-harness-smoke  1.00  100%  1    $0.10   
+
+1 case(s) · 8s · $0.10
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T18-12-09-794Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-sdc-out-path-is-absolute run 1/1: score 1.00  $0.31
+    ✓ absolute-out (weight 3): .eval/require-absolute-out exists as expected
+    ✓ generate-cases (weight 1): .eval/require-generate-cases exists as expected
+✓ w-sdc-out-path-is-absolute  score 1.00  (1 run)  $0.31
+
+CASE                        SCORE PASS% RUNS COST    NOTES
+w-sdc-out-path-is-absolute  1.00  100%  1    $0.31   
+
+1 case(s) · 36s · $0.31
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-25T18-12-18-554Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+eval: results harvested into /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/evals/results
+EXIT_RC=0

@@ -1,0 +1,66 @@
+######## GRAPH specWorkflow
+		... 18 more
+Caused by: java.io.EOFException: \n not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+testGraph 'specWorkflow' done. traceId=4b9357b5d3348474a295b92141e0ae80 reports: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174540
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 12s
+5 actionable tasks: 5 executed
+runner_rc=0 (ALWAYS 0 -- verdict comes from summary.json)
+######## GRAPH cliWorkflow
+Caused by: java.io.EOFException: \n not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :cliWorkflow
+wrote /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174732/summary.json + /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174732/report.md
+testGraph 'cliWorkflow' done. traceId=a0466300bbfda4a86cba3b1ed9fc0931 reports: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174732
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 20s
+5 actionable tasks: 1 executed, 4 up-to-date
+runner_rc=0 (ALWAYS 0 -- verdict comes from summary.json)
+######## GRAPH effectProviderExamples
+Caused by: java.io.EOFException: \n not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :effectProviderExamples
+wrote /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174753/summary.json + /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174753/report.md
+testGraph 'effectProviderExamples' done. traceId=84a35c2839f65ef8c4bd0a021da2624b reports: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/validation-reports/20260925-174753
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 13s
+5 actionable tasks: 1 executed, 4 up-to-date
+runner_rc=0 (ALWAYS 0 -- verdict comes from summary.json)

@@ -557,6 +557,18 @@ case "$case_name" in
     verify_from_expect
     ;;
 
+  w-sdc-effect-conformance-observed-nothing)
+    verify_from_expect
+    ;;
+
+  w-sdc-scorecard-tool-needs-a-newer-python)
+    verify_from_expect
+    ;;
+
+  w-sdc-spec-unit-ticket-runs-only-the-first-target)
+    verify_from_expect
+    ;;
+
   w-sdc-ticket-binding-bare-adapter-module)
     verify_from_expect
     ;;

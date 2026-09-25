@@ -1,0 +1,16 @@
+SI-21 close-out verdict, 2026-09-25
+
+$ skill-manager home close-out \
+    --home /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/.skill-manager \
+    --into /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate/.skill-manager
+
+! Telemetry export unavailable; continuing without telemetry.
+✓ /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/.skill-manager holds nothing that removing it would destroy
+
+rc=0
+
+Read as SI-20-DF-08 says to: the verdict's keys carry no 'clean', so this is
+the exitCode and the success line, not a 'clean' field that would read None.
+
+No 'home sync' was run into the project home. The assignment reserves every
+home reconciliation for the epic agent at wave close.
