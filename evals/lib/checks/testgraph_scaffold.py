@@ -76,7 +76,20 @@ def main() -> int:
     # And the graph has to REFER to a node, or it is an empty declaration beside
     # a file nobody runs.
     node_ids = {p.stem for p in nodes} | {p.stem.replace("_", "-") for p in nodes}
-    referred = [n for n in node_ids if re.search(rf"[\"']{re.escape(n)}[\"']", composition)]
+    # THE STEM INSIDE A QUOTED STRING, not the stem as the whole string. The
+    # framework spells a reference `node("sources/<stem>.py")` -- a path, with a
+    # directory in front and an extension behind -- so a pattern anchored to the
+    # quotes matches nothing. Measured against this repository's OWN build file,
+    # which composes five graphs that all pass: `"tla_spec_dev_cli_install"`
+    # NOT FOUND, while the file plainly contains
+    # `node("sources/tla_spec_dev_cli_install.py")`. The check was rejecting the
+    # reference implementation, so `compose-a-behavioural-graph` could not be
+    # passed by composing a correct graph.
+    referred = [
+        n for n in node_ids
+        if re.search(rf"[\"'][^\"']*(?<![A-Za-z0-9_]){re.escape(n)}(?![A-Za-z0-9_])[^\"']*[\"']",
+                     composition)
+    ]
     if not referred:
         print(
             f"graphs {sorted(graphs)} refer to none of the node files "

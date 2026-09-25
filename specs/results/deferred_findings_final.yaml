@@ -8660,3 +8660,116 @@ findings:
       differently than the author imagined -- after answers-yes (EA-DF-09), the overlapping judge
       branches (EA-DF-11) and the budget calibrated for a different fixture. The common error
       is writing down the path the author walked instead of the destination.
+  - id: EA-DF-17
+    severity: data-loss-adjacent
+    found_by: epic agent, asked to look for something catastrophic behind the stable low scores
+    found_at_commit: 1cd8c184
+    schedule_revision: 9
+    surface:
+      production:
+      - the scaffold that writes case_adapters.toml bindings
+      - specs/**/case_adapters.toml (the form of every existing entry)
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: THE FIXTURE TEACHES THE FORM THAT MAKES TICKET VALIDATION VACUOUS, AND THE AGENT
+      COPIES IT WITH A REASONED JUSTIFICATION. A view-qualified adapter binding (`specs.program_model.adapters:X`)
+      resolves from the PROJECT ROOT, so inside a ticket view it runs the BASELINE's adapters
+      -- and a ticket that edited its own adapters.py goes green without ever executing it. The
+      bare form `adapters:X` resolves against the selected spec directory. Every existing entry
+      in the fixture carries the qualified form, because the scaffold used to write them that
+      way, and an agent told to add a binding "next to the others" matches the others.
+    reproduction: '`./evals/run.sh --case w-sdc-ticket-binding-bare-adapter-module` scores 0.17,
+      three times identically. The Edit tool call contains `specs.program_model.adapters:RefundInternalAdapter`,
+      and the final reply argues for it explicitly -- "That matches the CreateAccount and Checkout
+      entries, which also point at specs.program_model.adapters even though their classes live
+      in the same desired-view file. This view describes the program model after the ticket lands,
+      so bindings should name the module path the adapters will have once promoted."'
+    why_out_of_scope: 'Out of scope for the epic agent to fix mid-ladder: the remedy is a change
+      to the scaffold and a migration of existing bindings, which is production work with its
+      own blast radius, two tickets from the end. Filed with the reasoning verbatim because the
+      reasoning is the finding.'
+    suggested_fix: 'Three parts, and the first alone is not enough. (1) The scaffold stops writing
+      the qualified form. (2) The existing entries are migrated, because they are the teacher
+      -- an agent reads them before it reads any reference page, and this one did. (3) Something
+      CHECKS it: a qualified binding inside a ticket view is detectable statically and is never
+      correct there, so the substrate should say so rather than resolving it silently against
+      the baseline.'
+    blast_radius: THE FAILURE IS A SILENT GREEN, which is the worst shape a validation substrate
+      can have. A ticket edits its adapters, its own validation runs the baseline's adapters instead,
+      every check passes, and nothing anywhere says the ticket's code was never executed. The
+      agent in this run was careful, reasoned about the choice explicitly, rejected the correct
+      form by name -- "I didn't use the bare `adapters:RefundInternalAdapter`" -- and was wrong,
+      because the data it was shown taught it wrong. No amount of care at the agent's end fixes
+      that.
+    evidence:
+    - 'the Edit call: adapter = "specs.program_model.adapters:RefundInternalAdapter"'
+    - 'the agent names its reason: it matches CreateAccount and Checkout in the same file'
+    - scored 0.17 on three consecutive runs, identical
+    - 'provenance already recorded upstream: tla-spec-dev c80e67e (DEF-001), references/testgraph_adapters.md:13-14'
+    skill_change: proposed(spec-double-2, stop the scaffold writing view-qualified adapter bindings,
+      migrate the existing ones, and check for them inside a ticket view)
+    attribution: UNMODELED/adapter-binding
+    disposition: still-true
+    disposition_ticket: SI-21
+    disposition_note: 'THE FIRST CONFIRMED SUBSTRATE DEFECT OF THIS SESSION. Nine findings before
+      it were instruments; this one is the work. It was found only because the case scored 0.17
+      three times running and the transcript was read rather than the number recorded -- and the
+      same transcript shows the case itself is slightly wrong in a way worth fixing while there:
+      its prompt claims writes are refused by the sandbox, and the agent observed "You said the
+      write would be refused, but it went through. That rule only applies to Bash commands, and
+      I used the file-edit tool."'
+  - id: EA-DF-18
+    severity: major
+    found_by: epic agent, checking whether a 0.33 was the work or the instrument
+    found_at_commit: 1cd8c184
+    schedule_revision: 9
+    surface:
+      production:
+      - evals/lib/checks/testgraph_scaffold.py
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: THE SCAFFOLD CHECK REJECTS THIS REPOSITORY'S OWN WORKING GRAPHS. It requires a node
+      file's stem to appear in the build file as a complete quoted string, `"stem"`. The framework
+      spells a reference as a PATH -- `node("sources/<stem>.py")` -- with a directory in front
+      and an extension behind, so a pattern anchored to the quotes matches nothing. A correctly
+      composed graph therefore cannot pass `compose-a-behavioural-graph`.
+    reproduction: 'Against this repository''s own `test_graph/build.gradle.kts`, which composes
+      five graphs that all pass with 608/608 assertions: searching for `"tla_spec_dev_cli_install"`
+      returns NOT FOUND, while the file plainly contains `node("sources/tla_spec_dev_cli_install.py")`.
+      Same for `skt_status_tiers` and `spec_workflow_close_ticket`. The run''s own verify.log
+      says it -- "graphs [... ''slugHandoff'' ...] refer to none of the node files [... ''shortlink_slug_claimed_first.py''
+      ...]" -- for an agent that had created both the graph and matching node files.'
+    why_out_of_scope: Not out of scope; fixed in the same commit.
+    suggested_fix: 'Done. The stem is matched INSIDE a quoted string rather than as the whole
+      string, with word-boundary guards so `slug` does not match `slug_handoff`. Falsified three
+      ways: the reference implementation''s stems now MATCH; a registered graph beside an orphan
+      node still fails ("graphs [''emptyGraph''] refer to none of the node files [''orphan_node.py'']");
+      and the same fixture with `node("sources/orphan_node.py")` added passes ("graph ok: [''realGraph'']
+      refers to [''orphan_node'']"). The cheap shape the check exists to catch is still caught.'
+    blast_radius: 'One case, scored 0.33 three times running, and it is the case that decides
+      whether the test-graph skill can do the thing it claims. Worth noting what the grader''s
+      own documentation says, because it was right and was not followed for three runs: "A red
+      here is not always the work''s, and this suite cannot say which ... What was missing is
+      printed into .eval/verify.log, which is where to look before reading a 0 as the agent''s."
+      The answer was in that file the whole time.'
+    evidence:
+    - 'check regex: re.search(rf"[\"'']{stem}[\"'']", composition) -- anchored to the quotes'
+    - 'framework convention: node("sources/tla_spec_dev_cli_install.py")'
+    - 'three reference stems: NOT FOUND before, MATCHED after'
+    - cheap-shape control still exits 1; a real reference exits 0
+    skill_change: applied(test-graph, match a node stem inside a quoted path rather than as the
+      entire quoted string)
+    attribution: UNMODELED/eval-check
+    disposition: fixed
+    fixed_by: testgraph_scaffold.py reference matching, 2026-09-25
+    disposition_ticket: EPIC-AGENT
+    disposition_note: 'Tenth instrument defect this session, and the same shape as the others:
+      it produced a plausible number rather than an error, and nothing failed. The general rule
+      it adds to the list is narrower than the sandbox-boundary one but sharper -- A CHECK SHOULD
+      BE RUN AGAINST THE REFERENCE IMPLEMENTATION BEFORE IT IS TRUSTED. This one would have been
+      caught the day it was written by pointing it at test_graph/ in this repository, which takes
+      one command.'
