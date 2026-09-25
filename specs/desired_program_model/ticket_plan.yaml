@@ -1902,7 +1902,87 @@ tickets:
 
   - id: SI-22
     title: "Eval ladder 4/4: skill-manager CLI interactions, per agent type"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-25 as PR #4 on tla-spec-dev-plugin, merge commit 82015294.
+      THE LADDER IS FOUR FOR FOUR on record-before-case, verified from git:
+      679f76f1 (record) is an ancestor of 3dc106fb (first case),
+      `merge-base --is-ancestor` rc=0, zero case.yaml in the record commit with a
+      non-vacuity control of 20 files. Qualifier the agent disclosed itself:
+      section 14 of its manual record was APPENDED after the cases ran, because
+      two of its graders were wrong and the runs proved it. The record still
+      precedes the cases; the file was added to.
+
+      GOAL-ONE-PLUGIN, MEASURED AND RE-VERIFIED BY THE EPIC AGENT: no standalone
+      skt unit in root, project OR worktree home, and skt contained at
+      plugins/tla-spec-dev/skills/skt in all three. SI-08's NOT MET half is now
+      MET. Three units install, not one -- deploy-helm and
+      tracing-observability arrive as transitive refs -- and both numbers are
+      reported rather than the flattering one. "The CLI comes from brew" holds at
+      every tier: the project/worktree shim is a PIN whose line 209 is
+      cli="${SKILL_MANAGER_CLI:-/opt/homebrew/bin/skill-manager}".
+
+      BUT THE FRESH-MACHINE CLAIM CANNOT BE MADE, AND SI-23 MUST NOT MAKE IT.
+      tla-spec-dev-plugin is PRIVATE (confirmed: isPrivate=true). A genuinely
+      fresh machine cannot clone it -- `could not read Username`, rc=128 -- while
+      the same walk under the operator's HOME returns rc=0, because
+      credential.helper=osxkeychain comes from the SYSTEM gitconfig but the
+      keychain it reads is HOME-relative. So what was demonstrated is "fresh
+      home, operator's credential", NOT "a machine that has nothing"
+      (SI-22-DF-02). No such walk can succeed while the repository is private.
+
+      PROGRESSIVE DISCLOSURE IS A NEGATIVE RESULT, and it is SI-23's to read:
+      session-start disclosure DOES NOT branch on agent type. Both shipped hooks
+      carry zero role or agent-type conditionals (grep rc=1, non-vacuity control
+      203 matches on the same path); `role:` takes exactly
+      implementation|evaluation and is read by the plan validator, NEVER by a
+      hook. What varies, varies by home tier and checkout state. 31,063 entries
+      land in the agent's plugin cache to deliver 11 skills, identically for
+      everyone. Six roles covered, three deferred BY NAME.
+
+      A SUCCESSFUL INSTALL EXITS 11, and so does sync (SI-22-DF-01, high).
+      Two deliberately broken eval fixtures are validated as shippable skills;
+      one belongs to a case whose whole subject is invalid frontmatter. Every
+      substantive line prints a check mark. Any `set -e` bootstrap reading $?
+      concludes the substrate failed. Reproduced 3x. ESCALATED, NOT FIXED: the
+      honest fix is installer-side in skill-manager, a separate repository, and
+      repairing the fixtures would fix the code by breaking the two cases that
+      exist to have a broken fixture.
+
+      A CASE HAD BEEN UNLOADABLE SINCE eeb352f9 AND I MERGED IT. SI-21's final
+      commit cost w-sdc-spec-unit-ticket-runs-only-the-first-target its two-space
+      indent; the case parsed through ac195c6e, failed from eeb352f9, and was
+      still broken at the SI-21 merge 58463ebe. Its measured 1.00 was honest --
+      it loaded when it was measured -- and it has not run since. My own
+      verification of that merge checked ancestry, graph assertions, suite
+      failure names and the new check's exit code, and NONE of those touch
+      whether a shipped case file parses. Fixed by SI-22; filed as #389 because
+      the corpus drops such a case silently and still looks clean. The corpus
+      now scans 70 case files, 0 unloadable.
+
+      Also found before any sample was billed: a new case must be registered in
+      TWO files, lib/place.sh and lib/verify.sh's verify_from_expect arm, and
+      evals/README.md documents only the placement (SI-22-DF-07). SI-21's commit
+      ac195c6e is titled "my three cases had no arm in place.sh or verify.sh" --
+      two consecutive ticket agents hit the identical undocumented step.
+
+      SCORES: w-sm-fresh-install-exit-11-is-fixtures 0.97 and 0.94 over two
+      six-run samples, per-run spread 0.83-1.00 in both; the other two cases
+      1.00 at 6/6 with ONE sample each, which does not establish a stable 1.00.
+      Twelve runs of the first at one unchanged commit gave nine 1.00 and three
+      0.83, the 0.83 being the weight-1 within-budget grader alone. ~$7.30
+      billed. This corroborates SI-21: --runs 6 does not pin a score.
+
+      Eight deferred rows against budget 5, in specs/results/deferred/SI-22.yaml.
+      ACCEPTED AS FILED by the epic agent: merging rows to hit a number is worse
+      than exceeding the budget, and the agent said so rather than quietly
+      merging them.
+
+      Two corrections to the work order I wrote, both upheld: the 14m14s suite
+      runtime I quoted is worktree-dependent (5m35s in a fresh worktree, same
+      command, same ten names) and would have misled the next agent; and my note
+      that a home carries skt but no skill-manager shim is true only of ROOT
+      homes -- project and worktree homes carry a 10,609-byte brew pin.
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/371"
     schedule_revision: 4
     depends_on: ["SI-18", "SI-21"]
