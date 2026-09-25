@@ -8584,9 +8584,25 @@ findings:
       agent's home, which is the capability the first four attempts lacked. A
       config file also survives the sandbox boundary that every environment
       variable failed to cross.
-    disposition: still-true
-    fixed_by: 'partially: the seeding mechanism works; the dependency still does not resolve'
-    disposition_ticket: SI-21
+    resolution: >-
+      FIXED at attempt 6, and the fix is the sixth entry in the sequence above:
+      ship the WHEEL and tell uv where it is through a FILE. run.sh stages four
+      pyyaml wheels (cp311-cp314) into the view; place.sh copies them into the
+      agent's home and writes <agent-home>/.config/uv/uv.toml with
+      `offline = true`, `no-index = true` and `find-links` naming them. Verified
+      standalone BEFORE wiring -- with HOME alone, no XDG_CONFIG_HOME and no
+      UV_CACHE_DIR -- "Installed 1 package in 1ms", rc=0.
+      In the run, the hook prints "uv resolves offline from
+      <agent-home>/.uv-wheels (uv.toml written)" and the validator returns its
+      real verdict ("WARNING: goal 'GOAL-1': active evaluation ticket 'EPIC-3'
+      cannot decide retired work") instead of a fetch error.
+      Measured on the three cases that require invoking a validator:
+      w-epic-retire-part-of-goal-warns-only 0.75 -> 1.00,
+      w-epic-assignment-no-force-on-blocking 0.88 -> 1.00,
+      w-epic-force-when-owner-decided 0.43/0.86 -> 0.86.
+    disposition: fixed
+    fixed_by: 21cf5394 (wheels staged in the view, uv.toml in the agent home)
+    disposition_ticket: EPIC-AGENT
     disposition_note: 'THE PATTERN IS NOW NAMED, because three instances in one day is a class
       and not a coincidence: a sandboxed run inherits an empty HOME, every toolchain that caches
       under HOME is therefore cold, and every one of them fails by reaching for a network that
