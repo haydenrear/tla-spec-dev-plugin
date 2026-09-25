@@ -613,6 +613,10 @@ case "$case_name" in
     verify_from_expect
     ;;
 
+  w-skt-ticket-new-needs-a-project-home)
+    verify_from_expect
+    ;;
+
   w-skt-ticket-path-must-be-sibling)
     verify_from_expect
     ;;
@@ -626,6 +630,14 @@ case "$case_name" in
     ;;
 
   w-sm-cold-shim-means-build)
+    verify_from_expect
+    ;;
+
+  w-sm-fresh-install-exit-11-is-fixtures)
+    verify_from_expect
+    ;;
+
+  w-sm-reinstall-is-remove-then-install)
     verify_from_expect
     ;;
 

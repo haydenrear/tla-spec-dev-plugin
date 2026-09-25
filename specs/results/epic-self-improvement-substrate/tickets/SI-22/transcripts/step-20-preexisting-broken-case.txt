@@ -1,0 +1,17 @@
+=== step-20: a PRE-EXISTING case on the tip fails to load (SI-21's, not mine) ===
+2026-09-25T22:04:59Z
+run.sh printed: '1 case file(s) failed to load' and named
+  evals/spec-double-2/w-sdc-spec-unit-ticket-runs-only-the-first-target: YAML parse failed: SyntaxError: YAML Parse error: Multiline implicit key
+
+--- is it mine? git log on that path ---
+eeb352f9 SI-21: evidence, local signal, and the inert expect.json removed
+93c54e24 SI-21: my graders were Python regexes in a JavaScript engine
+c96de147 SI-21: three eval cases for the CLI, and the binding case restated
+
+--- does PYTHON's yaml accept it? (the JS loader is what run.sh uses) ---
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+    import yaml,sys
+ModuleNotFoundError: No module named 'yaml'
+
+--- node/JS yaml, the loader that actually refused ---

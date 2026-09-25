@@ -1,0 +1,5 @@
+=== step-18: the repo's own eval-structure tests, against my 3 new cases ===
+2026-09-25T21:59:36Z
+COMMAND: uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests/test_eval_controls.py tests/test_eval_toolchain_pin.py -q
+..........................................                               [100%]
+42 passed in 8.15s

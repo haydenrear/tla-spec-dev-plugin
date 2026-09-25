@@ -9,7 +9,7 @@
 # /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager at base 68b7e63b on
 # 2026-09-25, and every one names the transcript it came out of.
 #
-# BUDGET NOTE: the assignment sets deferment.budget: 5 and this file holds 6.
+# BUDGET NOTE: the assignment sets deferment.budget: 5 and this file holds 8.
 # I did not merge two rows to reach the number. DF-04 and DF-05 are the closest
 # pair (both about install-effect semantics) but they are different mechanisms
 # with different fixes, and collapsing them would hide one. Called out in the PR
@@ -194,3 +194,73 @@ findings:
     disposition: >-
       Filed only. Arguably working as designed — `uninstall` is documented as
       the full cleanup — in which case the actionable half is the help text.
+
+  - id: SI-22-DF-07
+    status: open
+    severity: medium
+    title: >-
+      A new eval case must be registered in TWO files, and omitting the second
+      produces a plausible 0.00 rather than an error
+    what: >-
+      `evals/lib/place.sh` and `evals/lib/verify.sh` each carry an explicit
+      `case "$case_name"` arm per case. place.sh copies the fixture; verify.sh
+      calls `verify_from_expect`, which is what writes the `.eval/require-*`,
+      `.eval/forbid-*` and `.eval/within-budget` markers the `file_exists`
+      graders read. Registering in place.sh ONLY — which is what a reader of
+      evals/README.md would do, since the README documents fixture placement
+      and never mentions verify.sh — yields a run where the agent works, the
+      fixture is present, every grader reports "<marker> missing (expected
+      present)", and the case scores 0.00. Measured on all three of SI-22's new
+      cases in one shakedown run: 0.00, 0.00, 0.00, $0.74 total. Adding the
+      verify.sh arms was the whole fix. This is exactly the STATE.md class "an
+      instrument that failed quietly and produced a plausible number rather
+      than an error", and it is the same shape as the defect that motivated
+      check_graders.py: nothing between writing a case and billing it says the
+      case cannot be scored.
+    where: >-
+      evals/lib/place.sh and evals/lib/verify.sh (the paired case arms);
+      evals/README.md, which documents neither the pairing nor verify.sh's role.
+    evidence:
+      - tickets/SI-22/transcripts/step-19-runs1-unregistered.txt  # 3 cases, all 0.00, all markers missing
+      - tickets/SI-22/transcripts/step-21-runs1-registered.txt    # same 3 cases after the verify.sh arms
+    attribution: UNMODELED/eval-harness
+    disposition: >-
+      Worked around for my own cases by adding the arms. NOT fixed generally: a
+      real fix is either one registration point instead of two, or a check that
+      refuses/warns when a case has an expect.json and no verify.sh arm. Both
+      are changes to the shared harness beyond this ticket's slice. The cheap
+      half — a paragraph in evals/README.md — I did not write either, because
+      the README is a shared surface mid-ladder and SI-23 reads it next.
+
+  - id: SI-22-DF-08
+    status: open
+    severity: medium
+    title: >-
+      A case shipped by SI-21 has been unloadable on the epic tip since
+      eeb352f9: one paragraph lost its indent and broke the YAML
+    what: >-
+      Every run on this tip prints "1 case file(s) failed to load" and names
+      evals/spec-double-2/w-sdc-spec-unit-ticket-runs-only-the-first-target with
+      "YAML Parse error: Multiline implicit key". Cause: line 22 of its
+      case.yaml, a paragraph beginning "HOW THIS CASE IS SCORED", sits at column
+      0 instead of the two-space indent of the `description: >-` block it
+      belongs to, so YAML reads it as a new top-level key spanning nine lines.
+      Introduced by eeb352f9 ("SI-21: evidence, local signal, and the inert
+      expect.json removed"), confirmed by `git log` on the path — it is not
+      mine. The case therefore has NEVER RUN since that commit. It is one of
+      SI-21's three deliverables and one of the ladder's own cases, and the
+      corpus silently lost it: a case that fails to load is not a red row, it
+      is an absent row, and the run's summary table does not list it at all.
+    where: >-
+      evals/spec-double-2/w-sdc-spec-unit-ticket-runs-only-the-first-target/case.yaml:22
+    evidence:
+      - tickets/SI-22/transcripts/step-19-runs1-unregistered.txt  # the loader's message
+      - tickets/SI-22/transcripts/step-20-preexisting-broken-case.txt  # git log attribution
+    attribution: UNMODELED/eval-harness
+    disposition: >-
+      FIXED HERE — two spaces added, restoring the author's evident intent with
+      no semantic change. evals/** is this ticket's production conflict key and
+      a case that cannot load is not measuring anything. The residual finding is
+      the DETECTION, not the typo: "failed to load" is printed once, mid-run,
+      above the summary table, and the corpus count silently drops by one. A
+      case that cannot be loaded should be as loud as a case that scores 0.

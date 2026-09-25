@@ -19,7 +19,7 @@ description: >-
   ticket view and reported 7 failed / 46 passed. Record:
   `specs/results/epic-self-improvement-substrate/tickets/SI-21/manual-verification.md`
   §2, committed BEFORE this case (GOAL-evals-earned).
-HOW THIS CASE IS SCORED, stated because I got it wrong first. It has THREE
+  HOW THIS CASE IS SCORED, stated because I got it wrong first. It has THREE
   regex graders and NO expect.json. An `expect.json` `require` rule does nothing
   on its own: `verify.sh` writes `.eval/require-<id>` and a matching
   `type: file_exists` grader is what turns that marker into a score. I shipped a
