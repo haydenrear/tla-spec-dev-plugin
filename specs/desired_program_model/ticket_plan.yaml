@@ -1809,7 +1809,55 @@ tickets:
 
   - id: SI-21
     title: "Eval ladder 3/4: the tla-spec-dev CLI and the plugin's own surface"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-25 as PR #3 on tla-spec-dev-plugin, merge commit 58463ebe.
+      Record-before-case verified from git by the epic agent, not from the
+      report: bec1934b (the manual record of all seven verbs, 15 transcripts,
+      zero case.yaml) is an ancestor of c96de147 (three cases),
+      `merge-base --is-ancestor` rc=0. Graphs read from each run's own fresh
+      summary.json: specWorkflow 74, cliWorkflow 41, effectProviderExamples 8 --
+      123 assertions, 0 failed. Suite identical to baseline by NAME, all ten.
+
+      THE ASSIGNMENT I WROTE CARRIED A WRONG BASELINE. It quoted 1852 passed,
+      which is the FULL suite; the assignment's own `repository_unit` excludes
+      test_score_tools.py and yields 1726. The ticket agent measured 1726, could
+      not reconcile it, and said so rather than assuming. Both re-measured at
+      ac5f7491 and corrected in evals/HARDENING-BATCH.md (c81111f9). The same
+      ten failure names appear under both commands.
+
+      I ALSO SENT IT TO THE WRONG BACKLOG. The work order said append to
+      deferred_findings_final.yaml; that file's own header says a ticket files
+      into specs/results/deferred/<ticket>.yaml. It followed the file over the
+      instruction. SI-21-DF-01..05 are in specs/results/deferred/SI-21.yaml.
+
+      #384 RESTATED, NOT PATCHED, AND THE ISSUE I FILED WAS OVERSTATED. Two of
+      its three suggested fixes shipped 2026-09-05 (8fce6356): the scaffold
+      emits bare names and `_seed_file()` strips view prefixes at the copy seam,
+      loudly, with 7 passing tests. So `open ticket` does not produce the state
+      the fixture holds, and the case's claim that it did was false. The
+      residual hole is real and was confirmed by measurement rather than
+      argument: a binding hand-edited into a view AFTER seeding is seen by
+      nothing and resolves to the baseline adapters, while
+      `run spec-unit-tests --target` exits 0 saying nothing. The fixture was
+      deliberately NOT rebuilt through `open ticket` -- bare neighbours would
+      make an agent copying its neighbours right by accident, which measures
+      nothing. Correction posted on #384; the wrong reading left visible.
+
+      SCORECARD GAP: narrowed, explicitly STILL OPEN. The new case covers the
+      tool starting, not the instrument judging (contested/rule 5, tier split,
+      R-I2/R-I3 unexercised). The agent declined to write past what it had
+      watched by hand, which is what this rung requires.
+
+      MEASUREMENT RESULT SI-23 MUST CARRY: `--runs 6` does not pin a score.
+      w-sdc-effect-conformance-observed-nothing moved 0.89 -> 0.81 between two
+      six-run samples of an UNCHANGED case at one commit. Rule 5 of the
+      hardening batch ("use --runs 6") is too optimistic as written.
+
+      HARNESS DEFECT FOUND AND FIXED IN PASSING: `run.sh --case` honoured only
+      the LAST selector while announcing all of them (5d75cfc6). Any multi-glob
+      invocation before that measured a narrower set than it printed. The
+      2026-09-25 corpus baseline passed no --case and is unaffected.
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/370"
     schedule_revision: 4
     depends_on: ["SI-20"]
