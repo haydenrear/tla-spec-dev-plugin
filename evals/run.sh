@@ -382,10 +382,10 @@ fi
 # The view is the one thing place.sh can always resolve, from its own location.
 # 126 entries against a 20,000 ceiling and ~8,700 already used, so it costs
 # nothing to carry.
-if [ -d "$repo/.toolchain/uv-cache" ]; then
-    rm -rf "$view/.uv-cache"
-    cp -R "$repo/.toolchain/uv-cache" "$view/.uv-cache" 2>/dev/null \
-        && echo "eval: staged the uv cache into the view ($(find "$view/.uv-cache" | wc -l | tr -d ' ') entries)"
+if [ -d "$repo/.toolchain/uv-wheels" ]; then
+    rm -rf "$view/.uv-wheels"
+    cp -R "$repo/.toolchain/uv-wheels" "$view/.uv-wheels" 2>/dev/null \
+        && echo "eval: staged $(ls "$view/.uv-wheels" | wc -l | tr -d ' ') wheel(s) into the view for offline uv"
 fi
 
 entries_after=$(find "$view" | wc -l | tr -d ' ')

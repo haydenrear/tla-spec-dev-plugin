@@ -36,52 +36,35 @@ plugin=$(CDPATH= cd -- "$here/../.." && pwd)
 repo="$plugin"
 case_name="${EVAL_CASE:-}"
 
-# --------------------------------------- the uv cache, INSIDE the sandbox home
+# ------------------------------------ let uv resolve offline, INSIDE the sandbox
 #
-# EA-DF-15, second half. `run.sh` exports UV_CACHE_DIR, and that export never
-# reaches the agent: HOOKS inherit the runner's environment, the agent's Bash
-# sandbox does not. Measured -- SKT_PYTHON worked because the HOOK consumed it,
-# UV_CACHE_DIR did not because the AGENT needed it, and the agent's `uv run
-# --offline` reported "pyyaml isn't in the local cache" while a primed cache sat
-# in .toolchain unread.
+# EA-DF-15, attempt 6, after five that each addressed the problem through
+# something this hook cannot reach: run.sh's exported UV_CACHE_DIR (the agent's
+# sandbox does not inherit the runner's environment), $HOME in a hook (that is
+# the OPERATOR's), a symlink over the agent's .cache/uv (the harness pre-creates
+# it), and $SI10_CHECKOUT (not visible here -- diagnosed from the guard printing
+# neither its success line nor its warning). The fifth seeded a copied uv CACHE,
+# which worked mechanically and still failed: a uv cache is not relocatable,
+# because the environment it holds is keyed to the path it was built at.
 #
-# So the cache has to be where the agent's uv will look on its own, which is
-# $HOME/.cache/uv under the sandbox's ephemeral home. This hook runs as the
-# operator, outside the sandbox, and can reach both -- so it links one to the
-# other. A link, not a copy: 1.8M per run copied is waste, and the primed cache
-# is read-only in practice.
+# So: ship the WHEEL, and tell uv where it is through a FILE. A config in the
+# agent's own home crosses the boundary that four environment variables could
+# not, and this hook has already proved it can write there.
 #
-# Without it every `uv run --script` skill script fails on a network the sandbox
-# does not have, and the case grades an agent that could not run the tool it is
-# about. 81 files in skills/ carry that header.
-#
-# Never fails the run: a missing cache is a warning, and the cases that need no
-# uv script do not care.
-# $HOME HERE IS THE RUNNER'S, NOT THE AGENT'S, and that distinction cost a
-# round: this hook runs as the operator, so $HOME is the scratch home run.sh
-# sets, whose .cache symlinks to the operator's real 21G uv cache -- an
-# existence test against it passes and links nothing. The AGENT's home is the
-# sandbox's, and this hook's working directory is <sandbox>/home/cwd, so the
-# agent's home is its parent. Derive it; never assume $HOME means the same thing
-# on both sides of a sandbox boundary.
-# AND THE HARNESS GETS THERE FIRST. It provisions the sandbox home with .aws,
-# .cache, .claude, .config, .git and .local already in place, so
-# $agent_home/.cache/uv EXISTS as a real directory before this hook runs. A
-# symlink cannot be planted over it and an existence guard against it skips
-# silently -- which it did, twice, printing nothing either time.
-#
-# So the contents are merged into the directory that is already there. 1.8M per
-# run, which is the price of not caring what the harness pre-creates.
+# Without this, no `uv run --script` starts in a sandboxed run -- 81 files in
+# skills/ carry that header -- and the three git-epic-workflow cases that
+# REQUIRE invoking a validator burn two of their three or four Bash calls on a
+# tool that cannot run, so `within-budget` fails as a consequence rather than as
+# a finding.
 _agent_home=$(CDPATH= cd -- ".." 2>/dev/null && pwd) || _agent_home=""
-# FROM THE VIEW, NOT FROM AN ENVIRONMENT VARIABLE. $plugin is this hook's own
-# location and is always resolvable; SI10_CHECKOUT is not visible here.
-_uv_src="$plugin/.uv-cache"
-if [ -d "$_uv_src" ] && [ -n "$_agent_home" ]; then
-    if mkdir -p "$_agent_home/.cache/uv" 2>/dev/null \
-       && cp -R "$_uv_src/." "$_agent_home/.cache/uv/" 2>/dev/null; then
-        echo "place: uv cache seeded into $_agent_home/.cache/uv (uv scripts resolve offline)"
+if [ -d "$plugin/.uv-wheels" ] && [ -n "$_agent_home" ]; then
+    if mkdir -p "$_agent_home/.uv-wheels" "$_agent_home/.config/uv" 2>/dev/null \
+       && cp "$plugin"/.uv-wheels/*.whl "$_agent_home/.uv-wheels/" 2>/dev/null \
+       && printf 'offline = true\nno-index = true\nfind-links = ["%s"]\n' \
+            "$_agent_home/.uv-wheels" > "$_agent_home/.config/uv/uv.toml" 2>/dev/null; then
+        echo "place: uv resolves offline from $_agent_home/.uv-wheels (uv.toml written)"
     else
-        echo "place: WARNING -- could not seed the uv cache; uv scripts will try the network"
+        echo "place: WARNING -- could not set up offline uv; skill scripts will try the network"
     fi
 fi
 
