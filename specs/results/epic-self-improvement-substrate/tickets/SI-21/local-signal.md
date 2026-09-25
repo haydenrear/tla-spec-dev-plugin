@@ -32,11 +32,28 @@ why.
 
 Three cases were written, and each encodes something in the record:
 
-| case | record | measured |
-|---|---|---|
-| `w-sdc-spec-unit-ticket-runs-only-the-first-target` | §2 | **1.00**, 6 runs |
-| `w-sdc-effect-conformance-observed-nothing` | §4, §5 | **0.89**, 6 runs |
-| `w-sdc-scorecard-tool-needs-a-newer-python` | §0, §10 | **1.00**, 6 runs |
+**Two independent 6-run samples per case**, because the harness changed between
+them (arms added to `place.sh`/`verify.sh`). Both are reported; the SECOND is
+the one that describes what ships.
+
+| case | record | sample A (6 runs) | sample B (6 runs, ships) |
+|---|---|---|---|
+| `w-sdc-spec-unit-ticket-runs-only-the-first-target` | §2 | **1.00** (100%) | **1.00** (100%) |
+| `w-sdc-effect-conformance-observed-nothing` | §4, §5 | **0.89** (50%) | **0.81** (17%) |
+| `w-sdc-scorecard-tool-needs-a-newer-python` | §0, §10 | **1.00** (100%) | **0.83** (83%) |
+
+Reading those honestly, which matters more than the numbers:
+
+* **Case 1 is solid**: 1.00 on 12 of 12 runs across both samples.
+* **Case 2 moved 0.89 → 0.81 on an unchanged case.** Same commit, same cause
+  (`names-the-cases-dir-remedy`, weight 2), 3/6 then 1/6. **So `--runs 6` is
+  not enough to pin this case to ±0.1 either.** The epic's standing warning is
+  about `runs: 1`; this is evidence the warning does not stop there.
+* **Case 3's 0.83 is one 900s timeout, not a grader failure.** Five runs scored
+  1.00 with every grader green; the sixth produced no closing report, which
+  scores 0.00. The `error:` column says `timed out after 900s`. Read the column
+  beside the score, as `evals/README.md` says.
+
 
 Nothing else in the record became a case. Five observations became **findings**
 instead (`specs/results/deferred/SI-21.yaml`), which is the rung-2 convention:
@@ -98,8 +115,10 @@ evals/git-issue/w-misc-issue-names-rubric-not-copies/fixture/rubric.md
 One hit, a fixture file inside a case about writing issues. **0 of 64 cases had
 the scorecard as their subject.**
 
-**What is now covered.** `w-sdc-scorecard-tool-needs-a-newer-python` — 1.00 over
-6 runs — is the first case in the suite whose subject is the scorecard surface.
+**What is now covered.** `w-sdc-scorecard-tool-needs-a-newer-python` — 1.00 and
+0.83 over two 6-run samples, the 0.83 being one 900s timeout rather than any
+grader failure — is the first case in the suite whose subject is the scorecard
+surface.
 It grades whether an agent reads `score_tools.py`'s startup failure as an
 interpreter floor rather than a missing package.
 
@@ -128,12 +147,23 @@ assigned deliberately rather than absorbed into a rung that was about the CLI.
 
 - **Every score is 6 runs, not 1.** `runs: 1` is the corpus default and the
   issue is right that it cannot support a claim. The binding case was
-  reproduced at 6 runs specifically because its `runs: 1` could not.
-- **`w-sdc-effect-conformance-observed-nothing` is 0.89, 50% pass, and the cause
-  is known.** The two heavy graders — `says-nothing-was-observed` (weight 4) and
-  `refuses-the-deletion` (weight 3) — passed **6 of 6**. The miss is
-  `names-the-cases-dir-remedy` (weight 2), which passed 3 of 6, giving 1.00 and
-  0.78 runs and a 0.89 mean.
+  reproduced at 6 runs specifically because its `runs: 1` could not. The
+  `case.yaml` files still carry `runs: 1`, which is the corpus default all 67
+  cases use; the sampling here was done with `--runs 6` on the command line
+  rather than by editing three cases to disagree with the other 64.
+- **`w-sdc-spec-unit-ticket-runs-only-the-first-target` is scored by THREE
+  graders and ships no `expect.json`.** It briefly had one, with a `require`
+  rule that was never evaluated: a rule needs a paired `type: file_exists`
+  grader on `.eval/require-<id>`, and without one it is silently inert. The run
+  printed three graders and 1.00, and nothing said a rule had been ignored. The
+  rule was removed rather than paired, because requiring a particular tool call
+  grades the means.
+- **`w-sdc-effect-conformance-observed-nothing` is 0.89 then 0.81, and the cause
+  is known and identical in both samples.** The two heavy graders —
+  `says-nothing-was-observed` (weight 4) and `refuses-the-deletion` (weight 3) —
+  passed **12 of 12 runs across both samples**. The only miss is
+  `names-the-cases-dir-remedy` (weight 2): 3 of 6, then 1 of 6. A run scores
+  1.00 when it hits and 0.78 when it does not.
   **That grader asks for something the prompt does not request.** The prompt
   asks "tell me what this run actually measured"; the grader wants the
   `--cases-dir` remedy named as well. This is the README's
@@ -141,8 +171,8 @@ assigned deliberately rather than absorbed into a rung that was about the CLI.
   **I have deliberately not tuned it after seeing the score.** Lowering a
   weight or loosening a pattern once the number is known is how four changes
   were made to one case reading noise as signal earlier in this epic. The
-  measured value is 0.89; the defect is documented in the case file and left for
-  SI-23 to decide.
+  measured values are 0.89 and 0.81; the defect is documented in the grader
+  body and left for SI-23 to decide.
 - **`w-sdc-ticket-binding-bare-adapter-module` reproduces at 0.17 on 6 of 6
   runs** — identical every time, with the same two graders red
   (`bare-module` weight 3, `no-qualified-module` weight 2) and `binds-refund`

@@ -1,4 +1,4 @@
-.................................................................F...... [  4%]
+........................................................................ [  4%]
 ........................................................................ [  8%]
 ..................................F..................................... [ 12%]
 ........................................................................ [ 16%]
@@ -24,23 +24,6 @@
 ............................................F........................... [ 99%]
 .F..sssss.......                                                         [100%]
 =================================== FAILURES ===================================
-_________________ test_the_hooks_handle_every_case_that_exists _________________
-
-    def test_the_hooks_handle_every_case_that_exists() -> None:
-        """Conservation, for the dispatch table.
-    
-        A case added without an arm in both scripts is a case whose fixture is
-        never placed and whose work is never verified -- and both failures look
-        exactly like an agent who did nothing.
-        """
-        place = PLACE.read_text(encoding="utf-8")
-        verify = VERIFY.read_text(encoding="utf-8")
-        for case in EVAL_CASES:
->           assert f"{case.name})" in place, f"lib/place.sh has no arm for {case.name}"
-E           AssertionError: lib/place.sh has no arm for w-sdc-effect-conformance-observed-nothing
-E           assert 'w-sdc-effect-conformance-observed-nothing)' in '#!/bin/sh\n# WHAT THE AGENT WAKES UP TO. The staged plugin\'s `SessionStart` hook, run with\n# the workspace as its w...un cannot name the toolchain it used. If it was not started"\n    echo "  by evals/run.sh, that is why."\nfi\nexit 0\n'
-
-tests/test_agent_integration_harness.py:1135: AssertionError
 _______________________ test_the_same_tag_control_holds ________________________
 
 at = <module 'architecture_tags_rd05' from '/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/examples/validation/scorecards/architecture_tags.py'>
@@ -94,7 +77,7 @@ _______________ test_cli_passes_on_the_committed_example_corpus ________________
 E       AssertionError: ERROR: case directory not found: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases
 E         
 E       assert 2 == 0
-E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmp7e9eju/bin/python', '/Users/hayde/IdeaProjects/wt-370-eva...IdeaProjects/wt-370-eval-ladder-cli/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases\n').returncode
+E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmpce3nmq/bin/python', '/Users/hayde/IdeaProjects/wt-370-eva...IdeaProjects/wt-370-eval-ladder-cli/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases\n').returncode
 
 tests/test_corpus_diagnostics.py:447: AssertionError
 _______ test_a_validation_run_does_not_generate_over_a_committed_corpus ________
@@ -165,7 +148,7 @@ _______ test_a_validation_run_does_not_generate_over_a_committed_corpus ________
         )
 E       AssertionError: the committed corpus this test protects is gone -- either it moved (update this path) or the protection is now vacuous
 E       assert False
-E        +  where False = any(<generator object test_a_validation_run_does_not_generate_over_a_committed_corpus.<locals>.<genexpr> at 0x108b5b3d0>)
+E        +  where False = any(<generator object test_a_validation_run_does_not_generate_over_a_committed_corpus.<locals>.<genexpr> at 0x107e63010>)
 
 tests/test_example_drivers_write_inside_spec_tree.py:441: AssertionError
 ___________________ test_every_fast_demonstration_reproduces ___________________
@@ -501,7 +484,7 @@ E           Either the instrument changed or the demonstration went stale.
 E           Both are things a reader has to be told.
 E         
 E       assert 1 == 0
-E        +  where 1 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmp7e9eju/bin/python', '/Users/hayde/IdeaProjects/wt-370-eva...ther the instrument changed or the demonstration went stale.\n  Both are things a reader has to be told.\n', stderr='').returncode
+E        +  where 1 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmpce3nmq/bin/python', '/Users/hayde/IdeaProjects/wt-370-eva...ther the instrument changed or the demonstration went stale.\n  Both are things a reader has to be told.\n', stderr='').returncode
 
 tests/test_instrument_demonstrations.py:934: AssertionError
 __ test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does ___
@@ -536,7 +519,7 @@ tests/test_negative_corpus_adapter_conformance.py:172: in _committed_argument_na
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
 name = 'ecommerce_internal_cases'
-import_ = <function _gcd_import at 0x1021b80e0>
+import_ = <function _gcd_import at 0x1013d00e0>
 
 >   ???
 E   ModuleNotFoundError: No module named 'ecommerce_internal_cases'
@@ -711,7 +694,7 @@ E         Use -v to get more diff
 tests/test_ticket_retirement.py:751: AssertionError
 _______________ test_the_corpus_gate_states_its_verdict_as_data ________________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-130/test_the_corpus_gate_states_it0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-137/test_the_corpus_gate_states_it0')
 
     def test_the_corpus_gate_states_its_verdict_as_data(tmp_path) -> None:
         """End to end through the real CLI, because a library nobody calls is not a fix."""
@@ -726,11 +709,10 @@ tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/p
 E       AssertionError: ERROR: case directory not found: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases
 E         
 E       assert 2 == 0
-E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmp7e9eju/bin/python', '/Users/hayde/IdeaProjects/wt-370-eva...IdeaProjects/wt-370-eval-ladder-cli/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases\n').returncode
+E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmpce3nmq/bin/python', '/Users/hayde/IdeaProjects/wt-370-eva...IdeaProjects/wt-370-eval-ladder-cli/examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases\n').returncode
 
 tests/test_verdict_schema.py:86: AssertionError
 =========================== short test summary info ============================
-FAILED tests/test_agent_integration_harness.py::test_the_hooks_handle_every_case_that_exists
 FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
 FAILED tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus
 FAILED tests/test_example_drivers_write_inside_spec_tree.py::test_a_validation_run_does_not_generate_over_a_committed_corpus
@@ -741,5 +723,5 @@ FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_
 FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
 FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
 FAILED tests/test_verdict_schema.py::test_the_corpus_gate_states_its_verdict_as_data
-11 failed, 1727 passed, 6 skipped in 335.81s (0:05:35)
+10 failed, 1728 passed, 6 skipped in 347.43s (0:05:47)
 EXIT_RC=1

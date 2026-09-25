@@ -1,0 +1,15 @@
+######## specWorkflow
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 56s
+5 actionable tasks: 1 executed, 4 up-to-date
+######## cliWorkflow
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 20s
+5 actionable tasks: 1 executed, 4 up-to-date
+######## effectProviderExamples
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 15s
+5 actionable tasks: 1 executed, 4 up-to-date
