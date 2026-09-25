@@ -36,6 +36,37 @@ plugin=$(CDPATH= cd -- "$here/../.." && pwd)
 repo="$plugin"
 case_name="${EVAL_CASE:-}"
 
+# --------------------------------------- the uv cache, INSIDE the sandbox home
+#
+# EA-DF-15, second half. `run.sh` exports UV_CACHE_DIR, and that export never
+# reaches the agent: HOOKS inherit the runner's environment, the agent's Bash
+# sandbox does not. Measured -- SKT_PYTHON worked because the HOOK consumed it,
+# UV_CACHE_DIR did not because the AGENT needed it, and the agent's `uv run
+# --offline` reported "pyyaml isn't in the local cache" while a primed cache sat
+# in .toolchain unread.
+#
+# So the cache has to be where the agent's uv will look on its own, which is
+# $HOME/.cache/uv under the sandbox's ephemeral home. This hook runs as the
+# operator, outside the sandbox, and can reach both -- so it links one to the
+# other. A link, not a copy: 1.8M per run copied is waste, and the primed cache
+# is read-only in practice.
+#
+# Without it every `uv run --script` skill script fails on a network the sandbox
+# does not have, and the case grades an agent that could not run the tool it is
+# about. 81 files in skills/ carry that header.
+#
+# Never fails the run: a missing cache is a warning, and the cases that need no
+# uv script do not care.
+if [ -n "${SI10_CHECKOUT:-}" ] && [ -d "$SI10_CHECKOUT/.toolchain/uv-cache" ] \
+   && [ -n "${HOME:-}" ] && [ ! -e "$HOME/.cache/uv" ]; then
+    if mkdir -p "$HOME/.cache" 2>/dev/null \
+       && ln -s "$SI10_CHECKOUT/.toolchain/uv-cache" "$HOME/.cache/uv" 2>/dev/null; then
+        echo "place: uv cache linked into the sandbox home, so \`uv run --script\` resolves offline"
+    else
+        echo "place: WARNING -- could not link the uv cache; uv scripts will try the network"
+    fi
+fi
+
 # EXIT 2, NOT 1. Claude Code treats exit 2 as blocking and every other non-zero
 # code as advisory, so `exit 1` printed a complaint and let the session start
 # anyway -- on a workspace it had just failed to set up. Where a case seeds a
