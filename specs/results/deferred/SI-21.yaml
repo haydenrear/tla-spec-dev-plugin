@@ -1,0 +1,187 @@
+# SI-21's inbox. NOT the ledger — the epic agent absorbs this at wave close,
+# exactly as it absorbed SI-19's and SI-20's. The assignment's `deferment.backlog`
+# names specs/results/deferred_findings_final.yaml; that file's own header states
+# the filing convention is unchanged (a ticket files into its own inbox, the epic
+# agent absorbs), and both shipped rungs of this ladder did it that way. Filing
+# here rather than appending directly is that convention, not a divergence — and
+# it is called out in the PR body so the owner can overrule it cheaply.
+#
+# Every row was observed by hand in the ticket worktree
+# /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli at base ac5f7491 on
+# 2026-09-25, and every one names the transcript it came out of.
+ticket: SI-21
+base_sha: ac5f749184ee906e7a194644cd567a17a542659b
+record: specs/results/epic-self-improvement-substrate/tickets/SI-21/manual-verification.md
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings:
+  - id: SI-21-DF-01
+    status: open
+    title: >-
+      `python3` is a shell alias here, so wrapping a command in `timeout`
+      silently runs a different interpreter — and nothing in this repository
+      records which one ran
+    what: >-
+      On this machine `python3` is a zsh alias for `python` (3.14.6), while
+      `/usr/bin/python3` is Xcode's 3.9.6. A wrapper binary such as `timeout`
+      does not inherit shell aliases, so `timeout python3 foo.py` and
+      `python3 foo.py` execute DIFFERENT interpreters, with no error and
+      plausible output from both. Six of this ticket's first measurements were
+      wrapped in `timeout` for safety and therefore ran under 3.9.6 rather than
+      the 3.14.6 I believed. They were all re-run under an explicit interpreter
+      and the numbers held, so nothing was misreported — but that could only be
+      established by re-running. This is the `EA-DF-12/14/15` class (a tool that
+      could not start, or started as something else, while the run scored
+      anyway) reached by a new route: not an empty HOME, but alias resolution.
+    where: >-
+      Not a defect in one file. The actionable surface is every instrument in
+      this repository that shells out to `python3` and reports a result.
+    evidence:
+      - transcripts/step-14-spec-unit-rerun-explicit-interpreter.txt
+      - "`type python3` -> alias for python; `timeout 20 python3 -V` -> 3.9.6"
+      - "evals/setup-eval-home.sh already prints SKT_PYTHON for this exact reason"
+    attribution: UNMODELED/measurement-harness
+    disposition: >-
+      Deferred, and the remedy is cheap and additive: anything that measures by
+      running python should print `sys.executable` and `sys.version` into its own
+      transcript. `setup-eval-home.sh` already does this for the orientation hook
+      (`SKT_PYTHON=... (the orientation hook needs >= 3.11; the system python3 is
+      3.9)`), which is both the precedent and the proof it is worth having.
+      Advisory only — nothing should refuse on it (GOAL-no-new-gates).
+
+  - id: SI-21-DF-02
+    status: open
+    title: >-
+      `run spec-unit-tests --ticket` cannot reach the ticket's own tests while
+      the project target is red, says nothing about it, and its help describes
+      the wrong directory
+    what: >-
+      Two findings about one flag, kept together because they are met together.
+      (1) `--ticket X` resolves TWO targets — the project spec dir and the
+      ticket's (tla_spec_dev.py:288) — prints both, then runs them in a
+      fail-fast loop that returns on the first non-zero exit (tla_spec_dev.py:457).
+      `specs/current` carries 9 failures permanently on this branch, so the
+      ticket's target is NEVER executed, and there is no line saying so: the only
+      target-counting line, `spec-unit validation passed for N target(s)`, counts
+      targets RESOLVED and is only printed on the success path. Measured:
+      `--ticket SI-17` reports 9 failed/47 passed (the project's);
+      `--target specs/tickets/SI-17/desired` reports 7 failed/46 passed (the
+      ticket's). An agent reads a number for the ticket it named and gets the
+      baseline's. (2) `--ticket`'s help says "Run ticket-local CURRENT spec-unit
+      tests", but `ticket_model_dir` (tla_spec_dev.py:405) falls back to
+      `desired/`, which is all the scaffold has emitted since 2026-09-14 — so
+      the rc=2 on an absent workspace names `.../desired` and the help says
+      `current`. Minor on its own; it is the first thing an agent debugging the
+      rc=2 will read. Also: the missing-target error names only
+      `missing_targets[0]` (tla_spec_dev.py:349), so with both targets absent you
+      are told about one.
+    where: skills/spec-double-2/scripts/tla_spec_dev.py:288, :349, :405, :457
+    evidence:
+      - transcripts/step-01-spec-unit-ticket-absent.txt
+      - transcripts/step-02-spec-unit-ticket-present.txt
+      - transcripts/step-03-spec-unit-target-isolated.txt
+      - transcripts/step-14-spec-unit-rerun-explicit-interpreter.txt
+    attribution: RunSpecUnitTests
+    corrects: >-
+      SIS-KICKOFF-F-04, which records this as "resolves two targets, executes
+      one, lists both". All three clauses are true, but the phrasing implies a
+      RESOLUTION defect; the mechanism is the fail-fast return, and that is what
+      makes `--target` the remedy rather than a workaround.
+    disposition: >-
+      Deferred — outside this ticket's conflict keys (evals/** only). The
+      behaviour is now encoded as an eval
+      (`w-sdc-spec-unit-ticket-runs-only-the-first-target`), which is this
+      ticket's slice. The product-side remedy is one line on the failure path
+      naming how many targets went unrun; it must warn, never refuse.
+
+  - id: SI-21-DF-03
+    status: open
+    title: >-
+      `run effect-conformance` with no `--cases-dir` renders an EMPTY
+      observation set as a failing `dead_surface` verdict, fifteen accusations
+      and rc=1
+    what: >-
+      `run effect-conformance --target specs/current` executes no adapter and
+      observes nothing, then reports `effect conformance dead_surface: 0 observed
+      effect(s) over 0 case(s), 15 declared port(s), ... 15 dead port(s)`, one
+      `DEAD MODEL SURFACE` line per declared port, the imperative "There is no
+      third option", and exit 1. Its own honest NOTE — "no --cases-dir supplied,
+      so no adapter was executed and nothing was observed" — arrives AFTER the
+      verdict and the fifteen accusations. "An empty result is not a passing
+      result" in its dual form: it is not a failing one either. The sibling verb
+      `analyze corpus` REFUSES an empty directory ("ERROR: no generated cases or
+      trace JSON files", rc=1) rather than scoring it, so the correct behaviour
+      already exists inside the same CLI. Compounding it for this repository
+      specifically: `specs/generated/` does not exist here, so there is no
+      `--cases-dir` to supply and the verb cannot produce a non-vacuous answer on
+      this checkout at all.
+    where: skills/spec-double-2/scripts/tla_spec_dev.py — run effect-conformance
+    evidence:
+      - transcripts/step-06-effect-conformance.txt
+      - transcripts/step-12-analyze-corpus.txt   # the sibling that refuses
+    attribution: RunEffectConformance
+    disposition: >-
+      Deferred — outside this ticket's conflict keys. Encoded as an eval
+      (`w-sdc-effect-conformance-observed-nothing`). The product-side remedy is
+      to do what `analyze corpus` does: refuse to emit a verdict over zero
+      observed cases, and say so before the findings rather than after them.
+      That is a REFUSAL TO MEASURE, not a gate on the work, so it does not
+      conflict with GOAL-no-new-gates — but it changes an exit code, so it is
+      the owner's call, not a ticket agent's.
+
+  - id: SI-21-DF-04
+    status: open
+    title: "`retire ticket --force` raises an uncaught KeyError: 'retirement'"
+    what: >-
+      `--force`'s own help says it will "Warn instead of refusing on
+      retirement-declaration and receipt gates". It does exactly that — two
+      `WARNING (forced):` lines — and then `_retirement_manifest_contract`
+      unconditionally indexes `ticket["retirement"]`, which is the key the gate
+      it just bypassed existed to guarantee. So `--force` is a guaranteed crash
+      on precisely the input it exists for. Both the refusal path and the forced
+      path exit 1, so no verdict changes; but a raw traceback is not a refusal,
+      and the operator cannot distinguish "you may not do this" from "I broke".
+    where: skills/spec-double-2/scripts/spec_evolution.py:586 (_retirement_manifest_contract)
+    evidence:
+      - transcripts/step-10-retire-ticket.txt
+    attribution: UNMODELED/retirement-receipt
+    disposition: >-
+      Deferred — outside this ticket's conflict keys. Not encoded as an eval:
+      it is a crash, not a judgement an agent could get right or wrong, and the
+      record's own rule is that not every finding becomes a case. The remedy is
+      a `.get("retirement")` with the existing refusal message when it is absent,
+      even under `--force`.
+
+  - id: SI-21-DF-05
+    status: open
+    title: >-
+      `score_tools.py` — the scorecard instrument — declares no interpreter floor
+      and cannot start under macOS's stock python3
+    what: >-
+      It imports `tomllib` at module scope (line 110). `tomllib` is stdlib from
+      Python 3.11, so under `/usr/bin/python3` (3.9.6 on this machine) the tool
+      dies at import with a bare `ModuleNotFoundError: No module named
+      'tomllib'`. There is no `# /// script` header, no `python_requires`, and no
+      message naming the floor. The traceback reads as a missing third-party
+      package, and the obvious wrong remedy — `pip install tomllib` — would put a
+      module of that name on sys.path that SHADOWS the stdlib one on every newer
+      interpreter in the environment, converting a loud startup error into a
+      silent behavioural one. This is the instrument this epic uses to decide its
+      own goals. Separately and smaller: issue #370's References section cites it
+      as `scripts/score_tools.py`; it is at
+      `examples/validation/scorecards/score_tools.py`, and the module docstring
+      explains why (scripts/** is in-model per the plan's representation_scope).
+      The file is right and the citation is stale.
+    where: examples/validation/scorecards/score_tools.py:110
+    evidence:
+      - transcripts/step-13-score-tools.txt
+      - "under 3.14.6 the same command returns `0 violation(s)`, rc=0"
+    attribution: UNMODELED/scorecard-harness
+    disposition: >-
+      Deferred — outside this ticket's conflict keys. Encoded as an eval
+      (`w-sdc-scorecard-tool-needs-a-newer-python`), which is the FIRST eval case
+      in the suite whose subject is the scorecard surface at all. The remedy is a
+      `# /// script` header with `requires-python = ">=3.11"`, or three lines
+      guarding the import with a message naming the floor. Either warns; neither
+      is a gate.

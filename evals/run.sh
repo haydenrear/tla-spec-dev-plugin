@@ -214,13 +214,21 @@ cp "$here/hooks/hooks.json" "$view/hooks/hooks.json"
 # ------------------------------------------------------------- the grant
 # Read the cases this invocation will actually run, and grant exactly the gated
 # tools they declare. `--case` is a glob, so the filter here is the same glob.
-case_glob='*'
+#
+# SI-21: `--case` is REPEATABLE, and this used to keep only the last one. Every
+# `--case` was still appended to `args` and passed to the CLI, so a three-case
+# invocation ran three cases and derived its grant from ONE of them -- and a
+# short grant is scored 0.00 and reported as a skill failure, which is the exact
+# defect lib/grant.py was written to prevent. Measured: `--case A --case B
+# --case C` printed `cases selected: C`. Now every glob is collected and a case
+# matching ANY of them is selected.
+case_globs=()
 toolchain_ref=''
 args=()
 while [ $# -gt 0 ]; do
     case "$1" in
-        --case) case_glob="${2:-*}"; args+=("$1" "$2"); shift 2 ;;
-        --case=*) case_glob="${1#--case=}"; args+=("$1"); shift ;;
+        --case) case_globs+=("${2:-*}"); args+=("$1" "$2"); shift 2 ;;
+        --case=*) case_globs+=("${1#--case=}"); args+=("$1"); shift ;;
         # CONSUMED HERE, NOT PASSED ON: `claude plugin eval` has no such flag,
         # and passing it through would fail the run with an unknown-option error
         # that says nothing about toolchains.
@@ -230,7 +238,19 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-grant=$(python3 "$here/lib/grant.py" "$here" "$case_glob") || grant=""
+[ ${#case_globs[@]} -eq 0 ] && case_globs=('*')
+# `case_glob` is kept for the messages below, which speak about a single
+# selection. `all_cases` is the honest test for "the whole suite": exactly one
+# glob, and it is `*`. Three explicit --case flags are not a full-suite run.
+case_glob="${case_globs[0]}"
+if [ ${#case_globs[@]} -eq 1 ] && [ "${case_globs[0]}" = '*' ]; then
+    all_cases=1
+else
+    all_cases=0
+fi
+[ ${#case_globs[@]} -gt 1 ] && case_glob="${case_globs[*]}"
+
+grant=$(python3 "$here/lib/grant.py" "$here" "${case_globs[@]}") || grant=""
 
 if [ -n "$grant" ]; then
     echo "eval: granting $grant (derived from the cases' allowed_tools)"
@@ -266,7 +286,7 @@ if [ -n "$toolchain_ref" ]; then
 elif [ -n "${SI14_TOOLCHAIN_REF:-}" ]; then
     ref_args=(--ref "$SI14_TOOLCHAIN_REF")
     echo "eval: toolchain -- using SI14_TOOLCHAIN_REF=$SI14_TOOLCHAIN_REF (recorded as an OVERRIDE)"
-elif [ "$case_glob" = '*' ] && [ -t 0 ]; then
+elif [ "$all_cases" = 1 ] && [ -t 0 ]; then
     # THE ASK. Only for a full suite, and only where there is somebody to answer.
     echo "eval: ------------------------------------------------------------"
     echo "eval: this is a FULL-SUITE run. Which skt is it graded against?"
@@ -283,7 +303,7 @@ elif [ "$case_glob" = '*' ] && [ -t 0 ]; then
         echo "eval: toolchain -- using the pin ${pinned:-?}"
     fi
     echo "eval: ------------------------------------------------------------"
-elif [ "$case_glob" = '*' ]; then
+elif [ "$all_cases" = 1 ]; then
     # NO TERMINAL. Refusing here would block CI on a question nobody can answer,
     # which is a gate. Taking the PIN is not a guess -- it is the declared value,
     # read from a file under change control -- so it is taken, and announced.
@@ -291,7 +311,7 @@ elif [ "$case_glob" = '*' ]; then
     echo "eval:   using the PINNED ${pinned:-?} from evals/lib/toolchain.lock.toml."
     echo "eval:   Nothing was guessed. To choose: --toolchain-ref <commit> or SI14_TOOLCHAIN_REF."
 else
-    echo "eval: toolchain -- single case ('$case_glob'); DEFAULTING to the pinned ${pinned:-?}"
+    echo "eval: toolchain -- ${#case_globs[@]} case selector(s) ('$case_glob'); DEFAULTING to the pinned ${pinned:-?}"
     echo "eval:   (override with --toolchain-ref <commit>)"
 fi
 
@@ -564,7 +584,7 @@ set -e
 # It never refuses, and its own failure is never the run's (`|| true`): a case
 # being undecidable is a fact about the view, not a fault in the work, and
 # GOAL-no-new-gates means no line in this script may block on one.
-python3 "$here/lib/undecided.py" "$here" "$case_glob" || true
+python3 "$here/lib/undecided.py" "$here" "${case_globs[@]}" || true
 
 # -------------------------------------------------------------- harvest
 if [ -d "$view/evals/results" ]; then
