@@ -48,7 +48,7 @@ raise `runs` for the cases it reads or state the limit in its verdicts.
 | EA-DF-12 | `skill-manager` could not start — jbang wanted a JDK from the network | CLI reports its pinned commit |
 | EA-DF-13 | `run.sh` overwrote the plugin's hooks, so **every** `w-*` score was measured without the orientation the product ships | orientation delivered **6/6** |
 | EA-DF-14 | the orientation hook discarded a good report on a non-zero exit code | no-home case now prints its diagnostic |
-| EA-DF-15 | **no `uv run --script` skill script could start** — cold uv cache, no network | primed, resolves under `UV_OFFLINE=1` |
+| EA-DF-15 | **no `uv run --script` skill script could start** — cold uv cache, no network | **NOT FIXED** — seeding works, resolution does not; see below |
 | EA-DF-16 | a `require` rule matched a path spelling, not the act of reading | 0.86 → **1.00**, twice |
 
 Plus a budget calibrated for a fixture that had been replaced, and a vacuous
@@ -138,6 +138,31 @@ work — it is from not working blind.
 ---
 
 ## What is left
+
+### EA-DF-15 is open, and it is the most useful thing left
+
+`uv run --script` is how **81 files** in `skills/` start. None of them can start
+in a sandboxed run. Five addressing attempts failed and a sixth found the real
+obstacle; all six are recorded on the ledger row because the sequence is worth
+more than the fix.
+
+The short version: **a uv cache is not relocatable.** Seeding it into the agent's
+home now demonstrably works — `place: uv cache seeded`, 92K to 1.9M — and uv
+still refuses, because the cached environment was keyed to the path it was built
+at. The 126 entries are environment metadata, not a portable wheel.
+
+**What to do instead:** stage the WHEEL, and write
+`<agent-home>/.config/uv/uv.toml` with `offline = true` and `find-links` naming
+it. `place.sh` has now proven it can write the agent's home, which is the
+capability the first four attempts lacked — and a config file crosses the
+sandbox boundary that every environment variable failed to cross.
+
+**The boundary itself is the finding.** Four different addressing schemes failed
+against it: the agent's sandbox does not inherit the runner's environment; `$HOME`
+in a hook is the operator's, not the agent's; the harness pre-creates parts of
+the agent's home; and `SI10_CHECKOUT` is not visible to hooks. Anything that has
+to reach the agent must arrive through the **view** or through a **file in the
+agent's home**, and nothing else.
 
 ### Immediate
 

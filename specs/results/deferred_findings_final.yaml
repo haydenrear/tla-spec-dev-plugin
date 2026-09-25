@@ -8546,11 +8546,47 @@ findings:
     - 1.8M cache vs the operator's 21G ~/.cache/uv, which a sandbox cannot see
     - w-epic-retire-part-of-goal-warns-only scored 0.75 with judge FAIL FAIL FAIL on a case it
       could not perform
-    skill_change: applied(run.sh primes and exports an isolated UV_CACHE_DIR)
+    skill_change: proposed(test-graph, stage a WHEEL and a uv.toml naming it via
+      find-links, rather than copying a uv cache, which is not relocatable)
     attribution: UNMODELED/eval-harness
-    disposition: fixed
-    fixed_by: uv cache priming, 2026-09-24
-    disposition_ticket: EPIC-AGENT
+    correction: >-
+      NOT FIXED. The disposition below was wrong when written and is corrected
+      rather than rewritten. Five addressing attempts failed, each because the
+      cache was reached through something the SessionStart hook cannot see, and
+      a sixth revealed the real obstacle:
+        1. run.sh exports UV_CACHE_DIR -- the agent's Bash sandbox does not
+           inherit the runner's environment. Hooks do; the agent does not.
+        2. the hook symlinks $HOME/.cache/uv -- $HOME in a hook is the
+           OPERATOR's, which run.sh has pointed at the scratch home whose
+           .cache links to the operator's real 21G uv cache, so the existence
+           guard passed and linked nothing.
+        3. the hook symlinks the AGENT's .cache/uv (derived as the parent of
+           its own cwd) -- the harness pre-creates that directory, so a symlink
+           cannot be planted over it.
+        4. the hook seeds from $SI10_CHECKOUT -- not visible to the hook
+           either. Diagnosed from silence: the guard printed NEITHER its
+           success line NOR its warning, which happens only when the outer test
+           is false.
+        5. run.sh stages the cache into the VIEW and the hook seeds from
+           $plugin/.uv-cache -- THIS WORKS. "place: uv cache seeded" prints and
+           the sandbox cache goes 92K to 1.9M.
+      And it is still not enough: `uv --offline` then reports "Because
+      pyyaml>=6.0.2 needs to be downloaded from a registry ... your
+      requirements are unsatisfiable". A UV CACHE IS NOT RELOCATABLE. The
+      priming test passed at .toolchain/uv-cache because the built environment
+      was keyed to that path; the 126 entries copied are environment metadata,
+      not a portable wheel.
+    what_to_do_next: >-
+      Stage the WHEEL, not the cache. `uv pip download pyyaml` (or `pip
+      download`) into the view, and have place.sh write
+      <agent-home>/.config/uv/uv.toml with `offline = true` and `find-links`
+      naming that directory -- place.sh has now demonstrated it can write the
+      agent's home, which is the capability the first four attempts lacked. A
+      config file also survives the sandbox boundary that every environment
+      variable failed to cross.
+    disposition: still-true
+    fixed_by: 'partially: the seeding mechanism works; the dependency still does not resolve'
+    disposition_ticket: SI-21
     disposition_note: 'THE PATTERN IS NOW NAMED, because three instances in one day is a class
       and not a coincidence: a sandboxed run inherits an empty HOME, every toolchain that caches
       under HOME is therefore cold, and every one of them fails by reaching for a network that
