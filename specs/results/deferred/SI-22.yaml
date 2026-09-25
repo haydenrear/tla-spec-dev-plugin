@@ -38,7 +38,11 @@ findings:
       invalid YAML, so no sync can ever project it". The invalid frontmatter IS
       the fixture. The installer walks evals/**/fixture/**/SKILL.md and grades
       them as units. Reproduced on two independent installs (initial, and again
-      after a remove-then-install cycle). A fresh-machine bootstrap is a script,
+      after a remove-then-install cycle), AND on `skill-manager sync
+      tla-spec-dev --git-latest`, which reports "synced 1 unit(s), 1 merged"
+      and also exits 11 (step-23). So it is not an install-path quirk: EVERY
+      route that refreshes the substrate exits non-zero.
+      A fresh-machine bootstrap is a script,
       and a script reads $?; any `set -e` bootstrap, CI step, or agent checking
       the exit code of the one command GOAL-one-plugin is about will conclude
       the substrate failed to install when it installed correctly. It also sits

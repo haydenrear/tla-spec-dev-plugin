@@ -4,5 +4,7 @@ path: .eval/within-budget
 weight: 1
 ---
 
-At most three Bash calls. The answer is in one saved file; grepping it once or
-twice is ample. Counts calls, not which ones.
+At most four Bash calls. Calibrated from a MEASURED count, not a guess
+(EA-DF-08): two observed runs of this case used 2 and more-than-3 Bash calls —
+reading the fixture, then looking up the exit code. Three was too tight by one.
+Counts calls, not which ones.

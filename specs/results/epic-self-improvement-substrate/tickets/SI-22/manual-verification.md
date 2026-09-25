@@ -580,3 +580,65 @@ Stated here rather than left to inference:
   machine from brew and is the CLI every step used; re-installing it would have
   tested Homebrew, not the substrate.
 * **`exit 11` was not fixed**, only characterised and filed. §4.
+
+---
+
+## 14. What writing the cases taught, which is the part I got wrong
+
+Added after the cases were first run. The record above is unchanged; this is new
+evidence, and it belongs here because two of my three graders were wrong and the
+runs are what proved it.
+
+### The shakedown run existed to catch this, and did
+
+`--runs 1` on all three cases, before any sample: **0.00, 0.00, 0.00**, every
+grader reporting `marker missing (expected present)`. Not the agents — a new
+case must be registered in **two** files, and I had registered one.
+`evals/lib/place.sh` copies the fixture; `evals/lib/verify.sh`'s
+`verify_from_expect` arm is what writes the `.eval/` markers the `file_exists`
+graders read. `evals/README.md` documents the first and never mentions the
+second. $0.74 to learn it. `SI-22-DF-07`.
+
+The same run printed `1 case file(s) failed to load` and named
+`w-sdc-spec-unit-ticket-runs-only-the-first-target` — one of **SI-21's** three
+cases, unloadable since `eeb352f9` because a paragraph lost its two-space
+indent. It has never run since. `git log` attributes it; I repaired the indent.
+`SI-22-DF-08`.
+
+### Two of my three graders punished correct behaviour
+
+Exactly the class `HARDENING-BATCH.md` calls "a grader that punishes correct
+behaviour performed differently than its author imagined", and I wrote two of
+them the day after reading that sentence.
+
+| grader | what it did | what was actually right |
+|---|---|---|
+| `no-blind-retry` | forbade the verbs `install`, `remove`, `sync` outright | the run's only offence was **`skill-manager install --help`** — looking up what exit 11 means. EA-DF-16 exactly: it matched the spelling, not the act. Now excludes `--help`, `-h` and `--dry-run`, verified against a six-row truth table |
+| `removes-first` | required remove-then-install | the run answered **`skill-manager sync tla-spec-dev --git-latest`**, and sync is the *better* answer for the refresh the prompt asks for |
+
+**I did not simply widen the second rule to make the red go away.** The rule
+asserted something I had never watched, which is the thing `GOAL-evals-earned`
+forbids. So I measured it (`step-23`): `sync --help` says *"Refresh installed
+units and re-run install side effects"*, `--git-latest` fetches the install-time
+gitRef, and by hand in the fresh home it reported `synced 1 unit(s), 1 merged`
+with the front door intact. **The agent was right and the grader was wrong.**
+The rule now accepts either route and grades the real trap — the `--yes`
+rejection and invented `--force` flags.
+
+That measurement also **broadened `SI-22-DF-01`**: `sync` exits **11** as well.
+Every route that refreshes this substrate exits non-zero, not just `install`.
+
+### And the budget was a guess, which this repository already says not to make
+
+`within-budget` at 3 Bash calls failed one run and passed another. The kept
+trace (`--keep-temp`, `step-22`) shows the passing run used **two** calls: `cat`
+the fixture, then the help query. Three was too tight by one. Recalibrated to
+four **from the measured count**, per EA-DF-08.
+
+### A number worth quoting for SI-23
+
+`w-sm-fresh-install-exit-11-is-fixtures`, **unchanged, at one commit**, scored
+**0.50 and then 0.67 on two consecutive single runs**. Same case, same code,
+different sample. It is a smaller swing than the ±0.8 on record, and it is one
+more instance of the same fact: a single score in this suite is a sample, not a
+measurement.

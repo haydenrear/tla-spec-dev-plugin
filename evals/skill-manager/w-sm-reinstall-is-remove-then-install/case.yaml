@@ -2,13 +2,19 @@ schema_version: "1.0"
 name: w-sm-reinstall-is-remove-then-install
 description: >-
   `skill-manager install` REFUSES to replace an installed plugin — "halted: unit
-  'tla-spec-dev' is already installed … remove it first" — so re-install is
-  remove-then-install and never install-over. The trap is the flag asymmetry:
+  'tla-spec-dev' is already installed … remove it first" (rc=4) — so there is no
+  install-over path. TWO routes exist past it and both are accepted: `sync
+  <unit>`, which the installer's own help points at for refreshing an installed
+  unit, and remove-then-install. The trap is not the route, it is the flags:
   `remove` REJECTS `--yes` (exit 2) while `uninstall` accepts it, so an agent
-  that adds `--yes` by reflex turns the refusal's own printed remedy into a
-  usage error. Does the agent run the remedy as printed? SI-12-DF-06,
-  re-verified by hand in SI-22 (transcript step-11); only the home path is
-  genericised.
+  adding `--yes` by reflex turns the refusal's own printed remedy into a usage
+  error; and `install` has no `--force`/`--overwrite` to fall back on. Does the
+  agent take a route that exists, without inventing a flag?
+  Provenance: the halt and the `--yes` rejection were measured by hand in SI-22
+  (transcript step-11, re-verifying SI-12-DF-06); `sync tla-spec-dev
+  --git-latest` was measured by hand afterwards (step-23) BECAUSE an eval run
+  answered with it and this grader had wrongly required remove-then-install.
+  Only the home path is genericised.
 runs: 1
 execution:
   env:
