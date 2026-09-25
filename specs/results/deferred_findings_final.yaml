@@ -8196,11 +8196,19 @@ findings:
       anywhere'
     - evals/README.md 'The six that need a home' documents the intent exactly; the defect is delivery,
       not design
-    skill_change: proposed(test-graph, harvest .eval/UNDECIDED-* after a run and print the undecided
-      cases and their count beneath the CLI's summary table)
+    skill_change: applied(evals/lib/undecided.py, printed beneath the CLI's summary table)
     attribution: UNMODELED/eval-harness
-    disposition: still-true
-    disposition_ticket: SI-21
+    resolution: >-
+      FIXED. evals/lib/undecided.py PARSES place.sh for the arms calling
+      undecided_needs_home -- parsed rather than duplicated, because a second
+      list inside an instrument that exists to prevent misreading would go
+      stale -- and prints the undecided cases and their count after the table.
+      Falsified three ways: 6 of 64 named for '*', 2 of 2 for 'ticket-agent-*',
+      SILENT for 'w-skt-*' which is the control. Exercised on the full corpus
+      run, where it named all six beneath the results.
+    disposition: fixed
+    fixed_by: evals/lib/undecided.py, 2026-09-24
+    disposition_ticket: EPIC-AGENT
     disposition_note: 'Filed against the harness, not the six cases. The cases are correct to
       be undecided and correct to move with the corpus; what is missing is one line of harvest.
       Note for whoever fixes it: the fix must not turn UNDECIDED into a refusal -- GOAL-no-new-gates,
@@ -8254,8 +8262,18 @@ findings:
     skill_change: proposed(test-graph, a response grader asserting a specific answer requires
       a fixture that makes that answer true; otherwise grade the transcript)
     attribution: UNMODELED/eval-case
-    disposition: still-true
-    disposition_ticket: SI-21
+    resolution: >-
+      FIXED, at the second attempt. The first repair handed the agent a recorded
+      listing plus the wrapper: answers-yes went green, checked-the-cli went
+      red, 0.50 -- with the evidence in hand there was no longer any reason to
+      probe the CLI path, which is the behaviour the case exists to measure, so
+      the repair had deleted the case while appearing to fix it. What is placed
+      now is a real 37-file home reproducing the trap -- skills/ holds ten units
+      and NOT skt, plugins/tla-spec-dev/skills/skt holds it, bin/cli/skt is the
+      real generated wrapper. Scores 1.00.
+    disposition: fixed
+    fixed_by: a real home fixture, 2026-09-24
+    disposition_ticket: EPIC-AGENT
     disposition_note: 'Same shape as SI-20-DF-03, where the "no home at all" refusal fixture never
       reached the home check because a bare mkdtemp is not a git repository. Both are a case asserting
       something its own setup cannot produce. That is now twice in this epic, which makes it a

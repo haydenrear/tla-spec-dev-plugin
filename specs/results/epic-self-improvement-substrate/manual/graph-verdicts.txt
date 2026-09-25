@@ -1,5 +1,5 @@
 # All five test graphs, with stated verdicts
-# HEAD d4eb1abb, recorded 2026-09-24T17:14Z
+# HEAD 585b68ac, recorded 2026-09-25T15:30Z (re-run after the hardening batch)
 #
 # WHY THIS FILE WAS REWRITTEN. It previously recorded the run at ab99d575
 # (2026-09-21), where sktSurface was ERRORED at 4/5 nodes. Two things happened
@@ -26,11 +26,11 @@ never from a runner exit code: the runner always exits 0, and
 build/validation-reports/ keeps passing reports from earlier runs, so a graph
 that never executed looks green there.
 
-  specWorkflow             build/validation-reports/20260924-171107
-  cliWorkflow              build/validation-reports/20260924-171344
-  effectProviderExamples   build/validation-reports/20260924-171406
-  sktSurface               build/validation-reports/20260924-170747
-  sktHooks                 build/validation-reports/20260924-170916
+  specWorkflow             build/validation-reports/20260925-152705
+  cliWorkflow              build/validation-reports/20260925-152859
+  effectProviderExamples   build/validation-reports/20260925-152920
+  sktSurface               build/validation-reports/20260925-152413
+  sktHooks                 build/validation-reports/20260925-152536
 
 THE PART WORTH KNOWING BEFORE THE NEXT PERSON RUNS THESE.
 
@@ -52,3 +52,16 @@ defect that printed an opt-in graph twice is still fixed.
 The tree was clean before these runs and clean after them: dirty_count=0,
 counting this session's own written artifacts (this file and the wave-17-18
 review) as the only additions, which are writing and not run output.
+
+WHAT THE 2026-09-25 RE-RUN ESTABLISHED, beyond the same verdicts.
+
+The run before it ERRORED both skt graphs with "[Errno 28] No space left on
+device", every node after the first skipped. That was not a regression in the
+graphs: the fixture builder copied a scratch eval home that lived inside the
+checkout and was mostly SYMLINKS INTO THE OPERATOR'S HOME, and `shutil.copytree`
+dereferences by default. One run's fixtures measured 57 GB against ~350 MB for
+each of the other seventeen; a 926 GB disk reached 532 MB free.
+
+The home now lives outside the checkout, both repo-copying graph nodes pass
+`symlinks=True` and ignore `.toolchain`. Fixture this run: 265 MB, a 220x
+reduction, same 318/318 and 167/167.
