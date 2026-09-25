@@ -24,11 +24,17 @@ Exit 1  anything less
 
 from __future__ import annotations
 
+import os
 import pathlib
 import re
 
 ROOT = pathlib.Path("test_graph")
 NODE_MARKERS = ("NodeResult", "node_result", "nodeResult", "metadata")
+#: Never walked. `build/` alone is 1.7M entries in a real checkout, and walking
+#: it also invents thousands of duplicate "node files" from compiled copies --
+#: which is how a failure message came to list AppRunning.java sixty times.
+SKIP_DIRS = {"build", ".gradle", ".git", "node_modules", "__pycache__",
+             "venv", ".venv", ".history"}
 
 
 def main() -> int:
@@ -36,8 +42,27 @@ def main() -> int:
         print("no test_graph/ directory")
         return 1
 
-    build_files = sorted(ROOT.rglob("build.gradle.kts")) + sorted(ROOT.rglob("build.gradle"))
-    settings = sorted(ROOT.rglob("settings.gradle.kts")) + sorted(ROOT.rglob("settings.gradle"))
+    # ONE PRUNED WALK FOR EVERYTHING. `rglob` here was the real cost: it
+    # enumerates `test_graph/build/`, which holds 1,761,027 entries in a real
+    # checkout, three times over before any filter runs. Pruning only the node
+    # walk left these untouched and the check still timed out.
+    build_files, settings, nodes = [], [], []
+    for dirpath, dirnames, filenames in os.walk(ROOT):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        for fn in filenames:
+            fp = pathlib.Path(dirpath) / fn
+            if fn in ("build.gradle.kts", "build.gradle"):
+                build_files.append(fp)
+            elif fn in ("settings.gradle.kts", "settings.gradle"):
+                settings.append(fp)
+            elif fn.endswith((".java", ".py", ".kt")):
+                try:
+                    text = fp.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                if any(m in text for m in NODE_MARKERS):
+                    nodes.append(fp)
+    build_files.sort(); settings.sort()
     if not build_files:
         print("test_graph/ has no build file, so nothing composes a graph")
         return 1
@@ -62,13 +87,6 @@ def main() -> int:
         print("the build file registers no graph by name")
         return 1
 
-    nodes = [
-        p
-        for p in ROOT.rglob("*")
-        if p.is_file()
-        and p.suffix in {".java", ".py", ".kt"}
-        and any(m in p.read_text(encoding="utf-8", errors="replace") for m in NODE_MARKERS)
-    ]
     if not nodes:
         print(f"a graph is registered ({sorted(graphs)}) but no node file describes itself")
         return 1
