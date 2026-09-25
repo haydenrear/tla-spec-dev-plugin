@@ -1,0 +1,35 @@
+=== step-03: FRESH HOME, dry-run first ===
+2026-09-25T21:35:15Z
+fresh SKILL_MANAGER_HOME = /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/skill-manager-home (outside every checkout)
+
+$ ls -A $FRESH/skill-manager-home   # it is empty
+(count: 0)
+
+$ SKILL_MANAGER_HOME=<fresh> skill-manager list
+(no units installed — use `skill-manager install <source>`)
+rc=0
+
+$ SKILL_MANAGER_HOME=<fresh> skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main --dry-run
+
+DRY RUN — no changes will be made
+operation: install-1b5dead4-fbcd-4ddf-b814-4f999c5501b7
+effects (7):
+→ [1] resolve graph from source git+https://github.com/haydenrear/tla-spec-dev-plugin.git@main
+→ [2] snapshot pre-mutation MCP deps
+→ [3] reject if top-level resolved unit already installed
+→ [4] retire the units this upgrade supersedes
+→ [5] reject if a contained skill name is already claimed
+→ [6] build install plan over resolved skill(s)
+→ [7] expand + run install plan (gateway=http://127.0.0.1:51717)
+alwaysAfter (1):
+→ [8] cleanup staged graph (resolved skill(s))
+effects (2):
+→ [9] sync agents over 0 unit(s)
+→ [10] diff snapshot vs live and unregister orphans
+
+! Telemetry export unavailable; continuing without telemetry.
+rc=0
+
+$ ls -A <fresh home> after dry-run
+policy.toml
+(count: 1)

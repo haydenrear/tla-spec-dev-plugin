@@ -1,0 +1,192 @@
+=== step-04: THE FRESH-MACHINE WALK (HOME and SKILL_MANAGER_HOME both fresh) ===
+2026-09-25T21:36:03Z
+HOME=/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home   SKILL_MANAGER_HOME=/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager
+nothing here is a symlink into the operator's home; this dir is 1 empty directory.
+
+$ df -h /System/Volumes/Data   [BEFORE]
+/dev/disk3s5   926Gi   857Gi    48Gi    95%     25M  500M    5%   /System/Volumes/Data
+
+--- 1. brew: the ONLY thing installed separately ---
+$ HOME=<fresh> command -v skill-manager
+/opt/homebrew/bin/skill-manager
+$ HOME=<fresh> skill-manager --version
+skill-manager 0.28.1
+build:  artifact 641625cd3baf built 2026-09-17T17:34:42Z (skill-manager.jar)
+cli:    /opt/homebrew/Cellar/skill-manager/0.28.1/libexec/bin/skill-manager
+
+--- 2. the CLI sees an empty home and says the next command ---
+$ HOME=<fresh> SKILL_MANAGER_HOME=<fresh>/.skill-manager skill-manager list
+(no units installed — use `skill-manager install <source>`)
+
+--- 3. install the ONE plugin (git coordinate: the registry at 127.0.0.1:8090 is unreachable) ---
+$ HOME=<fresh> SKILL_MANAGER_HOME=<fresh>/.skill-manager skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main -y
+→ cloning https://github.com/haydenrear/tla-spec-dev-plugin.git
+✗ × BuildResolveGraphFromSource: 1 coord(s) failed to resolve
+! resolve: 0 unit(s) resolved, 1 failure(s)
+! transitive: git+https://github.com/haydenrear/tla-spec-dev-plugin.git#main [(top-level)] — git clone https://github.com/haydenrear/tla-spec-dev-plugin.git refused: Cloning into '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/cache/sta…
+! install rolled back 0 effect(s) — no partial state retained
+! Telemetry export unavailable; continuing without telemetry.
+INSTALL rc=9
+
+$ df -h /System/Volumes/Data   [AFTER INSTALL]
+/dev/disk3s5   926Gi   857Gi    48Gi    95%     25M  500M    5%   /System/Volumes/Data
+
+--- 3a. the CLI TRUNCATED its own diagnostic at ~200 chars. Reproducing the clone by hand. ---
+$ HOME=<fresh> git clone https://github.com/haydenrear/tla-spec-dev-plugin.git <scratch>/probe-clone
+Cloning into '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/probe-clone'...
+fatal: could not read Username for 'https://github.com': terminal prompts disabled
+rc=128
+
+$ same clone with the OPERATOR's HOME (the control):
+Cloning into '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/probe-clone2'...
+Updating files:  28% (7433/26032)Updating files:  29% (7550/26032)Updating files:  30% (7810/26032)Updating files:  31% (8070/26032)Updating files:  32% (8331/26032)Updating files:  33% (8591/26032)Updating files:  34% (8851/26032)Updating files:  35% (9112/26032)Updating files:  36% (9372/26032)Updating files:  37% (9632/26032)Updating files:  38% (9893/26032)Updating files:  39% (10153/26032)Updating files:  40% (10413/26032)Updating files:  41% (10674/26032)Updating files:  42% (10934/26032)Updating files:  43% (11194/26032)Updating files:  44% (11455/26032)Updating files:  45% (11715/26032)Updating files:  46% (11975/26032)Updating files:  47% (12236/26032)Updating files:  48% (12496/26032)Updating files:  49% (12756/26032)Updating files:  50% (13016/26032)Updating files:  51% (13277/26032)Updating files:  52% (13537/26032)Updating files:  53% (13797/26032)Updating files:  54% (14058/26032)Updating files:  55% (14318/26032)Updating files:  56% (14578/26032)Updating files:  57% (14839/26032)Updating files:  58% (15099/26032)Updating files:  59% (15359/26032)Updating files:  59% (15389/26032)Updating files:  60% (15620/26032)Updating files:  61% (15880/26032)Updating files:  62% (16140/26032)Updating files:  63% (16401/26032)Updating files:  64% (16661/26032)Updating files:  65% (16921/26032)Updating files:  66% (17182/26032)Updating files:  67% (17442/26032)Updating files:  68% (17702/26032)Updating files:  69% (17963/26032)Updating files:  70% (18223/26032)Updating files:  71% (18483/26032)Updating files:  72% (18744/26032)Updating files:  73% (19004/26032)Updating files:  74% (19264/26032)Updating files:  75% (19524/26032)Updating files:  76% (19785/26032)Updating files:  77% (20045/26032)Updating files:  78% (20305/26032)Updating files:  79% (20566/26032)Updating files:  80% (20826/26032)Updating files:  81% (21086/26032)Updating files:  82% (21347/26032)Updating files:  83% (21607/26032)Updating files:  84% (21867/26032)Updating files:  85% (22128/26032)Updating files:  86% (22388/26032)Updating files:  87% (22648/26032)Updating files:  88% (22909/26032)Updating files:  89% (23169/26032)Updating files:  89% (23308/26032)Updating files:  90% (23429/26032)Updating files:  91% (23690/26032)Updating files:  92% (23950/26032)Updating files:  93% (24210/26032)Updating files:  94% (24471/26032)Updating files:  95% (24731/26032)Updating files:  96% (24991/26032)Updating files:  97% (25252/26032)Updating files:  98% (25512/26032)Updating files:  99% (25772/26032)Updating files: 100% (26032/26032)Updating files: 100% (26032/26032), done.
+rc=0
+
+$ gh repo view haydenrear/tla-spec-dev-plugin --json visibility
+{"isPrivate":true,"visibility":"PRIVATE"}
+
+--- 3b. WHY: the plugin repo is PRIVATE. The chain needs a credential the fresh home does not have. ---
+gh repo view -> {"isPrivate":true,"visibility":"PRIVATE"}
+
+$ git config --global --get credential.helper   (operator)
+$ git config --global --get-regexp '^credential' (operator)
+$ git config --global --get-regexp 'insteadOf' (operator)
+
+so the minimum seed a fresh home needs is the credential, and nothing else.
+
+--- 3c. the MINIMUM seed: Library/Keychains only. Same remedy setup-eval-home.sh uses, same reason. ---
+credential.helper=osxkeychain comes from the SYSTEM gitconfig (Xcode), so it IS found under a fresh HOME;
+the login keychain it reads is at $HOME/Library/Keychains, so a fresh HOME has no credential.
+$ ln -s $HOME/Library/Keychains <fresh>/Library/Keychains   (1 symlink; outside every checkout)
+$ ls -A <fresh home>
+.skill-manager
+Library
+
+$ HOME=<fresh> git clone --depth 1 <plugin repo> (retry)
+Cloning into '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/probe-clone'...
+clone rc=0
+PROBE CLONE OK: .claude-plugin/plugin.json present -> resolver will call it a PLUGIN
+
+--- 4. THE INSTALL, second walk, fresh home wiped back to empty + the keychain seed ---
+$ ls -A <fresh home>
+Library
+$ df -h /System/Volumes/Data [BEFORE]
+/dev/disk3s5   926Gi   857Gi    48Gi    95%     25M  500M    5%   /System/Volumes/Data
+
+$ HOME=<fresh> SKILL_MANAGER_HOME=<fresh>/.skill-manager skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main -y
+→ cloning https://github.com/haydenrear/tla-spec-dev-plugin.git
+! Telemetry export unavailable; continuing without telemetry.
+→ cloning https://github.com/haydenrear/deploy-cdc
+→ cloning https://github.com/haydenrear/tracing_skill
+✓ resolve: 3 unit(s)
+✓ installed tla-spec-dev
+✓ installed deploy-helm
+✓ installed tracing-observability
+→ pm: downloading uv@0.4.18 from https://github.com/astral-sh/uv/releases/download/0.4.18/uv-aarch64-apple-darwin.tar.gz
+✓ pm: installed uv@0.4.18 → /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/pm/uv/0.4.18
+→ cli: skill-script tlc2 — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/plugins/tla-spec-dev/skill-scripts/install-tlc2.sh
+→ cli: skill-script tlc2 — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213810-303-tla-spec-dev-tlc2.log
+✓ cli: installed tlc2 -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/tlc2
+✓ cli: tlc2 [skill-script] installed for tla-spec-dev
+→ cli: skill-script tla-spec-dev — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/plugins/tla-spec-dev/skill-scripts/install-tla-spec-dev.sh
+→ cli: skill-script tla-spec-dev — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213811-020-tla-spec-dev-tla-spec-dev.log
+cli: rewrote bin/cli/tla-spec-dev to resolve the home it is standing in (it had this home's absolute path baked in, which a copy of the home would not have)
+✓ cli: installed tla-spec-dev -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/tla-spec-dev
+✓ cli: tla-spec-dev [skill-script] installed for tla-spec-dev
+→ cli: skill-script skt — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/plugins/tla-spec-dev/skill-scripts/install-skt.sh
+→ cli: skill-script skt — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213811-736-tla-spec-dev-skt.log
+✓ cli: installed skt -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/skt
+✓ cli: skt [skill-script] installed for tla-spec-dev
+✓ cli: gh [brew] installed for tla-spec-dev
+✓ cli: gh [brew] installed for tla-spec-dev
+✓ cli: gh [brew] installed for tla-spec-dev
+→ exec: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/pm/uv/0.4.18/bin/uv tool install --force jinja2-cli[yaml]==0.8.2
+Resolved 4 packages in 173ms
+Prepared 4 packages in 62ms
+Installed 4 packages in 5ms
+ + jinja2==3.1.6
+ + jinja2-cli==0.8.2
+ + markupsafe==3.0.3
+ + pyyaml==6.0.3
+Installed 1 executable: jinja2
+warning: `/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli` is not on your PATH. To use installed tools, run `export PATH="/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli:$PATH"` or `uv tool update-shell`.
+✓ cli: installed jinja2-cli[yaml]==0.8.2 via uv tool (bin=/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli)
+✓ cli: jinja2-cli[yaml] [pip] installed for tla-spec-dev
+✓ cli: pytest [pip] installed for tla-spec-dev
+✓ cli: helm [brew] installed for deploy-helm
+✓ cli: kubernetes-cli [brew] installed for deploy-helm
+✓ cli: k3d [brew] installed for deploy-helm
+✓ cli: docker [brew] installed for deploy-helm
+✓ cli: opentofu [brew] installed for deploy-helm
+→ cli: skill-script computeq — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/skills/deploy-helm/skill-scripts/install-computeq.sh
+→ cli: skill-script computeq — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213813-352-deploy-helm-computeq.log
+cli: rewrote bin/cli/computeq to resolve the home it is standing in (it had this home's absolute path baked in, which a copy of the home would not have)
+✓ cli: installed computeq -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/computeq
+✓ cli: computeq [skill-script] installed for deploy-helm
+→ cli: skill-script monitoring — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/skills/deploy-helm/skill-scripts/install-monitoring.sh
+→ cli: skill-script monitoring — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213846-207-deploy-helm-monitoring.log
+cli: rewrote bin/cli/monitoring to resolve the home it is standing in (it had this home's absolute path baked in, which a copy of the home would not have)
+✓ cli: installed monitoring -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/monitoring
+✓ cli: monitoring [skill-script] installed for deploy-helm
+→ cli: skill-script helm-deploy — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/skills/deploy-helm/skill-scripts/install-helm-deploy.sh
+→ cli: skill-script helm-deploy — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213907-291-deploy-helm-helm-deploy.log
+cli: rewrote bin/cli/helm-deploy to resolve the home it is standing in (it had this home's absolute path baked in, which a copy of the home would not have)
+✓ cli: installed helm-deploy -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/helm-deploy
+✓ cli: helm-deploy [skill-script] installed for deploy-helm
+→ cli: skill-script tracing-observability — running /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/skills/tracing-observability/skill-scripts/install-python-package.sh
+→ cli: skill-script tracing-observability — writing output to /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/logs/skill-scripts/20260925-213927-445-tracing-observability-tracing-observability.log
+cli: rewrote bin/cli/tracing-observability-install to resolve the home it is standing in (it had this home's absolute path baked in, which a copy of the home would not have)
+✓ cli: installed tracing-observability -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/bin/cli/tracing-observability-install
+✓ cli: tracing-observability [skill-script] installed for tracing-observability
+✓ units.lock.toml: wrote 3 unit(s) → /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/units.lock.toml
+✓ agents: 2 unit(s) linked into claude, codex, gemini
+✓ tools: 2 already present
+✓ cli: 17 installed
+markdown skill-import violations (2) — fix these references:
+✗   - tla-spec-dev (plugin): evals/skt/w-skt-migration-no-import-edits/fixture/my-skill/SKILL.md
+✗     skill-imports[0] is missing required `reason`; explain why the import exists
+✗   - tla-spec-dev (plugin): evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/fixture/demo-skill/SKILL.md
+✗     invalid YAML frontmatter: mapping values are not allowed here
+ in 'string', line 2, column 40:
+     ... tion: Use when tidying demo docs: the README, the changelog and  ... 
+                                         ^
+
+  ADDED    claude (/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.claude.json)  → http://127.0.0.1:51717/mcp
+  ADDED    codex (/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.codex/config.toml)  → http://127.0.0.1:51717/mcp
+  ADDED    gemini (/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.gemini/settings.json)  → http://127.0.0.1:51717/mcp
+agent MCP configs: ADDED 3, UPDATED 0 → http://127.0.0.1:51717/mcp
+ACTION_REQUIRED: restart Claude / Codex for the virtual-mcp-gateway entry to take effect — without a restart the agent will not see any MCP tools.
+  log: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skill-manager/logs/install-20260925-173753-ef83.log
+INSTALL rc=11
+
+$ df -h /System/Volumes/Data [AFTER]
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  474M    5%   /System/Volumes/Data
+
+--- 5. ISOLATION CHECK: did any real home move? ---
+$ find $HOME/.skill-manager -maxdepth 2 -newermt '-20 minutes' | wc -l
+       0
+$ find $HOME/.claude -maxdepth 1 -newermt '-20 minutes' | wc -l (informational: this session also runs here)
+       0
+$ ls -la $HOME/.claude.json $HOME/.codex/config.toml $HOME/.gemini/settings.json
+-rw-------@ 1 hayde  staff  251716 Sep 25 17:38 /Users/hayde/.claude.json
+-rw-------@ 1 hayde  staff   13209 Sep 24 11:13 /Users/hayde/.codex/config.toml
+-rw-r--r--@ 1 hayde  staff     455 Jul 18 17:18 /Users/hayde/.gemini/settings.json
+  ^ the install's ADDED lines named <fresh>/.claude.json, <fresh>/.codex/..., <fresh>/.gemini/... -- not these.
+
+$ ls -A <fresh home>
+.cache
+.claude
+.claude.json
+.codex
+.gemini
+.npm
+.rustup
+.skill-manager
+Library
+
+--- 6. what ONE plugin actually pulled in ---
+$ HOME=<fresh> SKILL_MANAGER_HOME=<fresh>/.skill-manager skill-manager list
+NAME                         KIND     VERSION    BINDINGS  SHA       SOURCE
+deploy-helm                  skill    0.1.0      3         5d48d0e   git
+tla-spec-dev                 plugin   0.1.0      0         ac5f749   git
+tracing-observability        skill    0.3.0      3         9c30206   git

@@ -1,0 +1,76 @@
+
+--- 5b. isolation, settled by a POSITIVE CONTROL ---
+~/.claude.json mtime moved 17:38:34 -> 17:40 with NO install running: this Claude Code session rewrites it.
+its only gateway key is /mcpServers/virtual-mcp-gateway/url = http://127.0.0.1:51717/mcp (1 hit), the pre-existing one STATE.md already describes.
+$HOME/.skill-manager: 0 paths newer than 20 minutes, before and after.
+
+=== step-06: THE FRONT DOOR, in the fresh home ===
+2026-09-25T21:41:15Z
+$ ls <fresh>/.skill-manager/bin/cli/
+computeq
+helm-deploy
+jinja2
+monitoring
+skt
+tla-spec-dev
+tlc2
+tracing-observability-install
+
+$ test -x <fresh>/.skill-manager/bin/cli/skt
+skt: PRESENT and executable
+$ test -x <fresh>/.skill-manager/bin/cli/skill-manager
+skill-manager shim: ABSENT (the CLI comes from brew, by design)
+
+$ ls <fresh>/.skill-manager/plugins/ ; ls <fresh>/.skill-manager/skills/
+tla-spec-dev
+--
+deploy-helm
+tracing-observability
+
+$ find <fresh>/.skill-manager -name wt -maxdepth 6 | sed 's|.*/.skill-manager|<home>|'
+<home>/plugins/tla-spec-dev/skills/skt/scripts/wt
+
+--- the front door, run from a PLAIN fresh git repo (no .skill-manager of its own) ---
+repo: <scratch>/plainrepo
+
+$ HOME=<fresh> <fresh home>/bin/cli/skt status
+skt status — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo
+checkout   standalone repo, branch main
+home       /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager — tier: root, policy: live
+parent     none — this IS the root home; nothing is above it
+publish    edited a unit here? `skt publish <unit>` — no sync leg at this tier, it goes straight to the unit's own git repo.
+writes     this session writes /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager. Never write another home by hand.
+cli        computeq, docker, gh, helm, helm-deploy, jinja2-cli[yaml], k3d, kubernetes-cli, monitoring, opentofu +5 more
+units      3 installed (3 change-managed)
+  deploy-helm 0.1.0 skill [loaded] [cm] 5d48d0e6
+  tla-spec-dev 0.1.0 plugin [cm] ac5f7491
+  tracing-observability 0.3.0 skill [loaded] [cm] 9c302067
+plugins    tla-spec-dev
+next       skt check — new-version and sync notifications
+rc=0
+
+$ HOME=<fresh> <fresh home>/bin/cli/skt --help | head -40
+usage: skt [-h] [--version] {status,check,sync,ticket,build,publish} ...
+
+Skill-lifecycle CLI: startup disclosure of loaded skills/plugins, home tier
+and epic/ticket state; new-version, sync-with-root, unit-error and stale-
+artifact notifications; per-artifact rebuilds; worktree change management.
+
+positional arguments:
+  {status,check,sync,ticket,build,publish}
+    status              startup report: units, plugins, home tier, epic/ticket
+                        context (SKT-3)
+    check               new-version, sync-with-root, unit-error and stale-
+                        artifact notifications
+    sync                pull a unit to its latest pushed source (SKT-4)
+    ticket              worktree lifecycle: new/close/info via this plugin's
+                        scripts/wt, plus list/sweep over every ticket worktree
+                        of the repository
+    build               rebuild derived artifacts — one, some, or everything
+                        stale (ARTI-10)
+    publish             guided home-sync + unit-publish for edited skills
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+rc=0

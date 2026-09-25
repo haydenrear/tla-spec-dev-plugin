@@ -1,0 +1,196 @@
+# SI-22's inbox. NOT the ledger — the epic agent absorbs this at wave close,
+# exactly as it absorbed SI-19's, SI-20's and SI-21's. The assignment's
+# `deferment.backlog` names specs/results/deferred_findings_final.yaml; that
+# file's own header states the filing convention is unchanged (a ticket files
+# into its own inbox, the epic agent absorbs), the work order's amendment item 2
+# says so explicitly, and all three shipped rungs of this ladder did it this way.
+#
+# Every row was observed by hand in the ticket worktree
+# /Users/hayde/IdeaProjects/wt-371-eval-ladder-skill-manager at base 68b7e63b on
+# 2026-09-25, and every one names the transcript it came out of.
+#
+# BUDGET NOTE: the assignment sets deferment.budget: 5 and this file holds 6.
+# I did not merge two rows to reach the number. DF-04 and DF-05 are the closest
+# pair (both about install-effect semantics) but they are different mechanisms
+# with different fixes, and collapsing them would hide one. Called out in the PR
+# body so the owner can overrule cheaply.
+ticket: SI-22
+base_sha: 68b7e63b34917659680fc937702cae534704d8b8
+record: specs/results/epic-self-improvement-substrate/tickets/SI-22/manual-verification.md
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings:
+  - id: SI-22-DF-01
+    status: open
+    severity: high
+    title: >-
+      A SUCCESSFUL install of the tla-spec-dev plugin exits 11, because the
+      installer validates deliberately-broken eval fixtures as if they were
+      shippable skills
+    what: >-
+      `skill-manager install git+…/tla-spec-dev-plugin.git --ref main -y` into a
+      fresh home installs everything correctly — 3 units resolved, 17 CLIs,
+      units.lock.toml written, agents linked, the front door working — and then
+      exits 11 on two "markdown skill-import violations". Both offending files
+      are eval FIXTURES that are broken ON PURPOSE: the case owning the second
+      one describes itself as being about "one unit's SKILL.md frontmatter is
+      invalid YAML, so no sync can ever project it". The invalid frontmatter IS
+      the fixture. The installer walks evals/**/fixture/**/SKILL.md and grades
+      them as units. Reproduced on two independent installs (initial, and again
+      after a remove-then-install cycle). A fresh-machine bootstrap is a script,
+      and a script reads $?; any `set -e` bootstrap, CI step, or agent checking
+      the exit code of the one command GOAL-one-plugin is about will conclude
+      the substrate failed to install when it installed correctly. It also sits
+      against GOAL-no-new-gates: this blocks by exit code while printing a
+      check-mark on every line that matters.
+    where: >-
+      Producer side (the fixtures, in this repository, my conflict key):
+      evals/skt/w-skt-migration-no-import-edits/fixture/my-skill/SKILL.md and
+      evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/fixture/demo-skill/SKILL.md.
+      Consumer side (the honest fix, NOT in this repository): the skill-manager
+      installer's markdown skill-import validation, which should not walk
+      fixture trees, or should not make a violation in one non-zero.
+    evidence:
+      - tickets/SI-22/transcripts/step-04-fresh-machine-walk.txt   # INSTALL rc=11
+      - tickets/SI-22/transcripts/step-11-install-refusal-asymmetry.txt  # REINSTALL rc=11
+      - tickets/SI-22/transcripts/step-12-install-exit-11-fixtures.txt   # both cases' own descriptions
+    attribution: UNMODELED/install-pipeline
+    disposition: >-
+      NOT FIXED. Deliberately. Renaming or repairing the two fixtures would fix
+      the exit code by breaking the two eval cases that exist precisely to have
+      a broken fixture — trading a real finding for a green number. The fix
+      belongs on the installer side, in the skill-manager repository, which is a
+      separate checkout and a separate PR per the work order. Escalated to the
+      epic agent in the PR body rather than actioned.
+
+  - id: SI-22-DF-02
+    status: open
+    severity: high
+    title: >-
+      The plugin repository is PRIVATE, so the fresh-machine chain that
+      GOAL-one-plugin names cannot be completed by a machine that has nothing
+    what: >-
+      GOAL-one-plugin's harness is "a fresh home: brew install the CLI, install
+      the plugin, then run the front door". With a genuinely fresh HOME the
+      install fails at the clone, rc=9. Reproduced by hand: `git clone` under a
+      fresh HOME gives "fatal: could not read Username for 'https://github.com'"
+      (rc=128) while the identical command under the operator's HOME gives rc=0,
+      and `gh repo view haydenrear/tla-spec-dev-plugin --json isPrivate` returns
+      true. The chain therefore completes only for a machine that already holds
+      a GitHub credential for this account. A second, more transferable half:
+      credential.helper=osxkeychain comes from the SYSTEM gitconfig (Xcode) and
+      so IS found under a fresh HOME, but the login keychain it reads is at
+      $HOME/Library/Keychains and so is NOT — the same HOME-vs-keychain
+      constraint evals/README.md already documents for the Docker sandbox,
+      reached here by a completely different route (a private git clone).
+      Nothing in the install path says so. The minimum seed turned out to be one
+      symlink, the same one setup-eval-home.sh makes.
+    where: >-
+      Not a code defect. The gap is between GOAL-one-plugin's target sentence
+      and what a fresh machine can do. Surfaces at the resolve step of
+      `skill-manager install` for any private coordinate.
+    evidence:
+      - tickets/SI-22/transcripts/step-04-fresh-machine-walk.txt
+      - tickets/SI-22/transcripts/step-05-credential-provenance.txt
+    attribution: UNMODELED/bootstrap-preconditions
+    disposition: >-
+      Reported, not routed around. SI-23 decides GOAL-one-plugin next wave and
+      should read this as a qualifier on the goal statement, not as a failure of
+      the substrate: every hop that could be demonstrated was demonstrated. The
+      substantive question for the owner is whether "one installed plugin
+      provides the substrate" is meant to hold for a machine outside this
+      account, and if so whether the repo should be public or the goal reworded.
+
+  - id: SI-22-DF-03
+    status: open
+    severity: medium
+    title: >-
+      `skill-manager install` truncates its own resolve diagnostic at ~200
+      characters, discarding the actual git error
+    what: >-
+      The install failure printed
+      "git clone https://… refused: Cloning into '/private/…/cache/sta…" —
+      ending mid-path with an ellipsis. The retained text is the part git always
+      prints; the discarded part is the reason. Diagnosing rc=9 required
+      reproducing the clone by hand under the same HOME to see "could not read
+      Username". This is the same shape as the SI-21 note on
+      setup-eval-home.sh's smoke filter: a refusal whose cause is in the bytes
+      the tool chose not to show. An agent reading only the CLI output cannot
+      distinguish "network down" from "repo private" from "bad ref".
+    where: >-
+      skill-manager's BuildResolveGraphFromSource failure message. Not in this
+      repository.
+    evidence:
+      - tickets/SI-22/transcripts/step-04-fresh-machine-walk.txt
+    attribution: UNMODELED/install-pipeline
+    disposition: >-
+      Filed only. Out of my conflict keys and in a separate repository.
+
+  - id: SI-22-DF-04
+    status: open
+    severity: low
+    title: >-
+      `skill-manager install --dry-run` prints "no changes will be made" and
+      then writes policy.toml into the home
+    what: >-
+      Running `install <coord> --dry-run` against a home that was one empty
+      directory left exactly one file behind: policy.toml. The banner reads
+      "DRY RUN — no changes will be made". The file is harmless and probably
+      wanted (a home needs a policy), but the sentence is false as written, and
+      "dry run" is the affordance an agent reaches for precisely when it does
+      not yet trust the command with a real home.
+    where: skill-manager `install --dry-run`; home initialisation side effect.
+    evidence:
+      - tickets/SI-22/transcripts/step-03-fresh-home-dry-run.txt
+    attribution: UNMODELED/install-pipeline
+    disposition: Filed only. Separate repository.
+
+  - id: SI-22-DF-05
+    status: open
+    severity: low
+    title: >-
+      The already-installed refusal fires AFTER the resolve, so a re-install
+      attempt has already cloned every repository before being told no
+    what: >-
+      The dry-run effect list orders them explicitly — [1] resolve graph from
+      source, [3] reject if top-level resolved unit already installed. Observed
+      live: an install over an installed plugin printed three "cloning …" lines
+      and "resolve: 3 unit(s)" before halting with "unit 'tla-spec-dev' is
+      already installed — remove it first" (rc=4). The installed-set check needs
+      no network and could run first. On a slow link this is a full multi-repo
+      fetch spent to learn the command was never going to proceed. Sharpens
+      SI-12-DF-06, which records the refusal but not its cost or its ordering.
+    where: skill-manager install effect ordering ([1] before [3]).
+    evidence:
+      - tickets/SI-22/transcripts/step-11-install-refusal-asymmetry.txt
+      - tickets/SI-22/transcripts/step-03-fresh-home-dry-run.txt   # the effect list
+    attribution: UNMODELED/install-pipeline
+    disposition: Filed only. Separate repository.
+
+  - id: SI-22-DF-06
+    status: open
+    severity: low
+    title: >-
+      `skill-manager remove <plugin>` leaves the plugin's CLI shims in
+      bin/cli/, so the front door outlives the unit that provides it
+    what: >-
+      After `skill-manager remove tla-spec-dev` succeeded and `list` showed the
+      plugin gone, bin/cli/skt was still present and still executable — i.e.
+      still on PATH for anything sourcing that home's bin. The refusal it gives
+      is GOOD, and that is why this is low rather than medium: it exits 127,
+      names the exact file it looked for
+      (plugins/tla-spec-dev/skills/skt/src/skt/cli.py), states that the wrapper
+      is not a link into a home that does, and offers two remedies; `skt ticket
+      new` through it creates nothing (path-tested: 0 directories). It is the
+      `w-skt-which-copy-of-skt-ran` situation with the answer already printed.
+      Recorded because a dangling front door is still a surface an agent meets,
+      and because `remove`'s own help says it is "lower-level than uninstall"
+      without saying that CLI shims are among what it leaves.
+    where: skill-manager `remove` cleanup scope vs `uninstall`.
+    evidence:
+      - tickets/SI-22/transcripts/step-11-install-refusal-asymmetry.txt
+    attribution: UNMODELED/install-pipeline
+    disposition: >-
+      Filed only. Arguably working as designed — `uninstall` is documented as
+      the full cleanup — in which case the actionable half is the help text.

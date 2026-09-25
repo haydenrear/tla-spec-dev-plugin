@@ -1,0 +1,69 @@
+
+=== step-07: skt ticket new/close from the FRESH home -- the assignment's named harness ===
+2026-09-25T21:41:45Z
+$ df [BEFORE]
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  474M    5%   /System/Volumes/Data
+
+$ HOME=<fresh> skt ticket new demo-1
+error: no Skill Manager home could be created for this worktree (usually: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo has no project home yet)
+fix:   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo
+log:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-ww47VW-run.log
+rc=3
+
+--- TEST THE PATH, NOT THE EXIT CODE (SI-11-DF-04) ---
+(eval):7: no matches found: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/*demo-1*
+
+$ HOME=<fresh> skt ticket list
+skt ticket list — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo
+epic       none discoverable
+target     none — containment NOT checked (pass --epic <slug> or --target <ref>)
+home       close-out destination: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager
+  no linked worktrees — nothing to sweep
+rc=0
+$ df [AFTER]
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  474M    5%   /System/Volumes/Data
+
+--- path test, done properly (zsh nomatch ate the loop above) ---
+candidate worktree paths matching *demo-1* directly under <scratch>: 0
+CONFIRMED: rc=3 left NO worktree behind -- the refusal is clean, not a rollback-that-exited-0
+
+--- 2. follow the remedy the refusal printed ---
+$ HOME=<fresh> <fresh home>/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root <plainrepo>
+home:      /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager
+projected: 2 of 2 into each of .claude .codex .gemini
+verified:  2 skill(s) servable — an agent launched here reads them from .claude .codex .gemini; descriptor env inside /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo; claude/codex resolve to this home's shims
+launch:    /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo/.skill-manager/bin/launch/claude
+creds:     agents launched from this home share the operator's login.
+           If one says 'Not logged in', check CLAUDE_SECURESTORAGE_CONFIG_DIR
+           is EMPTY -- a path there selects a slot nobody has written and
+           fails exactly as if it were unset (skill-manager#263).
+log:       /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/bootstrap-home-ODjLHN.log
+rc=0
+
+$ test -d <plainrepo>/.skill-manager
+project home: CREATED
+$ df
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  470M    5%   /System/Volumes/Data
+
+--- 3. retry the front door ---
+$ HOME=<fresh> skt ticket new demo-1
+created ticket worktree for demo-1:
+worktree   /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1
+branch     feature/demo-1 (standalone repo plainrepo)
+launch     /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1/.skill-manager/bin/launch/claude
+if-exit-8  /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1/.skill-manager/bin/cli/skill-manager home drift --ack
+close      skt ticket close — or: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/home/.skill-manager/plugins/tla-spec-dev/skills/skt/scripts/wt close demo-1
+
+A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+rc=0
+
+--- TEST THE PATH ---
+/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo-demo-1
+worktree dirs created: 1
+$ test -d $WTP/.skill-manager
+  ticket worktree HAS its own home
+$ git -C $WTP branch --show-current
+feature/demo-1
+
+$ df
+/dev/disk3s5   926Gi   860Gi    45Gi    96%     25M  467M    5%   /System/Volumes/Data

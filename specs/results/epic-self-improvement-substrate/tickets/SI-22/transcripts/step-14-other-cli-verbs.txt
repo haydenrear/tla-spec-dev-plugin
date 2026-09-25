@@ -1,0 +1,52 @@
+=== step-14: the other skill-manager verbs the plugin depends on ===
+2026-09-25T21:50:06Z
+
+$ skill-manager project resolve   (named in the issue References)
+✗ Missing skill-project.toml or skill-manager-project.toml in /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/freshmachine/plainrepo
+  (re-run with --verbose for the stack trace)
+rc=1
+
+$ skill-manager project --help
+Usage: skill-manager project [-hv] [--agent-context] [COMMAND]
+Register and inspect skill project manifests.
+      --agent-context   Emit a bounded agent-facing context block to stderr
+                          after the command.
+  -h, --help            Show this help message and exit.
+  -v, --verbose         Verbose output
+Commands:
+  register  Register skill-project.toml intent without installing or
+              materializing dependencies.
+  resolve   Install declared project dependencies and materialize project
+              bindings.
+  sync      Pull each project unit's trunk and reconcile the project
+              realization in place. Units with local edits are held back, not
+              merged over, unless --merge is given.
+  remove    Remove a project registration and generated project realization
+              without uninstalling shared units.
+  show      Show a registered skill project.
+  list      List registered skill projects.
+  profiles  Inspect named profiles declared by a skill project.
+
+$ skill-manager home --help
+Usage: skill-manager home [-hv] [--agent-context] [COMMAND]
+Inspect, copy, describe, and set the policy of Skill Manager homes.
+      --agent-context   Emit a bounded agent-facing context block to stderr
+                          after the command.
+  -h, --help            Show this help message and exit.
+  -v, --verbose         Verbose output
+Commands:
+  clone            Copy this home to a new root (skipping cache/) and verify
+                     that nothing in the copy still points at the original.
+  verify           Check that a home holds no absolute reference back to
+                     another home, and that `home repair` finds no damage in it
+                     (every finding is named and fails the check).
+  describe         Print the home.runtime.json interop descriptor for a home:
+                     the env to export, the resolved CLI, the gateway, the
+                     installed-unit snapshot, and the home policy.
+  policy           Show or set this home's policy: live (mutable) or frozen
+                     (sync, upgrade, and push-back are refused).
+  shims            Generate the claude/codex/gemini launchers for a home under
+                     bin/launch. Put that directory on PATH for a worktree and
+                     every launch binds to that home automatically.
+  drift            Show, record, or acknowledge changes to this home's units. A
+                     launch refuses while a change is unacknowledged, so an

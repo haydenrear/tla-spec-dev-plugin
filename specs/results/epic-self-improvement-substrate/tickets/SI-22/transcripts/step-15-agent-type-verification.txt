@@ -1,0 +1,40 @@
+=== step-15: VERIFYING the agent-type sweep myself (it was a subagent's report, not evidence) ===
+2026-09-25T21:50:22Z
+
+--- claim: hooks/skt-session-start.sh does NOT branch on agent type/role ---
+$ grep -nEi 'role|agent.type|AGENT_TYPE|subagent|CLAUDE_AGENT' hooks/skt-session-start.sh hooks/skt-post-tool.sh
+grep rc=1 (1 = no matches)
+$ wc -l hooks/skt-session-start.sh hooks/skt-post-tool.sh
+      87 hooks/skt-session-start.sh
+      87 hooks/skt-post-tool.sh
+     174 total
+$ grep -nE '^\s*(if|case)' hooks/skt-session-start.sh  # every conditional in the file
+12:  if [ -n "${SKT_PYTHON:-}" ]; then printf '%s' "$SKT_PYTHON"; return 0; fi
+15:    if "$resolved" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+23:  if [ -n "${SKILL_MANAGER_HOME:-}" ] && [ -x "$SKILL_MANAGER_HOME/bin/cli/skt" ]; then
+26:  if command -v skt >/dev/null 2>&1; then
+29:  if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "$CLAUDE_PLUGIN_ROOT/skills/skt/src/skt/cli.py" ]; then
+63:if [ -z "$REPORT" ]; then
+76:if [ "$STATE" = "fresh" ]; then
+83:if [ "$rc" -eq 10 ]; then
+
+--- claim: skt's own python carries no role/agent-type branching ---
+$ grep -rnE 'role|agent_type|AGENT_TYPE' skills/skt/src/skt/ | head
+grep rc=0
+
+--- REDO: the line above reported 'grep rc=0' but that was HEAD's rc, not grep's (the pipe trap). Correct form: ---
+$ out=$(grep -rnE 'role|agent_type|AGENT_TYPE' skills/skt/src/skt/); rc=$?
+grep rc=1  (1 = genuinely no matches)
+matches: 0
+
+--- non-vacuity control: the same grep for a token that MUST be there ---
+grep -rn 'def ' rc=0  matches: 203
+  ^ a non-zero match count here proves the search path was real and the rc=1 above is a true negative.
+
+--- claim: role: takes exactly implementation | evaluation ---
+$ grep -rn 'role: implementation' skills/git-epic-workflow/references/epic-ticket.md
+skills/git-epic-workflow/references/epic-ticket.md:33:  role: implementation      # implementation | evaluation
+$ grep -rhoE 'role: [a-z-]+' skills/git-epic-workflow/ | sort | uniq -c
+  10 role: evaluation
+   2 role: implementation
+   1 role: str
