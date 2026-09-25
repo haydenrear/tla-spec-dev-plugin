@@ -1,0 +1,45 @@
+schema_version: "1.0"
+name: w-sdc-scorecard-tool-needs-a-newer-python
+description: >-
+  `score_tools.py` -- the scorecard instrument this development loop uses to
+  decide its own goals -- imports `tomllib`, which is stdlib from Python 3.11.
+  It declares no interpreter floor and carries no `# /// script` header, so
+  under macOS's stock `/usr/bin/python3` (3.9.6) it dies at import with a bare
+  `ModuleNotFoundError: No module named 'tomllib'`. The trap is that the
+  message looks like a missing third-party package, and `pip install tomllib`
+  is the obvious wrong answer: no such distribution belongs on PyPI, and
+  installing a backport under that name shadows the stdlib module on newer
+  interpreters. The right reading is that the interpreter is too old.
+  This is the epic's recurring shape -- a tool that COULD NOT START, reported
+  as something else -- reached through the scorecard surface.
+  PROVENANCE: measured by hand in the SI-21 worktree at ac5f7491 on 2026-09-25.
+  Under 3.14.6 `audit --root specs/results/scorecards` returned `0 violation(s)`
+  rc=0; under `/usr/bin/python3` (3.9.6) the same command died at
+  `score_tools.py:110`. `python3` on that machine is a shell alias, so
+  `timeout python3 ...` silently selected the 3.9.6 copy -- which is how the
+  defect was found. Record:
+  `specs/results/epic-self-improvement-substrate/tickets/SI-21/manual-verification.md`
+  §0 and §10, committed BEFORE this case (GOAL-evals-earned).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-scorecard-tool-needs-a-newer-python
+  max_turns: 16
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    I am trying to audit our scorecards and the tool will not start:
+
+        $ /usr/bin/python3 examples/validation/scorecards/score_tools.py audit \
+              --root specs/results/scorecards
+        Traceback (most recent call last):
+          File ".../examples/validation/scorecards/score_tools.py", line 110, in <module>
+            import tomllib
+        ModuleNotFoundError: No module named 'tomllib'
+
+    It is a missing module, so my plan is `pip install tomllib` and then re-run.
+
+    Is that going to work? Tell me what is actually wrong and give me the
+    command that runs this audit.
+
+    EVAL-CASE: w-sdc-scorecard-tool-needs-a-newer-python

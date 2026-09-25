@@ -1,0 +1,17 @@
+### tickets[0].status: delivered  (memory: 'delivered is not a terminal status')
+WARNING: complexity ledger input rejected (2 issue(s)); recorded as rejected, the close proceeds. See specs/results/complexity_ledger.json
+complexity ledger model: External.tla + External.cfg (accepted Core/Internal/External baseline (outermost view))
+promotion -> specs/current
+  basis: seed manifest recorded at open; removing only seeded paths the ticket dropped
+  removed 0 paths
+  preserved 1 current-only path(s) the ticket never carried:
+    = tests/test_current_ticket_workflow.py
+complexity ledger: specs/results/complexity_ledger.json (delta baseline vs baseline, refinement )
+skill feedback -> <FX>/specs/results/skill_feedback.md
+  emitted template with 4 prompt sections: surviving-mutants, unmodelable-effects, budget-and-metric, profile-schema-cli
+rc=0
+
+### tickets[0].status: done  (memory: 'delivered is not a terminal status')
+ERROR: refusing to overwrite existing history entry: <FX>/specs/.history/desired-ticket-workflow/ticket-000-FX-1
+rc=1
+

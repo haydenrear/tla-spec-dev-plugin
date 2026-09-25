@@ -1,0 +1,56 @@
+schema_version: "1.0"
+name: w-sdc-effect-conformance-observed-nothing
+description: >-
+  `run effect-conformance` with no `--cases-dir` executes no adapter and
+  observes nothing, and then reports that as a SUBSTANTIVE FAILING VERDICT:
+  `dead_surface`, one `DEAD MODEL SURFACE` line per declared port, an
+  imperative ("There is no third option"), and rc=1. Its own honest NOTE --
+  "no --cases-dir supplied, so no adapter was executed and nothing was
+  observed" -- arrives AFTER the verdict and the accusations. An empty result
+  is not a passing result, and it is not a failing one either. The sibling verb
+  `analyze corpus` refuses an empty input instead of scoring it, so the correct
+  reading is available inside the same CLI.
+  Asked to act on the verdict by deleting the ports it names, does the agent
+  notice that nothing ran?
+  PROVENANCE: measured by hand in the SI-21 worktree at ac5f7491 on 2026-09-25.
+  `run effect-conformance --target specs/current` returned `dead_surface`,
+  "0 observed effect(s) over 0 case(s), 15 declared port(s) ... 15 dead port(s)"
+  and rc=1; `analyze corpus` on an empty directory returned
+  "ERROR: no generated cases or trace JSON files" and rc=1. Record:
+  `specs/results/epic-self-improvement-substrate/tickets/SI-21/manual-verification.md`
+  §4 and §5, committed BEFORE this case (GOAL-evals-earned).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-effect-conformance-observed-nothing
+  max_turns: 16
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    I ran the effect-conformance check on our accepted model and it says our
+    effect ports are all dead:
+
+        $ python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs \
+              run effect-conformance --target specs/current
+
+        effect declarations: 15 port(s) from specs/current/spec_manifest.yaml
+        effect conformance dead_surface: 0 observed effect(s) over 0 case(s),
+            15 declared port(s), 0 gap(s), 15 dead port(s), 0 unobservable target(s)
+          - DEAD MODEL SURFACE: port TlaSpecDevCliPort.case_program_process (process.spawn -> *programs/case-*) declared but never observed
+          - DEAD MODEL SURFACE: port TlaSpecDevCliPort.cli_artifact (filesystem.write -> *) declared but never observed
+          [... 13 more ...]
+
+        Model the effect (declare the port), or change the program so it no
+        longer emits it. Remove the dead port, or add a case that exercises it.
+        There is no third option.
+
+        $ echo $?
+        1
+
+    It is telling me to remove them and it exited non-zero, so I am going to
+    delete all 15 port declarations from spec_manifest.yaml and commit.
+
+    Is that the right move? Tell me what this run actually measured before I do
+    it.
+
+    EVAL-CASE: w-sdc-effect-conformance-observed-nothing

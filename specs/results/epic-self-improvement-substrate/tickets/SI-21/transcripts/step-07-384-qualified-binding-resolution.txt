@@ -1,0 +1,8 @@
+### #384(a): which adapters does each binding form execute, inside a TICKET VIEW?
+
+bare  'adapters:X'                     -> <FX>/specs/tickets/FX-1/desired/adapters.py -> TICKETVIEW
+qual  'specs.program_model.adapters:X' -> <FX>/specs/program_model/adapters.py -> BASELINE
+
+CONFIRMED. A qualified binding hand-edited into a ticket view after seeding
+executes the BASELINE adapters; the ticket's own adapters.py never runs, and
+`run spec-unit-tests --target <view>` said nothing about it and exited 0.

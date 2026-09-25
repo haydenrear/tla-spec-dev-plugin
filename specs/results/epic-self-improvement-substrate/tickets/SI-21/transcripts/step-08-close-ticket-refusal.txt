@@ -1,0 +1,3 @@
+### close ticket FX-1 -- no --force, ticket still status:open in the plan
+ERROR: ticket FX-1 is not closed in ticket_plan.yaml: status=next (mark it done/delivered, or pass --force)
+rc=1

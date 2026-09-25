@@ -79,14 +79,14 @@ def needs_home(place_sh: pathlib.Path) -> list[str]:
 
 def main() -> int:
     root = pathlib.Path(sys.argv[1])
-    glob = sys.argv[2] if len(sys.argv) > 2 else "*"
+    globs = sys.argv[2:] or ["*"]   # SI-21: `--case` is repeatable
 
     selected = []
     for case in sorted(root.rglob("case.yaml")):
         text = case.read_text(encoding="utf-8", errors="replace")
         match = re.search(r"^name:\s*(\S+)", text, re.M)
         name = match.group(1).strip("\"'") if match else case.parent.name
-        if fnmatch.fnmatch(name, glob):
+        if any(fnmatch.fnmatch(name, g) for g in globs):
             selected.append(name)
 
     blocked = sorted(set(needs_home(root / "lib" / "place.sh")) & set(selected))

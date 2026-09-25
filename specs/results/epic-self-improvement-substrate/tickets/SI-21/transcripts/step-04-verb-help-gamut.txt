@@ -1,0 +1,270 @@
+### analyze complexity --help
+usage: tla-spec-dev analyze complexity [-h] [--manifest MANIFEST]
+                                       [--format {text,json}] [--out OUT]
+                                       [--tlc-report TLC_REPORT]
+                                       [--baseline-tlc BASELINE_TLC]
+                                       tla [cfg]
+
+Print the complexity DESCRIPTOR: the per-variable domain cardinality table,
+the state-space upper bound (or an explicit unknown), the variables x actions
+read/write matrix, the graph-modularity score with near-decomposable clusters
+and candidate port-crossing actions, dense rows/columns (god-state detection),
+variables no configured invariant reads, and unjustified variables. Facts, not
+judgment: it makes no suggestions, is advisory, and exits nonzero only when
+the model cannot be analyzed at all.
+
+positional arguments:
+  tla                   TLA+ module to analyze.
+  cfg                   TLC config. Defaults to <module>.cfg or MC.cfg.
+
+options:
+  -h, --help            show this help message and exit
+  --manifest MANIFEST   spec_manifest.yaml carrying budgets: and
+                        justification:.
+  --format {text,json}  Output format.
+  --out OUT             Also write the report here. RC-01: the path MUST
+                        resolve under a `results/` directory -- that is the
+                        surface the `evidence_report` effect port declares,
+                        and a write anywhere else is undeclared.
+  --tlc-report TLC_REPORT
+                        TLC output for this model, for transition-level
+                        diagnostics.
+  --baseline-tlc BASELINE_TLC
+                        Baseline TLC output to compare against (self-loop
+                        check).
+
+### analyze corpus --help
+usage: tla-spec-dev analyze corpus [-h] [--view {external,internal}]
+                                   [--manifest MANIFEST] [--verdict-json PATH]
+                                   cases_dir
+
+Print the generated corpus distribution per (action, label class), which
+strata dominate, which are starved, and what varies across any redundant group
+-- the measured cause of the redundancy. Exits nonzero when a component or
+action exceeds its manifest case cap (max_internal_cases_per_component /
+max_external_cases_per_action). NOTHING IS EVER DROPPED, FILTERED, SAMPLED, OR
+TRUNCATED to fit a cap: over budget the gate reports and refuses. It
+prescribes no move; the failure output states the finding and ends with a
+REDESIGN QUESTION -- can the architecture be redesigned to make the program
+simpler, judged with the complexity descriptor (analyze complexity) and
+references/complexity_intuition.md -- and the two ways forward are that
+redesign or raising the cap with a recorded rationale.
+
+positional arguments:
+  cases_dir             Generated case package directory, or a directory of
+                        exported trace JSON files.
+
+options:
+  -h, --help            show this help message and exit
+  --view {external,internal}
+                        Which cap applies. Defaults to the package's own
+                        SOURCE_VIEW.
+  --manifest MANIFEST   spec_manifest.yaml supplying the caps. Defaults to the
+                        nearest one above the package.
+  --verdict-json PATH   Write this run's verdict as JSON: {verdict, reason,
+                        detail}. The `reason` is a stable code an instrument
+                        can assert against without matching on the prose.
+
+### generate cases --help
+usage: tla-spec-dev generate cases [-h] --out OUT [--module-path DIR]
+                                   [--package PACKAGE]
+                                   [--view {external,internal}]
+                                   [--actions-metadata ACTIONS_METADATA]
+                                   [--tlc2 TLC2] [--dot DOT]
+                                   [--state-projector STATE_PROJECTOR]
+                                   [--output-projector OUTPUT_PROJECTOR]
+                                   [--dedupe {none,projected}]
+                                   [--labeler LABELER] [--no-infer-params]
+                                   [--negative-cases {off,with-positive,only}]
+                                   [--negative-dedupe {none,guard-reads}]
+                                   [--negative-action ACTION]
+                                   [--port-cases {off,with-positive,only}]
+                                   [--port-dedupe {none,region}]
+                                   [--port-manifest PORT_MANIFEST]
+                                   [--coverage-json COVERAGE_JSON]
+                                   tla cfg
+
+Explore the module with TLC, dump the reachable state graph, and render one
+case per action-labeled edge into a generated Python package. When the module
+is declared in the manifest's `case_modules:` block, the per-action coverage
+report is scoped to the aspect that module enters, so the actions the slice
+deliberately does not enter are NOT reported as coverage holes. The corpus is
+never trimmed to fit a budget: the complete package is written first and the
+case caps are measured over it afterwards (max_internal_cases_per_component /
+max_external_cases_per_action), so over cap the command reports the
+distribution and exits nonzero with every generated case still on disk.
+
+positional arguments:
+  tla
+  cfg
+
+options:
+  -h, --help            show this help message and exit
+  --out OUT             Output ROOT for the generated package. An absolute
+                        path is used as given. A RELATIVE path is resolved
+                        against the SPEC DIRECTORY (the .tla's own directory),
+                        not the current directory -- unless it already points
+                        inside the spec directory. `--out generated` run from
+                        a repo root therefore writes <spec dir>/generated,
+                        which is rarely what was meant; the resolved root is
+                        printed before generation starts. Pass an absolute
+                        path when you want cwd-relative behavior. RC-02: the
+                        RESOLVED path must fall under a `specs/` directory --
+                        that is the tree the `spec_tree` port declares for
+                        this action -- and a path outside it is refused rather
+                        than silently relocated.
+  --module-path DIR     Directory to search for the modules this .tla EXTENDS,
+                        ahead of the directories beside it. Repeatable. TLC
+                        resolves EXTENDS against the .tla's own directory and
+                        the TLA-Library search path -- never against the
+                        current directory -- so a case module in
+                        specs/case_modules/ that extends a view in
+                        specs/program_model/ needs the view's directory on
+                        this path. Sibling directories of the .tla that
+                        contain .tla files are searched automatically, so the
+                        documented layout needs no flag; use this when the
+                        view is somewhere else or when two siblings define the
+                        same module.
+  --package PACKAGE
+  --view {external,internal}
+                        Generate a view-aware case package.
+  --actions-metadata ACTIONS_METADATA
+                        YAML file with actions.<ActionName>
+                        layer/controllability/generates.
+  --tlc2 TLC2
+  --dot DOT             Where TLC dumps the state graph. Defaults to
+                        <out>/<module>.dot. RC-02: constrained the same way as
+                        --out, and for a stronger reason -- run_tlc_dump
+                        derives the TLC metadir from this path's parent and
+                        `shutil.rmtree`s it in its finally branch, so an
+                        unconstrained --dot is a destructive delete at a
+                        caller-chosen location declared by a port targeting
+                        `**/specs/**`.
+  --state-projector STATE_PROJECTOR
+                        Optional module:function that projects raw TLC states
+                        before rendering cases.
+  --output-projector OUTPUT_PROJECTOR
+                        Optional module:function that derives adapter expected
+                        output from a TLC transition.
+  --dedupe {none,projected}
+                        Optionally collapse duplicate projected transitions.
+  --labeler LABELER     Optional module:function returning extra labels for
+                        before/action/after/changed
+  --no-infer-params     Emit params={} instead of recovering action arguments
+                        from each case's before/after state pair. The MF-029
+                        revert switch: parameter inference is experimental and
+                        generator-side, so turning it off must not require a
+                        model or spec change.
+  --negative-cases {off,with-positive,only}
+                        HP-03. Also emit, per reachable state, the actions
+                        whose guards are DISABLED there -- one case per
+                        refusable argument tuple, asserting the call is
+                        REJECTED and that no modeled variable changes. `with-
+                        positive` appends them to the ordinary corpus; `only`
+                        emits the negative corpus alone, which is how the
+                        class is measured on its own. Off by default: this
+                        changes what a corpus contains, and a mode that
+                        silently doubled every existing corpus would be a
+                        schedule change nobody asked for.
+  --negative-dedupe {none,guard-reads}
+                        How negative cases are collapsed. `guard-reads` keeps
+                        one case per (action, arguments, violated conjunct,
+                        and every state variable that conjunct reads) -- cases
+                        agreeing on all four are the same test. `none` keeps
+                        one case per reachable state, which is exact and very
+                        large. This is a DEDUPE, never a trim: no case is
+                        dropped for fitting a budget, and the collapsed count
+                        is reported either way.
+  --negative-action ACTION
+                        Negate exactly these actions, overriding the automatic
+                        selection. By default an action is negated when it
+                        writes a variable some guard reads -- which excludes
+                        actions that MODEL a refusal, because the complement
+                        of a refusal is an acceptance and asserting it
+                        rejected would be a false rejection. Repeatable.
+  --port-cases {off,with-positive,only}
+                        PA-03. Also emit one case set PER PORT declared in the
+                        manifest under `effects.components.<C>.ports.<P>`,
+                        with `effects.actions` saying which actions drive
+                        which port. A port case narrows the assertion to the
+                        port's own REGION -- the variables written only by
+                        actions that declare it -- and says whether the action
+                        must DRIVE the port or LEAVE IT ALONE. `with-positive`
+                        appends the port sets to whatever the positive and
+                        negative passes produced; `only` emits the port sets
+                        alone. Off by default, for the same reason
+                        `--negative-cases` is: this changes what a corpus
+                        contains.
+  --port-dedupe {none,region}
+                        How port cases are collapsed. `region` keeps one case
+                        per (port, action, expectation, arguments, and the
+                        port region before and after) -- cases agreeing on all
+                        of those make the same claim about the boundary.
+                        `none` keeps one per source case. A DEDUPE, never a
+                        trim: both counts are printed.
+  --port-manifest PORT_MANIFEST
+                        Read port declarations from this manifest instead of
+                        the one resolved beside the module. Useful when a case
+                        module extends a view whose manifest is the one
+                        carrying the declarations.
+  --coverage-json COVERAGE_JSON
+                        Also write the aggregated case-module coverage report
+                        here, as JSON. RC-01: the path MUST resolve inside the
+                        generated package root -- the report is an artifact OF
+                        the corpus it describes, and the `spec_tree` port that
+                        declares this action's writes covers the generated
+                        tree, not an arbitrary destination.
+
+### retire ticket --help
+usage: tla-spec-dev retire ticket [-h] [--workflow-name WORKFLOW_NAME]
+                                  [--ticket-root TICKET_ROOT] [--force]
+                                  ticket_name
+
+Validate status: retired plus its owner decision, archive any active ticket
+workspace as unaccepted work, and write the canonical append-only receipt.
+This is not close ticket: it runs no validation or complexity ledger and
+promotes no semantic state.
+
+positional arguments:
+  ticket_name           Ticket id from desired_program_model/ticket_plan.yaml.
+
+options:
+  -h, --help            show this help message and exit
+  --workflow-name WORKFLOW_NAME
+                        Override ticket_plan.yaml name/status.workflow for the
+                        history directory.
+  --ticket-root TICKET_ROOT
+                        Ticket directory root, relative to spec root by
+                        default.
+  --force               Warn instead of refusing on retirement-declaration and
+                        prior-receipt gates. SKILL_GATES=off means the same.
+
+### run effect-conformance --help
+usage: tla-spec-dev run effect-conformance [-h] [--ticket TICKET]
+                                           [--target TARGET]
+                                           [--cases-dir CASES_DIR]
+                                           [--mapping MAPPING]
+                                           [--work-dir WORK_DIR] [--out OUT]
+                                           [--format {text,json}]
+
+Execute component adapters in a sandbox (temp dirs, fake transports, recorded
+boundaries), collect the side effects that actually crossed a boundary, and
+diff them against the ports declared in actions.yml / spec_manifest.yaml. An
+observed effect with no declared port is a GAP; a declared port no case
+exercises is DEAD MODEL SURFACE. Both are recorded AND fail the command.
+Nothing suppresses a gap report -- there is no justification, waiver, or
+override flag, and out-of-contract justifications were withdrawn 2026-07-18.
+
+options:
+  -h, --help            show this help message and exit
+  --ticket TICKET       Use this ticket's current/ spec directory.
+  --target TARGET       Explicit spec directory carrying the effect
+                        declarations.
+  --cases-dir CASES_DIR
+                        Generated spec-unit case package directory.
+  --mapping MAPPING     Adapter mapping TOML/YAML. Defaults to target
+                        case_adapters.toml.
+  --work-dir WORK_DIR   Work directory for sandboxed adapter execution.
+  --out OUT             Write the JSON diff report here (ticket results/
+                        evidence).
+  --format {text,json}  Output format.

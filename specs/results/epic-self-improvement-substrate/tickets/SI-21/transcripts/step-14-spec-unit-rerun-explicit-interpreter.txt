@@ -1,0 +1,14 @@
+### RE-RUN under an EXPLICIT interpreter (/opt/homebrew/opt/python@3.14/bin/python3.14), no 'timeout' alias-bypass
+
+--- A: --ticket SI-17 (two targets resolved)
+9 failed, 47 passed in 19.27s
+spec-unit target: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current
+spec-unit target: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/tickets/SI-17/desired
+running pytest:/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current/tests -q
+rc=1
+
+--- B: --target specs/tickets/SI-17/desired (that second target alone)
+7 failed, 46 passed in 13.16s
+spec-unit target: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/tickets/SI-17/desired
+running pytest:/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/tickets/SI-17/desired: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/tickets/SI-17/desired/tests -q
+rc=1

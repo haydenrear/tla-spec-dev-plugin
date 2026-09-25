@@ -1,0 +1,42 @@
+### retire ticket FX-1 -- plan does NOT mark it retired
+ERROR: cannot retire ticket:
+- ticket FX-1 is not marked retired: status=done
+rc=1
+
+### retire ticket FX-1 --force
+WARNING (forced): ticket FX-1 is not marked retired: status=done
+WARNING (forced): ticket FX-1 already has a successful close receipt: specs/.history/desired-ticket-workflow/ticket-000-FX-1/manifest.json
+Traceback (most recent call last):
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/skills/spec-double-2/scripts/tla_spec_dev.py", line 899, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/skills/spec-double-2/scripts/tla_spec_dev.py", line 895, in main
+    return int(handler(args))
+               ~~~~~~~^^^^^^
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/skills/spec-double-2/scripts/tla_spec_dev.py", line 243, in run_retire_ticket
+    result = create_ticket_retirement_entry(
+        repo_root=Path(args.repo_root).resolve(),
+    ...<4 lines>...
+        force=args.force,
+    )
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/skills/spec-double-2/scripts/spec_evolution.py", line 1923, in create_ticket_retirement_entry
+    manifest = _retirement_manifest_contract(
+        repo_root=repo_root,
+    ...<4 lines>...
+        receipt=expected_receipt,
+rc=1
+    result = create_ticket_retirement_entry(
+        repo_root=Path(args.repo_root).resolve(),
+    ...<4 lines>...
+        force=args.force,
+    )
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/skills/spec-double-2/scripts/spec_evolution.py", line 1923, in create_ticket_retirement_entry
+    manifest = _retirement_manifest_contract(
+        repo_root=repo_root,
+    ...<4 lines>...
+        receipt=expected_receipt,
+    )
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/skills/spec-double-2/scripts/spec_evolution.py", line 586, in _retirement_manifest_contract
+    "retirement": ticket["retirement"],
+                  ~~~~~~^^^^^^^^^^^^^^
+KeyError: 'retirement'

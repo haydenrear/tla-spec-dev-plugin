@@ -18,7 +18,13 @@ closing paren is confused by quotes in the heredoc body -- `.strip('"\'')` is
 enough -- so the whole script died with `unexpected EOF while looking for
 matching '"'` at its last line, pointing nowhere near the cause.
 
-Usage: grant.py <evals-dir> <case-glob>   ->   e.g. "Bash Edit Write"
+Usage: grant.py <evals-dir> [<case-glob> ...]   ->   e.g. "Bash Edit Write"
+
+SEVERAL GLOBS, because `--case` is repeatable (SI-21). `run.sh` used to keep
+only the LAST `--case` for this derivation while passing every one of them
+through to the CLI, so a multi-case run derived its grant from one case and the
+others could be handed a short grant -- which is the exact 0.00-reported-as-a-
+skill-failure this file exists to prevent. A case matching ANY glob is selected.
 """
 
 from __future__ import annotations
@@ -33,7 +39,7 @@ GATED = {"Bash", "Write", "Edit", "WebFetch"}
 
 def main() -> int:
     root = pathlib.Path(sys.argv[1])
-    glob = sys.argv[2] if len(sys.argv) > 2 else "*"
+    globs = sys.argv[2:] or ["*"]
 
     wanted: set[str] = set()
     selected: list[str] = []
@@ -41,7 +47,7 @@ def main() -> int:
         text = case.read_text(encoding="utf-8", errors="replace")
         match = re.search(r"^name:\s*(\S+)", text, re.M)
         name = match.group(1).strip("\"'") if match else case.parent.name
-        if not fnmatch.fnmatch(name, glob):
+        if not any(fnmatch.fnmatch(name, g) for g in globs):
             continue
         selected.append(name)
         declared = re.search(r"allowed_tools:\s*\[([^\]]*)\]", text)

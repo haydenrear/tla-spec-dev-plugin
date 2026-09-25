@@ -1,0 +1,301 @@
+### CASE B: --ticket SI-17 (workspace EXISTS), --validate-only
+$ tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket SI-17 --validate-only
+......FF..F...............FFFF..................F..F....                 [100%]
+=================================== FAILURES ===================================
+_______________ test_the_model_has_the_expected_command_actions ________________
+
+    def test_the_model_has_the_expected_command_actions() -> None:
+        """RC-01 added GenerateCases and CloseTicketWeakened; 2026-08-04 removed one.
+    
+        RC-01 (MF-026 G-6 and the owner's guard-weakening decision): GenerateCases
+        -- case-module generation, this epic's flagship feature, which had no
+        action, no port and no CLI subcommand at all -- and CloseTicketWeakened,
+        the close taken around the precondition TLC proves over the whole state
+        space.
+    
+        2026-08-04 (owner direction): AnalyzeArchitecture REMOVED with the static
+        architecture scanners. The count going DOWN is the first time this figure
+        has moved in that direction, and it is asserted here in both directions --
+        the action is absent, and the total is asserted -- so a reinstatement is a
+        deliberate edit rather than a silent one.
+    
+        CA-04 removed RunKillTest with the mutation kill test (RM-03-DF-05), taking
+        the count 16 -> 15. That is the SECOND time this figure has gone down. The
+        count was updated deliberately and both directions are still asserted: this
+        test tracks the model's action set by construction, so an action removed
+        from the model must leave it, and the removal is recorded here rather than
+        absorbed silently.
+        """
+        actions = model_actions()
+>       assert len(actions) == 15, sorted(actions)
+E       AssertionError: ['AnalyzeComplexity', 'AnalyzeCorpus', 'BuildSkillCli', 'CloseTicket', 'CloseTicketWeakened', 'GenerateCases', ...]
+E       assert 18 == 15
+E        +  where 18 = len({'AnalyzeComplexity', 'AnalyzeCorpus', 'BuildSkillCli', 'CloseTicket', 'CloseTicketWeakened', 'GenerateCases', ...})
+
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:82: AssertionError
+_______________________ test_every_model_action_is_bound _______________________
+
+    def test_every_model_action_is_bound() -> None:
+        missing = model_actions() - binding_labels()
+>       assert not missing, (
+            f"model actions with no case_adapters.toml binding: {sorted(missing)} "
+            "-- the audit's G5 desync, reintroduced"
+        )
+E       AssertionError: model actions with no case_adapters.toml binding: ['SktCheck', 'SktStatus', 'SktTicketSweep'] -- the audit's G5 desync, reintroduced
+E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
+
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:92: AssertionError
+____________ test_record_budgets_adapter_emits_defaults_and_prompt _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_record_budgets_adapter_em0')
+
+    def test_record_budgets_adapter_emits_defaults_and_prompt(tmp_path: Path) -> None:
+        adapters = load_adapters()
+        budgets = load_budgets_module(adapters)
+    
+        result = adapters.RecordBudgetsAdapter().apply(tmp_path, spec_root="budget_specs", name="BudgetProg")
+    
+>       assert result["accepted"] is True, result["stderr"]
+E       AssertionError: 
+E       assert False is True
+
+specs/current/tests/test_tla_spec_dev_budgets_adapter.py:35: AssertionError
+________ test_close_records_delta_jointly_with_retention_and_refinement ________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_close_records_delta_joint0')
+
+    def test_close_records_delta_jointly_with_retention_and_refinement(tmp_path: Path) -> None:
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-140"
+        )
+
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/current/production_adapters.py:1824: in apply
+    set_ticket_model(target_repo, spec_root, ticket_id, BASELINE_FIXTURE_MODEL)
+specs/current/production_adapters.py:652: in set_ticket_model
+    (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:555: in write_text
+    return PathBase.write_text(self, data, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_abc.py:651: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_close_records_delta_joint0/project_specs/tickets/CLI-140/current/MC.cfg')
+mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_close_records_delta_joint0/project_specs/tickets/CLI-140/current/MC.cfg'
+
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
+_______________ test_unfilled_ledger_template_refuses_the_close ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_unfilled_ledger_template_0')
+
+    def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
+        """Silence is not an acceptable substitute for the record."""
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-141"
+        )
+
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/current/production_adapters.py:1824: in apply
+    set_ticket_model(target_repo, spec_root, ticket_id, BASELINE_FIXTURE_MODEL)
+specs/current/production_adapters.py:652: in set_ticket_model
+    (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:555: in write_text
+    return PathBase.write_text(self, data, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_abc.py:651: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_unfilled_ledger_template_0/project_specs/tickets/CLI-141/current/MC.cfg')
+mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_unfilled_ledger_template_0/project_specs/tickets/CLI-141/current/MC.cfg'
+
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
+_____ test_decrease_with_degraded_validated_refactor_evidence_is_rejected ______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_decrease_with_degraded_va0')
+
+    def test_decrease_with_degraded_validated_refactor_evidence_is_rejected(tmp_path: Path) -> None:
+        """The anti-gaming rule on the amended basis (CD-09): a reduction whose
+        descriptor comparison is stale cannot close."""
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-142"
+        )
+
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/current/production_adapters.py:1824: in apply
+    set_ticket_model(target_repo, spec_root, ticket_id, BASELINE_FIXTURE_MODEL)
+specs/current/production_adapters.py:652: in set_ticket_model
+    (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:555: in write_text
+    return PathBase.write_text(self, data, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_abc.py:651: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_decrease_with_degraded_va0/project_specs/tickets/CLI-142/current/MC.cfg')
+mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_decrease_with_degraded_va0/project_specs/tickets/CLI-142/current/MC.cfg'
+
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
+_______ test_validated_decrease_with_not_run_fuzzing_members_is_recorded _______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_validated_decrease_with_n0')
+
+    def test_validated_decrease_with_not_run_fuzzing_members_is_recorded(tmp_path: Path) -> None:
+        """CD-09, the amended licensing: TLC green before/after + behavior tests +
+        descriptor comparison license a decrease; kill_rate/effect_conformance/
+        external_coverage stay recorded as the honest `not_run`, never gating."""
+        adapters = load_adapters()
+>       result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-143"
+        )
+
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/current/production_adapters.py:1824: in apply
+    set_ticket_model(target_repo, spec_root, ticket_id, BASELINE_FIXTURE_MODEL)
+specs/current/production_adapters.py:652: in set_ticket_model
+    (model_dir / "MC.cfg").write_text(FIXTURE_CFG, encoding="utf-8")
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:555: in write_text
+    return PathBase.write_text(self, data, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_abc.py:651: in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_validated_decrease_with_n0/project_specs/tickets/CLI-143/current/MC.cfg')
+mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_validated_decrease_with_n0/project_specs/tickets/CLI-143/current/MC.cfg'
+
+../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
+_____________ test_open_ticket_adapter_drives_cli_ticket_workspace _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_open_ticket_adapter_drive0')
+
+    def test_open_ticket_adapter_drives_cli_ticket_workspace(tmp_path: Path) -> None:
+        adapters = load_adapters()
+        result = adapters.OpenTicketAdapter().apply(tmp_path, spec_root="project_specs", ticket_id="CLI-124")
+    
+>       assert result["accepted"] is True
+E       assert False is True
+
+specs/current/tests/test_tla_spec_dev_ticket_adapter.py:18: AssertionError
+_____________ test_update_ticket_current_executes_case_end_to_end ______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_update_ticket_current_exe0')
+
+    def test_update_ticket_current_executes_case_end_to_end(tmp_path: Path) -> None:
+        pa = load_adapters()
+        adapter = pa.UpdateTicketCurrentAdapter()
+        case = current_case()
+        assert adapter.can_run(case)[0]
+>       result = adapter.run(case, work_dir=tmp_path)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+specs/current/production_adapters.py:113: in run
+    _mark_ticket_tree(target_repo, spec_root, ticket, self.ready_tree, self.ready_marker)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+target_repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-123/test_update_ticket_current_exe0/target-repo')
+spec_root = 'specs', ticket = 'cli_entrypoint', tree = 'current'
+marker = '\\* tla-spec-dev-adapter: CURRENT-READY'
+
+    def _mark_ticket_tree(target_repo: Path, spec_root: str, ticket: str, tree: str, marker: str) -> None:
+        """Record an agent edit into a ticket-local model tree.
+    
+        Appends `marker` to every non-MC `.tla` in `tickets/<ticket>/<tree>`. This
+        is the observable trace of the modelled agent step; `project_ticket_state`
+        reads it back. Raises rather than silently no-op'ing when the tree has no
+        model, because a ticket that cannot be readied is a before-state that was
+        not actually built.
+        """
+        model_dir = target_repo / spec_root / "tickets" / ticket / tree
+        marked = False
+        for tla in sorted(model_dir.glob("*.tla")):
+            if tla.name.startswith("MC"):
+                continue
+            text = tla.read_text(encoding="utf-8")
+            if marker not in text:
+                tla.write_text(text.rstrip("\n") + "\n" + marker + "\n", encoding="utf-8")
+            marked = True
+        if not marked:
+>           raise BeforeStateUnreachable(f"ticket {ticket!r} has no {tree} model to mark ready")
+E           adapter_case_runtime.BeforeStateUnreachable: ticket 'cli_entrypoint' has no current model to mark ready
+
+specs/current/adapter_case_runtime.py:388: BeforeStateUnreachable
+=========================== short test summary info ============================
+FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_the_model_has_the_expected_command_actions
+FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
+FAILED specs/current/tests/test_tla_spec_dev_budgets_adapter.py::test_record_budgets_adapter_emits_defaults_and_prompt
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_close_records_delta_jointly_with_retention_and_refinement
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_decrease_with_degraded_validated_refactor_evidence_is_rejected
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_validated_decrease_with_not_run_fuzzing_members_is_recorded
+FAILED specs/current/tests/test_tla_spec_dev_ticket_adapter.py::test_open_ticket_adapter_drives_cli_ticket_workspace
+FAILED specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_current_executes_case_end_to_end
+9 failed, 47 passed in 13.72s
+spec root: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs
+spec-unit target: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current
+spec-unit target: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/tickets/SI-17/desired
+running pytest:/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current: uv run --with pytest -m pytest /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current/tests -q
+rc=1

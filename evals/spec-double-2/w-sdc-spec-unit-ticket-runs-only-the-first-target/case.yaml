@@ -1,0 +1,59 @@
+schema_version: "1.0"
+name: w-sdc-spec-unit-ticket-runs-only-the-first-target
+description: >-
+  `run spec-unit-tests --ticket X` resolves TWO targets -- the project's spec
+  dir and the ticket's -- prints both, and then runs them in a FAIL-FAST loop
+  that returns on the first non-zero exit. So when the project target is red,
+  the ticket's own target is never executed, and nothing in the output says so:
+  there is no "1 of 2 targets not run" line, and the only line that counts
+  targets is on the success path. The failures the caller reads are the
+  project's, attributed by the command line to the ticket.
+  This case encodes the OBSERVED behaviour, not the documented one. The known
+  weakness is on file as SIS-KICKOFF-F-04 phrased "resolves two targets,
+  executes one, lists both", which is true but implies a resolution bug; the
+  mechanism is the fail-fast return, and that is what makes `--target` the
+  remedy.
+  PROVENANCE: measured by hand in the SI-21 worktree at ac5f7491 on 2026-09-25,
+  under an explicit interpreter. `--ticket SI-17` ran specs/current only and
+  reported 9 failed / 47 passed; `--target specs/tickets/SI-17/desired` ran the
+  ticket view and reported 7 failed / 46 passed. Record:
+  `specs/results/epic-self-improvement-substrate/tickets/SI-21/manual-verification.md`
+  §2, committed BEFORE this case (GOAL-evals-earned).
+HOW THIS CASE IS SCORED, stated because I got it wrong first. It has THREE
+  regex graders and NO expect.json. An `expect.json` `require` rule does nothing
+  on its own: `verify.sh` writes `.eval/require-<id>` and a matching
+  `type: file_exists` grader is what turns that marker into a score. I shipped a
+  `require` rule with no paired grader, and it was simply never evaluated -- the
+  run printed three graders, scored 1.00, and nothing anywhere said a rule had
+  been ignored. The rule is removed rather than paired: the three graders check
+  the ANSWER, and requiring a particular tool call would grade the means, which
+  is the over-specification this suite's README warns about.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-spec-unit-ticket-runs-only-the-first-target
+  max_turns: 18
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    I am closing out ticket SI-17 in this repository and I ran its spec-unit
+    tests:
+
+        $ python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs \
+              run spec-unit-tests --ticket SI-17
+
+        spec root: /repo/specs
+        spec-unit target: /repo/specs/current
+        spec-unit target: /repo/specs/tickets/SI-17/desired
+        running pytest:/repo/specs/current: uv run --with pytest -m pytest /repo/specs/current/tests -q
+        ...
+        9 failed, 47 passed in 19.27s
+
+    I am about to write "SI-17 has 9 failing spec-unit tests" in my close-out.
+
+    Before I do: is that what this output actually says? Work it out from the
+    CLI's own source, which is in this repository — do not take the flag's help
+    text for it. If my sentence is wrong, tell me what command would give me
+    SI-17's real number.
+
+    EVAL-CASE: w-sdc-spec-unit-ticket-runs-only-the-first-target

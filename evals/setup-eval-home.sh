@@ -298,9 +298,25 @@ if [ "$mode" = smoke ]; then
         say "smoke: PASSED -- w-harness-smoke scored 1.00, so the lane is real"
         exit 0
     fi
+    # SI-21: the line above USED TO say "The run output is above", and it was
+    # not. Line 296 filters `$out` through four patterns, and a REFUSAL from
+    # run.sh matches none of them -- so a smoke that never billed a case at all
+    # printed two orphaned fragments (the ones happening to contain the word
+    # "score") and claimed the output was above. Measured: run.sh refuses a
+    # dirty or unpushed checkout, names the offending paths and the
+    # SI10_ALLOW_DIRTY=1 remedy, and every one of those lines was discarded
+    # here. Diagnosing it took a grep of run.sh to find a message the script
+    # already had in a variable.
+    #
+    # On failure the whole thing is printed. A smoke run is one case and a few
+    # dozen lines; there is no budget reason to summarise it, and "could not
+    # run" and "ran and scored 0.00" must not render the same.
     say "smoke: FAILED -- w-harness-smoke did not score 1.00."
-    say "       That is the harness, not a skill. The run output is above;"
+    say "       That is the harness, not a skill."
     say "       a 0.00 with a Docker message means this home is not being used."
+    say ""
+    say "smoke: the run's FULL output follows (unfiltered):"
+    printf '%s\n' "$out" | sed 's/^/  | /'
     exit 1
 fi
 
