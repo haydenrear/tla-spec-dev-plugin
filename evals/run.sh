@@ -227,8 +227,8 @@ toolchain_ref=''
 args=()
 while [ $# -gt 0 ]; do
     case "$1" in
-        --case) case_globs+=("${2:-*}"); args+=("$1" "$2"); shift 2 ;;
-        --case=*) case_globs+=("${1#--case=}"); args+=("$1"); shift ;;
+        --case) case_globs+=("${2:-*}"); shift 2 ;;
+        --case=*) case_globs+=("${1#--case=}"); shift ;;
         # CONSUMED HERE, NOT PASSED ON: `claude plugin eval` has no such flag,
         # and passing it through would fail the run with an unknown-option error
         # that says nothing about toolchains.
@@ -563,13 +563,34 @@ set +e
 #   evals/run.sh: line 250: grant_args[@]: unbound variable
 #
 # which reads as a broken runner rather than as "that glob matched nothing".
-claude plugin eval "$view" \
-    --ablation none \
-    --runs 1 \
-    --trust-plugin \
-    ${grant_args[@]+"${grant_args[@]}"} \
-    ${args[@]+"${args[@]}"}
-status=$?
+# ONE INVOCATION PER SELECTOR (SI-21). `claude plugin eval` honours only the
+# LAST `--case` it is given: a run passing four of them printed one table with
+# one case in it. This script used to append every `--case` to `args` and hand
+# them all over, so `--case A --case B` silently ran B and dropped A -- the
+# selector was accepted, acknowledged, and discarded. Looping here makes what
+# runs match what was asked for and what the selection line above reports.
+#
+# Only this call is in the loop. Staging the view and materialising the
+# toolchain are done once, above, because they are expensive and identical
+# across selectors.
+status=0
+for _sel in "${case_globs[@]}"; do
+    _sel_args=()
+    # A bare `*` is "the whole suite", which the CLI expresses by being passed
+    # no --case at all.
+    [ "$_sel" = '*' ] || _sel_args=(--case "$_sel")
+    claude plugin eval "$view" \
+        --ablation none \
+        --runs 1 \
+        --trust-plugin \
+        ${grant_args[@]+"${grant_args[@]}"} \
+        ${_sel_args[@]+"${_sel_args[@]}"} \
+        ${args[@]+"${args[@]}"}
+    _rc=$?
+    # Keep the FIRST non-zero: a later green selector must not erase an earlier
+    # red one.
+    [ "$_rc" -ne 0 ] && [ "$status" -eq 0 ] && status=$_rc
+done
 set -e
 
 # ----------------------------------------------------------- undecided
