@@ -174,7 +174,7 @@ Fixing it moved them **0.75→1.00, 0.88→1.00, 0.43→0.86**.
 
 | | |
 | --- | --- |
-| repo suite | 10 failed / 1852 passed / 6 skipped — **identical to baseline by name** |
+| repo suite | 10 failed / **1853** passed / 6 skipped — **identical to baseline by name**. That is the FULL suite (24m10s, `test_score_tools.py` included). The assignment's `repository_unit` adds `--ignore=tests/test_score_tools.py` and yields **10 failed / 1726 passed / 6 skipped** in 14m19s, re-measured at `ac5f7491` on 2026-09-25 — a different command, not a regression. SI-21 hit this and could not reconcile it; quote the command with the count. |
 | test graphs | sktSurface 318/318, sktHooks 167/167 |
 | ledger | 151 rows; 17 EA findings this session, 12 fixed, 5 filed as issues |
 | disk | 59 GB free, 17% used |
