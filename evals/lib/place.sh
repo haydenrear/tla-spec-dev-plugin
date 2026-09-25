@@ -64,14 +64,22 @@ case_name="${EVAL_CASE:-}"
 # sandbox's, and this hook's working directory is <sandbox>/home/cwd, so the
 # agent's home is its parent. Derive it; never assume $HOME means the same thing
 # on both sides of a sandbox boundary.
+# AND THE HARNESS GETS THERE FIRST. It provisions the sandbox home with .aws,
+# .cache, .claude, .config, .git and .local already in place, so
+# $agent_home/.cache/uv EXISTS as a real directory before this hook runs. A
+# symlink cannot be planted over it and an existence guard against it skips
+# silently -- which it did, twice, printing nothing either time.
+#
+# So the contents are merged into the directory that is already there. 1.8M per
+# run, which is the price of not caring what the harness pre-creates.
 _agent_home=$(CDPATH= cd -- ".." 2>/dev/null && pwd) || _agent_home=""
-if [ -n "${SI10_CHECKOUT:-}" ] && [ -d "$SI10_CHECKOUT/.toolchain/uv-cache" ] \
-   && [ -n "$_agent_home" ] && [ ! -e "$_agent_home/.cache/uv" ]; then
-    if mkdir -p "$_agent_home/.cache" 2>/dev/null \
-       && ln -s "$SI10_CHECKOUT/.toolchain/uv-cache" "$_agent_home/.cache/uv" 2>/dev/null; then
-        echo "place: uv cache linked at $_agent_home/.cache/uv, so uv scripts resolve offline"
+_uv_src="${SI10_CHECKOUT:-}/.toolchain/uv-cache"
+if [ -n "${SI10_CHECKOUT:-}" ] && [ -d "$_uv_src" ] && [ -n "$_agent_home" ]; then
+    if mkdir -p "$_agent_home/.cache/uv" 2>/dev/null \
+       && cp -R "$_uv_src/." "$_agent_home/.cache/uv/" 2>/dev/null; then
+        echo "place: uv cache seeded into $_agent_home/.cache/uv (uv scripts resolve offline)"
     else
-        echo "place: WARNING -- could not link the uv cache; uv scripts will try the network"
+        echo "place: WARNING -- could not seed the uv cache; uv scripts will try the network"
     fi
 fi
 
