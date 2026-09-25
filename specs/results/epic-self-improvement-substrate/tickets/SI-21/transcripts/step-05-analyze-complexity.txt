@@ -1,0 +1,118 @@
+### analyze complexity on specs/current/TlaSpecDevCli.tla
+$ tla_spec_dev.py analyze complexity specs/current/TlaSpecDevCli.tla specs/current/MC.cfg
+analyze complexity -- TlaSpecDevCli (complexity descriptor)
+  spec:     /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current/TlaSpecDevCli.tla
+  config:   /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current/MC.cfg
+  manifest: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current/spec_manifest.yaml
+
+This is a DESCRIPTOR: every figure below is [MEASURED] -- parsed from this
+spec + cfg. It states facts about the model and makes no suggestions.
+
+[MEASURED] Dimension table
+variable            domain                                                        cardinality  source         note
+------------------  ------------------------------------------------------------  -----------  -------------  -------------------------------------------------------------------------------------------------------------
+setup_phase         0..5                                                          6            TypeInvariant
+spec_root           SpecRoots \cup {NoRoot}                                       3            TypeInvariant
+ticket_state        [Tickets -> 0..6]                                             343          TypeInvariant  7^3 total functions
+lastCommand         (unconstrained)                                               unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
+result              (unconstrained)                                               unknown      -              unconstrained by TypeInvariant / the configured invariants (resolved transitively) -- excluded from the bound
+complexity_gate     {"unknown", "pass", "fail"}                                   3            TypeInvariant
+corpus_gate         {"unknown", "pass", "fail"}                                   3            TypeInvariant
+effect_conformance  {"unknown", "clean", "gaps", "dead_surface", "unobservable"}  5            TypeInvariant
+skt_answer          SktAnswers                                                    unknown      TypeInvariant  domain found but not resolvable -- excluded from the bound (explicit UNKNOWN)
+  (domain sources merge per-variable: TypeInvariant, then TypeOK, then the
+  configured invariants -- first source that resolves wins. What the resolver
+  can and cannot see: references/architecture_tractability.md,
+  'What The Domain Resolver Can And Cannot See'.)
+
+[MEASURED] State-space upper bound
+  bound = 277,830  [INCOMPLETE: product over 6 of 9 declared variables; domains from TypeInvariant]
+  this number is a LOWER BOUND on the declared-representation bound,
+  not the bound: it cannot be read as a percent of max_state_space_bound, and
+  'within cap' is NOT a claim this scan can make about it.
+  excluded (no resolvable domain): lastCommand, result, skt_answer
+  dominant dimensions:
+    ticket_state: 343 (46.6% of the bound in log space)
+    setup_phase: 6 (14.3% of the bound in log space)
+    effect_conformance: 5 (12.8% of the bound in log space)
+
+[MEASURED] Variables x actions read/write matrix
+  (actions = top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions)
+variable            BuildSkillCli  InstallLocalCli  ScaffoldProject  RecordBudgets  ScaffoldWorkflow  OpenTicket  UpdateTicketDesired  UpdateTicketCurrent  AnalyzeComplexity  AnalyzeCorpus  GenerateCases  RunEffectConformance  RunSpecUnitTests  CloseTicket  CloseTicketWeakened  SktStatus  SktCheck  SktTicketSweep  Stutter
+------------------  -------------  ---------------  ---------------  -------------  ----------------  ----------  -------------------  -------------------  -----------------  -------------  -------------  --------------------  ----------------  -----------  -------------------  ---------  --------  --------------  -------
+setup_phase         rw             rw               rw               rw             rw                r           .                    .                    r                  r              r              r                     r                 r            r                    .          .         .               .
+spec_root           .              .                w                r              r                 r           .                    .                    r                  r              r              r                     r                 r            r                    .          .         .               .
+ticket_state        .              .                .                .              .                 rw          rw                   rw                   .                  .              .              .                     rw                rw           rw                   .          .         .               .
+lastCommand         w              w                w                w              w                 w           w                    w                    w                  w              w              w                     w                 w            w                    w          w         w               .
+result              w              w                w                w              w                 w           w                    w                    w                  w              w              w                     w                 w            w                    w          w         w               .
+complexity_gate     .              .                .                .              .                 .           .                    .                    w                  .              .              .                     .                 .            .                    .          .         .               .
+corpus_gate         .              .                .                .              .                 .           .                    .                    .                  w              .              .                     w                 .            .                    .          .         .               .
+effect_conformance  .              .                .                .              .                 .           .                    .                    .                  .              .              w                     w                 .            .                    .          .         .               .
+skt_answer          .              .                .                .              .                 .           .                    .                    .                  .              .              .                     .                 .            .                    rw         rw        rw              .
+
+[MEASURED] Near-decomposability
+  graph modularity Q = 0.003 over the variable interaction graph
+  (weight of an edge = number of actions touching both variables)
+  C1: complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state  (7 variables, 18 actions)
+  C2: corpus_gate, effect_conformance  (2 variables, 3 actions)
+  candidate port-crossing actions:
+    AnalyzeCorpus crosses C1, C2
+    RunEffectConformance crosses C1, C2
+    RunSpecUnitTests crosses C1, C2
+
+[MEASURED] Dense rows and columns of the R/W matrix
+  dense rows (god-state signature -- variable touched by more than half the actions):
+    lastCommand touched by 18/19 actions
+    result touched by 18/19 actions
+    setup_phase touched by 13/19 actions
+    spec_root touched by 11/19 actions
+  dense columns (action touching more than half the variables):
+    AnalyzeComplexity
+    AnalyzeCorpus
+    CloseTicket
+    CloseTicketWeakened
+    OpenTicket
+    RunEffectConformance
+    RunSpecUnitTests
+
+[MEASURED] Invariant coverage (aliased/composed invariants resolved transitively)
+  variables no configured invariant reads:
+    lastCommand
+    result
+
+[MEASURED] Justification linkage
+  every variable has a recorded justification linkage.
+
+  A poor score is not a verdict. Some components score badly and still need to
+  exist in that form -- performance paths, protocol-mandated shapes, irreducible
+  domain complexity. This output is evidence for the owner, not a decision.
+  Before recording ANY complexity reduction as a result: read the transition-level
+  diff. A generated-states drop at constant distinct states is a RED FLAG (a
+  deleted self-loop), not a win -- the distinct-state gate cannot see it.
+
+[MEASURED] Complexity thresholds (advisory -- warnings only)
+  source: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/current/spec_manifest.yaml
+    max_state_space_bound: 1,000,000
+    max_distinct_states: 500,000
+    max_component_variables: 6
+    max_component_actions: 8
+  max_state_space_bound compares against the STATIC declared-representation bound above.
+  max_distinct_states compares against ACTUAL reachable states and is checked only once
+  TLC has measured them (--tlc-report); the two are not interchangeable.
+
+  COMPLEXITY WARNINGS -- these are FINDINGS. They do NOT block promotion,
+  do NOT refuse case generation, and do NOT change the exit code. Complexity is a
+  scanner, not a gate (references/architecture_tractability.md, 'Advisory, Not
+  Blocking'). The owner decides, with the user, whether to act on each one.
+
+  WARNING: state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap
+
+  WARNING: component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6
+
+  WARNING: component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8
+
+  `analyze complexity` exits 0 whenever it can analyze the model -- a complex model
+  is a finding, not a failure. It exits nonzero ONLY when the model cannot be
+  analyzed at all (e.g. an unresolved module hierarchy); that is 'I could not
+  measure this', which is distinct from 'this is complex'.
+rc=0

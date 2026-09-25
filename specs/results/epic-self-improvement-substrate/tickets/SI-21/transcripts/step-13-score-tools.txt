@@ -1,0 +1,68 @@
+### score_tools.py -- NOTE: the issue cites scripts/score_tools.py; real path is examples/validation/scorecards/score_tools.py
+### --help
+Scorecard scaffold, schema check, index, and history reader (scorecard_version 3).
+
+Deliberately lives under examples/validation/ rather than scripts/: scripts/**
+is IN MODEL per the plan's representation_scope, and eval harness is not program
+surface. Putting it here keeps the model's surface unchanged.
+
+  python3 score_tools.py scaffold <epic-dir> --example E --arms A,B,C --judges 2
+                                  [--card-version N]
+  python3 score_tools.py serve [--card-version N] [--rubric F] [--out FILE]
+  python3 score_tools.py check <dir-or-file>... [--require-filled]
+  python3 score_tools.py index <epic-dir>
+  python3 score_tools.py history --example E [--root DIR] [--write FILE]
+  python3 score_tools.py audit [--root DIR]
+  python3 score_tools.py seal <dir>...
+  python3 score_tools.py contested [--root DIR] [--example E]
+  python3 score_tools.py scope [--path P ...] [--format text|json]
+
+`contested` and `scope` are RD-01's two additions and they answer the same
+defect at two granularities: A CLAIM READ FORWARD WITHOUT BEING CHECKED.
+
+`contested` computes scoring rule 5 instead of asking a judge to declare it. The
+rule has said since version 1 that a spread greater than 1 across two blind
+judges is contested; nothing ever computed it, every card ever written carries
+`contested = []`, and `index` printed a dash on all four rows of the round where
+D3 came out 2, 2, 3, 4. It also reports a TIER SPLIT -- a dimension where two
+
+### check --help
+usage: score_tools.py check [-h] [--require-filled] [--rubric RUBRIC]
+                            paths [paths ...]
+
+positional arguments:
+  paths
+
+options:
+  -h, --help        show this help message and exit
+  --require-filled  treat an unfilled skeleton as a problem (use at workflow
+                    close)
+  --rubric RUBRIC   check every card against THIS card file. The default
+                    resolves each card against the file for its own
+                    `card_kind`.
+
+### audit --help  (issue warns: --root, NOT a positional path)
+usage: score_tools.py audit [-h] [--root ROOT] [--rubric RUBRIC] [--quiet-ok]
+                            [--verdict-json PATH]
+
+options:
+  -h, --help           show this help message and exit
+  --root ROOT
+  --rubric RUBRIC
+  --quiet-ok           hide the OK lines
+  --verdict-json PATH  Write this run's verdict as JSON: {verdict, reason,
+                       detail}. The `reason` is a stable code an instrument
+                       can assert against without matching on the prose.
+### audit --root specs/results/scorecards  (correct form)
+Traceback (most recent call last):
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/examples/validation/scorecards/score_tools.py", line 110, in <module>
+    import tomllib
+ModuleNotFoundError: No module named 'tomllib'
+rc=1
+
+### audit WITH A POSITIONAL PATH -- the malformed form the issue warns produced a misread finding
+Traceback (most recent call last):
+  File "/Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/examples/validation/scorecards/score_tools.py", line 110, in <module>
+    import tomllib
+ModuleNotFoundError: No module named 'tomllib'
+rc=1

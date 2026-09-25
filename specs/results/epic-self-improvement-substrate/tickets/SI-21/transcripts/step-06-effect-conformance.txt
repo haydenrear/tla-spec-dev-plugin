@@ -1,0 +1,23 @@
+### run effect-conformance --target specs/current
+effect declarations: 15 port(s) from specs/current/spec_manifest.yaml
+effect conformance dead_surface: 0 observed effect(s) over 0 case(s), 15 declared port(s), 0 gap(s), 15 dead port(s), 0 unobservable target(s)
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.case_program_process (process.spawn -> *programs/case-*) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.case_program_write (filesystem.write -> **/programs/case-*) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.case_work_dir_delete (filesystem.delete -> **/case-work/*) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.cli_artifact (filesystem.write -> *) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.cli_artifact_delete (filesystem.delete -> *) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.cli_download (network.http -> *) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.cli_selftest_process (process.spawn -> *tla-spec-dev*) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.corpus_process (process.spawn -> *) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.evidence_report (filesystem.write -> **/results/**) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.git_metadata (process.spawn -> git rev-parse*) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.runner_process (process.spawn -> *run_generated_case_adapters*) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.spec_tree (filesystem.write -> **/specs/**) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.spec_tree_delete (filesystem.delete -> **/specs/**) declared but never observed
+  - DEAD MODEL SURFACE: port TlaSpecDevCliPort.test_process (process.spawn -> *pytest*) declared but never observed
+  - DEAD MODEL SURFACE: port SktPort.worktree_removal (filesystem.delete -> **/wt-*/**) declared but never observed
+
+Model the effect (declare the port), or change the program so it no longer emits it. Remove the dead port, or add a case that exercises it. There is no third option.
+
+NOTE: no --cases-dir supplied, so no adapter was executed and nothing was observed. The dead-surface finding above reflects an empty observation set. Supply --cases-dir to diff against a real corpus.
+rc=1

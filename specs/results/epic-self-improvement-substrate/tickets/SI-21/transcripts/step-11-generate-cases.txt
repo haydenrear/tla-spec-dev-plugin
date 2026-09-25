@@ -1,0 +1,33 @@
+### generate cases on the fixture's Internal.tla
+$ tla_spec_dev.py generate cases specs/current/Internal.tla specs/current/Internal.cfg --out specs/generated/spec-unit
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.9E-16
+149 states generated, 85 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 7.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 4 and the 95th percentile is 3).
+Finished in 00s at (2026-09-25 13:33:48)
+note: --out specs/generated/spec-unit resolved to <FX>/specs/current/specs/generated/spec-unit -- a relative --out is resolved against the SPEC DIRECTORY (<FX>/specs/current), not the current directory (<FX>). Pass an absolute path to control it.
+spec directory: <FX>/specs/current
+generated internal cases from 85 states into <FX>/specs/current/specs/generated/spec-unit/tlc_state_graph_cases
+state projection: none; transition dedupe: none
+per-action coverage recorded to <FX>/specs/current/specs/generated/spec-unit/tlc_state_graph_cases/case_coverage.json
+parameter recovery: 148/148 cases carry arguments, 148 carry a fully recovered argument set, 0 carry at least one UNCHECKED argument (kept, never dropped); audit written to <FX>/specs/current/specs/generated/spec-unit/tlc_state_graph_cases/param_recovery_audit.md
+corpus gate PASS: 148 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: <FX>/specs/current/specs/generated/spec-unit/tlc_state_graph_cases
+
+Distribution per (action, label class) -- 3 stratum/strata:
+  PublishRecord / params:recovered      68   45.9%
+  AcceptRecord / params:recovered       52   35.1%
+  RegisterActor / params:recovered      28   18.9%
+
+Strata that DOMINATE the corpus:
+  PublishRecord / params:recovered      68   45.9%
+  AcceptRecord / params:recovered       52   35.1%
+
+Strata that are STARVED:
+  (none)
+
+Every component is within cap. Largest: component=148
+
+No case was dropped, filtered, sampled, or truncated.
+rc=0

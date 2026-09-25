@@ -1,0 +1,4 @@
+### CASE A: run spec-unit-tests --ticket SI-21 (NO specs/tickets/SI-21 workspace exists)
+$ python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --ticket SI-21
+ERROR: spec-unit target does not exist: /Users/hayde/IdeaProjects/wt-370-eval-ladder-cli/specs/tickets/SI-21/desired
+rc=2

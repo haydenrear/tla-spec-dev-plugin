@@ -1,0 +1,24 @@
+### analyze corpus on the package generate cases just wrote
+corpus gate PASS: 148 internal case(s), cap max_internal_cases_per_component = 200 per component
+source: <FX>/specs/current/specs/generated/spec-unit/tlc_state_graph_cases
+
+Distribution per (action, label class) -- 3 stratum/strata:
+  PublishRecord / params:recovered      68   45.9%
+  AcceptRecord / params:recovered       52   35.1%
+  RegisterActor / params:recovered      28   18.9%
+
+Strata that DOMINATE the corpus:
+  PublishRecord / params:recovered      68   45.9%
+  AcceptRecord / params:recovered       52   35.1%
+
+Strata that are STARVED:
+  (none)
+
+Every component is within cap. Largest: component=148
+
+No case was dropped, filtered, sampled, or truncated.
+rc=0
+
+### analyze corpus on an EMPTY directory (non-vacuity probe)
+ERROR: no generated cases or trace JSON files in /private/tmp/emptycorpus-si21
+rc=1
