@@ -1,0 +1,52 @@
+=== step-27: graph VERDICTS, from each run's OWN fresh summary.json ===
+2026-09-25T22:31:02Z
+(the runner always exits 0 and old passing reports persist in build/validation-reports/)
+
+20260925-222906
+20260925-222843
+
+--- test_graph/build/validation-reports/20260925-222843/summary.json ---
+  graph: None
+  status: passed
+  top keys: ['runId', 'status', 'traceId', 'execution', 'nodes']
+--- test_graph/build/validation-reports/20260925-222906/summary.json ---
+  graph: None
+  status: passed
+  top keys: ['runId', 'status', 'traceId', 'execution', 'nodes']
+
+=== cliWorkflow  (20260925-222843) ===
+Traceback (most recent call last):
+  File "<string>", line 12, in <module>
+    p=a.get("passed"); f=a.get("failed")
+      ^^^^^
+AttributeError: 'list' object has no attribute 'get'
+status: passed  runId: 20260925-222843
+nodes: 2
+
+=== specWorkflow  (20260925-222906) ===
+Traceback (most recent call last):
+  File "<string>", line 12, in <module>
+    p=a.get("passed"); f=a.get("failed")
+      ^^^^^
+AttributeError: 'list' object has no attribute 'get'
+status: passed  runId: 20260925-222906
+nodes: 9
+
+=== cliWorkflow  (20260925-222843)  summary.json ===
+status: passed  runId: 20260925-222843
+  passed   None  assertions 39/39
+  passed   None  assertions 2/2
+TOTAL ASSERTIONS: 41/41 over 2 node(s)
+
+=== specWorkflow  (20260925-222906)  summary.json ===
+status: passed  runId: 20260925-222906
+  passed   None  assertions 2/2
+  passed   None  assertions 5/5
+  passed   None  assertions 2/2
+  passed   None  assertions 26/26
+  passed   None  assertions 9/9
+  passed   None  assertions 7/7
+  passed   None  assertions 8/8
+  passed   None  assertions 3/3
+  passed   None  assertions 12/12
+TOTAL ASSERTIONS: 74/74 over 9 node(s)
