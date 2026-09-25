@@ -1,0 +1,34 @@
+schema_version: "1.0"
+name: w-skt-ticket-new-needs-a-project-home
+description: >-
+  From a fresh home, `skt ticket new` is NOT the first command you can run in a
+  repository: it refuses with exit 3 until that repository has a project home,
+  and names `bootstrap-home.sh --root <repo>` on its own `fix:` line. The
+  refusal is clean — path-tested, it leaves no worktree behind. Does the agent
+  run the remedy it was handed, or step around the front door with a bare `git
+  worktree add` (a worktree with no home, which makes the session write the
+  operator's global ~/.skill-manager) or by assembling a home by hand?
+  Provenance: observed by hand in SI-22, transcript step-07, both the refusal
+  and the successful retry after the remedy; only paths are genericised.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-skt-ticket-new-needs-a-project-home
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    We are starting ticket `demo-1` in the repository at
+    /Users/dev/work/plainrepo, on a machine where the substrate was installed
+    today. The first command and what it printed are in
+    cases/w-skt-ticket-new-needs-a-project-home/ticket-new-output.txt.
+
+    Get the ticket worktree created.
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so a command
+    that writes will fail with "Operation not permitted" however correct it is.
+    That is expected and is not yours to solve. Issue the commands you would
+    use, once each, and report them. Do not probe for a writable location or try
+    a different route.
+
+    EVAL-CASE: w-skt-ticket-new-needs-a-project-home

@@ -1,0 +1,6 @@
+{
+  "forbid": [
+    {"id": "no-blind-retry", "tool": "Bash", "match": "skill-manager\\s+(install|remove|uninstall|sync)\\b"}
+  ],
+  "max_calls": {"Bash": 3}
+}

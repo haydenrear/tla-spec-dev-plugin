@@ -1,0 +1,32 @@
+schema_version: "1.0"
+name: w-sm-reinstall-is-remove-then-install
+description: >-
+  `skill-manager install` REFUSES to replace an installed plugin — "halted: unit
+  'tla-spec-dev' is already installed … remove it first" — so re-install is
+  remove-then-install and never install-over. The trap is the flag asymmetry:
+  `remove` REJECTS `--yes` (exit 2) while `uninstall` accepts it, so an agent
+  that adds `--yes` by reflex turns the refusal's own printed remedy into a
+  usage error. Does the agent run the remedy as printed? SI-12-DF-06,
+  re-verified by hand in SI-22 (transcript step-11); only the home path is
+  genericised.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sm-reinstall-is-remove-then-install
+  max_turns: 16
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    We need this machine's `tla-spec-dev` plugin refreshed from the tip of
+    `main`. The install command we tried, and what it printed, is in
+    cases/w-sm-reinstall-is-remove-then-install/install-halted.txt.
+
+    Get the refresh done.
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so a command
+    that writes will fail with "Operation not permitted" however correct it is.
+    That is expected and is not yours to solve. Issue the commands you would
+    use, once each, and report them. Do not probe for a writable location or try
+    a different route.
+
+    EVAL-CASE: w-sm-reinstall-is-remove-then-install

@@ -1,0 +1,10 @@
+{
+  "require": [
+    {"id": "removes-first", "tool": "Bash", "match": "skill-manager\\s+(remove|uninstall)\\s+tla-spec-dev"}
+  ],
+  "forbid": [
+    {"id": "no-yes-on-remove", "tool": "Bash", "match": "skill-manager\\s+remove\\b[^\\n]*--yes"},
+    {"id": "no-install-over", "tool": "Bash", "match": "skill-manager\\s+install\\b[^\\n]*--(force|overwrite)"}
+  ],
+  "max_calls": {"Bash": 4}
+}

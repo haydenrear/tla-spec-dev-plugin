@@ -1,0 +1,35 @@
+$ skill-manager install git+https://github.com/haydenrear/tla-spec-dev-plugin.git --ref main -y
+→ cloning https://github.com/haydenrear/tla-spec-dev-plugin.git
+→ cloning https://github.com/haydenrear/deploy-cdc
+→ cloning https://github.com/haydenrear/tracing_skill
+✓ resolve: 3 unit(s)
+✓ installed tla-spec-dev
+✓ installed deploy-helm
+✓ installed tracing-observability
+✓ pm: installed uv@0.4.18 → /Users/dev/.skill-manager/pm/uv/0.4.18
+✓ cli: installed tlc2 -> /Users/dev/.skill-manager/bin/cli/tlc2
+✓ cli: installed tla-spec-dev -> /Users/dev/.skill-manager/bin/cli/tla-spec-dev
+✓ cli: installed skt -> /Users/dev/.skill-manager/bin/cli/skt
+✓ cli: installed jinja2-cli[yaml]==0.8.2 via uv tool
+✓ units.lock.toml: wrote 3 unit(s) → /Users/dev/.skill-manager/units.lock.toml
+✓ agents: 2 unit(s) linked into claude, codex, gemini
+✓ tools: 2 already present
+✓ cli: 17 installed
+markdown skill-import violations (2) — fix these references:
+✗   - tla-spec-dev (plugin): evals/skt/w-skt-migration-no-import-edits/fixture/my-skill/SKILL.md
+✗     skill-imports[0] is missing required `reason`; explain why the import exists
+✗   - tla-spec-dev (plugin): evals/git-issue-workflow/w-giw-exit6-is-unreadable-frontmatter/fixture/demo-skill/SKILL.md
+✗     invalid YAML frontmatter: mapping values are not allowed here
+ in 'string', line 2, column 40:
+     ... tion: Use when tidying demo docs: the README, the changelog and  ...
+                                         ^
+
+  ADDED    claude (/Users/dev/.claude.json)  → http://127.0.0.1:51717/mcp
+  ADDED    codex (/Users/dev/.codex/config.toml)  → http://127.0.0.1:51717/mcp
+  ADDED    gemini (/Users/dev/.gemini/settings.json)  → http://127.0.0.1:51717/mcp
+agent MCP configs: ADDED 3, UPDATED 0 → http://127.0.0.1:51717/mcp
+ACTION_REQUIRED: restart Claude / Codex for the virtual-mcp-gateway entry to take effect
+  log: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skill-manager/logs/install-20260925-173753-ef83.log
+
+$ echo $?
+11

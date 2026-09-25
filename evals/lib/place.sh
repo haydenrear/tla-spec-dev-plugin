@@ -503,6 +503,10 @@ EOF
     place_moved_fixture skt
     ;;
 
+  w-skt-ticket-new-needs-a-project-home)
+    place_moved_fixture skt
+    ;;
+
   w-skt-ticket-path-must-be-sibling)
     place_moved_fixture skt
     ;;
@@ -516,6 +520,14 @@ EOF
     ;;
 
   w-sm-cold-shim-means-build)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-fresh-install-exit-11-is-fixtures)
+    place_moved_fixture skill-manager
+    ;;
+
+  w-sm-reinstall-is-remove-then-install)
     place_moved_fixture skill-manager
     ;;
 
