@@ -1,0 +1,9 @@
+{
+  "require": [
+    {
+      "id": "reads-the-cli-source",
+      "tool": "Read|Grep|Bash",
+      "match": "tla_spec_dev"
+    }
+  ]
+}

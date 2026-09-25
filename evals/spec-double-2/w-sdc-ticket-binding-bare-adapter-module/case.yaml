@@ -5,9 +5,30 @@ description: >-
   from the PROJECT ROOT, so inside a ticket view it runs the baseline's
   adapters and a ticket that edited its own adapters.py goes green without
   executing it. The bare form `adapters:X` resolves against the selected spec
-  directory. The fixture's existing lines carry the old qualified form, as the
-  scaffold used to write them. Provenance: tla-spec-dev c80e67e (DEF-001),
-  references/testgraph_adapters.md:13-14.
+  directory. The fixture's existing lines carry the qualified form.
+  WHAT THIS CASE MEASURES -- RESTATED 2026-09-25 (SI-21, #384). This sentence
+  used to end "as the scaffold used to write them", and that is FALSE for the
+  current product. Measured by hand at ac5f7491: `open ticket` emits ZERO
+  qualified bindings and ships a comment block whose first line is "ADAPTER
+  MODULES ARE NAMED BARE, AND THAT IS LOAD-BEARING"; the copy seam `_seed_file()`
+  runs `strip_view_prefixes()` over case_adapters.toml and testgraph_bindings.yml
+  and prints what it un-rooted (landed 8fce6356, 2026-09-05, before this epic
+  opened).
+  So this fixture does NOT model what the scaffold produces. It models the two
+  states that DO still reach a qualified binding in a ticket view: a project
+  onboarded before 2026-09-05, and -- the live one -- a binding hand-written or
+  hand-edited into a view AFTER seeding, which the seam never sees because it
+  fires only on the copy. That hole was confirmed by hand rather than argued:
+  one binding edited to the qualified form in a scaffolded ticket view resolved
+  to the BASELINE adapters while the bare form resolved to the view's own, and
+  `run spec-unit-tests --target <view>` exited 0 without mentioning it.
+  The fixture was deliberately NOT rebuilt through `open ticket`: that would
+  leave bare neighbours, and an agent copying its neighbours would then be right
+  by accident, which measures nothing. The distractor is the point.
+  Provenance: tla-spec-dev c80e67e (DEF-001),
+  references/testgraph_adapters.md:13-14; restatement measured in
+  `specs/results/epic-self-improvement-substrate/tickets/SI-21/manual-verification.md`
+  §3.
 runs: 1
 execution:
   env:
