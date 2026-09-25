@@ -2,9 +2,9 @@
 type: llm
 weight: 2
 ---
-This grader reads the agent's FINAL RESPONSE ONLY. It cannot see commands, their
-output, or the workspace. Judge the response's REASONING, not whether it reached
-a current / not-current answer.
+This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,
+the transcript, or which commands actually ran. Judge the response's REASONING,
+not whether it reached a current / not-current answer.
 
 Apply these in order and stop at the first that matches.
 
