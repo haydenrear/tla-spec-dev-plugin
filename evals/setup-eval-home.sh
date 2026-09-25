@@ -62,6 +62,23 @@
 #                injects NOTHING, and the session loses the one line that names
 #                the next command.
 #
+#   uv wheels    Every script in skills/*/scripts/ with a `# /// script` header
+#                runs under `uv run --script`, which resolves its dependencies
+#                at INVOCATION time from PyPI. A sandboxed run has no network,
+#                so those scripts never start -- and the three git-epic-workflow
+#                cases that require invoking a validator then burn two of their
+#                three or four Bash calls on a tool that cannot run, failing
+#                `within-budget` as a CONSEQUENCE rather than as a finding.
+#                Measured: fixing this moved them 0.75->1.00, 0.88->1.00 and
+#                0.43->0.86.
+#
+#                So the wheels are downloaded HERE, once, with the operator's
+#                network, into .toolchain/uv-wheels. `run.sh` stages them into
+#                the view and `place.sh` writes a uv.toml in the agent's home
+#                naming them. A uv CACHE cannot be used for this -- it is not
+#                relocatable, its environments being keyed to the path they were
+#                built at, which cost five failed attempts to establish.
+#
 # NOTHING HERE REFUSES ANYTHING. `--check` exits non-zero so CI can read it, but
 # `run.sh` never blocks on this file: a missing prerequisite warns and the run
 # continues. An eval is an instrument, and an instrument that blocks the work is
@@ -116,6 +133,25 @@ if [ "$mode" = build ]; then
         ln -s "$HOME/Library/Keychains" "$EVAL_HOME/Library/Keychains"
     fi
     say "  linked Library/Keychains (auth survives the HOME override)"
+
+    # THE WHEELS. Derived from the scripts rather than hardcoded, so a new
+    # dependency in any skill script is picked up by re-running this.
+    wheels="$repo/.toolchain/uv-wheels"
+    deps=$(grep -rh -A8 '^# /// script' "$repo"/skills/*/scripts/*.py 2>/dev/null \
+           | grep -oE '"[A-Za-z][A-Za-z0-9_.-]*[><=!~]=[^"]*"' | tr -d '"' | sort -u)
+    if [ -n "$deps" ]; then
+        mkdir -p "$wheels"
+        for d in $deps; do
+            for v in 311 312 313 314; do
+                python3 -m pip download "$d" --only-binary=:all: \
+                    --python-version "$v" --implementation cp --abi "cp$v" \
+                    --platform macosx_11_0_arm64 -d "$wheels" -q >/dev/null 2>&1 || true
+            done
+        done
+        say "  downloaded $(ls "$wheels" 2>/dev/null | wc -l | tr -d ' ') wheel(s) for offline uv: $(printf '%s ' $deps)"
+    else
+        say '  no script-header dependencies found to download'
+    fi
     say ""
 fi
 
@@ -168,6 +204,29 @@ if [ -n "$jdk" ] && [ -x "$jdk/bin/java" ]; then
     note "JAVA_HOME=$jdk"
 else
     bad "no JDK 21+ -- skill-manager cannot start and its cases grade an agent that cannot run it"
+fi
+
+# THE CHECK THAT PROVES IT, not that the files exist. A wheel for the wrong
+# interpreter is a directory that looks right and resolves nothing, so this runs
+# a real script with a real config and reads the exit code.
+wheels="$repo/.toolchain/uv-wheels"
+_v="$repo/skills/git-epic-workflow/scripts/validate_epic_plan.py"
+if [ ! -d "$wheels" ] || [ -z "$(ls "$wheels" 2>/dev/null)" ]; then
+    bad "no offline uv wheels -- every 'uv run --script' skill script fails in a sandboxed run"
+elif [ ! -f "$_v" ]; then
+    ok "uv wheels present ($(ls "$wheels" | wc -l | tr -d ' ')); no validator here to prove them against"
+else
+    _probe=$(mktemp -d)
+    mkdir -p "$_probe/.config/uv"
+    printf 'offline = true\nno-index = true\nfind-links = ["%s"]\n' "$wheels" \
+        > "$_probe/.config/uv/uv.toml"
+    if env -u XDG_CONFIG_HOME -u UV_CACHE_DIR HOME="$_probe" \
+         uv run --script "$_v" --help >/dev/null 2>&1; then
+        ok "uv resolves offline from $(ls "$wheels" | wc -l | tr -d ' ') wheel(s) (a validator really ran)"
+    else
+        bad "uv wheels present but a validator still will not resolve offline -- check the interpreter versions"
+    fi
+    rm -rf "$_probe"
 fi
 
 skt_py=""

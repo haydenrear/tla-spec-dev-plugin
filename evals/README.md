@@ -30,6 +30,7 @@ single day.**
 | `Library/Keychains` linked into it | every run fails to authenticate — the login credential is in the keychain and the keychain path is HOME-relative |
 | a JDK 21+ | `skill-manager` never starts, so its cases grade an agent that cannot run it — **silently, at 1.00 in five of six cases** |
 | a python 3.11+ | skt's SessionStart hook injects nothing, and the session loses the line naming the next command |
+| offline uv wheels | **no `uv run --script` skill script starts** — 81 files carry that header. The three cases requiring a validator then spend two of their 3–4 Bash calls on a tool that cannot run, so `within-budget` fails as a *consequence*. Fixing it moved them 0.75→1.00, 0.88→1.00, 0.43→0.86 |
 
 ### `HOME`, not `SKILL_MANAGER_HOME`, and not `DOCKER_CONFIG`
 
@@ -45,6 +46,55 @@ The obvious two levers do not work, and both were tried:
 home exists at all — and overriding `HOME` is also what breaks authentication,
 which is why it must link the keychain. The two constraints are only satisfiable
 together.
+
+### If you are extending the harness: how things reach the agent
+
+Learned across six failed attempts, and worth more than any single fix.
+
+**The agent runs in a sandbox that shares almost nothing with the runner.**
+Four ways of handing it something all failed silently — each looked correct,
+printed nothing wrong, and changed no behaviour:
+
+| what was tried | why it fails |
+| --- | --- |
+| `export VAR` from `run.sh` | hooks inherit the runner's environment; **the agent's Bash sandbox does not** |
+| `$HOME/...` inside a hook | `$HOME` in a hook is the **operator's**, not the agent's |
+| symlink over `<agent-home>/.cache/...` | the harness **pre-creates** parts of the agent's home; a link cannot be planted over a real directory |
+| `$SI10_CHECKOUT/...` inside a hook | **not visible to hooks** — diagnosed from the guard printing neither its success line nor its warning |
+
+**Two things do work, and nothing else has been shown to:**
+
+1. **The view.** `run.sh` stages it and `place.sh` can always resolve it as
+   `$plugin/...`, because that is the hook's own location.
+2. **A file in the agent's home.** `place.sh` derives it as the parent of its
+   own working directory (`<sandbox>/home/cwd` → `<sandbox>/home`) and writes
+   there. This is how `uv.toml` reaches the agent.
+
+**A corollary with teeth:** a sandboxed run inherits an empty `HOME`, so *every*
+toolchain that caches under `HOME` is cold and reaches for a network that is not
+there. jbang wanted a JDK, skt's hook wanted a python, uv wanted PyPI — three
+separate "the tool could not start and the run scored anyway" defects in one
+day. Anything else that caches under `HOME` will do the same, silently.
+
+And note what does **not** work as a remedy: a **uv cache is not relocatable**.
+Copying one into the agent's home succeeds mechanically (92K → 1.9M) and still
+fails to resolve, because the environments it holds are keyed to the path they
+were built at. Ship the **wheel**.
+
+### Reading a score without fooling yourself
+
+* **Every case is `runs: 1`.** One case was measured moving **±0.8 between
+  identical invocations on an unchanged commit**. A single score is a sample,
+  not a measurement. Use `--runs 6` before claiming any change.
+* **Do not re-run only the failures and add them to the old passes.** Measured:
+  3 of 11 returned 1.00 with nothing fixed for them, and one fell 0.86→0.43.
+  Selecting on failure shows you one direction and regression to the mean
+  supplies the rest. A corpus number comes from one full run at one commit.
+* **Six cases are UNDECIDED, not red.** `run.sh` names them under the table.
+  Their scores are not verdicts and must not be averaged with the rest.
+* **A low score is more often the instrument than the substrate.** Of the low
+  scores investigated to the end in this lane, every one was an instrument
+  defect. Read the transcript before filing anything against the work.
 
 ### Proving the setup rather than assuming it
 
