@@ -57,11 +57,19 @@ case_name="${EVAL_CASE:-}"
 #
 # Never fails the run: a missing cache is a warning, and the cases that need no
 # uv script do not care.
+# $HOME HERE IS THE RUNNER'S, NOT THE AGENT'S, and that distinction cost a
+# round: this hook runs as the operator, so $HOME is the scratch home run.sh
+# sets, whose .cache symlinks to the operator's real 21G uv cache -- an
+# existence test against it passes and links nothing. The AGENT's home is the
+# sandbox's, and this hook's working directory is <sandbox>/home/cwd, so the
+# agent's home is its parent. Derive it; never assume $HOME means the same thing
+# on both sides of a sandbox boundary.
+_agent_home=$(CDPATH= cd -- ".." 2>/dev/null && pwd) || _agent_home=""
 if [ -n "${SI10_CHECKOUT:-}" ] && [ -d "$SI10_CHECKOUT/.toolchain/uv-cache" ] \
-   && [ -n "${HOME:-}" ] && [ ! -e "$HOME/.cache/uv" ]; then
-    if mkdir -p "$HOME/.cache" 2>/dev/null \
-       && ln -s "$SI10_CHECKOUT/.toolchain/uv-cache" "$HOME/.cache/uv" 2>/dev/null; then
-        echo "place: uv cache linked into the sandbox home, so \`uv run --script\` resolves offline"
+   && [ -n "$_agent_home" ] && [ ! -e "$_agent_home/.cache/uv" ]; then
+    if mkdir -p "$_agent_home/.cache" 2>/dev/null \
+       && ln -s "$SI10_CHECKOUT/.toolchain/uv-cache" "$_agent_home/.cache/uv" 2>/dev/null; then
+        echo "place: uv cache linked at $_agent_home/.cache/uv, so uv scripts resolve offline"
     else
         echo "place: WARNING -- could not link the uv cache; uv scripts will try the network"
     fi
