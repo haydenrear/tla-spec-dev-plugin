@@ -650,6 +650,6 @@ dimensions multiply the state count.
 Then shrink by decomposition rather than by narrowing constants: cut along the
 read/write matrix into component models with a thin interface model (Move 2). If
 a smaller abstraction would drop behavior that is a material product decision,
-record the tradeoff for the user in the close summary and continue — name the
-dimensions that cause the explosion, and give concrete recommendations with the
+record the tradeoff for the user in the close summary and continue: name the
+dimensions that cause the explosion. Provide concrete recommendations with the
 coverage each one gives up. Do not wait on an answer.
