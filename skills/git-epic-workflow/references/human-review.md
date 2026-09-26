@@ -1,3 +1,11 @@
+---
+skill-imports:
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/agent_roles.md
+    reason: "ROLE review — you are the review agent. This is your reading path and where a substrate finding goes when you open no PR: specs/results/deferred/REVIEW-AGENT.yaml. \u00a73.4 below is where you write back OTHER roles' dispositions."
+    section: review
+---
+
 # Wave integration and human review
 
 An epic's only human checkpoints used to be one external review per ticket PR
@@ -509,3 +517,19 @@ At finalization:
   unexplained home blocker (§1b);
 - state which `review_policy` was in force, and name any wave whose review was
   waived or skipped.
+
+
+## The long form of the card's load-bearing rule(s)
+
+Moved out of `SKILL.md` by SI-29 (#391): the card keeps the rule, this page
+keeps the reasons. The card's numbering is unchanged.
+
+13. **Every wave boundary produces a review, and by default it is a gate.** After
+    merging a wave and before handing out any issue URL from the next, commit a
+    review artifact and walk the user through it, then stop and wait. Its fourth
+    section carries **five named blocks** — model delta applied, anchors placed,
+    the improvement-card row, every proposed skill change applied or declined,
+    and the model corrections merged tickets still owe. Write each even when the
+    answer is `none`; `none` is a claim and an absent block is not one. The user
+    may change the cadence or drop the gate; record that as `review_policy`.
+

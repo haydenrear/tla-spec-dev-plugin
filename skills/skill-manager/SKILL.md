@@ -1,6 +1,10 @@
 ---
 name: skill-manager
-description: 'Search, install, bind, sync, and remove skill-manager-managed units: skills, plugins, doc-repos, and harnesses; manage skill projects, project child homes, CLI tools, and MCP tools. Use when the user asks to find, add, remove, inspect, bind, unbind, instantiate, sync, upgrade, or resolve one of those surfaces. For day-to-day lifecycle questions — what is loaded, is anything stale, update a unit, publish a home-edited skill — prefer the skt CLI front door when present (`skt status|check|sync|publish`); this skill is the plumbing underneath. CLI syntax is authoritative in `skill-manager --help`; project workflows live in `references/projects.md`; gateway operations are authoritative in `references/virtual-mcp-gateway.md`; agent workflow routing lives in `references/workflows.md`.'
+description: >-
+  Search, install, bind, sync and remove skill-manager units — skills, plugins,
+  doc-repos, harnesses — and manage skill projects, child homes, CLI and MCP
+  tools. This is the plumbing; for day-to-day lifecycle questions prefer the
+  `skt` front door. CLI syntax is authoritative in `skill-manager --help`.
 ---
 
 # skill-manager
@@ -183,51 +187,20 @@ state, and when to use gateway MCP tools instead of shell commands.
 
 ## MCP and CLI Tools
 
-When a unit is installed, declared tools are resolved transitively:
+When a unit is installed, declared tools are resolved transitively: CLI
+dependencies land under `$SKILL_MANAGER_HOME/bin/cli/`, MCP dependencies
+register with the `virtual-mcp-gateway`, and plugins contribute deps from both
+`skill-manager-plugin.toml` and contained skill manifests.
 
-- CLI dependencies land under `$SKILL_MANAGER_HOME/bin/cli/`.
-- MCP dependencies register with the `virtual-mcp-gateway`.
-- Plugins contribute deps from both `skill-manager-plugin.toml` and
-  contained skill manifests.
-- Harnesses install the referenced skills/plugins/doc-repos before
-  materializing an instance.
-- `skill-script:` CLI deps are fingerprinted. Normal install/sync skips
-  an unchanged script when the declared binary still exists;
-  `install --force-scripts` explicitly reruns script deps in the install
-  graph. `sync <unit> --force-scripts` reruns script deps only for the
-  named sync target; no-name `sync --force-scripts` applies to all
-  installed units. Script stdout/stderr is written under
-  `$SKILL_MANAGER_HOME/logs/skill-scripts/`, with the log path shown in
-  CLI output and a recent tail included on failure.
-- `uninstall` prunes managed CLI artifacts and `cli-lock.toml` rows only
-  when no surviving installed unit still claims the same dependency.
+**Do not rely on the user's `PATH` for a CLI dependency.** Ask the helper for
+absolute paths: `<skill-manager>/scripts/env.sh --pretty`. The
+`skill-script:` fingerprinting rules, `--force-scripts`, the log locations and
+what `uninstall` prunes are in `references/cli.md`.
 
-For CLI dependencies, do not rely on the user's `PATH`. Ask the helper
-for absolute paths:
-
-```bash
-<skill-manager>/scripts/env.sh --pretty
-<skill-manager>/scripts/env.sh --skills <name> --for claude
-```
-
-The helper reports installed skill paths, agent symlinks, bundled
-package-manager paths, installed CLI binaries, missing declared tools,
-and passive project context when run inside a skill project. It never
-mutates shell state.
-
-For MCP dependencies, there is no CLI equivalent for discovering,
-deploying, describing, or invoking downstream tools. Use the
-`virtual-mcp-gateway` MCP server's virtual tools. The short rule:
-
-1. `skill-manager list` confirms which units are skill-manager-managed.
-2. `browse_mcp_servers` shows registered downstream servers.
-3. `deploy_mcp_server` starts a registered server when needed.
-4. `browse_active_tools` or `search_tools` finds callable tools.
-5. `describe_tool` discloses schema and satisfies the per-session gate.
-6. `invoke_tool` calls the downstream tool.
-
-See `references/virtual-mcp-gateway.md` for parameters, scopes, failure
-modes, and the disclosure gate.
+**For MCP dependencies there is no CLI equivalent** — discovery, deployment and
+invocation go through the gateway's virtual tools, and `describe_tool` must
+precede `invoke_tool` in every session. Parameters, scopes, failure modes and
+the disclosure gate are in `references/virtual-mcp-gateway.md`.
 
 ## Bindings and Harnesses
 

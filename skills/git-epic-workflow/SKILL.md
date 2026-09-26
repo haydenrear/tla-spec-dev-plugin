@@ -1,14 +1,16 @@
 ---
 name: git-epic-workflow
 description: >-
-  Use when planning, starting, scheduling, rescoping, retiring work from,
-  resuming or finalizing a multi-ticket Git epic on an `epic/*` branch backed by
-  one shared spec-double-compiler workflow, and when a GitHub issue carries a
-  `git-epic-workflow:assignment` block to implement against an epic branch rather
-  than the default branch. Trigger on "plan an epic", "dispatch the next wave",
-  "merge this wave", "retire a ticket", "finalize the epic", or an issue
-  containing the assignment marker.
+  Use when planning, scheduling, dispatching, rescoping, resuming or finalizing
+  a multi-ticket Git epic on an `epic/*` branch, and when a GitHub issue carries
+  a `git-epic-workflow:assignment` block. Trigger on "plan an epic", "dispatch
+  the next wave", "merge this wave", "retire a ticket", "finalize the epic", or
+  an issue containing the assignment marker.
 skill-imports:
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/agent_roles.md
+    reason: "ROLE epic — you are the epic agent, and you open no ticket PR. This is your reading path and where you file what you learned: specs/results/deferred/EPIC-AGENT.yaml, absorbed into the ledger at wave close. The review role's path is on the same page."
+    section: epic
   - unit: tla-spec-dev
     path: skills/git-issue/SKILL.md
     reason: Epic issues retain the discovery, references, spec decision, and validation work-order structure authored by git-issue.
@@ -50,27 +52,20 @@ the rule names — moved, not dropped.
 2. **One epic, one branch, one workflow.** Create one `epic/<slug>` from the
    current default-branch tip; scaffold the workflow once under a unique stable
    name. Never force-push the epic branch.
-3. **Dispatched identities are immutable, including retired work.** Never delete,
-   reorder, rename or reuse a ticket ID after publishing assignments — delivery
-   histories and retirement-receipt paths depend on the original zero-based
+3. **Dispatched identities are immutable, including retired work.** Never
+   delete, reorder, rename or reuse a ticket ID after publishing assignments —
+   delivery histories and retirement-receipt paths depend on the original
    ordinal and ID. Adding scope creates a new ticket; removing scope keeps the
-   entry with `status: retired`, bumps `schedule_revision`, and records a
-   retirement receipt and goal disposition.
+   entry with `status: retired` (`references/plan-and-schedule.md`).
 4. **The epic assignment wins.** Its marker-delimited block overrides ordinary
    `git-issue` instructions that branch from or merge to the default branch.
 5. **The epic agent owns the model; ticket agents move `current` toward it.**
-   Before dispatch it scaffolds each ticket's `desired` and `current`, validates
-   them, and runs TLC. At wave merge it closes and promotes the spec ticket,
-   applies the model delta, and places every attribution anchor.
-
-   A ticket agent **does not run** `open ticket`, `close ticket`,
-   `close_tickets.py`, or `--accept-new`. It moves ticket-local `current` toward
-   `desired`, runs the spec tests its assignment names, and records evidence. A
-   **small** correction to `desired` is the ticket's; a **structural** change
-   comes back in the PR body. A small correction is a debt the epic agent then
-   owes `specs/current`, `program_model` and `desired_program_model`
-   (`references/epic-ticket.md` §3). Record the reversal in the plan as
-   `planning_rules.model_ownership_rule` and restate it in every assignment.
+   Before dispatch it scaffolds each ticket's `desired` and `current` and runs
+   TLC; at wave merge it closes and promotes the spec ticket and places every
+   attribution anchor. A ticket agent **does not run** `open ticket`, `close
+   ticket`, `close_tickets.py`, or `--accept-new`. Record the reversal in the
+   plan as `planning_rules.model_ownership_rule` and restate it in every
+   assignment (`references/epic-ticket.md` §3).
 6. **Parallel work; serialized promotion.** `depends_on` controls when work may
    start; a separate total `promotion_predecessor` order controls when a ticket
    may rebase onto the epic tip, close/promote, and enter the branch. Promotion
@@ -89,50 +84,34 @@ the rule names — moved, not dropped.
 9. **Out-of-scope findings are deferred, not chased.** Agree a deferment policy
    when the branch is created; ticket agents append out-of-scope failures to the
    backlog rather than widening scope (`references/deferment.md`).
-10. **A ticket's Skill Manager home is not carried by its PR.** Every worktree has
-    its own gitignored `<worktree>/.skill-manager`; nothing inside it appears in
-    any PR. It reaches the tier above only through `skill-manager home sync`, and
-    the unit's own repository only through `skill-manager unit publish`. An epic
-    cannot finalize until every worktree has been through `skill-manager home
-    close-out`. **The epic agent owns that change management**: a ticket agent
-    runs the read-only gate and reports its verdict, never syncing into the
-    project home; the epic agent reconciles each home at wave close, serialized.
-
-    The declared worktree+home pair is one command — `skt ticket new <ticket>
-    --base "$commit_oid" --path <declared-worktree>`. **Test the resulting path,
-    not the exit code**: it has rolled a worktree back and still exited 0.
-    Reaching the by-hand pair when `skt` resolved is itself a finding — name
-    which of five cases you were in and file it against the skill owning the
-    door (`references/worktree-lifecycle.md` § *The front door*).
-11. **The epic owns whether the homes are CURRENT, and checks before scheduling.**
-    Every worktree home is a copy of the project home, which is a copy of the
-    root; copies do not update themselves. Before scheduling, run `skt check` in
-    the root home **and** with `SKILL_MANAGER_HOME=<repo>/.skill-manager` in the
-    project home, and sync anything behind its merged source, in dependency
-    order — a worktree cloned from a stale project home carries the staleness
-    into work you then redo. Other checkouts with their own homes are stale too
-    and nothing fans out to them; say so in the kickoff notes. "Current" is about
-    unit bytes, not derived artifacts: do not schedule rebuilds for a fresh
-    home's `artifacts stale` count (`references/plan-and-schedule.md` §2).
-12. **Every epic states measurable goals; every ticket relates to one.** Ask the
-    user what should be measurably better before scaffolding. Record each goal
-    with metric, harness, baseline and target; schedule the terminal evaluation
-    tickets that decide them; give every other ticket a contribution, expected
-    effect and local signal (`references/goals-and-evaluation.md`).
-13. **Every wave boundary produces a review, and by default it is a gate.** After
-    merging a wave and before handing out any issue URL from the next, commit a
-    review artifact and walk the user through it, then stop and wait. Its fourth
-    section carries **five named blocks** — model delta applied, anchors placed,
-    the improvement-card row, every proposed skill change applied or declined,
-    and the model corrections merged tickets still owe. Write each even when the
-    answer is `none`; `none` is a claim and an absent block is not one. The user
-    may change the cadence or drop the gate; record that as `review_policy`.
-14. **Worktrees stand until the epic ends, then all go in one sweep.** Keep every
-    ticket worktree through review; remove them all in one pass once the
-    default-branch merge is verified. Unit state merges **early**, at wave close;
-    worktrees are deleted **late**, together. Removal must never be the step that
-    carries the merge. Measure the sweep with free space, never `du`. The epic is
-    not finished while a worktree it created stands without a recorded reason.
+10. **A ticket's Skill Manager home is not carried by its PR.** Every worktree
+    has its own gitignored `<worktree>/.skill-manager`; nothing in it appears in
+    any PR, and an epic cannot finalize until every one has been through
+    `skill-manager home close-out`. **The epic agent owns that change
+    management.** The declared worktree+home pair is one `skt ticket new`
+    command, and you test the resulting PATH, not the exit code
+    (`references/worktree-lifecycle.md`).
+11. **The epic owns whether the homes are CURRENT, and checks before
+    scheduling.** Copies do not update themselves: run `skt check` in the root
+    home and again in the project home, and sync anything behind its merged
+    source in dependency order. A worktree cloned from a stale project home
+    carries the staleness into work you then redo
+    (`references/plan-and-schedule.md` §2).
+12. **Every epic states measurable goals; every ticket relates to one.** Ask
+    the user what should be measurably better before scaffolding, and record
+    each goal with metric, harness, baseline and target
+    (`references/goals-and-evaluation.md`).
+13. **Every wave boundary produces a review, and by default it is a gate.**
+    After merging a wave and before handing out any issue URL from the next,
+    commit a review artifact, walk the user through it, then stop and wait. Its
+    fourth section carries **five named blocks**, each written even when the
+    answer is `none` — `none` is a claim and an absent block is not one
+    (`references/human-review.md` §3).
+14. **Worktrees stand until the epic ends, then all go in one sweep.** Unit
+    state merges **early**, at wave close; worktrees are deleted **late**,
+    together, once the default-branch merge is verified. Removal must never be
+    the step that carries the merge, and the sweep is measured with free space,
+    never `du` (`references/worktree-lifecycle.md`).
 
 ## Preconditions
 
@@ -149,41 +128,35 @@ integration repository, stop.
 
 What every planned ticket declares — IDs, `depends_on`/`blocks`, wave, conflict
 keys, `promotion_order` and `promotion_predecessor`, schedule revision and plan
-commit, validation commands, evidence destinations and goals — and the retirement
-semantics are `references/plan-and-schedule.md`.
+commit, validation commands, evidence destinations and goals — and the
+retirement semantics are `references/plan-and-schedule.md`.
 
 A ticket may **start** only when every dependency PR is merged into
 `origin/epic/<slug>` and the preceding wave's review gate is answered. Tickets
 share a wave only when neither reaches the other in the DAG and their conflict
 keys are disjoint. A ticket may **promote** only when its promotion predecessor
-is merged and its branch has reconciled against that tip. Evaluation tickets are
-ordinary tickets whose slice is measurement, depending on every ticket
-contributing to the goals they own.
+is merged and its branch has reconciled against that tip.
 
 `depends_on` is planning metadata and `tla-spec-dev` does not enforce the DAG:
 validate missing references, self-dependencies, cycles, readiness and conflict
-keys before dispatch, and validate each assignment against its plan entry before
-starting and again before promotion.
+keys before dispatch, and validate each assignment against its plan entry.
 
 ## Operating flow
 
 - **Start or resume:** `references/plan-and-schedule.md`. Agree goals before
-  scaffolding, author issues through `git-issue`, agree and record the deferment
-  policy and review cadence, validate every rendered assignment with
-  `scripts/validate_assignment.py` before handing out its URL, and push the epic
-  branch first. Run those scripts with `uv run --script`, never `python3`.
+  scaffolding, author issues through `git-issue`, record the deferment policy
+  and review cadence, and validate every rendered assignment with
+  `scripts/validate_assignment.py` — run with `uv run --script`, never
+  `python3` — before handing out its URL.
 - **Work an epic issue:** read the issue before touching git; on the markers
-  follow `references/epic-ticket.md`. Read the goals before implementing, run the
-  local signal before close, wait for the promotion predecessor, reconcile the
-  epic tip, open the PR, stop.
-- **Integrate and review a wave:** merge in promotion order, reconcile each home,
-  update the ledger, commit the review artifact, render the diff, walk the user
-  through it, wait (`references/human-review.md`).
-- **Finalize:** `references/finalize.md`. Verify each delivered ticket's merged PR
-  and close-history entry separately from each retired ticket's receipt; never
-  infer completion from open PRs or local branches. Report every goal as baseline
-  → measured → target with a verdict or retirement disposition. A silently
-  unmeasured goal is not an acceptable close.
+  follow `references/epic-ticket.md`.
+- **Integrate and review a wave:** merge in promotion order, reconcile each
+  home, commit the review artifact, walk the user through it, wait
+  (`references/human-review.md`).
+- **Finalize:** `references/finalize.md`. Verify each delivered ticket's merged
+  PR and close-history entry separately from each retired ticket's receipt, and
+  report every goal as baseline → measured → target. A silently unmeasured goal
+  is not an acceptable close.
 
 ## Boundaries
 
@@ -206,15 +179,24 @@ starting and again before promotion.
   unpushed or epic-unmerged work. Never `rm -rf` a worktree, never reach for
   `wt close --force` to finish faster, and do not leave the sweep undone.
 
+## Role map
+
+**Before the task map, the role map.** You are the **epic agent** — and you are
+the role the whole loop narrows at. Your reading path, your own inbox
+(`specs/results/deferred/EPIC-AGENT.yaml`, which has never held a row), and how
+the other three roles see what you did with their findings are in the
+spec-double-2 skill's `references/agent_roles.md` § epic. Nothing detects your
+role; you arrive by reading.
+
 ## Reference map
 
 | Task | Read |
 | --- | --- |
-| Create/resume branch, workflow, DAG, issues; what a ticket declares; home staleness; retirement | `references/plan-and-schedule.md` |
+| Branch, workflow, DAG, issues; what a ticket declares; retirement | `references/plan-and-schedule.md` |
 | Agree goals, baselines, and evaluation tickets | `references/goals-and-evaluation.md` |
 | Author or execute the epic assignment; the model-ownership debt | `references/epic-ticket.md` |
 | Merge a wave, build the review artifact, walk the user through it | `references/human-review.md` |
-| The front door and its five miss cases; reconcile homes; ledger; sweep; what "artifact" means here | `references/worktree-lifecycle.md` |
+| The front door and its five miss cases; homes; ledger; sweep | `references/worktree-lifecycle.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
 | Classify, defer, batch, and triage failure cases | `references/deferment.md` |
-| Whether a ticket home's `declared-only` artifacts need rebuilding | the skt plugin's `skills/skt/references/derived-artifacts.md` — absent in a home without skt; `references/plan-and-schedule.md` §2 names the fallback |
+| Whether a ticket home's `declared-only` artifacts need rebuilding | `skills/skt/references/derived-artifacts.md`; `references/plan-and-schedule.md` §2 has the fallback |

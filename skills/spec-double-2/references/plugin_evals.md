@@ -1,3 +1,11 @@
+---
+skill-imports:
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/agent_roles.md
+    reason: "ROLE testing — you are the testing agent. This is your reading path and where what you measure goes back: this page itself under its own rule for adding to it, and specs/results/deferred/TESTING-AGENT.yaml when you open no PR."
+    section: testing
+---
+
 # Evals that cannot be talked into passing
 
 How to drive `claude plugin eval` against a skill, and how to keep its score

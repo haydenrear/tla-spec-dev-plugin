@@ -1,13 +1,10 @@
 ---
 name: git-integration-repo
 description: >-
-  Create and operate "integration repositories" — a parent git repo holding
-  several constituent repos as ordinary tracked files (never submodules), so one
+  Create and operate integration repositories — a parent git repo holding
+  several constituent repos as ordinary tracked files, never submodules, so one
   cross-repo change fans back out as branches, MRs and a tracking issue. Use to
-  onboard repos into one parent, propagate a merged change out, refresh from
-  upstream, or scaffold spec-double-compiler / test-graph / deploy-helm across
-  them. It does NOT create worktrees or own Skill Manager homes —
-  `git-issue-workflow` does that for every repo.
+  onboard repos, propagate a merged change out, or refresh from upstream.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/SKILL.md

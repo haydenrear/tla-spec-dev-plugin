@@ -931,3 +931,22 @@ Two measured consequences worth knowing before you rely on the in-repo copy:
    change-awareness gate (exit 8) on a new worktree and clear it with
    bare `skill-manager home drift`, then the same command plus `--ack`; see
    [the first launch is gated](#the-first-launch-is-gated-on-change-awareness-exit-8).
+
+## Your Skill Manager home IS the worktree's
+
+Three tiers, each a real copy, not a symlink: root `~/.skill-manager` → project
+`<repo>/.skill-manager` → worktree `<worktree>/.skill-manager`, yours for this
+ticket and gitignored. Copies, because a link is one shared object and two
+tickets editing "their" copy would be editing each other's.
+
+Two consequences, neither optional. **Launch through the home's shims**,
+`<worktree>/.skill-manager/bin/launch/{claude,codex,gemini}`, or `skill-manager
+exec` — exporting `SKILL_MANAGER_HOME` by hand gets you only the part you
+remembered. And **an edit to a skill inside that home is in no diff**: the home
+is gitignored, the PR cannot carry it, and `git worktree remove` deletes it
+without a word. Getting it out is close-out step 4, and it is a gate.
+
+Downward is a copy and needs nothing from you; **upward is the whole difficulty**.
+Why the isolation needs the shims, what a home inherits versus declares, and how
+to tell a broken home from a healthy one: `references/skill-homes.md`. **Do not
+diagnose a new worktree home from the CLI source.**

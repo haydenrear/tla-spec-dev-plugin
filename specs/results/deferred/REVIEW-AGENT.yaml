@@ -1,0 +1,33 @@
+# The REVIEW AGENT's inbox. NOT the ledger.
+#
+# THE LEDGER IS `specs/results/deferred_findings_final.yaml`. This file is where
+# the review agent files a finding about the SUBSTRATE — the review instructions
+# were wrong, the artifact template asked for something unobtainable, a PR body
+# gave no way to check a claim. A finding about the DIFF is a review comment and
+# belongs in the wave artifact, not here.
+#
+# WHY IT EXISTS (SI-29, #391). Three of the four agent roles had no propagation
+# destination at all: only the ticket agent had `## Skill changes proposed` and a
+# per-ticket inbox. The review agent opens no PR, so it had nowhere to write a
+# substrate finding and no reason to look for one. This is that destination, and
+# `skills/spec-double-2/references/agent_roles.md` § review is the path that
+# reaches it.
+#
+# THE RULE, unchanged from EPIC-AGENT.yaml:
+#   * a role files here, in the same row shape a ticket uses;
+#   * the epic agent absorbs into `deferred_findings_final.yaml` at wave close;
+#   * a row lives in exactly one of the two places, never both;
+#   * NOTHING reads this directory as a population. Do NOT add
+#     `specs/results/deferred/*.yaml` to `improvement_ledger.py`'s `BACKLOGS` —
+#     after absorption the glob double-counts every absorbed id.
+#
+# Give every row a `skill_change:` in the documented form. The slots are in
+# `agent_roles.md` § *The slots, and why a well-formed value is not enough*:
+# `proposed`'s first slot is a unit name, and `applied`'s only slot is a commit
+# sha and nothing else.
+
+role: review
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings: []

@@ -212,3 +212,22 @@ Provisioning is done when:
 
 Role 3 (`references/complete.md`) picks up here. In a single-agent session, just
 continue.
+
+## Reaching a by-hand route is itself a finding
+
+This skill spells out a manual equivalent in two places: the chained `git
+worktree add && bootstrap-home.sh` in `references/epic-ticket.md` §2, and the raw
+`home close-out && git worktree remove` under close-out step 4. Each is written
+for a repository that genuinely has no front door — **and because each one works,
+an agent that merely could not *find* the front door lands on it, produces a
+plausible result, and leaves no trace but the cost.** Four eval runs did exactly
+that, for four different reasons, and none reported a problem.
+
+So run `command -v skt` first. If it printed nothing and neither `wt` path
+exists, the by-hand route is correct and there is nothing to report. If either
+resolved and you are on the by-hand route anyway, say so in one line, naming
+which: `skt` installed but not on `PATH`; you looked where a plugin never is
+(`skills/`); you found it and it **failed** (quote its `error:` line verbatim);
+or you found it and could not read the home it pointed at. All four are
+front-door defects, not facts about the repository. Put the line in the PR body,
+or to the user when there is no PR, and file it against this skill.

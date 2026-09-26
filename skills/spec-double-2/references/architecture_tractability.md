@@ -633,3 +633,23 @@ inline a convenient number.
   https://www.sigops.org/2026/can-llms-model-real-world-systems-in-tla/
 - Out of the Tar Pit (essential vs accidental complexity):
   https://blog.acolyer.org/2015/03/20/out-of-the-tar-pit/
+
+## When TLC Does Not Finish
+
+Moved here from `SKILL.md` by SI-29 (#391): the card says *do one bounded
+discovery pass, then decompose*; this is the pass and the recording rule. The
+moves themselves are §*The Three Moves* above.
+
+Do not simply raise the timeout or retry the same diagram. Instead, **once**,
+perform bounded discovery of the state explosion: modeled variables,
+constant-domain cardinalities, action branching, interleavings, symmetry, and the
+last TLC progress output. Separate accidental complexity that can be abstracted
+away from the essential complexity the program requires, and record which
+dimensions multiply the state count.
+
+Then shrink by decomposition rather than by narrowing constants: cut along the
+read/write matrix into component models with a thin interface model (Move 2). If
+a smaller abstraction would drop behavior that is a material product decision,
+record the tradeoff for the user in the close summary and continue — name the
+dimensions that cause the explosion, and give concrete recommendations with the
+coverage each one gives up. Do not wait on an answer.

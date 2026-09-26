@@ -518,3 +518,14 @@ Two idioms that do **not** work, both measured: brace expansion does not happen
 inside double quotes (`"$HOME"/{skills,plugins/*/skills}/x` matches nothing), and
 `ls -d … | head -1` sorts, putting `plugins/` first and inverting the intended
 standalone-first precedence. Use an explicit loop with `break`, as above.
+
+
+## Why the lifecycle scripts do not live in `git-integration-repo`
+
+Moved out of `SKILL.md` by SI-29 (#391).
+
+A ticket and a worktree exist for every repo, while an integration repository is
+a specialization. These scripts used to live in `git-integration-repo`, and an
+agent working a plain repo — reading that skill's description and correctly
+concluding it was irrelevant — never learned `wt` existed and wrote its own
+worktree script.
