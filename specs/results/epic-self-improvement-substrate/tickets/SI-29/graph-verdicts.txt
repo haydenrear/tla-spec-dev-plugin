@@ -1,0 +1,52 @@
+SI-29 -- graph verdicts, read from each run's OWN fresh summary.json
+
+The assignment names one graph: specWorkflow (also `spec_graph`).
+
+COMMAND, at both commits:
+    cd test_graph && python3 run-graphs.py --only specWorkflow
+
+THE RUNNER EXIT CODE IS NOT THE VERDICT, and this run proves why:
+
+    BUILD FAILED in 1m 35s
+    runner rc=0
+
+Gradle printed FAILURE, the graph's own summary says `errored`, and the runner
+still exited 0. Every verdict below is read from
+test_graph/build/validation-reports/<runId>/summary.json.
+
+--------------------------------------------------------------------------
+THIS BRANCH  (fb243d1c)                     runId 20260926-144411
+  status: errored
+  failure: node spec.workflow.failure_cleanup_probe failed
+  passed   spec.cli.install
+  skipped  spec.reference.adapters_resolve
+  passed   spec.workflow.cleanup
+  passed   spec.workflow.close
+  passed   spec.workflow.complete
+  failed   spec.workflow.failure_cleanup_probe
+             probe report was written
+             repo allocation node passed
+             forced downstream failure was captured
+             cleanup finalizer ran after failure
+             allocated fixture repo removed after failure
+  passed   spec.workflow.repo
+  passed   spec.workflow.spec_units
+  passed   spec.workflow.start
+
+BASE  (59370837)                            runId 20260926-144640
+  status: errored
+  failure: node spec.workflow.failure_cleanup_probe failed
+  ... IDENTICAL: same status, same failing node, the same five failed
+  assertion NAMES in the same order, the same one skipped node, and the same
+  seven passed.
+
+--------------------------------------------------------------------------
+VERDICT: compared by NAME, not by count, the graph is UNCHANGED by this ticket.
+`specWorkflow` errors at the base commit and errors identically here. The
+failure is pre-existing and belongs to specs/ and test_graph/, neither of which
+is in this ticket's conflict keys.
+
+NOT FILED as a new finding: nine graph nodes and `specs/` are the epic agent's
+surface, this ticket changed no `.tla`, no adapter, no binding and no graph node,
+and the identical base run is the evidence. Filing it as SI-29-DF-06 would
+attribute a standing epic-surface failure to a documentation ticket.
