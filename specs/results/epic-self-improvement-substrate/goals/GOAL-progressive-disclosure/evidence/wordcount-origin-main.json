@@ -1,0 +1,62 @@
+{
+  "ref": "origin/main",
+  "resolved": "ac5f7491",
+  "units": 11,
+  "rows": {
+    "discovery": {
+      "desc": 60,
+      "body": 996
+    },
+    "git-epic-workflow": {
+      "desc": 71,
+      "body": 1820
+    },
+    "git-integration-repo": {
+      "desc": 75,
+      "body": 1349
+    },
+    "git-issue-workflow": {
+      "desc": 95,
+      "body": 1788
+    },
+    "git-issue": {
+      "desc": 82,
+      "body": 1499
+    },
+    "plugin-repository": {
+      "desc": 86,
+      "body": 1472
+    },
+    "skill-manager": {
+      "desc": 104,
+      "body": 1648
+    },
+    "skt": {
+      "desc": 200,
+      "body": 2242
+    },
+    "spec-double-2": {
+      "desc": 73,
+      "body": 1567
+    },
+    "test-graph": {
+      "desc": 51,
+      "body": 1332
+    },
+    "unit-authoring": {
+      "desc": 108,
+      "body": 1797
+    }
+  },
+  "desc_total": 1005,
+  "body_total": 17510,
+  "bodies_over_1500": [
+    "git-epic-workflow",
+    "git-issue-workflow",
+    "skill-manager",
+    "skt",
+    "spec-double-2",
+    "unit-authoring"
+  ],
+  "n_over": 6
+}
