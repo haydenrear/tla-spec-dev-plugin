@@ -2196,7 +2196,81 @@ tickets:
   - id: SI-29
     title: "Disclosure routes by agent role, and every role's path ends in how it feeds the substrate back"
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/391"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-26 as PR #6 on tla-spec-dev-plugin, merge commit 0f7157b4.
+      The last implementation ticket in the epic. Ladder rung five:
+      f8a3994e -> b929e07c, rc=0, zero case.yaml in the record commit.
+
+      BOTH GOAL-progressive-disclosure CLAUSES MET, re-measured by the epic
+      agent at the epic tip after merge: descriptions 1005 -> 592 against a 600
+      target, card bodies 6-over-1500 -> 0 of 11, 11 units and no twelfth.
+      Routed by one skill-imports entry per entry point whose `reason` begins
+      `ROLE <name>`, extending the discovery idiom from task to role. References
+      only -- no marker, env var, detection code or hook change, per the owner's
+      constraint. Three new inboxes, including REVIEW-AGENT and TESTING-AGENT,
+      for two roles that had no channel at all.
+
+      THE FIRST PASS HIT 588 AND WAS WORSE, WHICH IS THIS TICKET'S LESSON.
+      I measured what the ticket itself had flagged as its largest unmeasured
+      risk: three units had lost their `use when` clause and skill-manager had
+      NO activation condition left -- its description said what the skill is and
+      never when to invoke it, while skt had lost five trigger phrases covering
+      sweep, retire and disk-reclaim. That is the metric reached by deleting the
+      vocabulary a harness matches an intent against: the exact failure mode
+      this epic exists to catch, arrived at by an agent doing exactly what the
+      goal asked. Sent back. All eleven units now carry activation vocabulary,
+      and skill-manager came back BETTER than baseline -- its Use-when restored
+      plus five quoted trigger phrases where the base carried zero. The words
+      came from capability prose the reference pages now hold, never from an
+      activation clause, and a first redistribution landing at 612 was
+      compressed to 592 rather than shipped over target.
+
+      FOUR CORRECTIONS TO ME, ALL UPHELD. SI-19-DF-01 carries two verbs in one
+      field ("none applied; proposed(...)"), so the funnel I handed it is 71
+      parseable and 12 none, not 72 and 13. Three applied() values are
+      sha-shaped, not the two I counted. EA-DF-18's `test-graph` resolves under
+      `git cat-file` ONLY because this repository has a REMOTE by that name --
+      so a resolvability check would score that row a pass while pointing at an
+      unrelated commit, which is why the documented form constrains shape
+      instead. And skt had lost FIVE trigger phrases, not the four I named.
+
+      SI-29-DF-03 IS FILED CORRECTED, NOT DELETED, AND THE ERROR WAS MINE TOO.
+      It reported HIGH that run.sh invokes the case checker with a python3
+      lacking PyYAML, so nothing was ever parsed. False: run.sh is a bash
+      script, bash resolves /usr/bin/python3, which HAS PyYAML, and the original
+      file run that way prints "cases: 75 case file(s) parse." The SKIPPED line
+      came from an interactive zsh carrying `alias python3=python`. I repeated
+      the claim to the owner before checking it. The agent reproduced both
+      shells before downgrading it to low. Its note is the most valuable line in
+      the report: THIS IS SI-21-DF-01 REACHED FROM THE OTHER SIDE -- SI-21 had
+      already recorded that python3 is a zsh alias and that six of its own
+      measurements silently ran under an interpreter it did not intend, and that
+      finding's stated remedy (print sys.executable) would have caught both of
+      us. A finding filed, read by a later agent, and then re-committed by its
+      reader is worth more to SI-23 than most of the ledger.
+
+      Five eval cases, one per role plus one for the back-channel, 6 runs each:
+      1.00, 1.00, 0.94, 1.00, 0.94, spread reported rather than means alone, two
+      known one-in-six bad runs NOT recalibrated away because both graders
+      discriminate real behaviour. The shakeout caught a false claim in the
+      ticket's own role map -- EPIC-AGENT.yaml had held one finding historically,
+      absorbed by SI-27, so "has held zero since it was created" was false and
+      the grader demanding "zero" was wrong about the world. Fixed at d2e89c40.
+      The agent also re-ran the corpus unprompted after the activation fix,
+      reasoning that changing eight of eleven descriptions when every case grades
+      `reaches-a-skill` made assuming they were unaffected the same class of
+      error it had just been corrected on.
+
+      One file outside the declared conflict keys, flagged rather than done
+      silently: tests/test_new_ticket_workflow.py, where relocated prose took its
+      assertions with it byte-for-byte on the RP-05 precedent in that same file.
+
+      WHAT IT COULD NOT EVIDENCE, IN ITS OWN WORDS: that 592 HOLDS. SI-09 cut to
+      594 mid-epic and nesting grew it back to 1005. It added a home for the
+      prose that regrew and wrote the convention into unit-authoring, but whether
+      the next author uses it is unmeasured, and an eval on it would measure its
+      intent. SI-29-DF-05 records that nothing makes the reduction hold.
     schedule_revision: 10
     depends_on: ["SI-28"]
     blocks: ["SI-23"]
