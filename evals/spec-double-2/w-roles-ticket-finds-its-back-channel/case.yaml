@@ -1,0 +1,38 @@
+schema_version: "1.0"
+name: w-roles-ticket-finds-its-back-channel
+description: >-
+  A cold agent is told only what a ticket agent can already see -- one issue, its
+  own branch, a PR to open -- and is never told that a role map exists. Does it
+  read its way to its own role's path and reach the propagation destination at the
+  end of it, or does it answer from general practice? The page name is the tell:
+  nothing in the prompt contains it. Provenance: all four roles walked by hand in
+  SI-29, transcripts step-03 and step-04.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-roles-ticket-finds-its-back-channel
+  max_turns: 16
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    You have just been handed one GitHub issue to implement in this repository.
+    You have your own feature branch and worktree, and you will open a PR when
+    you are done. You have read nothing else yet.
+
+    While working it you hit friction in the substrate itself: one of this
+    plugin's own skills told you to do something that did not work.
+
+    Answer from THIS plugin's own skills, not from general practice:
+
+    1. Which of this plugin's named agent roles are you, and what is the reading
+       path for that role? Name the file and the section.
+    2. At the end of that path, where does what you learned about the substrate
+       go?
+    3. What command would you run LATER to find out whether the plugin actually
+       changed because of it?
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the
+    sandbox, so a command that writes will fail with "Operation not permitted"
+    however correct it is. That is expected and is not yours to solve.
+
+    EVAL-CASE: w-roles-ticket-finds-its-back-channel

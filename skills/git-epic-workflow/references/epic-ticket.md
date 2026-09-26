@@ -568,3 +568,24 @@ wave with the user. Do not self-merge, target the default branch, run
 whole-workflow promotion, sync the primary checkout to the default branch, or
 close the GitHub issue. The closed PR head is sealed; semantic review changes
 require an explicit amendment ticket so append-only evidence stays truthful.
+
+
+## The long form of the card's load-bearing rule 5
+
+Moved out of `SKILL.md` by SI-29 (#391): the card keeps the rule, this page
+keeps the reasons.
+
+5. **The epic agent owns the model; ticket agents move `current` toward it.**
+   Before dispatch it scaffolds each ticket's `desired` and `current`, validates
+   them, and runs TLC. At wave merge it closes and promotes the spec ticket,
+   applies the model delta, and places every attribution anchor.
+
+   A ticket agent **does not run** `open ticket`, `close ticket`,
+   `close_tickets.py`, or `--accept-new`. It moves ticket-local `current` toward
+   `desired`, runs the spec tests its assignment names, and records evidence. A
+   **small** correction to `desired` is the ticket's; a **structural** change
+   comes back in the PR body. A small correction is a debt the epic agent then
+   owes `specs/current`, `program_model` and `desired_program_model`
+   (`references/epic-ticket.md` §3). Record the reversal in the plan as
+   `planning_rules.model_ownership_rule` and restate it in every assignment.
+

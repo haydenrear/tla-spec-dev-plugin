@@ -1,6 +1,10 @@
 ---
 name: spec-double-2
-description: 'Use when a repository keeps a TLA+ program model under specs/ and a ticket must read, extend, check, or close it through the tla-spec-dev CLI: scaffold a baseline, open or close a spec ticket, run TLC, read the complexity descriptor, render an implementation brief, or attribute a bug to the action it happened inside. Also the home of the organizational standards for evals, bug attribution, and blind dispatch — see the reference map.'
+description: >-
+  Use when a repository keeps a TLA+ program model under `specs/` and a ticket
+  must read, extend, check or close it through the tla-spec-dev CLI. Also holds
+  the ROLE MAP routing ticket, epic, review and testing agents to their reading
+  paths, and the standards for evals and bug attribution.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/skill-manager/references/cli.md
@@ -36,20 +40,16 @@ Read this first; it overrides any older wording you find in a reference.
 - **A file a template names and your repository lacks is optional.** Do not build
   it. The minimum baseline is four files (below); the rest is the `--full` layer,
   added on purpose and never to satisfy a list.
-- **Spend a bounded amount on the spec.** Model the boundary the ticket touches,
-  run TLC once, close. If TLC does not finish, do one bounded discovery pass
-  (below) and either shrink the model or close with `--force`, saying why. Never
-  loop on the model.
-- **Read only what the task needs.** The reference map says which page goes with
-  which task. The previous 1,400-line version of this file is
-  `references/skill_history.md` — open it for history, not before a ticket.
+- **Spend a bounded amount on the spec.** Model the boundary the ticket
+  touches, run TLC once, close. Never loop on the model.
+- **Read only what the task needs.** The role map says which path goes with
+  which role, and the reference map which page goes with which task.
 
 ## Orientation
 
 In homes carrying the `skt` plugin, `skt status` runs at session start; its
-`spec` line names the active workflow, its open tickets, and whether this
-branch's ticket is in the plan. A ticket in the plan opens with `tla-spec-dev
---spec-root specs open ticket <id>`; one not in the plan gets a plan entry under
+`spec` line names the active workflow and its open tickets. A ticket in the plan
+opens with `open ticket <id>`; one not in the plan gets a plan entry under
 `specs/desired_program_model/ticket_plan.yaml` first. Do not stop to reconcile.
 
 ## The commands
@@ -60,28 +60,25 @@ All take `--spec-root specs` (or wherever the repository keeps its specs).
 | --- | --- |
 | `scaffold project --name X [--full]` | First onboarding: `specs/program_model` with the minimum baseline. `--full` adds the optional layer. |
 | `scaffold workflow <ticket> "<title>"` | Creates `specs/current`, `specs/desired_program_model` and `ticket_plan.yaml`. Once per workflow. |
-| `open ticket <id>` | Creates `specs/tickets/<id>/desired` as a copy of project current, plus `results/`. `--with-current` for the older two-directory loop. |
+| `open ticket <id>` | Creates `specs/tickets/<id>/desired` as a copy of project current, plus `results/`. |
 | `run spec-unit-tests --ticket <id>` | Runs the generated spec-unit adapters, when the project has the optional layer. |
-| `analyze complexity <tla> <cfg>` | The descriptor: per-variable domains, state-space bound, read/write matrix, modularity, dense rows. Advisory. |
+| `analyze complexity <tla> <cfg>` | The descriptor: domains, state-space bound, read/write matrix, dense rows. Advisory. |
 | `close ticket <id> [--force]` | Promotes ticket `desired/` into project `current`, writes the append-only history entry, records the ledger. |
 | `retire ticket <id>` | Owner-directed withdrawal of a ticket. Promotes nothing. |
-| `python scripts/close_tickets.py` | Workflow close: promotes the converged model into `program_model` and removes the workflow directories. |
+| `python scripts/close_tickets.py` | Workflow close: promotes into `program_model`, removes the workflow dirs. |
 
 `scripts/run_tlc.sh <tla> <cfg>` runs TLC from the spec directory with the
 `tlc_seconds` budget as an external timeout.
 
 ## The minimum baseline
 
-`specs/program_model/` is a baseline when it has `Core.tla` (shared constants and
-operators), `Internal.tla` + `Internal.cfg` (the state machine and its finite
-model), and `spec_manifest.yaml` (module, ports, invariants, finite model,
-budgets) — and TLC passes. That is what the descriptor, brief and bug
-attribution read.
+`specs/program_model/` is a baseline when it has `Core.tla`, `Internal.tla` +
+`Internal.cfg`, and `spec_manifest.yaml` — and TLC passes. That is what the
+descriptor, brief and bug attribution read.
 
 Keep it small: one evolving program spec extended per ticket, not one per
 feature. Do not model tests, CI jobs, graph nodes or harnesses as state or
-actions, and keep databases, queues, retries and timeouts out unless they are the
-semantics.
+actions.
 
 **The optional layer** (`scaffold project --full`) generates cases and runs them
 against real adapters through a `test_graph` project. Add it only when the ticket
@@ -98,50 +95,36 @@ The TLA+ subset is `references/tla_profile.md`.
 4. Mark the ticket `done` in `ticket_plan.yaml` and
    `close ticket <id> --summary "<what landed>" --result <evidence>`. The close
    promotes `desired/` into `current`, snapshots into `specs/.history/`, and
-   records the complexity ledger. The ledger input is optional; an unfilled or
-   rejected one is recorded as rejected and the close proceeds. A close
-   printing `WARNING: complexity ledger ... rejected` **has closed the ticket** —
-   do not run it again; a rerun refuses to overwrite the entry it just wrote.
+   records the complexity ledger. A close printing
+   `WARNING: complexity ledger ... rejected` **has closed the ticket** — do not
+   run it again; a rerun refuses to overwrite the entry it just wrote.
 5. Before closing, **attribute what the ticket hit**: for each regression or
    defect, name the TLA+ action it happened inside (`<Module>.<Action>`, or
    `UNMODELED/<bin>`), and report it in the PR.
    `references/bug_attribution.md`. Nothing gates on it.
 
 There is no ticket-local `current/` unless you asked for one, so there is no
-convergence loop; if you opened with `--with-current` and the two diverge, the
-close accepts `desired/` and says so. When project `current` matches
-`desired_program_model`, run `scripts/close_tickets.py` to promote into
-`program_model`. `specs/.history/` is append-only — never edit an entry.
+convergence loop. When project `current` matches `desired_program_model`, run
+`scripts/close_tickets.py` to promote into `program_model`. `specs/.history/` is
+append-only — never edit an entry (`references/spec_evolution.md`).
 
 ## TLC and the 120-second budget
 
 Apply a hard 120-second timeout (the `tlc_seconds` default) to every TLC run,
 through an external timeout so it holds even when TLC stays responsive. If the
-run does not finish, treat the model as too large for case generation.
-Do not simply raise the timeout or retry the same diagram. Instead, once,
-perform bounded discovery of the state explosion: modeled variables,
-constant-domain cardinalities, action branching, interleavings, symmetry, and
-the last TLC progress output. Separate accidental complexity that can be
-abstracted away from the essential complexity the program requires, and record
-which dimensions multiply the state count.
-
-Then shrink by decomposition rather than by narrowing constants: cut along the
-read/write matrix into component models with a thin interface model
-(`references/architecture_tractability.md`). If a smaller abstraction would drop
-behavior that is a material product decision, then in the close summary
-record the tradeoff for the user and continue: name the dimensions that cause
-the explosion. Provide concrete recommendations with the coverage each one gives
-up. Do not wait on an answer.
+run does not finish, the model is too large for case generation. Do **not** raise
+the timeout or retry the same diagram: do one bounded discovery pass, then shrink
+by decomposition rather than by narrowing constants, and never wait on an answer.
+The pass, the moves, and what to record when a smaller abstraction would drop
+real behaviour are in `references/architecture_tractability.md`
+§*When TLC does not finish*.
 
 ## The descriptor and the brief
 
 `analyze complexity` reports facts and exits nonzero only when it cannot parse
-the model. Budgets in `spec_manifest.yaml` are advisory and
-block nothing. The `prompts/` briefs turn one action and one declared partition
-into a constrained ask, and are not validated for changing what a coding agent
-produces. Reading a descriptor, fitness functions, the briefs:
-`references/complexity_intuition.md`, `references/fitness_functions.md`,
-`references/hexagonal_prompting.md`.
+the model; budgets in `spec_manifest.yaml` are advisory and block nothing. The
+`prompts/` briefs are not validated for changing what a coding agent produces.
+See `references/complexity_intuition.md` and `references/fitness_functions.md`.
 
 ## Anti-patterns
 
@@ -153,20 +136,35 @@ produces. Reading a descriptor, fitness functions, the briefs:
   or cache logic.
 - Do not create disconnected TLA+ specs per feature.
 - Do not rewrite append-only history entries.
-- Do not write an adapter binding view-qualified. `adapter:
+- Do not write an adapter binding view-qualified — `adapter:
   adapters:CheckoutHttpAdapter`, never
-  `adapter: specs.program_model.adapters:CheckoutHttpAdapter` — the dotted form
-  resolves from the project root, so a ticket that edits its own `adapters.py`
-  validates against the BASELINE's adapters and goes green without ever
-  executing the change. Copying the neighbouring line is how this spreads:
-  older `case_adapters.toml` files carry the qualified form, and it is wrong in
-  every one of them (`references/testgraph_adapters.md`).
+  `adapter: specs.program_model.adapters:CheckoutHttpAdapter`. The dotted form
+  silently validates a ticket against the BASELINE's adapters, and older files
+  carry it, so copying a neighbouring line spreads it
+  (`references/testgraph_adapters.md`).
 - Do not use TLA+ ceremony for trivial CRUD or exploratory UI work.
 - Do not build a mechanical architecture or coherence check and let it gate
   anything (`references/architecture_advice.md`).
 - Do not expect the experimental surface — generated cases, effect conformance,
   the kill test, the coverage audit — to find bugs, or treat a clean report as
   validation.
+
+## Role map
+
+**Before the task map, the role map.** The map below routes by what you are
+*doing*; this one routes by what you *are*, and it ends where the task map does
+not: in how your role hands back what it learned.
+
+| you have in front of you | you are the | read `references/agent_roles.md` § |
+| --- | --- | --- |
+| one issue, your own branch, a PR to open | **ticket agent** | ticket |
+| an epic plan; you dispatch and merge, and open no ticket PR | **epic agent** | epic |
+| a PR you did not write, and a review artifact to produce | **review agent** | review |
+| an eval case, suite or harness | **testing agent** | testing |
+
+Each section is four parts: how you know you are that role, what you read, where
+you write what you learned in the `skill_change` grammar, and the command that
+shows you what became of it. Nothing detects your role — you arrive by reading.
 
 ## Reference map
 
@@ -176,20 +174,20 @@ Open a page when the task in the left column is what you are doing.
 | --- | --- |
 | Writing or reviewing a `.tla` | `references/tla_profile.md`, `templates/tla/annotations.md` |
 | Onboarding, ticket commands, promotion, closeout | `references/typical_workflow.md`, `references/workflows.md` |
-| Reading a descriptor | `references/complexity_intuition.md`, then `references/architecture_tractability.md` for the moves |
+| Reading a descriptor | `references/complexity_intuition.md`, then `references/architecture_tractability.md` |
 | Adding fitness rules | `references/fitness_functions.md` |
-| Rendering a constrained ask for a coding agent | `prompts/implementation_brief.md`, `prompts/hexagonal_implementation.md`, `references/hexagonal_prompting.md` |
+| Rendering a constrained ask for a coding agent | `prompts/`, `references/hexagonal_prompting.md` |
 | Attributing a defect to an action | `references/bug_attribution.md` |
-| Adding the optional layer: External view and Test Graph adapters | `references/testgraph_adapters.md`, `references/edge-cases.md`, `examples/distributed_history/` |
+| The optional layer: External view and Test Graph adapters | `references/testgraph_adapters.md`, `references/edge-cases.md` |
 | Writing an effect provider | `references/effect_providers.md`, `examples/effect_providers/` |
-| Generated packages, manifest schema, generation modes | `references/codegen_contract.md`, `references/generation_modes.md`, `references/conformance_testing.md` |
+| Generated packages, manifest schema, generation modes | `references/codegen_contract.md`, `references/generation_modes.md` |
 | Case modules (optional BDD slices) | `references/case_modules.md`, `prompts/aspect_decomposition.md` |
-| Decomposition method, oracles, kill test (experimental) | `references/modular_fuzzing.md`, `references/effectful_onboarding.md`, `references/coverage_audit.md` |
+| Decomposition, oracles, kill test (experimental) | `references/modular_fuzzing.md`, `references/coverage_audit.md` |
 | Migrating an existing repository | `references/migration.md` |
 | History entries, retirement, receipts | `references/spec_evolution.md` |
-| Runtime, CLI dependencies, which Skill Manager home resolves them | `references/runtime_requirements.md` |
+| Runtime and CLI dependencies | `references/runtime_requirements.md` |
 | Preparing context for AI-assisted analysis | `references/ai_retrieval.md` |
 | Writing or running an eval against any skill | `references/plugin_evals.md` |
 | Reviewing your own work, blind dispatch | `references/blind_dispatch.md` |
-| The scorecard rubric and scoring validation | `references/eval_scorecard.md`, `references/scoring_validation.md`, `references/portable_scorecard.md` |
-| Everything this skill learned, epic by epic, and what the experimental surface measured | `references/skill_history.md` |
+| The scorecard rubric and scoring validation | `references/eval_scorecard.md`, `references/scoring_validation.md` |
+| Everything this skill learned, epic by epic | `references/skill_history.md` |

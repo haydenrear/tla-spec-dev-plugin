@@ -1,0 +1,35 @@
+# The TESTING AGENT's inbox. NOT the ledger.
+#
+# THE LEDGER IS `specs/results/deferred_findings_final.yaml`. This file is where
+# an agent writing, running or repairing evals files a finding it cannot fix in
+# the PR it is opening — or when it is opening none.
+#
+# PREFER THE REFERENCE. The testing role is the one role whose primary
+# propagation destination is a reference PAGE, not an inbox: a measured fact
+# about the eval harness belongs in
+# `skills/spec-double-2/references/plugin_evals.md`, under its own
+# § *The rule for adding to this file*. File here only when the finding is about
+# a unit you are not touching, or you are opening no PR.
+#
+# WHY IT EXISTS (SI-29, #391). Three of the four agent roles had no propagation
+# destination at all. `skills/spec-double-2/references/agent_roles.md` § testing
+# is the reading path that reaches this file.
+#
+# THE RULE, unchanged from EPIC-AGENT.yaml:
+#   * a role files here, in the same row shape a ticket uses;
+#   * the epic agent absorbs into `deferred_findings_final.yaml` at wave close;
+#   * a row lives in exactly one of the two places, never both;
+#   * NOTHING reads this directory as a population. Do NOT add
+#     `specs/results/deferred/*.yaml` to `improvement_ledger.py`'s `BACKLOGS` —
+#     after absorption the glob double-counts every absorbed id.
+#
+# Give every row a `skill_change:` in the documented form. The slots are in
+# `agent_roles.md` § *The slots, and why a well-formed value is not enough*:
+# `proposed`'s first slot is a unit name, and `applied`'s only slot is a commit
+# sha and nothing else.
+
+role: testing
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings: []

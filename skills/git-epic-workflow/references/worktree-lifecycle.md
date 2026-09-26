@@ -446,3 +446,44 @@ has two places to put that line — the wave review artifact
 when a ticket agent reports it — and files it against the skill that owns the
 door: `git-epic-workflow` for the declared-path route above, `git-issue-workflow`
 for `wt`, `skt` for the plugin.
+
+
+## The long form of load-bearing rules 10, 11 and 14
+
+Moved out of `SKILL.md` by SI-29 (#391) so the card carries the rule and this
+page carries the reasons. The card's numbering is unchanged.
+
+10. **A ticket's Skill Manager home is not carried by its PR.** Every worktree has
+    its own gitignored `<worktree>/.skill-manager`; nothing inside it appears in
+    any PR. It reaches the tier above only through `skill-manager home sync`, and
+    the unit's own repository only through `skill-manager unit publish`. An epic
+    cannot finalize until every worktree has been through `skill-manager home
+    close-out`. **The epic agent owns that change management**: a ticket agent
+    runs the read-only gate and reports its verdict, never syncing into the
+    project home; the epic agent reconciles each home at wave close, serialized.
+
+    The declared worktree+home pair is one command — `skt ticket new <ticket>
+    --base "$commit_oid" --path <declared-worktree>`. **Test the resulting path,
+    not the exit code**: it has rolled a worktree back and still exited 0.
+    Reaching the by-hand pair when `skt` resolved is itself a finding — name
+    which of five cases you were in and file it against the skill owning the
+    door (`references/worktree-lifecycle.md` § *The front door*).
+
+11. **The epic owns whether the homes are CURRENT, and checks before scheduling.**
+    Every worktree home is a copy of the project home, which is a copy of the
+    root; copies do not update themselves. Before scheduling, run `skt check` in
+    the root home **and** with `SKILL_MANAGER_HOME=<repo>/.skill-manager` in the
+    project home, and sync anything behind its merged source, in dependency
+    order — a worktree cloned from a stale project home carries the staleness
+    into work you then redo. Other checkouts with their own homes are stale too
+    and nothing fans out to them; say so in the kickoff notes. "Current" is about
+    unit bytes, not derived artifacts: do not schedule rebuilds for a fresh
+    home's `artifacts stale` count (`references/plan-and-schedule.md` §2).
+
+14. **Worktrees stand until the epic ends, then all go in one sweep.** Keep every
+    ticket worktree through review; remove them all in one pass once the
+    default-branch merge is verified. Unit state merges **early**, at wave close;
+    worktrees are deleted **late**, together. Removal must never be the step that
+    carries the merge. Measure the sweep with free space, never `du`. The epic is
+    not finished while a worktree it created stands without a recorded reason.
+

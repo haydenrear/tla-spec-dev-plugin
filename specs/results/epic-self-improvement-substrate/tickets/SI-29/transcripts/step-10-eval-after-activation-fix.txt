@@ -1,0 +1,69 @@
+eval: staging a plugin view of /Users/hayde/IdeaProjects/wt-391-role-routed-disclosure
+eval: the view is commit aceb7bf33fce13f828e75ad74b8b87bff2a34aed
+eval: the view holds 9059 entries (the limit is 20000; tracked at this commit is 26204, and the working tree on disk is 144851)
+cases selected: w-roles-epic-finds-its-empty-inbox, w-roles-propagation-is-checkable, w-roles-review-finds-its-destination, w-roles-testing-finds-its-destination, w-roles-ticket-finds-its-back-channel
+graders: 50 regex grader(s) compile under the JS engine
+cases: 75 case file(s) parse.
+eval: granting Bash (derived from the cases' allowed_tools)
+eval: NOTE -- a Bash-granted case may need EVAL_HOME (see evals/README.md, 'The home').
+eval: toolchain -- 1 case selector(s) ('w-roles-*'); DEFAULTING to the pinned ?
+eval:   (override with --toolchain-ref <commit>)
+eval: materialising the toolchain (this fetches pinned commits)
+  skill-manager: 7941f4e1dd9e (pinned in evals/lib/toolchain.lock.toml)
+      the CLI says: skill-manager 0.28.1+g7941f4e1dd9e
+  drift: skill-manager: epic/self-improvement-substrate HAS MOVED to 6536defb8d02 since the pin at 7941f4e1dd9e -- the pin is doing its job
+  record -> /Users/hayde/IdeaProjects/wt-391-role-routed-disclosure/evals/results/toolchain/20260926T154403Z.json
+eval: the run record is /Users/hayde/IdeaProjects/wt-391-role-routed-disclosure/evals/results/toolchain/20260926T154403Z.json (and staged for the hook to print)
+eval: the view carries skt, skill-manager and unit-authoring from this branch
+eval: the view holds 9061 entries after staging the toolchain
+eval: WARNING -- no offline uv wheels; any `uv run --script` skill script
+eval:   will fail in the sandbox. Build them: evals/setup-eval-home.sh
+eval: SKT_PYTHON=/opt/homebrew/bin/python3.14 (the orientation hook needs >= 3.11; the system python3 is 3.9)
+eval: HOME -> /Users/hayde/.local/state/tla-spec-dev/evalhome (scratch home; see evals/setup-eval-home.sh)
+eval: java -- java version "21" 2023-09-19 LTS
+eval:   JAVA_HOME=/Users/hayde/.sdkman/candidates/java/current
+eval:   JBANG_DIR=/Users/hayde/IdeaProjects/wt-391-role-routed-disclosure/.toolchain/jbang (isolated; the operator's ~/.jbang is untouched)
+eval:   the CLI starts: skill-manager 0.28.1+g7941f4e1dd9e
+eval: running
+Plugin under test: "tla-spec-dev" version "0.1.0" at "/private/tmp/tla-spec-dev-eval-view"
+  w-roles-epic-finds-its-empty-inbox run 1/1: score 1.00  $0.23
+    ✓ knows-the-inbox-is-empty (weight 4): judge votes: PASS PASS PASS
+    ✓ names-the-epic-inbox (weight 4): matched EPIC-AGENT\.yaml|EPIC_AGENT\.yaml|deferred/EPIC
+    ✓ names-the-role-map (weight 2): matched agent_roles|agent roles\.md
+    ✓ reaches-a-skill (weight 1): Skill called 1x (expected 1..∞)
+✓ w-roles-epic-finds-its-empty-inbox  score 1.00  (1 run)  $0.23
+  w-roles-propagation-is-checkable run 1/1: score 1.00  $0.24
+    ✓ propagation-is-checkable-later (weight 5): judge votes: PASS PASS PASS
+    ✓ reaches-a-skill (weight 1): Skill called 1x (expected 1..∞)
+    ✓ states-the-grammar (weight 2): matched skill_change
+    ✓ writes-the-value-in-the-grammar (weight 4): matched proposed\s*\(\s*(spec-double-2|skt|skill-manager|unit-authoring|test-graph|discovery|git-issue|git-issue-workflow|git-epic-workflow|git-integration-repo|plugin-repository|tla-spec-dev)
+✓ w-roles-propagation-is-checkable  score 1.00  (1 run)  $0.24
+  w-roles-review-finds-its-destination run 1/1: score 1.00  $0.27
+    ✓ names-the-review-inbox (weight 4): matched REVIEW-AGENT\.yaml|deferred/REVIEW
+    ✓ names-where-dispositions-go (weight 2): matched 3\.4|review\.md|review artifact|wave artifact
+    ✓ reaches-a-skill (weight 1): Skill called 1x (expected 1..∞)
+    ✓ separates-diff-from-substrate (weight 4): judge votes: PASS FAIL PASS
+✓ w-roles-review-finds-its-destination  score 1.00  (1 run)  $0.27
+  w-roles-testing-finds-its-destination run 1/1: score 1.00  $0.23
+    ✓ knows-what-the-page-demands (weight 4): judge votes: PASS PASS PASS
+    ✓ names-the-testing-inbox (weight 2): matched TESTING-AGENT\.yaml|deferred/TESTING
+    ✓ prefers-the-reference-page (weight 4): matched plugin_evals|plugin evals\.md
+    ✓ reaches-a-skill (weight 1): Skill called 1x (expected 1..∞)
+✓ w-roles-testing-finds-its-destination  score 1.00  (1 run)  $0.23
+  w-roles-ticket-finds-its-back-channel run 1/1: score 1.00  $0.21
+    ✓ names-the-destination (weight 3): matched Skill changes proposed|specs/results/deferred|deferred_findings_final
+    ✓ names-the-role-map (weight 3): matched agent_roles|agent roles\.md
+    ✓ reaches-a-skill (weight 1): Skill called 1x (expected 1..∞)
+    ✓ routes-by-role-and-closes-the-loop (weight 4): judge votes: PASS PASS PASS
+✓ w-roles-ticket-finds-its-back-channel  score 1.00  (1 run)  $0.21
+
+CASE                                   SCORE PASS% RUNS COST    NOTES
+w-roles-epic-finds-its-empty-inbox     1.00  100%  1    $0.23   
+w-roles-propagation-is-checkable       1.00  100%  1    $0.24   
+w-roles-review-finds-its-destination   1.00  100%  1    $0.27   
+w-roles-testing-finds-its-destination  1.00  100%  1    $0.23   
+w-roles-ticket-finds-its-back-channel  1.00  100%  1    $0.21   
+
+5 case(s) · 131s · $1.18
+Report: /private/tmp/tla-spec-dev-eval-view/evals/results/2026-09-26T15-44-07-670Z/report.html (kept local: this run appears to have been started by a Claude Code session rather than a person — add --publish-report to publish it, where publishing is available)
+eval: results harvested into /Users/hayde/IdeaProjects/wt-391-role-routed-disclosure/evals/results

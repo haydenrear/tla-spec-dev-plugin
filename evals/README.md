@@ -1,5 +1,15 @@
 # The eval suite
 
+
+> **You are the testing agent.** This suite is one of the four agent roles the
+> plugin routes by reading. Your reading path — and, at the end of it, where what
+> you measure goes back into the substrate — is
+> `skills/spec-double-2/references/agent_roles.md` § testing. Read it before
+> adding a case: a measured fact about this harness belongs in
+> `skills/spec-double-2/references/plugin_evals.md`, and
+> `specs/results/deferred/TESTING-AGENT.yaml` is where a finding goes when you
+> open no PR.
+
 **61 cases, one place, one command**, run against **this checkout**.
 
 ```bash

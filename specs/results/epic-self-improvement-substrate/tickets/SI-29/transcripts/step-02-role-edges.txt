@@ -1,0 +1,9 @@
+### step-02: the four ROLE edges, as a cold reader finds them
+$ grep -rn 'reason: "ROLE ' skills/ | (the entry points only, not the map page)
+skills/spec-double-2/references/plugin_evals.md:5:    reason: "ROLE testing — you are the testing agent. This is your reading path and where what you measure goes back: this page itself under its own rule for adding to it, and specs/results/deferred/TESTING-AGENT.yaml when you open no PR."
+skills/git-epic-workflow/SKILL.md:12:    reason: "ROLE epic — you are the epic agent, and you open no ticket PR. This is your reading path and where you file what you learned: specs/results/deferred/EPIC-AGENT.yaml, absorbed into the ledger at wave close. The review role's path is on the same page."
+skills/git-epic-workflow/references/human-review.md:5:    reason: "ROLE review — you are the review agent. This is your reading path and where a substrate finding goes when you open no PR: specs/results/deferred/REVIEW-AGENT.yaml. \u00a73.4 below is where you write back OTHER roles' dispositions."
+skills/git-issue-workflow/SKILL.md:12:    reason: "ROLE ticket — you are the ticket agent. This is your reading path and, at the end of it, where you hand back what you learned: the PR's `## Skill changes proposed` and your per-ticket inbox."
+
+### each edge's target must exist (skill-imports validation rule)
+EXISTS  skills/spec-double-2/references/agent_roles.md

@@ -1,0 +1,24 @@
+### step-05: what a COLD session can see before opening any file
+$ (the only session-start text that mentions a role map, out of 588 description words)
+  spec-double-2: ...ational standards for evals and bug attribution, and of the ROLE MAP that routes ticket, epic, review and testing agents to their own reading path....
+  -> 1 of 11 descriptions names it. A cold session opens spec-double-2 and finds the Role map table.
+
+$ the card's own Role map, as a reader meets it
+## Role map
+
+**Before the task map, the role map.** The map below routes by what you are
+*doing*; this one routes by what you *are*, and it ends where the task map does
+not: in how your role hands back what it learned.
+
+| you have in front of you | you are the | read `references/agent_roles.md` § |
+| --- | --- | --- |
+| one issue, your own branch, a PR to open | **ticket agent** | ticket |
+| an epic plan; you dispatch and merge, and open no ticket PR | **epic agent** | epic |
+| a PR you did not write, and a review artifact to produce | **review agent** | review |
+| an eval case, suite or harness | **testing agent** | testing |
+
+Each section is four parts: how you know you are that role, what you read, where
+you write what you learned in the `skill_change` grammar, and the command that
+shows you what became of it. Nothing detects your role — you arrive by reading.
+
+## Reference map

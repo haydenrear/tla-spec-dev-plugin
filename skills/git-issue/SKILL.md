@@ -1,13 +1,10 @@
 ---
 name: git-issue
 description: >-
-  Use when creating a tracker issue an agent will pick up and implement,
-  especially GitHub issues via the `gh` CLI. Drives a discovery-first work order:
-  scan the repo first, embed a References section, name the measurable goal and
-  the instrument that decides it, instruct a worktree and branch, decide whether
-  a TLA+ spec workflow is needed, and spell out regression and close-out. Trigger
-  on "file an issue", "create a ticket", "open a GitHub issue", or scheduling an
-  issue in an epic branch.
+  Use when creating a tracker issue an agent will pick up and implement, via the
+  `gh` CLI. Drives a discovery-first work order: scan first, then name the
+  measurable goal and the instrument that decides it. Trigger on "file an
+  issue", "create a ticket", "open a GitHub issue".
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/SKILL.md

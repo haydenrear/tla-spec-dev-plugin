@@ -1,15 +1,16 @@
 ---
 name: git-issue-workflow
 description: >-
-  Use when handed a GitHub issue to implement — a body, a URL, a bare "#N", or
-  `gh issue view` output — or asked to start, pick up, complete or close out a
-  ticket, including one assigned from a shared epic workflow. Drives the worktree
-  lifecycle every ticket starts and ends with, through `skt ticket new|close` or
-  `skt`'s `scripts/wt`. Read before touching the repo — a
-  `git-epic-workflow:assignment` marker selects epic mode. Trigger on "implement
-  this issue", "complete this ticket", "work this epic ticket", "run the
-  evaluation ticket", "open the MR", or receiving an agent-tagged PR.
+  Use when handed a GitHub issue to implement, or asked to start, complete or
+  close out a ticket — including one assigned from a shared epic. Read before
+  touching the repo. Trigger on "implement this issue", "complete this ticket",
+  "work this epic ticket", "run the evaluation ticket", "open the MR", or
+  receiving an agent-tagged PR.
 skill-imports:
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/agent_roles.md
+    reason: "ROLE ticket — you are the ticket agent. This is your reading path and, at the end of it, where you hand back what you learned: the PR's `## Skill changes proposed` and your per-ticket inbox."
+    section: ticket
   - unit: tla-spec-dev
     path: skills/git-issue/SKILL.md
     reason: This skill executes the worktree/spec/close-out moves that a git-issue work order names; the issue body is the input to provisioning.
@@ -45,50 +46,32 @@ First and last thing every ticket does. Ask the shell, do not look around:
 command -v skt    # prints a path -> use `skt ticket new|close <ticket>` and stop looking
 ```
 
-`skt` is a **plugin**, so it is never under a home's `skills/` — an agent listing
-that directory concludes it is absent from a home that has it. Its whole surface:
-`skt ticket new <ticket> [<base>] [--base <ref>] [--path <dir>]` and `skt ticket
-close <ticket>`; a dirty parent tree goes through the environment,
-`WT_DIRTY_OK=1`. Only when `command -v skt` prints nothing, resolve `wt` by
-path — it ships with `skt`, and the two-rung spelling is
-`references/worktrees.md` § *Resolving `wt` when `skt` is absent*.
+`skt` is a **plugin**, so it is never under a home's `skills/` — an agent
+listing that directory concludes it is absent from a home that has it. Its whole
+surface: `skt ticket new <ticket> [<base>] [--base <ref>] [--path <dir>]` and
+`skt ticket close <ticket>`. Only when `command -v skt` prints nothing, resolve
+`wt` by path (`references/worktrees.md`).
 
 **`cd` to the path `new` printed** — `<parent>/<repo>-<ticket>`, not
-`../wt-<ticket>`, so do not guess it. Anything a caller acts on is a keyed
-contract line: `"$WT" info <ticket>`, or `--verbose` on the creating run, which
-is the only run that measured `BASE`.
+`../wt-<ticket>`, so do not guess it. **Do not substitute `git worktree add`**:
+it produces a worktree with no Skill Manager home, and an agent launched there
+writes the operator's global `~/.skill-manager`. Do not substitute `git worktree
+remove` either — it deletes the home, and every unpushed skill edit in it,
+without a word.
 
-**Do not substitute `git worktree add`.** It produces a worktree with no Skill
-Manager home, and an agent launched there writes the operator's global
-`~/.skill-manager`. Do not substitute `git worktree remove` either: it deletes
-the home, and every unpushed skill edit in it, without a word.
-
-Same command in a plain repo, an integration repo, and a constituent of one.
 A failure is three lines and the second runs **as printed** (`fix:`). What each
-provisioning exit means — **3** no project home yet, **7** the base is behind its
-remote, **1** the parent tree is not clean, **79** a home mismatch — is
+provisioning exit means — **3**, **7**, **1**, **79** — is
 `references/worktrees.md` § *The exit codes `wt new` refuses with*. Never stash,
 commit or discard someone's edits to get past exit 1, and never upgrade
 skill-manager to get past 79.
 
 ## Reaching a by-hand route is itself a finding
 
-This skill spells out a manual equivalent in two places: the chained `git
-worktree add && bootstrap-home.sh` in `references/epic-ticket.md` §2, and the raw
-`home close-out && git worktree remove` under close-out step 4. Each is written
-for a repository that genuinely has no front door — **and because each one works,
-an agent that merely could not *find* the front door lands on it, produces a
-plausible result, and leaves no trace but the cost.** Four eval runs did exactly
-that, for four different reasons, and none reported a problem.
-
-So run `command -v skt` first. If it printed nothing and neither `wt` path
-exists, the by-hand route is correct and there is nothing to report. If either
-resolved and you are on the by-hand route anyway, say so in one line, naming
-which: `skt` installed but not on `PATH`; you looked where a plugin never is
-(`skills/`); you found it and it **failed** (quote its `error:` line verbatim);
-or you found it and could not read the home it pointed at. All four are
-front-door defects, not facts about the repository. Put the line in the PR body,
-or to the user when there is no PR, and file it against this skill.
+`wt`/`skt ticket` is the front door. If you ended up provisioning by hand,
+**say which of the five miss cases you were in** and file it against the unit
+owning the door — a by-hand route that works silently is how a broken front door
+survives. The five cases and what each one owes the PR are in
+`references/provision.md` § *The five miss cases*.
 
 ## A blocker you met is a change you propose
 
@@ -135,22 +118,12 @@ integration provisioning script until this check is complete.
 
 ## Your Skill Manager home IS the worktree's
 
-Three tiers, each a real copy, not a symlink: root `~/.skill-manager` → project
-`<repo>/.skill-manager` → worktree `<worktree>/.skill-manager`, yours for this
-ticket and gitignored. Copies, because a link is one shared object and two
-tickets editing "their" copy would be editing each other's.
-
-Two consequences, neither optional. **Launch through the home's shims**,
-`<worktree>/.skill-manager/bin/launch/{claude,codex,gemini}`, or `skill-manager
-exec` — exporting `SKILL_MANAGER_HOME` by hand gets you only the part you
-remembered. And **an edit to a skill inside that home is in no diff**: the home
-is gitignored, the PR cannot carry it, and `git worktree remove` deletes it
-without a word. Getting it out is close-out step 4, and it is a gate.
-
-Downward is a copy and needs nothing from you; **upward is the whole difficulty**.
-Why the isolation needs the shims, what a home inherits versus declares, and how
-to tell a broken home from a healthy one: `references/skill-homes.md`. **Do not
-diagnose a new worktree home from the CLI source.**
+Every ticket worktree has its own gitignored `.skill-manager`. A skill edit you
+make in it is in **no git diff**, reaches no PR, and is deleted with the
+directory. Run `home close-out` before the worktree goes, never `home sync` into
+a home you do not own, and never write a real home by hand.
+`references/skill-homes.md` has the tiers, the scripts, the CLI pin and the exit
+ladder.
 
 ## Is this an integration repo?
 
@@ -188,6 +161,16 @@ not run this sequence. Each step in full, including the INTEGRATION variant, is
 --no-ff` and `verify.sh` — but still run 1, 2, 4 and 5 at the parent, then fan
 out (`references/integration-fanout.md`).
 
+## Role map
+
+**Before the task map, the role map.** You are the **ticket agent** — the one
+role that already had a way to hand something back, in this PR's
+`## Skill changes proposed` and in `specs/results/deferred/<ticket>.yaml`. What
+the other three roles do, and the one command that shows you what the epic agent
+did with your finding, are in the spec-double-2 skill's
+`references/agent_roles.md` § ticket. Nothing detects your role; you arrive by
+reading.
+
 ## Reference map
 
 | You are… | Read |
@@ -212,17 +195,12 @@ out (`references/integration-fanout.md`).
   lets `wt new` proceed from a dirty parent tree and forces the tla-spec-dev
   close gates; `wt close` still takes an explicit `--force`.
 - It does not reimplement the spec, test-graph or fan-out mechanics — it
-  **sequences** them, from `spec-double-compiler`, `test-graph` and
-  `git-integration-repo`.
+  **sequences** them.
 - The **worktree lifecycle it does own**: `new-change.sh`, `close-change.sh`,
-  `bootstrap-home.sh`, `agent-home.sh` and `lib.sh`, because a
-  ticket and a worktree exist for every repo while an integration repository is a
-  specialization. The front door `wt` is `skt`'s and holds no policy.
-  These used to live in `git-integration-repo`, and an agent
-  working a plain repo — reading that skill's description and correctly
-  concluding it was irrelevant — never learned `wt` existed and wrote its own
-  worktree script. The dependency runs specialized → general:
-  `git-integration-repo` → `git-issue-workflow` → `git-issue`.
+  `bootstrap-home.sh`, `agent-home.sh` and `lib.sh`. The front door `wt` is
+  `skt`'s and holds no policy. The dependency runs specialized → general:
+  `git-integration-repo` → `git-issue-workflow` → `git-issue`; why these moved
+  out of `git-integration-repo` is `references/worktrees.md`.
 - It never runs per-constituent specs/graphs during a ticket.
 - It does not invent goals, baselines or targets, and never edits one to match a
   result. **It does not tune to a metric**: the local signal is measured,

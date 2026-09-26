@@ -1,0 +1,34 @@
+### step-04: THE RETURN LEG, walked against real finding ids
+
+--- 4a. a ticket agent's finding that WAS consumed (the documented command) ---
+$ grep -n -A8 'SI-27-DF-06' specs/results/deferred_findings_final.yaml | grep skill_change
+$ git show --stat --oneline d09d8326 | head -3
+d09d8326 checkers read this repository, not copies of it — and index once
+ skills/spec-double-2/scripts/check_citations.py | 62 ++++++++++++++++++++++---
+ tests/test_card_has_one_home.py                 |  9 +++-
+  ^ the reader reaches the actual change. RETURN LEG CLOSES.
+
+--- 4b. a finding that is still waiting on the epic agent ---
+$ (first 3 rows whose skill_change is still proposed(...))
+  40 of 151 rows are still proposed(...)
+   SI-04-DF-01: proposed(spec-double-2, "SI-04-DF-01; the fix is in tests/, not in the skill")
+   SI-04-DF-02: proposed(spec-double-2, "SI-04-DF-02; owner decides whether the close path or 
+   SI-04-DF-03: proposed(skill-manager, "SI-04-DF-03; pairs with SIS-W2-F-05")
+  ^ for each of these the return leg says: NOT CONSUMED. That is a real answer.
+
+--- 4c. what the return leg gets for the OTHER seven applied() rows ---
+   not a sha   no rev    SI-13-DF-01   'test_graph/run-graphs.py'
+   not a sha   no rev    SI-13-DF-02   'skill-manager'
+   not a sha   no rev    SI-14-DF-01   'this'
+   not a sha   no rev    SI-14-DF-03   'this'
+   SHA-SHAPED  resolves  SI-16-DF-02   '4caab479'
+   SHA-SHAPED  resolves  SI-27-DF-06   'd09d8326'
+   SHA-SHAPED  resolves  EA-DF-05      'f212cbe3'
+   not a sha   no rev    EA-DF-08      'evals/lib/undecided.py'
+   not a sha   no rev    EA-DF-13      'evals/hooks/hooks.json'
+   not a sha   resolves  EA-DF-18      'test-graph'
+
+   sha-shaped: 3/10     resolves under git cat-file: 4/10
+   the gap is EA-DF-18 applied(test-graph, ...): `test-graph` is a git REMOTE here,
+   so the token resolves to refs/remotes/test-graph/main -- a false PASS for any
+   check that tests resolvability instead of shape.

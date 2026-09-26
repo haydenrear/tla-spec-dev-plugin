@@ -1,0 +1,26 @@
+### step-06: the advisory guarantee is intact -- nothing added refuses
+$ python skills/spec-double-2/scripts/improvement_ledger.py ; echo rc=$?
+improvement ledger -- 193 record(s) across 4 file(s)
+
+findings by disposition
+  disposition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                total  skill-anchored  skill_change  applied/declined
+...
+WARNINGS (advisory -- nothing here refuses)
+  recorded-local, filed nowhere .......... 0
+  no skill_change field at all ........... 108
+  skill_change present but unparseable ... 14
+  D4: skill-anchored, not applied/declined 67
+
+rc=0
+  ADVISORY HELD: exit 0
+
+$ the two new inboxes parse as YAML and are empty by design
+  specs/results/deferred/REVIEW-AGENT.yaml: role=review findings=[] absorbed_into=specs/results/deferred_findings_final.yaml
+  specs/results/deferred/TESTING-AGENT.yaml: role=testing findings=[] absorbed_into=specs/results/deferred_findings_final.yaml
+
+$ BACKLOGS is unchanged -- the new inboxes are NOT read as a population (EPIC-AGENT.yaml's rule)
+BACKLOGS = (
+    "specs/results/deferred_findings_final.yaml",
+    "specs/results/epic-close/deferred_findings_next.yaml",
+)
+MATRIX = "examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md"

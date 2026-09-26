@@ -1,6 +1,10 @@
 ---
 name: test-graph
-description: Work with the test-graph validation system — scaffold a test_graph project, add JBang/uv nodes, compose graphs in build.gradle.kts, discover/plan them, run one graph or all graphs, and aggregate reports. Trigger on "set up validation nodes", "compose a validation graph", "run test_graph", "debug a failing graph", or extending an existing test_graph project.
+description: >-
+  Work with the test-graph validation system: scaffold a project, add nodes,
+  compose graphs, run them and aggregate reports. Trigger on "set up validation
+  nodes", "compose a validation graph", "run test_graph", "debug a failing
+  graph", or extending an existing test_graph project.
 ---
 
 # test-graph skill

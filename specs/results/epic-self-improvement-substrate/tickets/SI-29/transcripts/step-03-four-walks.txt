@@ -1,0 +1,77 @@
+======== ROLE: ticket ========
+--- hop 1: the entry point a ticket agent already has in front of it
+$ test -f skills/git-issue-workflow/SKILL.md
+  EXISTS
+$ grep -c 'ROLE ticket' skills/git-issue-workflow/SKILL.md
+1
+
+--- hop 2: the edge names one page; does it resolve?
+$ test -f skills/spec-double-2/references/agent_roles.md
+  EXISTS
+
+--- hop 3: does that page carry a '## ticket' section?
+$ grep -n '^## ticket$' skills/spec-double-2/references/agent_roles.md
+65:## ticket
+
+--- hop 4: does that section end in a propagation destination, and does it exist?
+$ (destination named by the section) specs/results/deferred/SI-29.yaml
+  MISSING
+$ awk section | grep -c 'You write'
+1
+
+======== ROLE: epic ========
+--- hop 1: the entry point a epic agent already has in front of it
+$ test -f skills/git-epic-workflow/SKILL.md
+  EXISTS
+$ grep -c 'ROLE epic' skills/git-epic-workflow/SKILL.md
+1
+
+--- hop 2: the edge names one page; does it resolve?
+$ test -f skills/spec-double-2/references/agent_roles.md
+  EXISTS
+
+--- hop 3: does that page carry a '## epic' section?
+$ grep -n '^## epic$' skills/spec-double-2/references/agent_roles.md
+105:## epic
+
+--- hop 4: does that section end in a propagation destination, and does it exist?
+$ (destination named by the section) specs/results/deferred/EPIC-AGENT.yaml
+  EXISTS:       33 lines
+$ awk section | grep -c 'You write'
+1
+
+======== ROLE: review ========
+--- hop 1: the entry point a review agent already has in front of it
+$ test -f skills/git-epic-workflow/references/human-review.md
+  EXISTS
+$ grep -c 'ROLE review' skills/git-epic-workflow/references/human-review.md
+1
+
+--- hop 2: the edge names one page; does it resolve?
+$ test -f skills/spec-double-2/references/agent_roles.md
+  EXISTS
+
+--- hop 3: does that page carry a '## review' section?
+$ grep -n '^## review$' skills/spec-double-2/references/agent_roles.md
+148:## review
+
+--- hop 4: does that section end in a propagation destination, and does it exist?
+$ (destination named by the section) specs/results/deferred/REVIEW-AGENT.yaml
+  EXISTS:       33 lines
+$ awk section | grep -c 'You write'
+1
+
+======== ROLE: testing ========
+--- hop 1: the entry point a testing agent already has in front of it
+$ test -f skills/spec-double-2/references/plugin_evals.md
+  EXISTS
+$ grep -c 'ROLE testing' skills/spec-double-2/references/plugin_evals.md
+1
+
+--- hop 2: the edge names one page; does it resolve?
+$ test -f skills/spec-double-2/references/agent_roles.md
+  EXISTS
+
+--- hop 3: does that page carry a '## testing' section?
+$ grep -n '^## testing$' skills/spec-double-2/references/agent_roles.md
+187:## testing

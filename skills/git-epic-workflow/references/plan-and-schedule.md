@@ -623,3 +623,23 @@ URLs to ticket agents, then invokes the epic workflow again to integrate and
 review the finished wave, refresh readiness, or finalize. Merging those tickets'
 PRs into the epic branch is this skill's work, not the user's, unless
 `review_policy.merges` says `human` (`references/human-review.md` §1).
+
+
+## The long form of the card's load-bearing rule(s)
+
+Moved out of `SKILL.md` by SI-29 (#391): the card keeps the rule, this page
+keeps the reasons. The card's numbering is unchanged.
+
+3. **Dispatched identities are immutable, including retired work.** Never delete,
+   reorder, rename or reuse a ticket ID after publishing assignments — delivery
+   histories and retirement-receipt paths depend on the original zero-based
+   ordinal and ID. Adding scope creates a new ticket; removing scope keeps the
+   entry with `status: retired`, bumps `schedule_revision`, and records a
+   retirement receipt and goal disposition.
+
+12. **Every epic states measurable goals; every ticket relates to one.** Ask the
+    user what should be measurably better before scaffolding. Record each goal
+    with metric, harness, baseline and target; schedule the terminal evaluation
+    tickets that decide them; give every other ticket a contribution, expected
+    effect and local signal (`references/goals-and-evaluation.md`).
+

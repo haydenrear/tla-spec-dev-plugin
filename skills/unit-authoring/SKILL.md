@@ -1,6 +1,12 @@
 ---
 name: unit-authoring
-description: 'Author and maintain installable skill-manager units: skills, plugins, doc-repos, and harnesses. Read this before editing any file inside a unit — SKILL.md, its frontmatter or description, skill-manager.toml, plugin.json, harness.toml, or a references/ page — not only when creating one from scratch. Use when making a directory installable by skill-manager, choosing a unit kind, scaffolding a unit, writing or reviewing unit manifests/TOML, adding CLI or MCP dependencies, wiring references, validating install/bind/instantiate round-trips, preparing optional registry metadata, or shipping an edit to an already-installed unit so it reaches $SKILL_MANAGER_HOME (commit, push, then `skill-manager sync`). Detailed schemas live in references for skills, plugins, doc-repos, harnesses, scaffolding, coordinates/distribution, dependencies, bindings/sync, and skill-script.'
+description: >-
+  Author and maintain installable skill-manager units: skills, plugins, doc-
+  repos and harnesses. Use when making a directory installable, choosing a unit
+  kind, scaffolding a unit, writing or reviewing a manifest, or shipping an edit
+  to an already-installed unit. Read before editing any file inside a unit —
+  SKILL.md, its frontmatter or description, skill-manager.toml, plugin.json or
+  harness.toml — not only when creating one from scratch.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/skill-manager/references/skill-imports.md
@@ -172,76 +178,13 @@ Extra validation:
 
 ## Shipping Edits to an Installed Unit
 
-Agents read units from the **store**
-(`$SKILL_MANAGER_HOME/skills/<name>/`, `plugins/<name>/`,
-`docs/<name>/`, `harnesses/<name>/`), not from the source repo you just
-edited. Editing the source repo changes nothing an agent can see until
-the bytes reach the store. A finished edit means synced, not saved.
-
-The store copy for a git-backed unit is a checkout of a **remote** ref.
-`skill-manager show <unit>` prints its store path, and
-`$SKILL_MANAGER_HOME/installed/<unit>.json` records the `origin`,
-`gitRef`, and `gitHash` that sync pulls from. So the loop is:
-
-```bash
-cd <unit-repo>
-# ...edit SKILL.md / manifest / references...
-git add -A && git commit -m "docs: ..."
-git push origin main                    # sync pulls from the REMOTE
-skill-manager sync <unit> --git-latest  # fetch gitRef, re-run side effects
-```
-
-Then confirm the store actually moved — do not assume sync succeeded:
-
-```bash
-skill-manager list          # SHA column should match the pushed commit
-git rev-parse --short HEAD  # ...this one
-```
-
-Notes that trip agents up:
-
-- **Push before sync — and check, because sync will not tell you.**
-  Sync fetches the remembered `origin` at `gitRef`. A local commit that
-  was never pushed is not upstream, so sync leaves the store on the old
-  bytes. It still **exits 0 and prints a normal success report**,
-  including MCP/CLI side effects, so a green sync is *not* evidence the
-  bytes moved. The only proof is `gitHash` in
-  `$SKILL_MANAGER_HOME/installed/<unit>.json` (or the SHA column of
-  `skill-manager list`) matching your pushed `HEAD`.
-- **The unit name is not the repo name.** Sync takes the installed unit
-  name (`skill-manager sync skt` for the plugin published from
-  `github:haydenrear/skill-publisher-skill`), while the remote is
-  `github:owner/<repo>` — often spelled differently. `skill-manager
-  list` gives the unit names.
-- **Nested repos need two pushes.** When a unit repo lives inside a
-  parent repo's tree, push the unit repo first; the parent commit only
-  records the unit's files, and sync never reads the parent.
-- **`--git-latest` when no registry is configured.** Plain
-  `sync <unit>` may consult the registry for a published `git_sha`.
-  `--git-latest` skips it and fetches the install-time `gitRef`
-  directly, which is what you want for an unpublished edit. See the
-  registry caution in `references/coords-and-distribution.md`.
-- **Never edit the store copy in place** *as a way of authoring*. The
-  next sync overwrites it, and its provenance no longer matches
-  `origin`. This is a rule about where work should START, not a claim
-  that an in-home edit is unrecoverable: an agent that improved a unit
-  mid-ticket has already made one, and `skt publish` — `home sync` one
-  tier up, then `unit publish` — exists precisely to rescue it. Author
-  from the unit's own checkout; rescue from the store when the edit is
-  already there.
-- **Sync re-projects the agent symlinks.** A successful sync reports
-  `✓ claude: synced <unit>` per configured agent, which is how the new
-  frontmatter reaches each agent's skill directory. Claude Code re-reads
-  a changed `description` in the running session; other agents may cache
-  the skill list until restart. If a description change does not seem to
-  take, restart the session before suspecting the manifest.
-
-To iterate without pushing on every keystroke, use a working-tree sync
-(`skill-manager sync <unit> --from <dir> --merge --yes`) or the
-`skill-dev` worktree flow, then finish with a real commit + push + sync
-so the store's provenance points at the remote again. Full semantics are
-in `references/bindings-and-sync.md` and the "Git versioning and sync"
-section of `references/coords-and-distribution.md`.
+An edit you make **inside a Skill Manager home** is in no git diff, no PR and no
+fan-out, and it dies with the directory. Getting it out is three ordered moves —
+commit and push the unit's own repository, then `skill-manager sync`, and
+`skill-manager home sync` / `unit publish` when the edit lives in a home rather
+than a checkout. The order, the exit ladder, what each verb can and cannot
+carry, and the failure each one is there to prevent are in
+`references/bindings-and-sync.md` § *Shipping an edit out of a home*.
 
 ## Modeled CLI Workflow Coverage
 

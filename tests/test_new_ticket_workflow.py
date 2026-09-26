@@ -77,16 +77,30 @@ def write_successful_ticket_receipt(
 def test_skill_requires_two_minute_case_generation_budget() -> None:
     skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
     generation_modes = (SKILL_ROOT / "references" / "generation_modes.md").read_text(encoding="utf-8")
+    tractability = (SKILL_ROOT / "references" / "architecture_tractability.md").read_text(encoding="utf-8")
 
+    # The CARD keeps the rule and the budget; SI-29 (#391) moved the bounded
+    # discovery pass and the tradeoff-recording prose into
+    # references/architecture_tractability.md so the card stays under its
+    # progressive-disclosure budget. This follows the SAME move RP-05 made below
+    # for generation_modes.md: when prose relocates, the assertion follows the
+    # content rather than forcing the content to stay put. Nothing was weakened
+    # -- every phrase below was previously asserted and is asserted still, byte
+    # for byte; only which file is searched changed.
     assert "hard 120-second timeout" in skill
-    assert "Do not simply raise the timeout" in skill
-    assert "perform bounded discovery of the state explosion" in skill
-    assert "accidental complexity" in skill
-    assert "Provide concrete recommendations" in skill
+    assert "bounded discovery pass" in skill
+    assert "decomposition rather than by narrowing constants" in skill
+    assert "architecture_tractability.md" in skill
+
+    assert "Do not simply raise the timeout" in tractability
+    assert "perform bounded discovery of the state explosion" in tractability
+    assert "accidental complexity" in tractability
+    assert "Provide concrete recommendations" in tractability
     # 2026-09-14: the card no longer tells the agent to stop and discuss; it
     # records the tradeoff for the user and continues.
-    assert "record the tradeoff for the user" in skill
+    assert "record the tradeoff for the user" in tractability
     assert "discuss the tradeoff with the user" not in skill
+    assert "discuss the tradeoff with the user" not in tractability
     # RP-05 (CM-01-DF-01/AC-DF-01): this used to assert the literal prose
     # "hard two-minute budget", which the c72d03a docs refresh rewrote to
     # "hard wall-time budget: `budgets.tlc_seconds` ... default 120 seconds" --

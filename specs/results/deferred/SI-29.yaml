@@ -1,0 +1,201 @@
+# SI-29's inbox. NOT the ledger — the epic agent absorbs this at wave close,
+# exactly as it absorbed SI-19's through SI-22's. The assignment's
+# `deferment.backlog` names specs/results/deferred/SI-29.yaml.
+#
+# Every row was observed by hand in the ticket worktree
+# /Users/hayde/IdeaProjects/wt-391-role-routed-disclosure at base 59370837 on
+# 2026-09-26, and names the transcript or command it came out of.
+#
+# Budget is 5 and this file holds 5.
+#
+# Every `skill_change` below is written in the form this ticket documented in
+# `skills/spec-double-2/references/agent_roles.md` § *The slots*: `proposed`'s
+# first slot is a unit name, `applied`'s only slot is a commit sha and nothing
+# else, and prose that is not a unit name goes in the second slot or in `none`'s
+# explanation rather than in a slot. If that form is wrong, this file is the
+# first place it will show.
+ticket: SI-29
+base_sha: 59370837de8e25353f10ea146e9db4e9361d1cda
+record: specs/results/epic-self-improvement-substrate/tickets/SI-29/manual-verification.md
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings:
+  - id: SI-29-DF-01
+    status: resolved
+    severity: medium
+    title: >-
+      `applied(x)` has no constrained slot, and testing x for resolvability
+      instead of shape gives a FALSE PASS on a live ledger row
+    what: >-
+      The `skill_change` grammar fixes arity but says nothing about what goes in
+      a slot. Measured over the 10 `applied(...)` rows of
+      specs/results/deferred_findings_final.yaml: only 3 begin with a commit sha
+      (4caab479, d09d8326, f212cbe3); the other seven name "this PR", a file
+      list or a branch, none of which a reader can resolve a month later. The
+      trap is the eleventh observation: 4 of 10 resolve under `git cat-file -t`,
+      because `applied(test-graph, match a node stem ...)` has a first token that
+      resolves to refs/remotes/test-graph/main — this repository has a git REMOTE
+      named test-graph. So the obvious check (does git resolve it?) scores that
+      row a pass and points a reader at an unrelated commit.
+    surface:
+      production:
+        - skills/spec-double-2/references/agent_roles.md
+        - skills/spec-double-2/scripts/improvement_ledger.py
+    anchor: UNMODELED/record-keeping
+    evidence: >-
+      specs/results/epic-self-improvement-substrate/tickets/SI-29/transcripts/step-04-return-leg.txt
+      §4c, with the negative control (a bogus sha does not resolve).
+    disposition: consumed
+    goal: GOAL-findings-become-changes
+    skill_change: applied(11000fa6)
+    note: >-
+      Consumed as DOCUMENTATION, deliberately not as a check: GOAL-no-new-gates is
+      live and the owner's constraint is references only. The documented form is
+      about the SHAPE of the slot for exactly the reason above. Whether the next
+      writers follow it is unmeasured.
+
+  - id: SI-29-DF-02
+    status: resolved
+    severity: low
+    title: >-
+      The `skill_change` grammar has no delimiter rule, so a value can carry two
+      verbs and a writer can believe they said two things
+    what: >-
+      SI-19-DF-01 reads `skill_change: "none applied; proposed(test-graph,
+      SI-19-DF-01: the next-steps block names smoke's precondition)"`. That is
+      two verbs in one value. `parse_skill_change` correctly calls it malformed
+      and `improvement_ledger.py` reports it — so nothing is silently
+      mis-counted — but the author plainly intended both clauses to be read, and
+      the grammar as documented gave them no way to say "none applied yet, and
+      here is what I propose". 1 of 151 rows today; it becomes more likely once
+      four roles write the field instead of one.
+    surface:
+      production:
+        - skills/spec-double-2/references/agent_roles.md
+    anchor: UNMODELED/record-keeping
+    evidence: >-
+      Measured directly over the 151 rows; the strict parse names exactly this
+      one id. Reproduced against `improvement_ledger.py`'s own `_CALL` regex.
+    disposition: consumed
+    goal: GOAL-findings-become-changes
+    skill_change: applied(11000fa6)
+    note: >-
+      Consumed as documentation only — `agent_roles.md` names this row as the
+      worked example of why the slots need a form. The grammar itself is NOT
+      widened: adding a two-verb spelling would make every historical row
+      ambiguous, which is the MF-020 error (an instrument changed after seeing
+      its own data).
+
+  - id: SI-29-DF-03
+    status: open
+    severity: low
+    title: >-
+      CORRECTED. `check_cases_parse.py` was NOT inert in the lane; my original
+      claim was an artefact of my own shell. What survives is a portability hole
+      and a misleading word, and the epic agent has fixed both.
+    what: >-
+      ORIGINALLY FILED AS HIGH, and the claim was WRONG. I reported that
+      `evals/run.sh:269` invokes the checker with a `python3` that has no PyYAML,
+      so the #389 fix printed `SKIPPED` and checked nothing. `run.sh` is a BASH
+      script, and in non-interactive bash `python3` resolves to
+      /usr/bin/python3 (3.9.6), which HAS PyYAML 6.0. Run as the lane runs it the
+      original checker prints `cases: 75 case file(s) parse.` The `SKIPPED` I saw
+      came from my own interactive ZSH, which carries `alias python3=python` and
+      sends it to Homebrew 3.14, which lacks PyYAML. An alias does not exist
+      inside a script.
+      WHAT IS ACTUALLY TRUE, and it is much smaller: the checker depended on the
+      host's system interpreter happening to carry PyYAML, so a host whose
+      /usr/bin/python3 lacks it would have gone quiet; and `SKIPPED` reads as a
+      benign non-failure rather than as "the corpus was not verified".
+    surface:
+      production:
+        - evals/lib/check_cases_parse.py
+    anchor: UNMODELED/record-keeping
+    evidence: >-
+      `bash -c 'type python3'` -> /usr/bin/python3, 3.9.6, `import yaml` -> 6.0.
+      `zsh -ic 'type python3'` -> "python3 is an alias for python", 3.14.6, no
+      yaml. The original file under bash: `cases: 75 case file(s) parse.` The same
+      file under my zsh: `cases: SKIPPED`. Both captured after the correction.
+    disposition: consumed
+    goal: GOAL-evals-one-command
+    skill_change: applied(57f05cf4)
+    note: >-
+      THE ERROR IS THE FINDING WORTH KEEPING, and it is not a new class: it is
+      SI-21-DF-01 exactly, reached from the other side. SI-21 §0 recorded that
+      `python3` is a zsh alias and that six of its measurements silently ran under
+      an interpreter it did not intend. I READ THAT FINDING WHILE WORKING THIS
+      TICKET and then made the same mistake in the opposite direction --
+      measuring in zsh and attributing the result to a bash script. SI-21's
+      remedy ("anything that measures by shelling out to python3 should print
+      sys.executable and sys.version") would have caught it, and so would running
+      the command in the shell that actually runs it. The epic agent fixed the
+      real hole at 57f05cf4 (the checker re-execs through uv and says UNVERIFIED
+      rather than SKIPPED), which is merged into this branch and verified here in
+      both shells.
+  - id: SI-29-DF-04
+    status: open
+    severity: low
+    title: >-
+      The work order's own funnel figures are off by one row in two places, and
+      the record should carry the measured numbers
+    what: >-
+      Addendum 1 of issue #391 reports 72 parseable skill_change values (48%) and
+      13 `none` over 151 rows. Measured with a strict parse of the same file:
+      71 parseable (47%), 12 `none`, and 1 malformed (SI-19-DF-01, see DF-02);
+      79 absent, 40 proposed, 10 applied, 9 declined are all confirmed exactly.
+      The addendum folded the malformed row into `none`. Separately it says 2 of
+      the 10 applied rows name something checkable; 3 do — it counted only
+      arguments that are nothing BUT a sha, and SI-16-DF-02 is a sha followed by
+      prose. The assignment's own goal baseline states a third pair of numbers,
+      "70 of 149 rows (47%)".
+    surface:
+      production: []
+    anchor: UNMODELED/record-keeping
+    evidence: >-
+      Direct parse of specs/results/deferred_findings_final.yaml with a
+      non-vacuity assert on the row count; step-04-return-leg.txt for the
+      sha-shape count.
+    disposition: routed
+    goal: GOAL-findings-become-changes
+    skill_change: none
+    note: >-
+      `none` is the right verb and is a claim, not an evasion: the defect is in
+      an issue body and a plan entry, and NEITHER IS A UNIT. Putting
+      "the issue body and the epic plan" in `proposed`'s first slot is exactly
+      the prose-in-the-unit-slot drift DF-01 is about, and the ledger's `.unit`
+      property would then read that sentence as a unit name. The correction is in
+      the PR body under `## Review input` for the epic owner, which is where a
+      work-order defect belongs.
+
+  - id: SI-29-DF-05
+    status: resolved
+    severity: medium
+    title: >-
+      Nothing makes the description reduction hold, and the last time it was
+      reached it was undone by the next nested unit
+    what: >-
+      SI-09 cut 11 descriptions to exactly 600 words; nesting skt, skill-manager
+      and unit-authoring put the total back to 1005, because each new description
+      restated which kinds of agent need the unit and what for. This ticket
+      reaches 588 by moving that material onto the role path — but the same thing
+      will happen at unit twelve unless the convention is written where the next
+      author reads it. There is no instrument on it and there should not be
+      (GOAL-no-new-gates), so the only available guard is documentary.
+    surface:
+      production:
+        - skills/unit-authoring/references/skills.md
+    anchor: UNMODELED/record-keeping
+    evidence: >-
+      SI-09's word-counts-AFTER.txt records 1217 -> 600; the pinned instrument
+      re-run at 7ba79bee reproduces 1005 and at this branch 588.
+      step-01-descriptions.txt carries both.
+    disposition: consumed
+    goal: GOAL-progressive-disclosure
+    skill_change: proposed(unit-authoring, "a description is a TRIGGER not a summary; role-specific 'when you are X use this for Y' belongs on the role reading path - added to references/skills.md with the 1217/600/1005/588 measurement and both pinned instruments")
+    note: >-
+      Written as `proposed` rather than `applied` on purpose. The edit IS in this
+      PR, and `applied(<this PR>)` is precisely the unverifiable form DF-01 says
+      not to write; the sha is not knowable while the row is being written. The
+      epic agent converts it to `applied(<merge sha>)` at wave close, which is
+      the documented handoff and is the first use of it.

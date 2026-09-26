@@ -1,0 +1,37 @@
+schema_version: "1.0"
+name: w-roles-review-finds-its-destination
+description: >-
+  A cold agent is told only what a review agent can see -- a wave of PRs it did
+  not write and an artifact to produce. Before SI-29 the string 'review agent'
+  appeared NOWHERE in skills/, so this measures a path that did not exist. It must
+  separate the two things it writes: a finding about the diff, and a finding about
+  the substrate. Provenance: walked by hand in SI-29, transcript step-03.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-roles-review-finds-its-destination
+  max_turns: 16
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    You have been handed a wave of pull requests in this repository that you did
+    not write, and you must produce this wave's review artifact.
+
+    Two different things went wrong while you did it. One is in the diff you are
+    reviewing. The other is in the substrate: the review instructions themselves
+    asked you for something the PR bodies gave you no way to check.
+
+    Answer from THIS plugin's own skills, not from general practice:
+
+    1. Which named agent role are you, and what is the reading path for it? Name
+       the file and the section.
+    2. Those two findings do NOT go to the same place. Give the destination for
+       each, by path or by section.
+    3. Where in the artifact do you record what became of a skill change that a
+       ticket agent in this wave proposed?
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the
+    sandbox, so a command that writes will fail with "Operation not permitted"
+    however correct it is. That is expected and is not yours to solve.
+
+    EVAL-CASE: w-roles-review-finds-its-destination
