@@ -22,6 +22,12 @@ absorbed_at: null
 absorbed_ids: []
 findings:
   - id: SI-29-DF-01
+    attribution: UNMODELED/record-keeping
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. applied(x)'s argument slot is unconstrained, so the loop's own record cannot be checked. record-keeping, as EA-DF-08 and SI-19-DF-01 already are.
     status: resolved
     severity: medium
     title: >-
@@ -56,6 +62,12 @@ findings:
       writers follow it is unmeasured.
 
   - id: SI-29-DF-02
+    attribution: UNMODELED/record-keeping
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. no delimiter rule, so one field can carry two verbs -- which SI-19-DF-01 in fact does.
     status: resolved
     severity: low
     title: >-
@@ -88,6 +100,12 @@ findings:
       its own data).
 
   - id: SI-29-DF-03
+    attribution: UNMODELED/eval-harness
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. the case-parse checker's interpreter. Same bin as SI-22-DF-07 and DF-08, and the row itself is corrected rather than deleted.
     status: open
     severity: low
     title: >-
@@ -134,6 +152,12 @@ findings:
       rather than SKIPPED), which is merged into this branch and verified here in
       both shells.
   - id: SI-29-DF-04
+    attribution: UNMODELED/record-keeping
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. the epic agent's own addendum figures were wrong; the ledger is the record that was misread.
     status: open
     severity: low
     title: >-
@@ -169,6 +193,12 @@ findings:
       work-order defect belongs.
 
   - id: SI-29-DF-05
+    attribution: UNMODELED/progressive-disclosure
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. nothing makes the description reduction hold. A NEW bin: the card-budget surface is not modelled and SI-09's regression has no checker.
     status: resolved
     severity: medium
     title: >-

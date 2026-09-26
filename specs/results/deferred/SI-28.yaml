@@ -21,6 +21,12 @@ absorbed_at: null
 absorbed_ids: []
 findings:
   - id: SI-28-DF-01
+    attribution: UNMODELED/install-pipeline
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. install --dry-run does not parse the unit manifest, so a plugin author cannot validate one non-destructively. The install pipeline is not modelled.
     status: open
     severity: medium
     against: skill-manager
@@ -69,6 +75,12 @@ findings:
       the three runs and their exit codes are quoted verbatim.
 
   - id: SI-28-DF-02
+    attribution: UNMODELED/bootstrap-preconditions
+    attribution_note: >-
+      Attributed by the EPIC AGENT at wave close, 2026-09-26, not by the ticket.
+      The work orders for SI-28 and SI-29 -- both written by me -- omitted the
+      "attribute before close" instruction that #370 and #371 carried, so seven
+      rows arrived unattributed. no plugin manifest declares a required skill-manager version, so every bundle needing one invents its own. Same bin as SI-22-DF-02: a precondition the bootstrap depends on and nothing states.
     status: open
     severity: low
     against: skill-manager
