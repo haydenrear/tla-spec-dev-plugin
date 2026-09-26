@@ -1,0 +1,25 @@
+Repository suite AFTER closing out specs/desired_program_model
+command: uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis \
+         python -m pytest tests -q --ignore=tests/test_score_tools.py
+
+  baseline : 10 failed / 1742 passed /  6 skipped = 1758 collected
+  after    :  9 failed / 1727 passed / 14 skipped = 1750 collected
+  delta    : -1 failed, -15 passed, +8 skipped, -8 collected
+
+NO NEW FAILURE. `comm` against the baseline name list produces zero new names.
+
+The one failure that DISAPPEARED is the parametrised case over the tree that was
+removed:
+  test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites
+    [specs/desired_program_model/spec_manifest.yaml]
+
+The +8 skips are DESIGNED for this state and say so themselves:
+  SKIPPED [2] test_port_declarations.py:80
+      specs/desired_program_model is absent -- no spec workflow is open
+  SKIPPED [6] test_spec_manifest_records.py:52
+      specs/desired_program_model is absent -- no spec workflow is open
+
+So the suite is reporting the workflow as CLOSED. That is the correct post-close
+reading, and it is the only independent confirmation available that the close
+landed in the shape the repository expects -- close_tickets.py could not be the
+instrument, for the reasons in closed-snapshot/manifest.json.
