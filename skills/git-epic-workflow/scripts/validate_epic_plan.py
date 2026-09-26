@@ -95,7 +95,20 @@ WAVE_BLOCKS: tuple[tuple[str, tuple[str, ...]], ...] = (
         ("model corrections owed", "corrections owed by merged"),
     ),
 )
-WAVE_DIR = re.compile(r"\Awave-(\d+)\Z")
+#: A wave-review directory. The trailing group is what `wave-11-12`,
+#: `wave-13-15` and `wave-17-18` need: whenever two or more waves close
+#: together the epic agent names the directory for the RANGE, and the original
+#: `\Awave-(\d+)\Z` did not match any of them.
+#:
+#: EA-DF-07 / #386. The consequence was not a missed warning, it was a
+#: MISLEADING clean run: the checker warned about waves 1-3, whose artifacts
+#: predate the block rule, and said nothing whatever about the combined
+#: directories -- not because they satisfied the rule but because it never
+#: opened them. Three of the epic's eight review artifacts were in the
+#: unchecked set, and all three did in fact carry 5/5 blocks, so the checker's
+#: blindness and the artifacts' correctness were independent facts that
+#: happened to agree. That is why nobody noticed.
+WAVE_DIR = re.compile(r"\Awave-(\d+)(?:-(\d+))?\Z")
 
 
 class Blocking(str):
@@ -1291,7 +1304,7 @@ def _validate_review_policy(
 
 
 def _validate_wave_artifacts(
-    plan: object, repo_root: Path | None, warnings: list[str]
+    plan: object, tickets: dict[str, "Ticket"], repo_root: Path | None, warnings: list[str]
 ) -> None:
     """Warn — never error — when a committed wave artifact lacks a block.
 
@@ -1322,10 +1335,32 @@ def _validate_wave_artifacts(
         return
 
     waves = []
+    covered: set[int] = set()
     for path in root.iterdir():
         match = WAVE_DIR.fullmatch(path.name)
         if path.is_dir() and match:
-            waves.append((int(match.group(1)), path))
+            first = int(match.group(1))
+            last = int(match.group(2)) if match.group(2) else first
+            waves.append((first, path))
+            # A combined directory covers the whole inclusive range it names,
+            # so a wave reviewed inside `wave-13-15` is not also missing.
+            covered.update(range(min(first, last), max(first, last) + 1))
+
+    # The other half of #386, and the half a widened regex alone does not give:
+    # ask the PLAN which waves exist, rather than only reading what happens to
+    # be on disk. A wave with no artifact under ANY spelling is then the thing
+    # that warns, instead of being invisible because no directory named it.
+    declared = {
+        t.wave
+        for t in tickets.values()
+        if getattr(t, "wave", None) is not None and not getattr(t, "retired", False)
+    }
+    for wave_number in sorted(declared - covered):
+        warnings.append(
+            f"wave-{wave_number}: the plan declares this wave and no review "
+            f"directory under {artifact_root.strip()} covers it, under any "
+            "spelling -- advisory, nothing here refuses"
+        )
     for _, wave in sorted(waves):
         review = wave / "review.md"
         if not review.is_file():
@@ -1439,7 +1474,7 @@ def validate_plan(
         _validate_promotion_lane(tickets, errors)
         _validate_goal_alignment(goals, tickets, retirements, errors, warnings)
         _validate_findings_partition(plan, tickets, warnings)
-    _validate_wave_artifacts(plan, repo_root, warnings)
+    _validate_wave_artifacts(plan, tickets, repo_root, warnings)
     if strict:
         return PlanReport(errors=errors, warnings=warnings)
     blocking = [error for error in errors if isinstance(error, Blocking)]
