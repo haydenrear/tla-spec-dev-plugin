@@ -1,0 +1,38 @@
+schema_version: "1.0"
+name: w-roles-propagation-is-checkable
+description: >-
+  THE BACK CHANNEL ITSELF, and the thing no existing case covers: a role states
+  what it would propagate, in the skill_change grammar, to the destination its own
+  path named -- and the grader asks whether the value is CHECKABLE a month later,
+  not merely well formed. Measured provenance: of 10 applied(...) rows in the
+  ledger only 3 begin with a commit sha, and a fourth resolves under git cat-file
+  only because a REMOTE named test-graph exists. SI-29 transcript step-04.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-roles-propagation-is-checkable
+  max_turns: 16
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+  prompt: |
+    You are working a ticket in this repository and you have hit a real blocker
+    in the substrate: one of this plugin's skills documents a command that does
+    not do what it says.
+
+    You are going to write this down in the field this project uses for it.
+
+    Answer from THIS plugin's own skills, not from general practice:
+
+    1. Name the field and give its exact grammar -- every verb it accepts and how
+       many arguments each takes.
+    2. Write the exact value you would file for this blocker.
+    3. Somebody reads your row a month from now and wants to verify that the
+       plugin really changed. Say what the value must contain for that to be
+       possible, and give one form of it that would satisfy the grammar and still
+       be unverifiable later.
+
+    NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the
+    sandbox, so a command that writes will fail with "Operation not permitted"
+    however correct it is. That is expected and is not yours to solve.
+
+    EVAL-CASE: w-roles-propagation-is-checkable

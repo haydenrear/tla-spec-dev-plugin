@@ -577,6 +577,29 @@ EOF
   w-skt-which-copy-of-skt-ran)
     place_moved_fixture skt
     ;;
+  # SI-29 (#391): the four agent roles and the back channel. None ships a
+  # fixture -- the view IS the plugin, so the branch's own skills are what the
+  # agent under test reads its way through. place_moved_fixture says so aloud.
+  w-roles-ticket-finds-its-back-channel)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-roles-epic-finds-its-empty-inbox)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-roles-review-finds-its-destination)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-roles-testing-finds-its-destination)
+    place_moved_fixture spec-double-2
+    ;;
+
+  w-roles-propagation-is-checkable)
+    place_moved_fixture spec-double-2
+    ;;
+
   "")
     fail "EVAL_CASE is unset. Every case must set it under execution.env, or this hook cannot tell which fixture to place"
     ;;

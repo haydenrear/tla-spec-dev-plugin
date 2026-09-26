@@ -441,6 +441,30 @@ case "$case_name" in
     undecided_needs_home_verify
     ;;
 
+  # SI-29 (#391). These five carry no expect.json and no file_exists grader:
+  # every verdict is read off the FINAL RESPONSE (regex/llm) or the transcript
+  # (tool_used), so expect.py writes WHY-NO-VERDICTS and nothing is scored red
+  # for it. Registered anyway, because a MISSING verify arm is the silent one.
+  w-roles-ticket-finds-its-back-channel)
+    verify_from_expect
+    ;;
+
+  w-roles-epic-finds-its-empty-inbox)
+    verify_from_expect
+    ;;
+
+  w-roles-review-finds-its-destination)
+    verify_from_expect
+    ;;
+
+  w-roles-testing-finds-its-destination)
+    verify_from_expect
+    ;;
+
+  w-roles-propagation-is-checkable)
+    verify_from_expect
+    ;;
+
   w-epic-assignment-no-force-on-blocking)
     verify_from_expect
     ;;
