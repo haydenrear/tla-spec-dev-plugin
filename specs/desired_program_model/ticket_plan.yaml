@@ -2076,7 +2076,77 @@ tickets:
   - id: SI-28
     title: "The bootstrap CLI has a floor, and the substrate says so"
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/390"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-26 as PR #5 on tla-spec-dev-plugin, merge commit dc8ed6d2.
+      The floor lives once in bootstrap-floor.toml and is read by `skt check`,
+      the notification path agents already read at session start. No new
+      command, deliberately: a new checker is a second thing to remember to
+      run, which is exactly how the first one got missed.
+
+      FALSIFIED BOTH WAYS AND RE-RUN BY THE EPIC AGENT FROM SCRATCH: fires on a
+      0.28.1 pin naming the installed version, the floor, the declaring file and
+      the upgrade command, and saying in its own text "nothing was refused --
+      this is a warning"; silent on 0.28.2 at exit 0; silent against the real
+      home. The comparison is deliberately LOCAL and never asks brew what is
+      newest -- brew's formula cache was equally stale in the SI-22 case and
+      would have agreed 0.28.1 was current, which is the whole difference from
+      the `cli-version` notification sitting three lines away.
+
+      THE WORK ORDER I WROTE WAS WRONG AND THE TICKET AGENT WAS RIGHT. I
+      specified "warns and exits 0". `skt check` exits 10 when the floor fires,
+      and that is correct: NOTIFY_EXIT = 10 and `return NOTIFY_EXIT if
+      report["notifications"] else 0` both PREDATE this ticket, and
+      skt-session-start.sh gates on `rc -eq 10` before exiting 0 itself. A
+      literal exit 0 would have built a warning that can never reach an agent at
+      session start -- the exact defect this ticket exists to catch. It flagged
+      the conflict rather than silently choosing, which is the third consecutive
+      ticket where verification found the error on MY side.
+
+      SENT BACK ONCE, FOR A GAP IT DISCLOSED ITSELF and understated:
+      `cached_report` compared only `checked_at` against the TTL and never the
+      cached `schema` against SCHEMA_VERSION, so a warm v6 cache was served as
+      CACHE_FRESH and the floor warning silently did not appear. Not this
+      ticket's problem alone -- ANY future schema bump served stale-shaped data
+      for a TTL. Fixed via the branch that already existed for an absent cache,
+      so `--cached` stays one state-file read. MUTATION-TESTED by the epic
+      agent: deleting the schema comparison fails
+      test_a_cache_of_the_wrong_schema_is_not_served while the not-a-record test
+      still passes, so the test discriminates rather than asserting blanket.
+
+      AND THE FIX EXPOSED THE SAME DEFECT ONE LAYER DOWN.
+      test_graph/sources/skt_hook_contract.py wrote `"schema": 2` as a LITERAL
+      into its fixture cache; the new guard correctly refused it, the
+      PostToolUse hook had nothing to inject, and BOTH skt graphs ERRORED on ten
+      dedup assertions. It now reads SCHEMA_VERSION from the source under test,
+      as its sibling probe already did. The unit suite passed throughout -- only
+      the graph could see it. A hardcoded copy of a fact that lives elsewhere,
+      silently wrong until something finally compares the two, which is this
+      ticket's own thesis restated.
+
+      A DECISION NOBODY ASKED FOR, disclosed as such: the floor is a file of its
+      own rather than a manifest key, because no plugin manifest has a
+      documented field for one AND skill-manager offers no non-destructive way
+      to test whether an undocumented key is tolerated -- `install --dry-run`
+      does not parse the unit manifest at all, proved with a control where a
+      syntactically invalid manifest still planned and exited 0. The decision
+      rests on untestability, not on evidence the key would fail. Filed as
+      SI-28-DF-01; SI-28-DF-02 records that no manifest has such a field, so
+      every bundle needing one invents its own.
+
+      Graphs 318/318 and 167/167 from each run's own fresh summary.json, exactly
+      two reports, build/validation-reports deleted beforehand. Suite 10 failed
+      / 1736 passed / 6 skipped, failure NAMES identical to the epic baseline,
+      the +6 accounted for by diffing --collect-only ids (4 are the new test
+      file; 2 are pre-existing parametrised tests picking up the new YAML).
+      skt unit suite 352 passed / 3 skipped. Home close-out rc=0, re-run
+      independently.
+
+      The agent also WITHDREW a cause it had stated in its first report: it
+      attributed a 20-minute stall in tests/test_instrument_demonstrations.py to
+      machine contention, then reproduced it on an idle machine and corrected
+      the record. It fails in every run and is in the identical name list, so it
+      has never changed a verdict.
     schedule_revision: 10
     depends_on: ["SI-22"]
     blocks: ["SI-23", "SI-29"]
