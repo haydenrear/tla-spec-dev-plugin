@@ -66,8 +66,28 @@ from skt_fixture import (  # noqa: E402
 # Read from the same source the node is exercising, exactly as the sibling
 # `support/cached_no_spawn_probe.py` already does, so the next bump needs no
 # edit here. A stale literal cannot come back.
-sys.path.insert(0, str(SKT_SKILL_ROOT / "src"))
-from skt.check import SCHEMA_VERSION as SKT_SCHEMA_VERSION  # noqa: E402
+def _skt_schema_version() -> int:
+    """`SCHEMA_VERSION` from the source under test, read at RUN time.
+
+    NOT at module level, and that is the whole point of this function.
+    `SI-23-DF-21`: the first version of this fix did
+    `sys.path.insert(...)` + `from skt.check import SCHEMA_VERSION` at module
+    scope. `spec_workflow_failure_cleanup_probe` builds a NESTED test-graph
+    build that DESCRIBES all 17 sources, and a describe imports every module.
+    `skt` is not importable there, so this file raised
+    `ModuleNotFoundError: No module named 'skt'` at describe time and took the
+    whole specWorkflow graph red -- 74 assertions to 69, two nodes down.
+
+    That is the identical failure this file's own comment forty lines above
+    documents for `skt_fixture`, and the fix repeated it six lines below the
+    warning. Deferring the import to call time keeps the literal gone -- the
+    reason the epic agent sent that review back -- while leaving describe with
+    nothing to import.
+    """
+    sys.path.insert(0, str(SKT_SKILL_ROOT / "src"))
+    from skt.check import SCHEMA_VERSION  # noqa: PLC0415 - deliberate, see above
+
+    return SCHEMA_VERSION
 
 UPSTREAM = "skt.wrapper-installed"
 
@@ -103,7 +123,7 @@ def _cache(home: Path, *, checked_at: float, notifications: list[dict]) -> None:
     path.write_text(
         json.dumps(
             {
-                "schema": SKT_SCHEMA_VERSION,
+                "schema": _skt_schema_version(),
                 "home": str(home),
                 "tier": "project",
                 "checked_units": ["alpha"],
