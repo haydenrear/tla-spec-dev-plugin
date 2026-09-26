@@ -92,7 +92,26 @@ planning files the close script ignores by design.
    this epic never entered, and `specs/desired_program_model` stays until a
    ticket in the successor epic promotes it properly.
 
-**Option 3 is the epic agent's recommendation**, and it is the owner's call.
+**OPTION 3 WAS TAKEN, by the owner, 2026-09-26.** Recorded as
+`planning_rules.close_mode: cutover` with the reasoning beside it, so the
+contradiction this plan carried all epic is now written down as a decision
+rather than left as two rules that were both true.
+
+And the owner named the real gap rather than accepting the workaround:
+
+> It sounds like we are missing a knob here… In the future it should be obvious
+> what to do here. Maybe it should just go through?
+
+Filed as **#394** and added to #393 as section H. Two defects: an epic cannot
+declare how it closes, and — the sharper one — **the receipt check asks for one
+receipt per DELIVERED ticket when it should ask for one per ticket that actually
+OPENED a spec workspace.** A receipt for a ticket with `desired_actions: []` and
+no workspace certifies nothing. Scoped that way, this epic passes honestly: the
+set is empty, the model is converged, no fabrication and no `--accept-new`. And
+a ticket that did open a workspace and skipped its close is still caught.
+
+`close_mode` is in this plan today as a field with **no reader**. Making it real
+is #394's work.
 `finalize.md` is explicit that accepted state is never hand-edited on an epic
 branch, so deleting `specs/desired_program_model` by hand — the literal request —
 is the one thing that must not happen quietly.

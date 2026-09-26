@@ -118,6 +118,39 @@ planning_rules:
   evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
   desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
   promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
+  close_mode: cutover
+  close_mode_rule: >-
+    DECIDED BY THE OWNER 2026-09-26, AT CLOSE, AND IT RESOLVES A CONTRADICTION
+    THIS PLAN CARRIED ALL EPIC. This epic closes BY CUTOVER, not by shared-workflow
+    promotion. `no_default_branch_merge` above already said the result reaches
+    users through tla-spec-dev-plugin "by cutover once the epic closes", while
+    close_tickets.py simultaneously required a promotion with one close receipt
+    per delivered ticket. Both were true, neither was written as the decision,
+    and the contradiction only surfaced when the close was attempted.
+
+    The cutover happened: ac5f7491..e7a20e3d on tla-spec-dev-plugin's main, then
+    both Skill Manager homes synced to it, collapsing the three substrates
+    Evaluation B found (committed, released, loaded) into one.
+
+    specs/desired_program_model THEREFORE STAYS, deliberately. The model is
+    converged -- TlaSpecDevCli.tla and MC.cfg are byte-identical across current/,
+    desired_program_model/ and program_model/ -- so what is missing is the close
+    RECEIPTS, not the model. Nineteen tickets have none, because
+    model_ownership_rule forbade ticket agents from running open/close ticket and
+    the epic agent never exercised the half that produces them. Fabricating them
+    retroactively would invent the history the close script exists to verify;
+    --accept-new is forbidden by finalize.md and would not help. The promotion is
+    handed to the successor epic as a ticket that goes through the close path
+    rather than around it.
+
+    THE KNOB THIS EPIC DISCOVERED IT WAS MISSING. An epic has no way to DECLARE
+    its close mode, so the close path assumes promotion and an epic that ships by
+    cutover hits a wall with no vocabulary to say so. Worse, the receipt check
+    asks for one receipt per DELIVERED ticket when it should ask for one per
+    ticket that actually OPENED a spec workspace -- a receipt for a ticket with
+    `desired_actions: []` and no workspace certifies nothing. `close_mode` above
+    is written here as a plan field with no reader yet; making it real is the
+    successor's ticket.
   # Owner decision at kickoff, 2026-09-17. It overrides git-epic-workflow
   # SKILL.md rule 5 and epic-ticket.md §3 for this epic and every epic after it;
   # SI-07 writes it into the skill.
