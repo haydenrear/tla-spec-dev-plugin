@@ -27,8 +27,8 @@ execution:
        Name the file and the section.
     2. You have no PR of your own, so where exactly does what you just learned
        go? Give the path.
-    3. How many findings has that destination ever held, and why does that matter
-       for this loop?
+    3. How many findings does that destination hold right now, how many have ever
+       been filed in it, and why does that matter for this loop?
 
     NOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the
     sandbox, so a command that writes will fail with "Operation not permitted"

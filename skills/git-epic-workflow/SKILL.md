@@ -183,7 +183,7 @@ keys before dispatch, and validate each assignment against its plan entry.
 
 **Before the task map, the role map.** You are the **epic agent** — and you are
 the role the whole loop narrows at. Your reading path, your own inbox
-(`specs/results/deferred/EPIC-AGENT.yaml`, which has never held a row), and how
+(`specs/results/deferred/EPIC-AGENT.yaml`, which has held one row ever), and how
 the other three roles see what you did with their findings are in the
 spec-double-2 skill's `references/agent_roles.md` § epic. Nothing detects your
 role; you arrive by reading.

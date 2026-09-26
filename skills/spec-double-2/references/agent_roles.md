@@ -137,9 +137,11 @@ You open no ticket PR, so `## Skill changes proposed` is not available to you.
 Your two destinations:
 
 - **`specs/results/deferred/EPIC-AGENT.yaml`** — your own inbox, the same shape
-  as a ticket's, for friction *you* hit while running the epic. It has held zero
-  findings since it was created, and the role that consumes findings having no
-  record of ever being in the loop is the single most likely way this loop dies.
+  as a ticket's, for friction *you* hit while running the epic. It holds **zero
+  rows today**, and exactly **one** has ever been filed in it — `EA-DF-01`, which
+  SI-27 absorbed into the ledger. One, against 151 findings filed by everybody
+  else: the role that *consumes* findings has almost no record of ever having
+  been in the loop, and that is the single most likely way this loop dies.
 - **`specs/results/deferred_findings_final.yaml`** — where you absorb everyone
   else's inbox at wave close, each row keeping its fields byte-for-byte and
   gaining a disposition plus `absorbed_from:`. A row lives in exactly one of the
