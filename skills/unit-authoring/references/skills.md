@@ -41,6 +41,27 @@ Rules:
 - `name` is a single slug-like token.
 - `description` is the activation hook. It should state when the agent
   should use the skill, not just what the repo contains.
+
+  **A description is a TRIGGER, not a summary, and there is a measured reason.**
+  Every description in a bundle loads at every session start, so their total is
+  a fixed tax on every task. Measured on the `tla-spec-dev` plugin: SI-09 cut
+  eleven descriptions to exactly 600 words, and nesting three more units put the
+  total back to **1005** — because each new description restated which kinds of
+  agent need the unit and what for. SI-29 brought it to 588 by moving that
+  material out, and the only thing that stops the next unit undoing it again is
+  this rule:
+
+  - say **when to reach for the unit**, and stop;
+  - "when you are a *<role>*, use this for *<thing>*" belongs on the role's
+    reading path, not here — for this plugin that is
+    `skills/spec-double-2/references/agent_roles.md`;
+  - a list of subcommands, flags, caveats or exceptions belongs in the card or a
+    reference page, which are read on demand rather than always.
+
+  Nothing enforces this and nothing should (`GOAL-no-new-gates`). The instrument
+  that measures it is the YAML-parsed `description` scalar of each
+  `skills/*/SKILL.md`, word-counted, and the card-body companion is
+  `awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2' <card> | wc -w`.
 - `skill-imports` is optional but recommended on starter markdown so
   imports can be filled in without changing file shape. See
   `references/skill-imports.md`.
