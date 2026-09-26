@@ -26,7 +26,7 @@ skill edit survive this worktree?*
 
 ```bash
 skt status            # startup report: units, plugins, home tier, epic/ticket state, CLI version
-skt check             # new-version-available, unit errors, stale artifacts, a stale skill-manager
+skt check             # new-version-available, unit errors, stale artifacts, a stale OR too-old skill-manager
 skt sync <unit>       # pull a unit to its latest pushed source
 skt ticket new <T>    # ticket worktree + its own Skill Manager home, one command
 skt ticket close <T>  # teardown through the close-out gate
@@ -98,6 +98,32 @@ Go there if you are asking any of:
 
 Read it rather than the source. The last two agents who read the source instead
 got the root cause wrong, in opposite directions, and the page names both.
+
+## Two different things `skt check` says about skill-manager itself
+
+They answer different questions and they can disagree, so read which one
+fired before acting:
+
+- **`cli-version`** — *a newer release exists.* Asks brew. Informational; a
+  local build never triggers it, because a branch build's base version says
+  nothing about which commits it carries.
+- **`cli-floor`** — *the installed CLI is OLDER THAN THIS PLUGIN REQUIRES.*
+  Asks nothing: it compares the installed version against a number the plugin
+  declares, in one file, `bootstrap-floor.toml` at the plugin root. Move the
+  floor there and nowhere else.
+
+The floor exists because `cli-version` could not see the case that cost six
+days. skill-manager 0.28.1 predated a fix this plugin depended on, brew's own
+formula cache was equally stale, and so brew answered "you are current" — a
+CLI six days older than the fix it depended on was indistinguishable from a
+current one at every surface an agent can see (SI-22-DF-01). A comparison
+against a declared number cannot be made to agree by any cache.
+
+**`cli-floor` WARNS. It refuses nothing** — not an install, not a session, not
+a command (`GOAL-no-new-gates`). Like every other notification it makes
+`skt check` exit `10`, which is skt's *notify* code rather than a failure:
+`hooks/skt-session-start.sh` translates it into printed session context and
+itself exits `0`. Nothing else in the substrate reads that exit code.
 
 ## When `skt check` says a unit is NOT stale
 

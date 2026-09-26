@@ -1,0 +1,86 @@
+SI-28 — manifest tolerance probe (evidence for SI-28-DF-01)
+Run 2026-09-26 against: skill-manager 0.28.2
+Scratch plugin: .claude-plugin/plugin.json + skill-manager-plugin.toml + skills/demo/
+Command each time:
+  SKILL_MANAGER_HOME=<scratch> skill-manager install --dry-run -y <scratch plugin>
+
+=== CASE: undocumented-keys ===
+--- skill-manager-plugin.toml ---
+[plugin]
+name = "probeplug"
+version = "0.1.0"
+description = "probe"
+requires_skill_manager = "0.28.2"
+
+[requires]
+skill_manager = "0.28.2"
+--- result ---
+DRY RUN — no changes will be made
+operation: install-a97d0966-13c3-44bc-8b55-2ff2e332ee08
+effects (7):
+→ [1] resolve graph from source /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/manifest-probe/p
+→ [2] snapshot pre-mutation MCP deps
+→ [3] reject if top-level resolved unit already installed
+→ [4] retire the units this upgrade supersedes
+→ [5] reject if a contained skill name is already claimed
+→ [6] build install plan over resolved skill(s)
+→ [7] expand + run install plan (gateway=http://127.0.0.1:51717)
+alwaysAfter (1):
+→ [8] cleanup staged graph (resolved skill(s))
+effects (2):
+→ [9] sync agents over 0 unit(s)
+→ [10] diff snapshot vs live and unregister orphans
+EXIT=0
+
+=== CASE: invalid-toml ===
+--- skill-manager-plugin.toml ---
+[plugin
+name = broken
+--- result ---
+DRY RUN — no changes will be made
+operation: install-3afba50a-1f53-407e-8624-e453e41b18c2
+effects (7):
+→ [1] resolve graph from source /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/manifest-probe/p
+→ [2] snapshot pre-mutation MCP deps
+→ [3] reject if top-level resolved unit already installed
+→ [4] retire the units this upgrade supersedes
+→ [5] reject if a contained skill name is already claimed
+→ [6] build install plan over resolved skill(s)
+→ [7] expand + run install plan (gateway=http://127.0.0.1:51717)
+alwaysAfter (1):
+→ [8] cleanup staged graph (resolved skill(s))
+effects (2):
+→ [9] sync agents over 0 unit(s)
+→ [10] diff snapshot vs live and unregister orphans
+EXIT=0
+
+=== CASE: name-mismatch ===
+--- skill-manager-plugin.toml ---
+[plugin]
+name = "MISMATCHED"
+version = "9.9.9"
+description = "probe"
+--- result ---
+DRY RUN — no changes will be made
+operation: install-0843a4c7-a671-48c0-bb0d-870d3640a454
+effects (7):
+→ [1] resolve graph from source /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/manifest-probe/p
+→ [2] snapshot pre-mutation MCP deps
+→ [3] reject if top-level resolved unit already installed
+→ [4] retire the units this upgrade supersedes
+→ [5] reject if a contained skill name is already claimed
+→ [6] build install plan over resolved skill(s)
+→ [7] expand + run install plan (gateway=http://127.0.0.1:51717)
+alwaysAfter (1):
+→ [8] cleanup staged graph (resolved skill(s))
+effects (2):
+→ [9] sync agents over 0 unit(s)
+→ [10] diff snapshot vs live and unregister orphans
+EXIT=0
+
+READING: case 'invalid-toml' cannot be parsed as TOML and planned the same
+10 effects as the valid manifest, exit 0. The resolve step therefore never
+opened the file, so case 'undocumented-keys' passing says nothing about
+whether those keys are tolerated. Case 'name-mismatch' violates the
+documented plugin.json/skill-manager-plugin.toml name agreement and is
+likewise not caught here.

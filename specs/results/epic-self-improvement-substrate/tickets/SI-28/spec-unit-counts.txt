@@ -1,0 +1,3 @@
+command: python3 skills/spec-double-2/scripts/tla_spec_dev.py --spec-root specs run spec-unit-tests --target specs/current
+exit: 1
+9 failed, 47 passed in 15.68s
