@@ -1,0 +1,3 @@
+command: uv run --python 3.12 --with pytest --with pyyaml --with jinja2 --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py
+tree: feature/390-bootstrap-cli-floor, WITH the SI-28 review cache-schema fix
+10 failed, 1736 passed, 6 skipped in 344.52s (0:05:44)

@@ -1,0 +1,45 @@
+SI-28 — graph verdicts (after the SI-28 review cache-schema fix)
+
+COMMAND (both graphs named explicitly — they are OPT-IN; a bare
+`python3 test_graph/run-graphs.py` runs three OTHER graphs, prints
+PASSED three times, and reports these two as NOT RUN):
+  python3 test_graph/run-graphs.py --only sktSurface --only sktHooks
+
+Runner exit 0 DISREGARDED — it always exits 0. Verdicts below are read
+from each run's OWN summary.json. build/validation-reports/ was deleted
+before the run, so no earlier report could stand in for a graph that
+never executed.
+
+Run started (UTC): 2026-09-26T13:19:23Z
+
+  PASSED   sktSurface   nodes=5 assertions=318 non-passing=0
+           non-passing nodes: none
+           summary.json mtime 2026-09-26T13:20:21.529294+00:00
+           test_graph/build/validation-reports/20260926-131933/summary.json
+  PASSED   sktHooks     nodes=3 assertions=167 non-passing=0
+           non-passing nodes: none
+           summary.json mtime 2026-09-26T13:20:56.155512+00:00
+           test_graph/build/validation-reports/20260926-132030/summary.json
+
+  assert: exactly 2 reports; both younger than the run start; both
+          status=passed; both non-empty in nodes AND assertions; zero
+          non-passing assertions across both.
+
+WHAT THE FIRST RUN OF THIS CHANGE CAUGHT, AND WHY IT IS RECORDED
+---------------------------------------------------------------
+The run immediately after the cache-schema fix came back ERRORED on both
+graphs: skt.hook-contract failed all ten dedup assertions (five per
+interpreter, 3.11 and 3.13) and skt.ticket-roundtrip was skipped behind
+it. The cause was NOT the hooks. test_graph/sources/skt_hook_contract.py
+wrote `"schema": 2` as a LITERAL into its fixture cache; the fix
+correctly refuses a record at a schema this skt does not read, so
+`check --cached` reported CACHE_MISSING, the PostToolUse hook had no
+notifications to inject, and every injection assertion failed at once.
+
+The fixture now reads SCHEMA_VERSION from the source under test, exactly
+as its sibling test_graph/support/cached_no_spawn_probe.py already did,
+so the next bump needs no edit and a stale literal cannot come back.
+
+This is the graph earning its place: the unit suite passed throughout
+(352 passed, 3 skipped), because the coupling was in a fixture no unit
+test reads. Recorded rather than quietly fixed.

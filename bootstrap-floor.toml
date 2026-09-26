@@ -1,0 +1,61 @@
+# THE ONE PLACE this plugin declares which skill-manager CLI it needs.
+#
+# Why this file exists — the measurement, not the theory
+# -----------------------------------------------------
+# SI-22 measured a COMPLETELY SUCCESSFUL install of this plugin exiting 11:
+# units resolved, CLIs installed, `units.lock.toml` written, the front door
+# working, every substantive line printing a check mark. The remedy —
+# `MarkdownImportValidator` skipping `fixture`/`fixtures` directories — had
+# already been written and merged as skill-manager PR #397 on 2026-09-23. It
+# had simply never been RELEASED: `v0.28.1` was cut 2026-09-17, six days
+# earlier, and that is what brew installed.
+#
+# The defect this file fixes is not the exit code. It is that a CLI six days
+# older than the fix it depended on was INDISTINGUISHABLE from a current one
+# at every surface an agent can see — nothing in the plugin declared which
+# skill-manager it required, and nothing compared the installed one against
+# it. That is why six days passed with `GOAL-one-plugin`'s entire bootstrap
+# walk being measured against the wrong CLI.
+#
+# Who reads it
+# ------------
+# `skt check` (skills/skt/src/skt/check.py, `bootstrap_floor`). Nothing else.
+# `skt check` is already the notification path an agent reads at session
+# start, and riding it was deliberate: a NEW checker command would be a
+# second thing to remember to run, which is precisely how the first one got
+# missed.
+#
+# The comparison is PURELY LOCAL — installed version against the number
+# below. It deliberately does NOT ask brew what the newest release is, and
+# that is the whole difference from the `cli-version` notification that
+# already exists beside it. Brew's formula cache is exactly what was stale in
+# the case above: on 2026-09-24 brew would have answered "0.28.1 is the
+# newest", agreeing with the installed 0.28.1, and reported nothing wrong.
+#
+# It WARNS. It refuses nothing — not an install, not a session, not a
+# command (`GOAL-no-new-gates`).
+#
+# Why a file of its own, rather than a key in skill-manager-plugin.toml
+# --------------------------------------------------------------------
+# Neither `skill-manager-plugin.toml` nor `.claude-plugin/plugin.json` has a
+# documented field for a CLI floor (`skills/unit-authoring/references/
+# plugins.md` lists the whole schema and there is none), and skill-manager
+# offers no way to check whether an undocumented key would be tolerated:
+# `skill-manager install --dry-run` does not parse the unit manifest at all —
+# measured 2026-09-26, a `skill-manager-plugin.toml` containing the
+# syntactically invalid `[plugin\nname = broken\n` still planned and exited 0,
+# as did one whose `[plugin] name` disagreed with `plugin.json`. So a manifest
+# key here would have been an UNTESTED guess in the one file whose corruption
+# breaks the very bootstrap this floor exists to protect. Filed as SI-28-DF-01.
+#
+# This file is parsed by nothing but `skt`, so it cannot break an install.
+# When you move the floor, move it HERE and nowhere else.
+
+[skill_manager]
+# The oldest skill-manager this plugin is known to bootstrap cleanly on.
+# 0.28.2 (released 2026-09-25) is the first release carrying skill-manager
+# PR #397; falsified the same day — a fresh scratch install exits 0 with
+# zero violations, where 0.28.1 exited 11.
+minimum = "0.28.2"
+reason = "0.28.1 and earlier fail this plugin's install with MarkdownImportValidator violations on skills/*/fixtures/** (skill-manager PR #397, released in 0.28.2)"
+upgrade = "brew update && brew upgrade skill-manager"

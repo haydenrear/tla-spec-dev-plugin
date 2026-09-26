@@ -140,7 +140,15 @@ from .cli import __version__ as SKT_VERSION
 # home is a verdict BY a build: the same home read "nothing is damaged"
 # under one skill-manager and carried 8 findings under another, one minute
 # apart, and nothing in either output said which had answered.
-SCHEMA_VERSION = 6
+# 7: the `cli` block gained `floor` and `below_floor`, and notifications of
+# kind `cli-floor` (SI-28). Additive on the established terms — a v6 record
+# has neither key and every reader uses `.get`. It closes the gap that made
+# the v5 `cli-version` notification unable to see the case it was built for:
+# `cli-version` asks BREW what the newest release is, and brew's own formula
+# cache was six days stale, so it agreed that an 0.28.1 predating its own fix
+# was current. The floor is a purely LOCAL comparison against a number the
+# plugin declares, so no cache can make it agree.
+SCHEMA_VERSION = 7
 DEFAULT_TTL_SECONDS = 900
 NOTIFY_EXIT = 10
 REMOTE_TIMEOUT_SECONDS = 10
@@ -200,6 +208,20 @@ CLI_REFUSED_PREFIX = "the CLI refused a cross-home run: "
 # The tap formula `skill-manager upgrade --self` upgrades, and therefore the
 # only thing whose "newer one exists" answer matches that remedy.
 BREW_FORMULA = "skill-manager"
+
+# SI-28. The ONE file in which the plugin declares the oldest skill-manager it
+# is known to bootstrap cleanly on. Its own header carries the reasoning; the
+# short version is that `cli-version` above asks BREW what is newest, and the
+# case that cost six days was one where brew's formula cache was itself stale
+# and answered "you are current" about a CLI that predated its own fix. This
+# comparison is purely local and asks nothing.
+FLOOR_MANIFEST = "bootstrap-floor.toml"
+
+# Points the floor reader at a different manifest. This exists so the fires-on-
+# old arm of the check can be EXERCISED — against a scratch manifest declaring
+# a floor above the installed CLI — without downgrading anybody's brew install.
+# A check that cannot be shown to fire is the defect it exists to catch.
+FLOOR_MANIFEST_ENV = "SKT_FLOOR_MANIFEST"
 
 # Recorded `errors[*].kind` values that describe the STORE CHECKOUT's own
 # git state — the three whose remedy in skill-manager's own
@@ -608,6 +630,93 @@ def _brew_latest(timeout: float) -> tuple[str | None, str]:
     return None, "could not read a version from brew list"
 
 
+def plugin_root() -> Path | None:
+    """The plugin root this copy of skt is shipped inside, or None.
+
+    skt runs from `<root>/skills/skt/src/skt/check.py` in BOTH layouts that
+    matter — an installed home (`<home>/plugins/tla-spec-dev/…`) and a
+    development checkout — so the root is five parents up from this file.
+    Deliberately derived from `__file__` and nothing else: no cwd, no
+    `SKILL_MANAGER_HOME`, no home lookup. The floor has to be readable in the
+    one situation it exists for, which is a session that has not yet
+    established any of those.
+
+    `.claude-plugin/plugin.json` is the predicate rather than the directory's
+    name, because that file is what makes a directory a plugin at all
+    (`references/plugins.md`, "Detection") and the name differs between the
+    two layouts. None when skt was installed as a standalone skill rather
+    than inside this bundle — there is then no plugin to declare a floor, and
+    silence is the honest answer.
+    """
+    here = Path(__file__).resolve()
+    if len(here.parents) < 5:
+        return None
+    root = here.parents[4]
+    return root if (root / ".claude-plugin" / "plugin.json").is_file() else None
+
+
+def bootstrap_floor(root: Path | None = None) -> dict:
+    """The plugin's declared skill-manager floor, read from ONE file.
+
+    A typed `state` on every path, for the same reason `_cli_state` has one —
+    so a reader can tell "no floor is declared" from "a floor is declared and
+    I could not read it":
+
+      declared    `minimum` is a parseable dotted version
+      absent      no plugin root, or the plugin declares no floor file
+      unreadable  the file is there and did not yield a usable `minimum`
+
+    NEVER RAISES and never blocks. `skt check` is wired into a SessionStart
+    hook; a floor file with a typo must degrade to a reported `unreadable`,
+    not to a traceback in somebody's session.
+    """
+    override = os.environ.get(FLOOR_MANIFEST_ENV, "").strip()
+    if override:
+        manifest = Path(override)
+    else:
+        base = root if root is not None else plugin_root()
+        if base is None:
+            return {"state": "absent",
+                    "reason": "skt is not running from inside a plugin root"}
+        manifest = base / FLOOR_MANIFEST
+    if not manifest.is_file():
+        return {"state": "absent", "manifest": str(manifest),
+                "reason": f"{manifest.name} is not present"}
+    try:
+        import tomllib
+
+        data = tomllib.loads(manifest.read_text())
+    except (OSError, ValueError) as exc:
+        return {"state": "unreadable", "manifest": str(manifest),
+                "reason": f"{manifest.name} could not be read ({type(exc).__name__})"}
+    table = data.get("skill_manager")
+    minimum = table.get("minimum") if isinstance(table, dict) else None
+    if not isinstance(minimum, str) or _parse_version(minimum) is None:
+        return {"state": "unreadable", "manifest": str(manifest),
+                "reason": f"{manifest.name} declares no readable "
+                          f"[skill_manager] minimum"}
+    def _text(key: str) -> str | None:
+        # `.strip()` on whatever TOML happened to hold is how a hook-safe
+        # function stops being hook-safe: `reason = 3` is valid TOML and
+        # `(3 or "").strip()` is an AttributeError in somebody's session.
+        value = table.get(key)
+        return value.strip() or None if isinstance(value, str) else None
+
+    return {
+        "state": "declared",
+        "manifest": str(manifest),
+        "minimum": minimum.strip(),
+        "reason": _text("reason"),
+        # The remedy is the floor's to name, not skt's. `cli-version` beside
+        # this one says `skill-manager upgrade --self`, which upgrades via the
+        # tap — and the SI-22 case is precisely one where the tap's local
+        # formula cache had not seen the release yet, so the floor file says
+        # `brew update && brew upgrade` instead. Two notifications, two true
+        # remedies; hard-coding one here would have made them disagree.
+        "upgrade": _text("upgrade") or "brew upgrade skill-manager",
+    }
+
+
 def _cli_state(home: Path, deadline: float) -> dict:
     """The `cli` block: which skill-manager this home runs, and whether a
     newer one is installable. LIVE PATH ONLY.
@@ -657,10 +766,25 @@ def _cli_state(home: Path, deadline: float) -> dict:
     # `upgrade --self` upgrades the tap, which cannot move a CLI this home
     # builds itself. So: reported for orientation, never notified about.
     local_build = "+" in installed
+
+    # THE FLOOR IS COMPUTED BEFORE BREW IS ASKED, AND RIDES EVERY STATE FROM
+    # HERE DOWN. That ordering is the ticket: "is this CLI new enough for this
+    # plugin" is answerable from the installed version and a declared number
+    # alone, and making it wait on the brew probe would put it behind exactly
+    # the cache that was stale in the case it exists for. It therefore also
+    # survives `unknown-latest` — no brew, or no brew install at all — where
+    # the `outdated` verdict cannot be reached.
+    floor = bootstrap_floor()
+    below_floor = (
+        floor.get("state") == "declared"
+        and _parse_version(installed) < _parse_version(floor["minimum"])
+    )
+
     latest, why_latest = _brew_latest(max(0.5, deadline - time.monotonic()))
     if latest is None:
         return {"state": "unknown-latest", "installed": installed, "build": build,
-                "local_build": local_build, "reason": why_latest}
+                "local_build": local_build, "floor": floor,
+                "below_floor": below_floor, "reason": why_latest}
 
     behind = (not local_build) and _parse_version(installed) < _parse_version(latest)
     return {
@@ -669,6 +793,8 @@ def _cli_state(home: Path, deadline: float) -> dict:
         "build": build,
         "latest": latest,
         "local_build": local_build,
+        "floor": floor,
+        "below_floor": below_floor,
         "outdated": behind,
     }
 
@@ -735,6 +861,60 @@ def _migration_notifications(home: Path, deadline: float | None = None) -> list[
         ),
         "fix": f"skill-manager home repair --home {home} --fix",
     }]
+
+
+def _floor_notification(state: dict) -> list[dict]:
+    """The plugin's declared floor, and whether this CLI clears it (SI-28).
+
+    WARNS. Refuses nothing — not an install, not a session, not a command
+    (`GOAL-no-new-gates`). It rides the notification list `skt check` already
+    builds, so it reaches an agent through the SessionStart hook that is
+    already read, rather than through a new command somebody has to remember
+    to run. A second checker is how the first one got missed.
+
+    Silent on every uncertainty, on the same terms as `_cli_notifications`
+    below: no installed version (the probe was refused, timed out, or this
+    home holds no pin), no declared floor, or a floor file that would not
+    parse — none of those is evidence that a CLI is too old, and a warning
+    that fires on "I could not find out" is one people learn to scroll past.
+
+    A LOCAL BUILD IS NOT EXCUSED HERE, and that is a deliberate departure
+    from the rule ten lines down. `cli-version` suppresses local builds
+    because a branch build's base version says nothing about which commits it
+    carries, so "0.25.0+g08a1c00 is behind 0.25.1" can be false. The same
+    doubt cuts the other way for a floor: the question is whether a REQUIRED
+    fix is present, the base version is the only evidence available, and
+    staying silent is how six days passed. So it fires, and the message says
+    in its own words that a local build may already carry the fix.
+    """
+    floor = state.get("floor") or {}
+    if not state.get("below_floor") or floor.get("state") != "declared":
+        return []
+    installed = state.get("installed")
+    minimum = floor.get("minimum")
+    if not installed or not minimum:
+        return []
+    where = Path(floor["manifest"]).name
+    because = f" — {floor['reason']}" if floor.get("reason") else ""
+    local = (
+        " (this is a local build, so its branch may already carry the fix —"
+        " its base version is the only evidence there is)"
+        if state.get("local_build") else ""
+    )
+    return [
+        {
+            "kind": "cli-floor",
+            "installed": installed,
+            "minimum": minimum,
+            "manifest": floor["manifest"],
+            "message": (
+                f"skill-manager {installed} is installed here, and this plugin "
+                f"requires {minimum} or newer ({where})"
+                f"{because}{local}"
+            ),
+            "fix": floor["upgrade"],
+        }
+    ]
 
 
 def _cli_notifications(state: dict) -> list[dict]:
@@ -1277,6 +1457,9 @@ def collect(start: str | Path = ".", *, use_network: bool = True,
     # cheaper of the two.
     cli = (_cli_state(home, deadline) if probe_cli
            else {"state": "off", "reason": "probe_cli=False"})
+    # The floor FIRST: "this CLI is older than the plugin requires" outranks
+    # "a newer one exists", and the two can both be true in one pass.
+    notifications += _floor_notification(cli)
     notifications += _cli_notifications(cli)
     # After the CLI notification and before the artifacts, because the CLI's
     # own version explains this one: a home migrated by an older build will
@@ -1403,17 +1586,52 @@ def cached_report(home: Path, ttl: int) -> dict:
     not repaired, or every cold home's PostToolUse would become the live
     check this function exists to avoid.
     """
-    raw = _load_cache(home)
-    if raw is None:
+    def _missing(reason: str) -> dict:
         return {
             "schema": SCHEMA_VERSION,
             "home": str(home),
             "cache_state": CACHE_MISSING,
+            # Additive, and NOT rendered: `--cached --json` could otherwise
+            # not tell a REJECTED cache from an absent one, which is the
+            # distinction anybody debugging this wants first.
+            "cache_reason": reason,
             "from_cache": True,
             "checked_units": [],
             "unverifiable": [],
             "notifications": [],
         }
+
+    raw = _load_cache(home)
+    if raw is None:
+        return _missing("no state file, or it could not be parsed")
+
+    # A CACHE OF THE WRONG SHAPE IS NOT A CACHE (SI-28 review).
+    #
+    # Until this check existed, `cached_report` compared only `checked_at`
+    # against the TTL, so a record written by an OLDER skt was served as
+    # CACHE_FRESH carrying whatever fields that older schema happened to
+    # have. The measured case is this ticket's own: a v6 record has no
+    # `cli.floor` and no `cli-floor` notification, so a home with a warm
+    # cache showed NO floor warning for up to a full TTL — a check that does
+    # not fire, which is the exact defect this ticket exists to catch.
+    #
+    # It is not this ticket's problem alone, and that is why the predicate is
+    # the schema NUMBER and nothing about the floor: EVERY bump before this
+    # one silently served stale-shaped data for a TTL, and every future one
+    # would have. Nothing here knows or cares which fields changed.
+    #
+    # REPORTED, NOT REPAIRED — deliberately the same path as a missing file
+    # rather than a live refresh. `--cached` must stay one state-file read
+    # with no I/O, because PostToolUse runs it on every tool call; the next
+    # live pass rewrites the cache at the current schema anyway.
+    #
+    # A non-dict `raw` is folded in here because it is the same predicate —
+    # "this is not a record this code can read" — and `raw.get` on a JSON
+    # list would otherwise be an AttributeError inside a SessionStart hook.
+    if not isinstance(raw, dict) or raw.get("schema") != SCHEMA_VERSION:
+        found = raw.get("schema") if isinstance(raw, dict) else "not a record"
+        return _missing(f"cached at schema {found!r}, this skt reads {SCHEMA_VERSION}")
+
     if time.time() - raw.get("checked_at", 0) > ttl:
         # Stale content rides under `stale`, never at the top level: the
         # exit code stays 0 and hook injection cannot present it as
@@ -1536,6 +1754,14 @@ def render_text(report: dict) -> str:
             # The command on its own line: this is the fast path for a
             # critical fix and it has to be retypable without editing.
             lines.append(f"    rebuild with: {note['fix']}")
+        elif note.get("kind") == "cli-floor":
+            # Own line and retypable, like every other fast path here. The
+            # second line is the one that keeps this out of `GOAL-no-new-gates`
+            # territory: nothing was refused, and an agent that reads this at
+            # session start should not stop to wonder whether it was.
+            lines.append(f"    upgrade with: {note['fix']}")
+            lines.append("    nothing was refused — this is a warning; the "
+                         f"floor is declared in {note['manifest']}")
         elif note.get("kind") == "cli-version":
             # Own line, same reason as the two below: this is the fast path
             # for the fix, and it has to be retypable without editing. The

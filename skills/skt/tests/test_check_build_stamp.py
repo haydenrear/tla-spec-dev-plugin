@@ -50,6 +50,18 @@ def test_the_stamp_is_skill_managers_own_spelling():
 def test_one_home_two_builds_two_verdicts(tmp_path, monkeypatch):
     # brew is not what this asserts about; keep it out of the pass.
     monkeypatch.setattr(check_mod, "_brew_latest", lambda timeout: (None, "no brew in test"))
+    # SI-28: nor is the plugin's declared skill-manager floor, on exactly the
+    # same terms as the line above — and here saying so is load-bearing rather
+    # than tidy. Both pins below are 0.27.2, so both sit under the real floor,
+    # and they differ in one more way than this test's `_without_build`
+    # equality allows: `0.27.2+gaaaa1111bbbb` is a LOCAL BUILD and `0.27.2` is
+    # not, so the floor warning carries its "may already carry the fix" clause
+    # on the first pass and not the second. That is the floor notification
+    # behaving correctly and it is not "the build", so it is silenced here
+    # rather than accommodated. tests/test_cli_floor.py asserts it instead.
+    monkeypatch.setattr(check_mod, "bootstrap_floor",
+                        lambda root=None: {"state": "absent",
+                                           "reason": "no floor in this test"})
     repo = make_repo(tmp_path / "repo")
     home = make_home(repo)
 

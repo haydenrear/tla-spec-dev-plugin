@@ -1,0 +1,107 @@
+# SI-28's inbox. NOT the ledger — the epic agent absorbs this at wave close,
+# exactly as it absorbed SI-19's through SI-22's. `specs/results/
+# deferred_findings_final.yaml`'s own header states the convention (a ticket
+# files into its own inbox; the epic agent absorbs), and the work order names
+# this path explicitly.
+#
+# Both rows were observed by hand in the ticket worktree
+# /Users/hayde/IdeaProjects/wt-390-bootstrap-cli-floor at base 3cffe686 on
+# 2026-09-26, and both are consequences of the SAME question this ticket had
+# to answer and could not: "where does a plugin declare which skill-manager
+# CLI it needs?" The answer turned out to be "nowhere, and you cannot cheaply
+# find out whether a new place would break the install".
+#
+# BUDGET NOTE: deferment.budget is 5 and this file holds 2. Nothing was merged
+# or dropped to reach that number.
+ticket: SI-28
+base_sha: 3cffe686f0f0799af909d1dee428471c30f2b58b
+record: specs/results/epic-self-improvement-substrate/tickets/SI-28/local-signal.md
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings:
+  - id: SI-28-DF-01
+    status: open
+    severity: medium
+    against: skill-manager
+    title: >-
+      `skill-manager install --dry-run` does not parse the unit manifest at
+      all, so a plugin author has no way to check a manifest before installing
+    what: >-
+      Measured 2026-09-26 against skill-manager 0.28.2. A scratch plugin
+      (`.claude-plugin/plugin.json` + `skill-manager-plugin.toml` + one
+      contained skill) was dry-run installed into a scratch home three times,
+      changing only `skill-manager-plugin.toml`:
+        1. valid manifest carrying two UNDOCUMENTED keys
+           (`[plugin] requires_skill_manager` and a `[requires]` table)
+           -> planned 10 effects, exit 0
+        2. SYNTACTICALLY INVALID toml, literally `[plugin\nname = broken\n`
+           -> planned the same 10 effects, exit 0
+        3. `[plugin] name = "MISMATCHED"`, disagreeing with plugin.json's
+           `name`, which `references/plugins.md` says MUST match
+           -> planned the same 10 effects, exit 0
+      Case 2 is the finding. `--dry-run` advertises "resolve, plan, and print
+      the install effects", and the plan it printed was identical for a
+      manifest that cannot be parsed, so the resolve step demonstrably never
+      read it. Case 3 shows the documented name/version agreement is not
+      checked there either.
+    why_it_matters: >-
+      This ticket needed to add one declared value to the plugin and had to
+      decide WHERE. `--dry-run` is the only non-destructive route skill-manager
+      offers, and case 1 passing was therefore worth nothing: it could not
+      distinguish "the key is tolerated" from "the file was never opened",
+      which case 2 then proved was the situation. The alternative — a real
+      install — registers the plugin with the operator's Claude harness
+      (`claude plugin marketplace add` / `install --scope user`), so it is not
+      a probe an agent can run on somebody's machine to answer a question.
+      The consequence for SI-28 is recorded in bootstrap-floor.toml's own
+      header: the floor went into a file of its own rather than into
+      `skill-manager-plugin.toml`, because a manifest key there would have
+      been an untested guess in the one file whose corruption breaks the
+      bootstrap the floor exists to protect.
+    remedy_sketch: >-
+      Either parse the unit manifest during `--dry-run` and surface a parse or
+      agreement failure as a planned `!` line, or add a `skill-manager validate
+      <source>` that does. The second is probably the honest shape: authors
+      want manifest validation without a resolve.
+    evidence: >-
+      transcripts/manifest-tolerance-probe.txt in this ticket's evidence root;
+      the three runs and their exit codes are quoted verbatim.
+
+  - id: SI-28-DF-02
+    status: open
+    severity: low
+    against: skill-manager
+    title: >-
+      Neither plugin manifest has a field for "the skill-manager version this
+      unit requires", so every bundle that needs one invents its own
+    what: >-
+      `skills/unit-authoring/references/plugins.md` documents the full schema
+      of both `.claude-plugin/plugin.json` ("the only fields that matter are
+      name + version") and `skill-manager-plugin.toml` (`[plugin]`,
+      `references`, `[[cli_dependencies]]`, `[[mcp_dependencies]]`). Neither
+      carries a minimum-CLI-version field, and `skill-manager.toml` for a
+      contained skill does not either. A grep of this repository for
+      `min_cli|minimum_version|requires_cli|required_version|min_version|
+      skill_manager_version` before this ticket returned nothing.
+    why_it_matters: >-
+      A unit's dependency on the TOOL that installs it is the one dependency
+      skill-manager cannot express, while it expresses CLI deps, MCP deps and
+      unit references in detail. The measured cost is SI-22-DF-01: this plugin
+      depended on a fix released in skill-manager 0.28.2, brew installed
+      0.28.1, and nothing anywhere could state the requirement — so six days
+      of GOAL-one-plugin bootstrap measurement ran against a CLI that predated
+      its own fix. SI-28 closes that for THIS plugin, in this plugin's own
+      file, read by this plugin's own skt. That fix does not travel: the next
+      bundle with the same dependency writes its own file and its own reader.
+    remedy_sketch: >-
+      A `[requires] skill_manager = ">=0.28.2"` (or a plain floor) in
+      `skill-manager-plugin.toml` and `skill-manager.toml`, reported by
+      `skill-manager install`/`sync` as a WARNING and never a refusal — the
+      shape SI-28 implemented locally, hoisted to the tool. Blocked in
+      practice on SI-28-DF-01: until a manifest can be validated without
+      installing, adding fields to it is a guess.
+    evidence: >-
+      bootstrap-floor.toml's header (this PR) records the same reasoning at
+      the decision site; skills/unit-authoring/references/plugins.md is the
+      schema that has no such field.

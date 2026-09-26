@@ -1,0 +1,78 @@
+SI-28 — repository suite, baseline vs final, compared by NAME
+
+COMMAND (identical for both runs, quoted beside every count):
+  uv run --python 3.12 --with pytest --with pyyaml --with jinja2 \
+    --with hypothesis python -m pytest tests -q --ignore=tests/test_score_tools.py
+
+BASELINE  /Users/hayde/IdeaProjects/wt-epic-self-improvement-substrate @ 3cffe686
+          (the epic tip; clean tree, verified `git status --porcelain` empty
+           before AND after the run). My own baseline, not a quoted one.
+  -> 10 failed, 1730 passed, 6 skipped in 911.31s
+
+FINAL     /Users/hayde/IdeaProjects/wt-390-bootstrap-cli-floor @ b47bf147
+  -> 10 failed, 1736 passed, 6 skipped in 365.72s
+
+FAILURE NAMES: IDENTICAL. Not just the count — the sets are equal, so no
+failure was introduced and none was accidentally fixed:
+
+  diff baseline-failure-names.txt final-failure-names.txt -> no differences
+    tests/test_architecture_tags.py::test_the_same_tag_control_holds
+    tests/test_corpus_diagnostics.py::test_cli_passes_on_the_committed_example_corpus
+    tests/test_example_drivers_write_inside_spec_tree.py::test_a_validation_run_does_not_generate_over_a_committed_corpus
+    tests/test_instrument_demonstrations.py::test_every_fast_demonstration_reproduces
+    tests/test_negative_corpus_adapter_conformance.py::test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does
+    tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+    tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+    tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+    tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+    tests/test_verdict_schema.py::test_the_corpus_gate_states_its_verdict_as_data
+
+THE +6 PASSED, ACCOUNTED FOR EXACTLY. A count that moved and was not
+explained is how a regression hides, so the collected test IDs were
+diffed too (`--collect-only`): 1746 -> 1752, nothing removed, and the
+six additions are:
+
+    tests/test_bootstrap_floor_is_declared.py::test_exactly_one_file_declares_a_floor
+    tests/test_bootstrap_floor_is_declared.py::test_the_floor_is_at_or_above_the_release_that_carries_the_fix
+    tests/test_bootstrap_floor_is_declared.py::test_the_floor_is_declared_and_parses
+    tests/test_bootstrap_floor_is_declared.py::test_the_floor_sits_where_skt_resolves_it_from
+    tests/test_parse_simple_yaml_differential.py::test_parse_simple_yaml_agrees_with_pyyaml[specs/results/deferred/SI-28.yaml]
+    tests/test_spec_yaml_valid.py::test_spec_yaml_parses[SI-28.yaml]
+
+  Four are the new test file. The other two are NOT tests I wrote: two
+  existing suites parametrise over every YAML file in the repository, so
+  adding specs/results/deferred/SI-28.yaml — this ticket's deferred-
+  findings inbox — generated one case each. Both pass.
+
+NOTE ON THE BASELINE RUN. It wall-clocked 911s against the final's 366s
+because it stalled ~20 minutes on tests/test_instrument_demonstrations.py
+(child `examples/validation/instruments/demonstrate.py --tier fast` idle,
+parent CPU time frozen) while the two runs shared the machine. It then
+resumed and completed on its own. That test FAILS in both runs and is in
+the identical name list above, so the stall changed no verdict; it is
+recorded because 'it hung' and 'it is slow' look the same from outside.
+
+=======================================================================
+RE-RUN AFTER THE SI-28 REVIEW FIX (cached_report schema check)
+=======================================================================
+Same command. Same baseline (epic tip 3cffe686: 10 failed / 1730 passed
+/ 6 skipped).
+
+  final: 10 failed, 1736 passed, 6 skipped in 344.52s (0:05:44)
+
+  FAILURE NAME SETS STILL IDENTICAL to the baseline — verified with
+  `diff baseline-failure-names.txt final-failure-names.txt`, no output.
+  The counts are unchanged from the pre-review-fix run as well, so the
+  cache-schema change moved nothing in this suite.
+
+  skt unit suite: 352 passed, 3 skipped, 0 failed
+  (collected ids 353 -> 355 against the committed 3c5a7c7c: exactly the
+   two new tests, nothing removed.)
+
+CORRECTION TO THE NOTE ABOVE ABOUT THE BASELINE STALL. I attributed the
+~20-minute stall on tests/test_instrument_demonstrations.py to machine
+contention. That was wrong: this run stalled at the same test with the
+machine otherwise idle, then resumed unaided. It is a property of that
+test, not of contention. It FAILS in every run here and is in the
+identical name list, so it has never changed a verdict — but the earlier
+explanation was a guess stated as a cause, and it is withdrawn.

@@ -49,11 +49,25 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "support"))
 from skt_fixture import (  # noqa: E402
     POST_TOOL_HOOK,
     SESSION_START_HOOK,
+    SKT_SKILL_ROOT,
     build_home,
     child_env,
     init_repo,
     unit_record,
 )
+
+# THE SCHEMA IS READ, NEVER SPELLED (SI-28 review). This node used to write
+# `"schema": 2` as a literal into its fixture cache, which was a latent
+# coupling to a number that moves: `cached_report` now refuses a record whose
+# schema is not the current one, so the literal made the hook inject nothing
+# and all five dedup assertions failed at once — a red graph about a fixture,
+# not about the hooks this node exists to test.
+#
+# Read from the same source the node is exercising, exactly as the sibling
+# `support/cached_no_spawn_probe.py` already does, so the next bump needs no
+# edit here. A stale literal cannot come back.
+sys.path.insert(0, str(SKT_SKILL_ROOT / "src"))
+from skt.check import SCHEMA_VERSION as SKT_SCHEMA_VERSION  # noqa: E402
 
 UPSTREAM = "skt.wrapper-installed"
 
@@ -89,7 +103,7 @@ def _cache(home: Path, *, checked_at: float, notifications: list[dict]) -> None:
     path.write_text(
         json.dumps(
             {
-                "schema": 2,
+                "schema": SKT_SCHEMA_VERSION,
                 "home": str(home),
                 "tier": "project",
                 "checked_units": ["alpha"],
