@@ -149,6 +149,77 @@ def test_expired_cache_is_not_served_as_current(tmp_path):
     assert cached["stale"]["checked_units"] == ["alpha"]
 
 
+def test_a_cache_of_the_wrong_schema_is_not_served(tmp_path, monkeypatch):
+    """A record written by an OLDER skt is not a fresh cache (SI-28 review).
+
+    `cached_report` used to compare only `checked_at` against the TTL, so a
+    record from a previous schema was served as CACHE_FRESH carrying whatever
+    fields that schema happened to have. The measured case is SI-28's own: a
+    v6 record has no `cli.floor` and no `cli-floor` notification, so a home
+    with a warm cache showed no floor warning for up to a full TTL — a check
+    that does not fire, which is the defect that ticket exists to catch.
+
+    The predicate under test is the schema NUMBER, not anything about the
+    floor: every bump before that one had the same hole and every future one
+    would have.
+
+    BOTH ARMS, because a rejection that rejects everything is worthless:
+    the SAME record is served fresh at the current schema and refused one
+    below it, so the schema is demonstrably what decides.
+    """
+    repo = make_repo(tmp_path / "repo")
+    bare, tip = make_unit_upstream(tmp_path, "alpha")
+    home = make_home(repo, units={"alpha": unit_record(bare, tip)})
+    report = check_mod.collect(repo)
+    check_mod._write_cache(report)
+    path = check_mod.state_file(home)
+
+    # NON-VACUITY, and the control arm. If this record did not load and serve
+    # at the current schema, the refusal below would prove nothing — a
+    # corrupt file is refused too.
+    written = json.loads(path.read_text())
+    assert written["schema"] == check_mod.SCHEMA_VERSION
+    assert written["checked_units"] == ["alpha"], written
+    fresh = check_mod.cached_report(home, ttl=900)
+    assert fresh["cache_state"] == check_mod.CACHE_FRESH
+    assert fresh["checked_units"] == ["alpha"]
+
+    # ARM: one below the current schema, everything else byte-identical.
+    stale_shape = dict(written, schema=check_mod.SCHEMA_VERSION - 1)
+    path.write_text(json.dumps(stale_shape))
+    monkeypatch.setattr(check_mod, "_remote_tip",
+                        lambda *a, **k: (_ for _ in ()).throw(
+                            AssertionError("--cached must not touch the network")))
+    started = time.monotonic()
+    refused = check_mod.cached_report(home, ttl=900)
+    # Reported, NOT repaired: the same path a missing file takes, so
+    # `--cached` stays one state-file read with no I/O.
+    assert refused["cache_state"] == check_mod.CACHE_MISSING
+    assert refused["notifications"] == []
+    assert refused["checked_units"] == []
+    assert str(check_mod.SCHEMA_VERSION) in refused["cache_reason"]
+    assert time.monotonic() - started < 0.5
+    assert json.loads(path.read_text()) == stale_shape, "the cache was rewritten"
+
+    # And the consequence the review asked about: exit 0, nothing presented
+    # as current, so a hook cannot mistake a wrong-shaped record for news.
+    assert check_mod.run(as_json=False, cached=True, start=repo) == 0
+
+
+def test_a_cache_that_is_not_a_record_does_not_raise(tmp_path):
+    """`raw.get` on a JSON list is an AttributeError inside a SessionStart
+    hook. Same predicate as the schema check, so it takes the same path."""
+    repo = make_repo(tmp_path / "repo")
+    home = make_home(repo, units={})
+    path = check_mod.state_file(home)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    for body in ("[1, 2, 3]", '"a string"', "42", "null"):
+        path.write_text(body)
+        out = check_mod.cached_report(home, ttl=900)
+        assert out["cache_state"] == check_mod.CACHE_MISSING, body
+        assert out["notifications"] == []
+
+
 def test_exit_codes_distinguish_notify(tmp_path, capsys):
     repo = make_repo(tmp_path / "repo")
     bare, tip = make_unit_upstream(tmp_path, "alpha")

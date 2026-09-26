@@ -1586,17 +1586,52 @@ def cached_report(home: Path, ttl: int) -> dict:
     not repaired, or every cold home's PostToolUse would become the live
     check this function exists to avoid.
     """
-    raw = _load_cache(home)
-    if raw is None:
+    def _missing(reason: str) -> dict:
         return {
             "schema": SCHEMA_VERSION,
             "home": str(home),
             "cache_state": CACHE_MISSING,
+            # Additive, and NOT rendered: `--cached --json` could otherwise
+            # not tell a REJECTED cache from an absent one, which is the
+            # distinction anybody debugging this wants first.
+            "cache_reason": reason,
             "from_cache": True,
             "checked_units": [],
             "unverifiable": [],
             "notifications": [],
         }
+
+    raw = _load_cache(home)
+    if raw is None:
+        return _missing("no state file, or it could not be parsed")
+
+    # A CACHE OF THE WRONG SHAPE IS NOT A CACHE (SI-28 review).
+    #
+    # Until this check existed, `cached_report` compared only `checked_at`
+    # against the TTL, so a record written by an OLDER skt was served as
+    # CACHE_FRESH carrying whatever fields that older schema happened to
+    # have. The measured case is this ticket's own: a v6 record has no
+    # `cli.floor` and no `cli-floor` notification, so a home with a warm
+    # cache showed NO floor warning for up to a full TTL — a check that does
+    # not fire, which is the exact defect this ticket exists to catch.
+    #
+    # It is not this ticket's problem alone, and that is why the predicate is
+    # the schema NUMBER and nothing about the floor: EVERY bump before this
+    # one silently served stale-shaped data for a TTL, and every future one
+    # would have. Nothing here knows or cares which fields changed.
+    #
+    # REPORTED, NOT REPAIRED — deliberately the same path as a missing file
+    # rather than a live refresh. `--cached` must stay one state-file read
+    # with no I/O, because PostToolUse runs it on every tool call; the next
+    # live pass rewrites the cache at the current schema anyway.
+    #
+    # A non-dict `raw` is folded in here because it is the same predicate —
+    # "this is not a record this code can read" — and `raw.get` on a JSON
+    # list would otherwise be an AttributeError inside a SessionStart hook.
+    if not isinstance(raw, dict) or raw.get("schema") != SCHEMA_VERSION:
+        found = raw.get("schema") if isinstance(raw, dict) else "not a record"
+        return _missing(f"cached at schema {found!r}, this skt reads {SCHEMA_VERSION}")
+
     if time.time() - raw.get("checked_at", 0) > ttl:
         # Stale content rides under `stale`, never at the top level: the
         # exit code stays 0 and hook injection cannot present it as

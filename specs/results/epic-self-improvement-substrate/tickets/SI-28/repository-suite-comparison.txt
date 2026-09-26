@@ -51,3 +51,28 @@ parent CPU time frozen) while the two runs shared the machine. It then
 resumed and completed on its own. That test FAILS in both runs and is in
 the identical name list above, so the stall changed no verdict; it is
 recorded because 'it hung' and 'it is slow' look the same from outside.
+
+=======================================================================
+RE-RUN AFTER THE SI-28 REVIEW FIX (cached_report schema check)
+=======================================================================
+Same command. Same baseline (epic tip 3cffe686: 10 failed / 1730 passed
+/ 6 skipped).
+
+  final: 10 failed, 1736 passed, 6 skipped in 344.52s (0:05:44)
+
+  FAILURE NAME SETS STILL IDENTICAL to the baseline — verified with
+  `diff baseline-failure-names.txt final-failure-names.txt`, no output.
+  The counts are unchanged from the pre-review-fix run as well, so the
+  cache-schema change moved nothing in this suite.
+
+  skt unit suite: 352 passed, 3 skipped, 0 failed
+  (collected ids 353 -> 355 against the committed 3c5a7c7c: exactly the
+   two new tests, nothing removed.)
+
+CORRECTION TO THE NOTE ABOVE ABOUT THE BASELINE STALL. I attributed the
+~20-minute stall on tests/test_instrument_demonstrations.py to machine
+contention. That was wrong: this run stalled at the same test with the
+machine otherwise idle, then resumed unaided. It is a property of that
+test, not of contention. It FAILS in every run here and is in the
+identical name list, so it has never changed a verdict — but the earlier
+explanation was a guess stated as a cause, and it is withdrawn.
