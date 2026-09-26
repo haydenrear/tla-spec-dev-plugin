@@ -1,0 +1,812 @@
+# SI-23's inbox — Evaluation B, the epic's terminal evaluation.
+#
+# NOT the ledger. The epic agent absorbs this at wave close, as it absorbed
+# SI-19's through SI-22's and SI-29's.
+#
+# BUDGET NOTE, stated rather than hidden. The assignment declares
+# `deferment.budget: 5`. This file holds 23. SI-23 owns SIX goals and re-reads
+# FOUR more, and the issue itself predicts the collision: "note this is the run
+# the shared-backlog collision was predicted for, since this ticket files
+# against six goals." Every row below is a defect found while measuring a
+# declared clause with its declared instrument; none is scope creep, and none
+# was fixed (`role: evaluation` — measurement only, never edit a target).
+# The overrun is the epic agent's to accept or split, not mine to resolve by
+# dropping rows.
+#
+# BACKLOG-PATH CONFLICT, flagged rather than silently chosen. The assignment's
+# `deferment.backlog` names specs/results/deferred_findings_final.yaml, and the
+# issue prose says to append to it ("69 rows" — stale; it holds 151). The work
+# order and the 2026-09-26 amendment both say to file in
+# specs/results/deferred/SI-23.yaml, which is also what every other ticket in
+# this epic actually did. I followed the work order and the amendment, and did
+# NOT write the shared ledger. Flagging the conflict instead of choosing
+# silently.
+#
+# Every row was observed by hand in the ticket worktree
+# /Users/hayde/IdeaProjects/wt-372-evaluation-b at base 8b6d97e8 on 2026-09-26,
+# and names the command or artifact it came out of.
+ticket: SI-23
+base_sha: 8b6d97e86c618ff96e98d6361a0a23328494302e
+record: specs/results/epic-self-improvement-substrate/goals/
+absorbed_into: specs/results/deferred_findings_final.yaml
+absorbed_at: null
+absorbed_ids: []
+findings:
+
+  - id: SI-23-DF-21
+    attribution: UNMODELED/test-graph-scaffold
+    status: open
+    severity: high
+    title: >-
+      `specWorkflow` is RED at the epic tip: a review-driven fix made a node
+      source non-relocatable, and the epic's own state document reports the
+      graph green
+    what: >-
+      `python3 skills/test-graph/scripts/run.py specWorkflow cliWorkflow
+      effectProviderExamples` -> sweep reports specWorkflow FAILED. Read from
+      that run's own fresh summary.json (runId 20260926-172628, NOT the runner
+      exit code): status "errored", complete false, 69 assertions / 64 passed,
+      five failed assertions all in node spec.workflow.failure_cleanup_probe,
+      and spec.reference.adapters_resolve skipped as collateral.
+      Root cause: the cleanup-failure probe copies test_graph/sources/ into
+      build/validation-reports/<runId>/cleanup-failure-probe-test-graph/sources/
+      and runs --describe over every source. skt_hook_contract.py:69-70 does
+      `sys.path.insert(0, str(SKT_SKILL_ROOT / "src"))` then `from skt.check
+      import SCHEMA_VERSION`, where SKT_SKILL_ROOT = REPO_ROOT/"skills"/"skt"
+      is derived from __file__ (test_graph/support/skt_fixture.py:29). Relocated,
+      REPO_ROOT resolves into the fixture dir, which has no skills/skt, so the
+      import raises ModuleNotFoundError: No module named 'skt' (exit 1).
+      CONTROLLED TWO-ARM TEST, run in the REAL fixture location so uv script
+      requirements resolve identically in both arms:
+        ARM 1  tip version                  -> rc=1  ModuleNotFoundError: No module named 'skt'
+        ARM 2  parent version (7d696715^)   -> rc=0
+      Same path, same interpreter, same everything else. The regression is
+      commit 7d696715 "SI-28 review: a cache of the wrong schema is not a
+      cache", 2026-09-26, which replaced a literal `"schema": 2` with a read of
+      the live SCHEMA_VERSION. The fix is correct in intent and introduced a
+      cross-tree import into a file that gets relocated.
+      NOTE ON MY OWN FIRST ATTEMPT: I first ran the two arms from a scratchpad
+      copy. BOTH arms returned rc=1 with "Failed to resolve script requirement"
+      -- a uv resolution failure, never reaching the import. That two-arm test
+      was invalid and would have shown "no difference". Re-run in the real
+      location it separates cleanly. Verifying the step rather than the outcome,
+      caught before it was reported.
+      7d696715 is an ancestor of BOTH 8b6d97e8 and the review's own tip
+      37ada6f4, so REVIEW-BEFORE-SI-23.md section 1's "specWorkflow 74" cannot
+      have been measured after it -- it is a stale report, which is exactly the
+      DEF-OUN-023 trap the runner's own docstring warns about.
+    surface:
+      production:
+        - test_graph/sources/skt_hook_contract.py
+        - test_graph/support/skt_fixture.py
+    anchor: UNMODELED/test-graph-scaffold
+    evidence: >-
+      test_graph/build/validation-reports/20260926-172628/summary.json;
+      node-logs/spec.workflow.failure_cleanup_probe.cleanup-failure-probe.log
+    disposition: pending
+    goal: GOAL-one-unit
+    skill_change: >-
+      proposed(test-graph, make the cleanup-failure probe's node sources
+      relocatable -- resolve SKT_SKILL_ROOT from an env var the probe sets, or
+      skip --describe for sources the fixture cannot satisfy, so a probe that
+      relocates sources cannot be broken by a source that imports across trees)
+
+  - id: SI-23-DF-22
+    attribution: UNMODELED/record-keeping
+    status: open
+    severity: high
+    title: >-
+      The epic's "16% -> 47%" headline for GOAL-findings-become-changes pairs a
+      four-file numerator with a one-file denominator; like-for-like it is
+      16% -> 36.8%
+    what: >-
+      SI-08's 19/121 (16%) is the improvement ledger's FOUR-FILE population.
+      The 47% quoted in the 2026-09-26 amendment, in REVIEW-BEFORE-SI-23.md
+      sections 1 and 5, and in SI-29's local-signal.md is a ONE-FILE ratio over
+      specs/results/deferred_findings_final.yaml.
+      Run at this tip with SI-08's own method
+      (`uv run --python 3.12 --with pyyaml python
+      skills/spec-double-2/scripts/improvement_ledger.py`, exit 0):
+        improvement ledger -- 193 record(s) across 4 file(s)
+        by source: deferred_findings_final.yaml 151 rows / 66 skill_change;
+                   skill_feedback.md 29 / 5; SELF-IMPROVEMENT-MATRIX.md 7 / 0;
+                   deferred_findings_next.yaml 6 / 0
+        verbs: absent 108, applied 11, declined 9, malformed 14, none 12,
+               proposed 39
+      Parseable = 193 - 108 - 14 = 71 ACROSS FOUR FILES -> 71/193 = 36.8%.
+      The ledger attributes 66, not 71, to deferred_findings_final.yaml, so the
+      quoted "71 of 151" takes the four-file numerator and the one-file
+      denominator. The single-file ratio is 43.7% (ledger grammar), 47.0% (as
+      quoted) or 47.7% (an independent looser regex) depending on strictness --
+      none of them comparable to SI-08's four-file 16%.
+      The movement is real (roughly 2.3x) and the goal is NOT MET on either
+      reading. The correction is about ten points, and it is in the flattering
+      direction.
+      REVIEW-BEFORE-SI-23.md states every figure in it was re-verified by script
+      with "21 claims, no mismatches". This is a mismatch.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/REVIEW-BEFORE-SI-23.md
+        - specs/results/epic-self-improvement-substrate/tickets/SI-29/local-signal.md
+    anchor: UNMODELED/record-keeping
+    evidence: >-
+      specs/results/epic-self-improvement-substrate/goals/GOAL-findings-become-changes/evidence/ledger-4file.txt
+      and evidence/ledger_indep.py
+    disposition: pending
+    goal: GOAL-findings-become-changes
+    skill_change: >-
+      proposed(spec-double-2, have improvement_ledger.py print the ratio it
+      computes beside the population it computed it over, so a per-file count
+      cannot be quoted as the goal's figure)
+
+  - id: SI-23-DF-05
+    attribution: UNMODELED/install-pipeline
+    status: open
+    severity: high
+    title: >-
+      Every home runs the plugin at main@a3761e30 -- 82 commits behind the epic
+      tip -- so the disclosure, floor and cases this epic is being evaluated on
+      are not what any agent actually loads
+    what: >-
+      installed/tla-spec-dev.json in all three homes (root, project, worktree)
+      reads gitRef "main", gitHash a3761e309a9c..., kind GIT, errors [].
+      a3761e30 is "graphs green after the skt fixes; record what they decided",
+      2026-09-24: 82 commits behind the epic tip 8b6d97e8 and 36 behind
+      origin/main ac5f7491.
+      Measured at a3761e30 with the pinned word-count instrument: 1005
+      description words and 6 of 11 bodies over 1500 -- i.e. every home loads the
+      PRE-SI-29 disclosure. bootstrap-floor.toml is absent there (no SI-28 CLI
+      floor) and it carries 64 eval cases, not 75.
+      So GOAL-progressive-disclosure's 592 is a property of the source tree, not
+      of the substrate any session actually reads. The goal measures the
+      repository; the agent loads the install record.
+    surface:
+      production:
+        - skills/skill-manager
+    anchor: UNMODELED/install-pipeline
+    evidence: >-
+      specs/results/epic-self-improvement-substrate/goals/GOAL-one-plugin/SI-23-EVALUATION-B.md
+      clause 1
+    disposition: pending
+    goal: GOAL-one-plugin
+    skill_change: >-
+      proposed(skt, have `skt status` name the gap between the installed
+      gitHash and the branch the checkout is on, so "installed" and "current"
+      stop reading as the same claim)
+
+  - id: SI-23-DF-13
+    attribution: UNMODELED/measurement-harness
+    status: open
+    severity: high
+    title: >-
+      GOAL-no-new-gates' declared regex cannot see a bare shell `exit N`, which
+      is where every genuinely new refusal in this epic lives
+    what: >-
+      The declared harness is
+      `grep -rnE 'SystemExit|sys.exit\([^0]|refuse'`. Over the 576 new .py/.sh
+      files it returns 954 hits and ZERO genuine new agent-facing refusals.
+      A supplementary sweep over the 31 new .sh files with
+      `grep -nE '(^|;|\|\||&&)[[:space:]]*exit[[:space:]]+[1-9]'` returns 33
+      hits. 28 are vendored-identical or follow the pre-epic installer
+      convention. The 5 that are new are exactly evals/run.sh:185 and
+      evals/setup-eval-home.sh:123,:320,:323 -- the only genuinely new refusals
+      the epic added.
+      A clean run of the declared harness alone reports "zero new refusal paths"
+      without ever looking at them. The instrument cannot fail in the direction
+      the goal cares about.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/measurement-harness
+    evidence: >-
+      specs/results/epic-self-improvement-substrate/goals/GOAL-no-new-gates/SI-23-EVALUATION-B.md
+      clause 1
+    disposition: pending
+    goal: GOAL-no-new-gates
+    skill_change: >-
+      proposed(git-epic-workflow, extend the goal's harness pattern with
+      `(^|;|&&|\|\|)\s*exit\s+[1-9]` before it is used on another epic)
+
+  - id: SI-23-DF-08
+    attribution: UNMODELED/measurement-harness
+    status: open
+    severity: medium
+    title: >-
+      GOAL-epic-owns-the-model's harness path does not exist, and the same stale
+      path is printed inside human-review.md
+    what: >-
+      The goal declares `scripts/validate_epic_plan.py`. `ls` on it fails; the
+      script is at skills/git-epic-workflow/scripts/validate_epic_plan.py (1599
+      lines), moved by the plugin migration with the goal text never repaired.
+      skills/git-epic-workflow/references/human-review.md section 3.4 (~line 319)
+      cites the same stale path, so the reference page tells the next reader to
+      run something that is not there.
+    surface:
+      production:
+        - skills/git-epic-workflow/references/human-review.md
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/measurement-harness
+    evidence: goals/GOAL-epic-owns-the-model/SI-23-EVALUATION-B.md
+    disposition: pending
+    goal: GOAL-epic-owns-the-model
+    skill_change: >-
+      proposed(git-epic-workflow, repair the path in human-review.md section 3.4
+      to skills/git-epic-workflow/scripts/validate_epic_plan.py)
+
+  - id: SI-23-DF-09
+    attribution: UNMODELED/record-keeping
+    status: open
+    severity: medium
+    title: >-
+      GOAL-epic-owns-the-model says FOUR required blocks; human-review.md and
+      the validator both define FIVE
+    what: >-
+      human-review.md line 315 is the heading "#### The five blocks", and
+      validate_epic_plan.py lines 85-96 define WAVE_BLOCKS with five entries:
+      model delta applied, anchors placed, improvement-card row, skill changes
+      applied or declined, and model corrections owed by merged tickets.
+      The goal's statement, metric, baseline and target are all stale by one
+      block, so the goal UNDER-SPECIFIES what shipped. The verdict is unaffected
+      (12 of 12 artifacts carry 5/5, so both readings agree), but the text must
+      be repaired before it is restated anywhere.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/record-keeping
+    evidence: goals/GOAL-epic-owns-the-model/SI-23-EVALUATION-B.md clause 1
+    disposition: pending
+    goal: GOAL-epic-owns-the-model
+    skill_change: none (the goal text is the epic plan's, and an evaluation
+      ticket may not edit a target -- this is the epic agent's repair to make)
+
+  - id: SI-23-DF-10
+    attribution: UNMODELED/record-keeping
+    status: open
+    severity: medium
+    title: >-
+      The wave-19-22 review artifact's own UNMODELED bin table accounts for 15
+      findings where the ledgers hold 20, and omits three bins entirely
+    what: >-
+      review/wave-19-22/review.md lines 29-36 tabulate install-pipeline 5,
+      eval-harness 2, record-keeping 3, bootstrap-preconditions 2,
+      progressive-disclosure 1, RunSpecUnitTests 1, RunEffectConformance 1 = 15.
+      Parsed on the `attribution` key across the four open inboxes, the true
+      census for waves 19-22 is 20 rows in 8 UNMODELED bins plus 2 modelled:
+      install-pipeline 6, eval-harness 3, record-keeping 3,
+      bootstrap-preconditions 2, measurement-harness 1, progressive-disclosure 1,
+      retirement-receipt 1, scorecard-harness 1.
+      It undercounts install-pipeline by one (omits SI-28-DF-01), eval-harness
+      by one (omits SI-29-DF-03), and omits measurement-harness,
+      retirement-receipt and scorecard-harness entirely -- all three SI-21's,
+      wave 19, the FIRST of the four waves the artifact covers.
+      So the anchor census in the very artifact that self-reports a Block 1 gap
+      is itself incomplete. Consequently the amendment's and
+      REVIEW-BEFORE-SI-23.md's "five findings piled into
+      UNMODELED/install-pipeline" should read SIX.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/review/wave-19-22/review.md
+    anchor: UNMODELED/record-keeping
+    evidence: goals/GOAL-epic-owns-the-model/SI-23-EVALUATION-B.md clause 1
+    disposition: pending
+    goal: GOAL-epic-owns-the-model
+    skill_change: >-
+      proposed(git-epic-workflow, have the wave artifact's Block 2 bin census be
+      generated from the inbox `attribution` keys rather than hand-tabulated)
+
+  - id: SI-23-DF-04
+    attribution: UNMODELED/progressive-disclosure
+    status: open
+    severity: high
+    title: >-
+      GOAL-progressive-disclosure is a defective goal: its target is improved by
+      deleting the activation vocabulary the descriptions exist to carry
+    what: >-
+      SI-29's first pass scored 588 description words -- better than the 592 that
+      shipped -- by deleting activation vocabulary: skill-manager was left with
+      NO `use when` clause at all, and skt lost five of its ten quoted trigger
+      phrases (sweep, retire, disk-reclaim).
+      A description is what a harness matches an intent against. Under this
+      goal's target as written, 588 scores strictly better than 592, and nothing
+      in the target requires the words to do anything. The only thing that caught
+      it was a measurement neither the goal nor the ticket required.
+      The target was not relaxed and the restoration landed at 592 with all 11
+      activation clauses and all 42 quoted phrases intact. But a goal whose
+      target is satisfiable by degrading the thing it governs is defective, and
+      saying so is within an evaluation ticket's charter. Editing it is not, and
+      it was not done.
+      Compounded by SI-29-DF-05: nothing makes 592 hold, there are 8 words of
+      headroom, and SI-09 already reached 600 once before nesting regrew it to
+      1005.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/progressive-disclosure
+    evidence: goals/GOAL-progressive-disclosure/SI-23-EVALUATION-B.md
+    disposition: pending
+    goal: GOAL-progressive-disclosure
+    skill_change: >-
+      proposed(git-epic-workflow, any successor form of this goal needs a clause
+      the word count cannot satisfy -- an activation-coverage floor measured
+      beside the budget, never folded into it)
+
+  - id: SI-23-DF-03
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: medium
+    title: >-
+      GOAL-progressive-disclosure's budget clause cannot be decided: the only
+      corpus reading predates the change it is about, and one sample cannot
+      detect a regression anyway
+    what: >-
+      The clause is "no wide-lane budget case regresses". The population exists:
+      32 graders/within-budget.md files, 22 with a threshold <= 4 (thresholds
+      actually range 2 to 9, so the harness shorthand "Bash <= 4" names 22 of
+      32).
+      Reason 1: CORPUS-2026-09-25.md was run at 323497e7 on 2026-09-25 over 64
+      cases. SI-29's disclosure cut is b909fd90, 2026-09-26.
+      `git merge-base --is-ancestor 323497e7 b909fd90` -> rc=0: the corpus
+      PREDATES the cut. evals/results/ is gitignored and empty; no scored run
+      exists at or after the cut. There is a before and no after.
+      Reason 2: all 75 cases declare `runs: 1`. The instrument's own recorded
+      spread on UNCHANGED cases at one commit is 0.89->0.81 and 0.97->0.94 at
+      --runs 6, and one case moved +/-0.8 between identical invocations. A single
+      post-cut sample could not establish "no regression".
+      Also: 11 of the tip's 75 cases were never in the corpus.
+      One budget case was already below 1.00 pre-cut:
+      w-giw-bootstrap-cross-home-is-not-old-cli at 0.83, both substantive
+      graders passing, "only the weight-1 budget missed".
+    surface:
+      production:
+        - evals
+    anchor: UNMODELED/eval-harness
+    evidence: goals/GOAL-progressive-disclosure/SI-23-EVALUATION-B.md clause 3
+    disposition: pending
+    goal: GOAL-progressive-disclosure
+    skill_change: >-
+      proposed(spec-double-2, a "no regression" clause needs two readings by
+      construction -- require the eval lane to record a pre-change and a
+      post-change sample at runs>1 for the named cases, or state the clause as
+      undecidable)
+
+  - id: SI-23-DF-14
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: medium
+    title: >-
+      "The force cases stay green" has no recorded per-case score at any commit;
+      the best available evidence is an inference by elimination at n=1
+    what: >-
+      All four named cases exist and were read
+      (w-epic-force-when-owner-decided, w-epic-assignment-no-force-on-blocking,
+      w-sdc-forced-close-names-guard-weakening, w-giw-wt-new-dirty-ok).
+      evals/results/ does not exist in this worktree and nothing matching it is
+      tracked in git. The only evidence is elimination from the 64-case table at
+      323497e7: all four were in that corpus, none is among the six listed below
+      1.00, none carries the branched-home fixture -- so all four were at 1.00,
+      n=1. That is an inference, not a quoted number.
+      Against it: evals/STATE.md:188-194 records TWO of the four BELOW 1.00 one
+      run earlier, as "within-budget-only failures", on a budget the document
+      itself calls miscalibrated. The corpus has grown 64 -> 75 and has not been
+      re-run whole.
+      Glob note: the harness's `w-epic-*-force-*` matches only
+      w-epic-assignment-no-force-on-blocking; w-epic-force-when-owner-decided has
+      no segment before "force". Both were measured; the harness names one.
+      Reported UNDECIDED rather than green by elimination.
+    surface:
+      production:
+        - evals/git-epic-workflow
+        - evals/git-issue-workflow
+    anchor: UNMODELED/eval-harness
+    evidence: goals/GOAL-no-new-gates/SI-23-EVALUATION-B.md clause 3
+    disposition: pending
+    goal: GOAL-no-new-gates
+    skill_change: >-
+      proposed(spec-double-2, re-run the four force cases at HEAD with runs>1 and
+      record per-case scores, so this clause stops being decided by elimination)
+
+  - id: SI-23-DF-23
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: medium
+    title: >-
+      The judged round SI-08 asked SI-23 to run was not run, and it is now
+      constructible for the first time
+    what: >-
+      SI-08's frozen reading closes: "A round with a genuine non-reporter as the
+      negative arm has not been run. SI-23 should run one before treating this
+      goal as decided in either direction."
+      I did not run one. GOAL-blockers-propose therefore stands at SI-08's NOT
+      MET with SI-08's confound intact -- subject A was chosen as the negative
+      control on the strength of its `none met` and was not a clean negative
+      control, because both A-judges found it reporting blockers elsewhere in the
+      same body.
+      Why it is worth running NOW and was not then: SI-08 diagnosed that both
+      subjects hit the same ceiling -- I2 rung 3 requires a diff, a commit or an
+      issue, and neither subject had one. That ceiling has moved. The epic now
+      holds 10 applied(...) rows, 3 naming a commit sha (4caab479, d09d8326,
+      f212cbe3), and several tickets carried findings out as issues (#384, #385,
+      #387, #392). A round with a proposer that carries a COMMIT against a
+      genuine non-reporter is now constructible for the first time in this epic.
+      No disclosure obligation arises for SI-23 because no round was run: there
+      is no dispatch path to record and no judge to report what it received.
+      Recorded so the absence is explicit rather than inferred from silence.
+    surface:
+      production:
+        - skills/spec-double-2/references/improvement_card.md
+    anchor: UNMODELED/eval-harness
+    evidence: goals/SI-23-REREAD-OF-SI-08.md section 4
+    disposition: pending
+    goal: GOAL-blockers-propose
+    skill_change: >-
+      proposed(spec-double-2, run the clean-negative round with a commit-carrying
+      proposer as the positive arm -- the highest-value single measurement left
+      in this line of work)
+
+  - id: SI-23-DF-06
+    attribution: UNMODELED/install-pipeline
+    status: open
+    severity: medium
+    title: >-
+      origin/main is 46 commits behind the epic tip, so a fresh machine gets a
+      substrate four waves old
+    what: >-
+      The repository is PUBLIC as of 2026-09-26 and the bootstrap works --
+      re-verified independently with GIT_TERMINAL_PROMPT=0, both git configs
+      nulled and GIT_ASKPASS=/bin/false: rc=0, 11 units, default branch main at
+      ac5f7491. SI-22-DF-02 (rc=128) was correct when taken and is resolved by
+      owner action, not by code.
+      But `git rev-list --count origin/main..8b6d97e8` = 46. Measured on the
+      anonymous clone, a fresh machine gets: NO bootstrap-floor.toml; 64 eval
+      cases not 75; ZERO role-routed disclosure edges (the tip has 4: ticket,
+      epic, review, testing); 1005 description words and 6 of 11 bodies over
+      1500, i.e. GOAL-progressive-disclosure NOT MET there.
+      "One installed plugin provides the substrate" is true at both refs on unit
+      count, and the substrate differs.
+    surface:
+      production:
+        - skills/skill-manager
+    anchor: UNMODELED/install-pipeline
+    evidence: >-
+      goals/GOAL-one-plugin/SI-23-EVALUATION-B.md clause 1;
+      goals/GOAL-one-plugin/evidence/anonymous-clone-units.txt
+    disposition: pending
+    goal: GOAL-one-plugin
+    skill_change: none (advancing the default branch is an owner decision,
+      recorded here as a measurement rather than a proposal)
+
+  - id: SI-23-DF-07
+    attribution: UNMODELED/bootstrap-preconditions
+    status: open
+    severity: medium
+    title: >-
+      "The brew CLI is pinned at every tier" is not supported -- the root home
+      has no such pin, and the skt wrapper pins an interpreter without PyYAML
+    what: >-
+      REVIEW-BEFORE-SI-23.md section 2 states the brew CLI is "pinned at every
+      tier (cli=${SKILL_MANAGER_CLI:-/opt/homebrew/bin/skill-manager})".
+      Measured with
+      `grep -rln 'homebrew/bin/skill-manager\|SKILL_MANAGER_CLI' <home>/bin/`:
+        root      ~/.skill-manager                    -> NO HITS
+        project   tla-spec-dev/.skill-manager         -> bin/cli/skill-manager + 3 launchers
+        worktree  wt-372-evaluation-b/.skill-manager  -> bin/cli/skill-manager + 3 launchers
+      Two of three tiers, not every tier. The clause "the CLI comes from brew" is
+      still MET at the machine level (/opt/homebrew/bin/skill-manager ->
+      Cellar/0.28.2, self-reporting 0.28.2, artifact 03c0143ec45e).
+      Two adjacent facts: ~/.skill-manager/bin/cli/skt hardcodes
+      py="/opt/homebrew/bin/python3.14", which is the interpreter WITHOUT PyYAML
+      on this machine; and ~/.skill-manager/bin/cli/tla-spec-dev execs a bare
+      `python3`, resolving to Homebrew 3.14 (no PyYAML) from zsh and to the Xcode
+      3.9.6 shim (PyYAML 6.0) from a bash script. That is exactly the mechanism
+      behind SI-21-DF-01 and its inverted recurrence in SI-29-DF-03, still live
+      in the shipped wrapper.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/REVIEW-BEFORE-SI-23.md
+        - skills/skt
+    anchor: UNMODELED/bootstrap-preconditions
+    evidence: goals/GOAL-one-plugin/SI-23-EVALUATION-B.md clause 4
+    disposition: pending
+    goal: GOAL-one-plugin
+    skill_change: >-
+      proposed(skt, have the generated wrapper record WHICH interpreter it pinned
+      and why, so the PyYAML-bearing and PyYAML-less pythons stop being
+      interchangeable by accident)
+
+  - id: SI-23-DF-01
+    attribution: UNMODELED/measurement-harness
+    status: open
+    severity: medium
+    title: >-
+      GOAL-progressive-disclosure's declared baseline is not re-derivable at the
+      commit it names, and the population doubled underneath it
+    what: >-
+      Run at b7a7d203, the commit the baseline field names, the pinned instrument
+      asserts and stops: "NON-VACUITY FAIL: no skills/*/SKILL.md found at
+      b7a7d203". That commit has exactly two SKILL.md files and no skills/ tree
+      -- at b7a7d203 this repository WAS the spec-double-compiler skill, and the
+      six units lived in six separate repositories.
+      So the baseline figures (923 desc / 15,479 bodies / discovery 933 /
+      git-epic-workflow 4,114) were measured across six external repositories and
+      cannot be reproduced here by the named instrument.
+      Every baseline->measured comparison in this goal therefore crosses both a
+      repository-layout change and a population change from 6 units to 11. Body
+      total 15,479 -> 15,400 reads as "no change" and is in fact eleven units
+      where there were six.
+      The non-vacuity assert firing here is the instrument working, not failing.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/measurement-harness
+    evidence: goals/GOAL-progressive-disclosure/SI-23-EVALUATION-B.md
+    disposition: pending
+    goal: GOAL-progressive-disclosure
+    skill_change: >-
+      proposed(git-epic-workflow, a baseline whose population changes during the
+      epic must record the population alongside the figure -- "923 words over 6
+      units in 6 repositories" is checkable, "923 words" is not)
+
+  - id: SI-23-DF-02
+    attribution: UNMODELED/measurement-harness
+    status: open
+    severity: low
+    title: >-
+      SI-09's description counts are inflated by one word per block-scalar
+      description; the `>-` fold indicator was counted as a word
+    what: >-
+      At b0e6b54c my count is 1,212 description words against SI-09's 1,217. The
+      difference is exactly five units, each off by exactly one, and they are
+      precisely the five whose `description:` uses a `>-` folded block scalar:
+      git-epic-workflow (248 vs 247), git-integration-repo (117 vs 116),
+      git-issue (149 vs 148), git-issue-workflow (301 vs 300),
+      plugin-repository (174 vs 173). The three that match exactly (discovery 91,
+      spec-double-2 82, test-graph 55) use inline scalars.
+      Consequence for the record: SI-09's headline "descriptions <= 600 total:
+      MET, at exactly 600" was measured by a method that overcounts, so its true
+      figure was below 600 and its "zero headroom" reading was pessimistic.
+      No effect on SI-23's verdict: SI-29's figures and mine both use the
+      YAML-parsed scalar, and my 592 at the tip reproduces SI-29's exactly, as
+      does the full 11-unit control at 7ba79bee.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/tickets/SI-09/word-counts-AFTER.txt
+    anchor: UNMODELED/measurement-harness
+    evidence: >-
+      goals/GOAL-progressive-disclosure/SI-23-EVALUATION-B.md;
+      evidence/wordcount.py
+    disposition: pending
+    goal: GOAL-progressive-disclosure
+    skill_change: none (a sealed historical measurement; corrected on the record
+      rather than edited)
+
+  - id: SI-23-DF-15
+    attribution: UNMODELED/record-keeping
+    status: open
+    severity: low
+    title: >-
+      The eval ladder added 14 cases, not 15 -- SI-21's fourth "new" case already
+      existed five days earlier
+    what: >-
+      SI-21's case commit c96de147 lists four case.yaml files, but
+      evals/spec-double-2/w-sdc-ticket-binding-bare-adapter-module/case.yaml was
+      FIRST ADDED at 9ba955b7 on 2026-09-20 by SI-17's feature/362-evals-one-place
+      and merely modified by c96de147.
+      `git log --diff-filter=A` returns exactly one add and it is not SI-21's.
+      So SI-21 shipped 3 new cases, not 4, and the ladder's new-case total is 14.
+      Does not touch the ordering verdict (5 of 5 rungs still pass), but it is
+      the difference between `--name-only` on a commit and `--diff-filter=A` over
+      history, and the shortcut is what produced the number quoted in the review.
+      That case is also the corpus's lowest score (0.17) and issue #384.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/REVIEW-BEFORE-SI-23.md
+    anchor: UNMODELED/record-keeping
+    evidence: goals/GOAL-evals-earned/evidence/earned_full.py
+    disposition: pending
+    goal: GOAL-evals-earned
+    skill_change: >-
+      proposed(spec-double-2, count a ticket's new cases with --diff-filter=A
+      over history, never --name-only on the commit)
+
+  - id: SI-23-DF-16
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: medium
+    title: >-
+      GOAL-evals-earned's second clause cannot be decided for three of five
+      rungs: their manual records cite no graph run
+    what: >-
+      The clause is "no stage's cases are written before its graphs run", and the
+      named instrument is the stage's own evidence directory.
+      Counting mentions of a graph name or run.py in each manual-verification.md:
+      SI-19 22, SI-20 2, SI-21 0, SI-22 0, SI-29 0.
+      For SI-21, SI-22 and SI-29 there is no graph run in the record to check the
+      ordering against. That may be correct for what those rungs test -- CLI
+      surfaces and workflow scripts rather than graphs -- but the clause as
+      written names graphs, and the instrument cannot decide it for those three.
+      Reported UNDECIDED rather than substituting a proxy.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/tickets
+    anchor: UNMODELED/eval-harness
+    evidence: goals/GOAL-evals-earned/SI-23-EVALUATION-B.md clause 2
+    disposition: pending
+    goal: GOAL-evals-earned
+    skill_change: >-
+      proposed(spec-double-2, either require the manual record to name the graph
+      run it rests on, or scope the clause to stages that have graphs)
+
+  - id: SI-23-DF-17
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: low
+    title: >-
+      GOAL-evals-one-command's declared harness names an invocation that would be
+      refused -- specs/ is now 25,604 entries against a 20,000 ceiling
+    what: >-
+      The harness is "claude plugin eval <plugin dir>". Measured at the tip:
+      specs/ alone is 25,604 entries (the baseline recorded 20,493), evals/ is
+      810, the repo excluding .git and homes is 121,087. The ceiling that forced
+      the baseline's symlink shim has not gone away -- it has been outgrown.
+      evals/run.sh resolves this by constructing a VIEW and invoking
+      `claude plugin eval "$view"` (run.sh:591), one invocation per selector
+      (:575, SI-21). The one command exists and works; the harness string in the
+      plan describes something nobody can type.
+      Clause 1 is still MET -- the view is built by the one command, in this
+      repository, and destroyed with the run, so it is not a second harness.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/eval-harness
+    evidence: goals/GOAL-evals-one-command/SI-23-EVALUATION-B.md clause 1
+    disposition: pending
+    goal: GOAL-evals-one-command
+    skill_change: >-
+      proposed(spec-double-2, state the harness as `evals/run.sh` -- the command
+      that actually runs -- rather than the raw CLI it wraps)
+
+  - id: SI-23-DF-18
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: medium
+    title: >-
+      No scored eval run exists at the epic tip, and the corpus is 11 cases short
+      of what ships
+    what: >-
+      CORPUS-2026-09-25.md is 64 cases at 323497e7; the tip carries 75.
+      evals/results/ is gitignored and empty in this worktree. So
+      GOAL-evals-one-command clause 3 ("every case green or explicitly UNDECIDED
+      with a reason") is NOT MET on the last run -- 6 UNDECIDED WITH reasons, but
+      also 6 not green including 0.17 -- and UNDECIDED at this tip.
+      I did not re-run the corpus. A single additional runs:1 sweep costs real
+      money and, by the instrument's own record, produces numbers that cannot
+      support a claim; and re-running only the failures biases the result
+      (measured: 3 of 11 returned 1.00 with nothing fixed for them, and one fell
+      0.86 -> 0.43). Stated rather than papered over.
+      AND: the scorecard -- the instrument this epic uses to decide its own goals
+      -- still has NO eval case. Open since wave 4, narrowed by SI-21, restated
+      open here.
+    surface:
+      production:
+        - evals
+    anchor: UNMODELED/eval-harness
+    evidence: goals/GOAL-evals-one-command/SI-23-EVALUATION-B.md clause 3
+    disposition: pending
+    goal: GOAL-evals-one-command
+    skill_change: >-
+      proposed(spec-double-2, give the scorecard an eval case before the next
+      epic uses it to decide anything)
+
+  - id: SI-23-DF-19
+    attribution: UNMODELED/record-keeping
+    status: open
+    severity: low
+    title: >-
+      The quoted combined repository-suite baseline (1853 passed) does not
+      reconcile with the two runs that compose it (1742 + 127 = 1869)
+    what: >-
+      Measured in this worktree at 8b6d97e8:
+        `pytest tests -q --ignore=tests/test_score_tools.py`
+          -> 10 failed, 1742 passed, 6 skipped in 327.31s
+        `pytest tests/test_score_tools.py -q`
+          -> 127 passed in 766.45s
+      Sum: 1,869 passed. The work order and REVIEW-BEFORE-SI-23.md quote the
+      without-ignore figure as 10 failed / 1853 passed -- 16 fewer.
+      I did NOT run the combined command, so I am not asserting the quoted figure
+      is wrong, only that it does not reconcile with the two runs I made. The
+      combined baseline should be re-taken before it is quoted again.
+      Failure NAMES are identical to SI-29's recorded baseline in both suites --
+      all ten repository names, zero diff.
+    surface:
+      production:
+        - specs/results/epic-self-improvement-substrate/REVIEW-BEFORE-SI-23.md
+    anchor: UNMODELED/record-keeping
+    evidence: goals/GOAL-evals-one-command/evidence/repository-suite-failure-names.txt
+    disposition: pending
+    goal: GOAL-evals-one-command
+    skill_change: none (a baseline to re-take, not a skill to change)
+
+  - id: SI-23-DF-20
+    attribution: UNMODELED/record-keeping
+    status: open
+    severity: low
+    title: >-
+      The issue's "7 spec-unit failures that are not yours" is stale; the
+      recorded baseline and this run both hold nine
+    what: >-
+      `run spec-unit-tests --ticket <id>` is known-weak (SIS-KICKOFF-F-04), so
+      --target was used and is named: `uv run --python 3.12 ...
+      tla_spec_dev.py --spec-root specs run spec-unit-tests --target
+      specs/current` -> 9 failed, 47 passed in 23.47s.
+      Compared by NAME against SI-29's recorded
+      spec-unit-failure-names.txt: IDENTICAL, all nine, zero diff.
+      The issue's Regression section says "7 spec-unit failures". Nine is the
+      standing number.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/record-keeping
+    evidence: goals/GOAL-evals-one-command/evidence/spec-unit-failure-names.txt
+    disposition: pending
+    goal: GOAL-evals-one-command
+    skill_change: none (a work-order figure to correct)
+
+  - id: SI-23-DF-11
+    attribution: UNMODELED/measurement-harness
+    status: open
+    severity: low
+    title: >-
+      GOAL-epic-owns-the-model clause 2 is structurally blind to the 5 closed
+      tickets that never opened a PR
+    what: >-
+      The clause says "no ticket PR after SI-07 changes a file under specs/
+      except under results/". Six tickets have no ticket-PR merge at all --
+      SI-18, SI-24, SI-25, SI-26, SI-27 (and SI-23, in flight). Their work landed
+      as single-parent commits directly on the epic branch.
+      So the instrument cannot see 5 of the 22 closed tickets. Verified
+      separately that no post-SI-07 commit touches an SI-18/24/25/26/27 ticket
+      workspace or any specs/ path outside results/, so the MET verdict does not
+      change -- but "no ticket PR did X" is a weaker statement than it reads when
+      5 of 22 tickets had no PR.
+    surface:
+      production:
+        - specs/desired_program_model/ticket_plan.yaml
+    anchor: UNMODELED/measurement-harness
+    evidence: goals/GOAL-epic-owns-the-model/SI-23-EVALUATION-B.md clause 2
+    disposition: pending
+    goal: GOAL-epic-owns-the-model
+    skill_change: >-
+      proposed(git-epic-workflow, phrase the clause over commits authored on a
+      ticket branch rather than over PRs, so a ticket that lands without a PR is
+      still measured)
+
+  - id: SI-23-DF-12
+    attribution: UNMODELED/eval-harness
+    status: open
+    severity: low
+    title: >-
+      Three new refusal sites in the eval-operator lane -- in scope or not is the
+      owner's call, not the evaluator's
+    what: >-
+      GOAL-no-new-gates says "Nothing this epic adds refuses" without qualifying
+      the subject. Zero new agent-facing refusal paths were found. Three new
+      operator-lane sites were:
+        evals/lib/toolchain.py (SI-14) -- lock declares no units; unit with no
+          origin; cannot produce the pinned commit; "nothing was materialised";
+          ambiguous --unit. Override: --toolchain-ref <commit>.
+        evals/run.sh:185 -- billing a graded run on a dirty or unpushed view.
+          Override: SI10_ALLOW_DIRTY=1, named in the message.
+        evals/setup-eval-home.sh:123,:320,:323 -- operator setup errors.
+      These spend money and sit outside any agent's loop, and both run.sh
+      refusals carry an override in the drop-gates house style. Flagged rather
+      than decided.
+    surface:
+      production:
+        - evals/lib/toolchain.py
+        - evals/run.sh
+        - evals/setup-eval-home.sh
+    anchor: UNMODELED/eval-harness
+    evidence: goals/GOAL-no-new-gates/SI-23-EVALUATION-B.md clause 1
+    disposition: pending
+    goal: GOAL-no-new-gates
+    skill_change: none (a scope question for the epic owner)

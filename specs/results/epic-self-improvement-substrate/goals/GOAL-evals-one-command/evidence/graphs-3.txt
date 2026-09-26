@@ -1,0 +1,1216 @@
+sweep 20260926-172556: specWorkflow, cliWorkflow, effectProviderExamples (continuing past red graphs)
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :specWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'specWorkflow' run=20260926-172628 steps=9 fullPlanSteps=9 traceId=d4a0a8a4870bdf361c428802456dea65
+  plan[1/9] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/9] spec.workflow.repo  [testbed, uv]  sources/spec_workflow_create_repo.py
+  plan[3/9] spec.workflow.start  [action, uv]  sources/spec_workflow_start_ticket.py
+  plan[4/9] spec.workflow.complete  [action, uv]  sources/spec_workflow_complete_ticket.py
+  plan[5/9] spec.workflow.spec_units  [assertion, uv]  sources/spec_workflow_spec_units.py
+  plan[6/9] spec.workflow.close  [assertion, uv]  sources/spec_workflow_close_ticket.py
+  plan[7/9] spec.workflow.failure_cleanup_probe  [assertion, uv]  sources/spec_workflow_failure_cleanup_probe.py
+  plan[8/9] spec.workflow.cleanup  [fixture, uv]  sources/spec_workflow_cleanup.py
+  plan[9/9] spec.reference.adapters_resolve  [assertion, uv]  sources/reference_adapters_resolve.py
+  [1/9] spec.cli.install (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [2/9] spec.workflow.repo (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [3/9] spec.workflow.start (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [4/9] spec.workflow.complete (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [5/9] spec.workflow.spec_units (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [6/9] spec.workflow.close (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [7/9] spec.workflow.failure_cleanup_probe (uv)
+
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+rerun guidance for 'spec.workflow.failure_cleanup_probe':
+  resume graph: ./gradlew 'specWorkflow' --resume-from-build '/Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172628' --resume-from-node 'spec.workflow.failure_cleanup_probe'
+  run only: ./gradlew 'specWorkflow' --resume-from-build '/Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172628' --run-only-node 'spec.workflow.failure_cleanup_probe'
+  [8/9] spec.workflow.cleanup (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export metrics. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Exporter failed
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow
+  [9/9] spec.reference.adapters_resolve skipped after earlier failure
+wrote /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172628/summary.json + /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172628/report.md
+
+Failed to export metrics. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Exporter failed
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :specWorkflow FAILED
+
+> Task :cliWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'cliWorkflow' run=20260926-172739 steps=2 fullPlanSteps=2 traceId=40eb7f155b29ac506a6cbffc4685a29e
+  plan[1/2] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/2] spec.cli.help  [assertion, uv]  sources/tla_spec_dev_cli_help.py
+  [1/2] spec.cli.install (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :cliWorkflow
+  [2/2] spec.cli.help (uv)
+
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export metrics. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Exporter failed
+Too many log messages detected. Will only log 1 time(s) per minute from now on.
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Too many log messages detected. Will only log 1 time(s) per minute from now on.
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :cliWorkflow
+wrote /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172739/summary.json + /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172739/report.md
+testGraph 'cliWorkflow' done. traceId=40eb7f155b29ac506a6cbffc4685a29e reports: /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172739
+
+> Task :effectProviderExamples
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'effectProviderExamples' run=20260926-172754 steps=1 fullPlanSteps=1 traceId=5157e786d899ccae391960cb0af129ca
+  plan[1/1] effect.providers.examples  [assertion, uv]  sources/effect_provider_examples.py
+  [1/1] effect.providers.examples (uv)
+
+Failed to export metrics. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Exporter failed
+Failed to export metrics. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Exporter failed
+Failed to export logs. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+Failed to export spans. The request could not be executed.
+java.io.IOException: unexpected end of stream on http://localhost:4318/...
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:230)
+	at okhttp3.internal.connection.Exchange.readResponseHeaders(Exchange.kt:117)
+	at okhttp3.internal.http.CallServerInterceptor.intercept(CallServerInterceptor.kt:97)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.ConnectInterceptor.intercept(ConnectInterceptor.kt:34)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.cache.CacheInterceptor.intercept(CacheInterceptor.kt:101)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.BridgeInterceptor.intercept(BridgeInterceptor.kt:85)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.http.RetryAndFollowUpInterceptor.intercept(RetryAndFollowUpInterceptor.kt:74)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at io.opentelemetry.exporter.sender.okhttp.internal.RetryInterceptor.intercept(RetryInterceptor.java:96)
+	at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.kt:126)
+	at okhttp3.internal.connection.RealCall.getResponseWithInterceptorChain$okhttp(RealCall.kt:226)
+	at okhttp3.internal.connection.RealCall$AsyncCall.run(RealCall.kt:574)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.io.IOException: unexpected end of stream on http://localhost:4318/...
+		... 19 more
+	Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+		at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+		at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+		at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+		... 18 more
+Caused by: java.io.EOFException: 
+ not found: limit=0 content=…
+	at okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+	at okhttp3.internal.http1.HeadersReader.readLine(HeadersReader.kt:31)
+	at okhttp3.internal.http1.Http1ExchangeCodec.readResponseHeaders(Http1ExchangeCodec.kt:196)
+	... 18 more
+
+> Task :effectProviderExamples
+wrote /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172754/summary.json + /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172754/report.md
+testGraph 'effectProviderExamples' done. traceId=5157e786d899ccae391960cb0af129ca reports: /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-reports/20260926-172754
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':specWorkflow'.
+> node spec.workflow.failure_cleanup_probe failed
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 3m 5s
+7 actionable tasks: 3 executed, 4 up-to-date
+
+== test graph sweep 20260926-172556 ==
+Counted from this invocation's own task outcomes, not from build/validation-reports/.
+graphs_selected=3  graphs_executed=3  graphs_passed=2  graphs_failed=1  graphs_not_run=0
+  FAILED   specWorkflow            79.5s  build/validation-reports/20260926-172628  (Execution failed for task ':specWorkflow'.)
+  PASSED   cliWorkflow             16.7s  build/validation-reports/20260926-172739
+  PASSED   effectProviderExamples  71.1s  build/validation-reports/20260926-172754
+sweep record: /Users/hayde/IdeaProjects/wt-372-evaluation-b/test_graph/build/validation-sweeps/20260926-172556/sweep.json
