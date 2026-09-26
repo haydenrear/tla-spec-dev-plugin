@@ -22,7 +22,7 @@ absorbed_at: null
 absorbed_ids: []
 findings:
   - id: SI-22-DF-01
-    status: open
+    status: resolved
     severity: high
     title: >-
       A SUCCESSFUL install of the tla-spec-dev plugin exits 11, because the
@@ -61,12 +61,44 @@ findings:
       - tickets/SI-22/transcripts/step-12-install-exit-11-fixtures.txt   # both cases' own descriptions
     attribution: UNMODELED/install-pipeline
     disposition: >-
-      NOT FIXED. Deliberately. Renaming or repairing the two fixtures would fix
-      the exit code by breaking the two eval cases that exist precisely to have
-      a broken fixture — trading a real finding for a green number. The fix
-      belongs on the installer side, in the skill-manager repository, which is a
-      separate checkout and a separate PR per the work order. Escalated to the
-      epic agent in the PR body rather than actioned.
+      RESOLVED 2026-09-25 by the epic agent, and the finding's own diagnosis was
+      wrong in one important way. It reported the installer-side fix as work
+      still to be done. IT WAS ALREADY WRITTEN: MarkdownImportValidator skips
+      `fixture`/`fixtures` directories, and its comment names BOTH offending
+      files by path. That landed in skill-manager PR #397 on 2026-09-23.
+
+      The real defect was that it had NEVER BEEN RELEASED. v0.28.1 was cut
+      2026-09-17, six days earlier, and that is what the homebrew formula
+      installs — so every measurement in this ticket ran against a CLI that
+      predates its own fix. The agent's reasoning was sound and its measurement
+      was correct; what it could not see from inside the ticket is that the
+      consumer-side repository already had the patch and no release carried it.
+
+      THIS IS THE FINDING'S REAL LESSON, and it belongs to GOAL-pinned-eval-
+      toolchain: the EVAL toolchain is pinned and demonstrably changes which
+      bytes run, but the BOOTSTRAP CLI is pinned by nothing. Nothing in the
+      substrate states which skill-manager version it requires, and nothing
+      notices when the installed one is older than the fix it depends on.
+
+      Actioned, with the owner's explicit authorisation overriding the standing
+      rule that skill-manager's epic branch never targets main: epic ->
+      main as PR #398 (22 commits, rebase-merged, CI green on unit tests and
+      gateway pytest), release-please cut v0.28.2, the homebrew formula
+      auto-bumped at 9c3d307, published sha256 matches the formula.
+
+      FALSIFIED RATHER THAN ASSUMED. Installing the tla-spec-dev plugin from git
+      into a FRESH scratch home outside every checkout, under 0.28.2 (artifact
+      03c0143ec45e): INSTALL EXIT CODE = 0, zero skill-import violations
+      reported. Guards held: 0 paths modified in /Users/hayde/.skill-manager
+      before and after; the keychain SYMLINK was removed before the scratch tree
+      so the operator's keychains (7 entries) and ssh keys (11 entries) were
+      verified intact afterwards; disk 47 GiB -> 44 GiB during, 47 GiB after
+      cleanup, so a complete fresh substrate costs ~3 GiB.
+
+      The release notes were rewritten by hand: release-please derived them from
+      conventional subjects and listed ONE bug fix for a release that also stops
+      vendoring test-graph and skt (-159,734 lines under skills/) and changes
+      behaviour for anyone syncing from that repository.
 
   - id: SI-22-DF-02
     status: open
