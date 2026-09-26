@@ -2,7 +2,7 @@
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/references/agent_roles.md
-    reason: "ROLE review — you are the review agent. This is your reading path and where a substrate finding goes when you open no PR: specs/results/deferred/REVIEW-AGENT.yaml. \u00a73.4 below is where you write back OTHER roles' dispositions."
+    reason: "ROLE review — you are the review agent. This is your reading path and where a substrate finding goes when you open no PR: specs/results/deferred/REVIEW-AGENT.yaml. §3.4 below is where you write back OTHER roles' dispositions."
     section: review
 ---
 

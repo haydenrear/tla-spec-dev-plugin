@@ -93,12 +93,25 @@ After the wave merges, the epic agent absorbs your inbox. Your finding is then a
 row in the ledger and you can read its fate:
 
 ```bash
-grep -n -A8 '<YOUR-FINDING-ID>' specs/results/deferred_findings_final.yaml
+awk -v id=<YOUR-FINDING-ID> '
+  $0 == "  - id: " id {f=1; next}
+  f && /^  - id: / {exit}
+  f && /^    skill_change:/ {print; found=1; exit}
+  END {if (!f) print "no such finding id in the ledger"
+       else if (!found) print "that row carries no skill_change -- nobody has been asked"}
+' specs/results/deferred_findings_final.yaml
 ```
 
-Read its `skill_change:`. `applied(<sha>)` means `git show <sha>` is the change
-your finding caused. Still `proposed(...)` means nobody has consumed it yet, and
-that wave's `review.md` §3.4 says so in as many words.
+**Use this, not `grep -A<n>`.** A ledger row is long — `skill_change` sits 58
+lines below `id` on `SI-27-DF-06` — so a small `-A` window silently prints
+nothing and a large one runs into the *next* finding's field and answers about
+somebody else's. The `awk` is bounded at the next `- id:` and distinguishes all
+four outcomes: a verb, a row that was never asked, a row still `proposed`, and
+an id that is not there.
+
+`applied(<sha>)` means `git show <sha>` is the change your finding caused. Still
+`proposed(...)` means nobody has consumed it yet, and that wave's `review.md`
+§3.4 says so in as many words.
 
 ---
 
@@ -140,8 +153,8 @@ rows of the ledger — 40 `proposed(...)` against 10 `applied(...)`. The funnel
 narrows hardest here, at your step, and a `proposed` row with no disposition is
 invisible to the agent that filed it.
 
-Your own findings return by the same absorption as anyone's — the `grep` above,
-against your own id.
+Your own findings return by the same absorption as anyone's — the `awk` in
+§ ticket, against your own id.
 
 ---
 
@@ -174,11 +187,8 @@ against your own id.
 
 Two, because you write in two places:
 
-```bash
-grep -n -A8 '<YOUR-FINDING-ID>' specs/results/deferred_findings_final.yaml
-```
-
-for your own findings, and for the dispositions you recorded on behalf of others,
+the `awk` in § ticket, against your own id — and for the dispositions you
+recorded on behalf of others,
 the next wave's `review.md` §3.4 carries forward anything still owed — so a row
 you wrote as `proposed` and see again is a row nobody consumed.
 
@@ -211,7 +221,7 @@ you wrote as `proposed` and see again is a row nobody consumed.
 
 ### The return leg
 
-The `grep` above, plus one that is specific to this role: a case you added
+The `awk` in § ticket, plus one specific to this role: a case you added
 because of a finding is itself the evidence that the finding was consumed.
 
 ```bash

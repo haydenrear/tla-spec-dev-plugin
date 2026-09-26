@@ -1,0 +1,32 @@
+### step-01: what a session sees before it reads anything
+$ (the 11 descriptions that load every session, pinned instrument)
+unit                    desc   body
+discovery                 54    996
+git-epic-workflow         51   1498
+git-integration-repo      47   1349
+git-issue                 60   1499
+git-issue-workflow        59   1497
+plugin-repository         48   1472
+skill-manager             44   1481
+skt                       72   1460
+spec-double-2             55   1484
+test-graph                49   1332
+unit-authoring            49   1332
+TOTAL                    588  15400
+units=11  bodies_over_1500=0
+
+### the same at base 59370837
+unit                    desc   body
+discovery                 60    996
+git-epic-workflow         71   1820  <-- OVER 1500
+git-integration-repo      75   1349
+git-issue                 82   1499
+git-issue-workflow        95   1788  <-- OVER 1500
+plugin-repository         86   1472
+skill-manager            104   1648  <-- OVER 1500
+skt                      200   2470  <-- OVER 1500
+spec-double-2             73   1567  <-- OVER 1500
+test-graph                51   1332
+unit-authoring           108   1797  <-- OVER 1500
+TOTAL                   1005  17738
+units=11  bodies_over_1500=6
