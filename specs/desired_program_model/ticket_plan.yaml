@@ -4,13 +4,61 @@
 version: 1
 name: self-improvement-substrate
 updated: "2026-09-21"
+# REVISION 10 (2026-09-25): TWO TICKETS INSERTED AHEAD OF THE EVALUATION, on the
+# owner's instruction, because SI-22 measured two things that make SI-23's
+# verdicts unsafe to write as they stand.
+#
+# SI-22 proved that NOTHING in this substrate branches on agent type: both
+# shipped hooks carry zero role conditionals, and `role:` is read by the plan
+# validator and never by anything an agent sees. Meanwhile
+# GOAL-progressive-disclosure is failing BOTH clauses at the tip -- 1005 words
+# of description against a 600 target, 6 of 11 card bodies over 1500 -- and it
+# is failing for a structural reason, not a wordiness one: SI-09 cut
+# descriptions to 594 mid-epic and the restructure grew them back to 1005 by
+# nesting more units in. Cutting words again does not hold, because the next
+# nested unit undoes it. Selecting WHAT A ROLE READS is the fix that survives.
+#
+# THE OWNER'S CONSTRAINT ON HOW: references only. "The agent must read the
+# plugin, skill, and then based on what it sees and reads it reveals more
+# relevant information to that agent. Do not add any sort of script for this."
+# No marker file, no environment variable, no detection code. The routing idiom
+# already exists and is documentary -- `skill-imports:` entries carrying a
+# `reason` -- and it routes by TASK today. SI-29 makes it route by ROLE too.
+#
+# AND THE POINT OF THE ROUTING IS EVOLUTION, NOT TIDINESS. The owner's framing,
+# which SI-29's acceptance encodes: "The reason the plugin works is because
+# agents improve it, and use it to improve their projects." So a role's reading
+# path is not finished when it says what the role may do; it is finished when it
+# says how that role hands what it learned back to the epic agent, who changes
+# the plugin, and then uses the changed plugin on the project. Splitting the map
+# from the back-channel would have produced a map that discloses well and
+# evolves nothing, so they are ONE ticket.
+#
+# SI-28 comes first and is small: exit 11 was never an unfixed defect, it was an
+# UNRELEASED one, and the substrate could not tell. Released as v0.28.2 on
+# 2026-09-25 by the owner's authorisation. What remains is that nothing states
+# which CLI version this plugin requires, so a stale CLI can silently define a
+# goal measurement -- which is exactly what happened to GOAL-one-plugin.
+#
+# SI-23 moves from wave 21 to wave 23 and depends on both.
+#
+# EXPECTED WARNING, NOT AN OVERSIGHT. validate_epic_plan now emits
+# "evaluation ticket 'SI-08' must depend on contributor 'SI-29'" for
+# GOAL-findings-become-changes, alongside the identical pre-existing warning for
+# SI-27. SI-08 FROZE that goal at wave 10 and cannot depend on tickets promoting
+# after it; SI-23's charter is to RE-READ the four SI-08 froze and print both
+# readings side by side, and that re-read is the mechanism that covers these
+# contributors. The warning is the plan telling the truth about a goal whose
+# reading is deliberately split across two evaluations. Do not silence it by
+# detaching SI-29 from the goal it actually moves.
+#
 # REVISION 7 (2026-09-21): SI-25 and SI-26 are done, and SI-18's scheduling is
 # repaired. Revision 5 gave SI-18 `depends_on` SI-19..SI-22 while placing it at
 # wave 16, AHEAD of all four -- the only row in the plan that depended on a
 # later wave. The owner re-sequenced: graph surface, then the manual gamut,
 # then skill-manager, and the eval ladder LAST, consuming a substrate both
 # products already share. The dependency list and the objective now say that.
-schedule_revision: 9
+schedule_revision: 10
 purpose: "Make tla-spec-dev one plugin and one loop: the substrate improves because of what agents ran into while using it, and the epic agent is the one writer of the model, the matrix, the scorecard row and the plugin."
 
 planning_rules:
@@ -1986,7 +2034,7 @@ tickets:
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/371"
     schedule_revision: 4
     depends_on: ["SI-18", "SI-21"]
-    blocks: ["SI-23"]
+    blocks: ["SI-23", "SI-28"]
     wave: 20
     promotion_order: 185
     promotion_predecessor: "SI-21"
@@ -2025,16 +2073,124 @@ tickets:
         - "Each agent type's interactions are named and covered or explicitly deferred."
       evidence: []
 
+  - id: SI-28
+    title: "The bootstrap CLI has a floor, and the substrate says so"
+    status: planned
+    schedule_revision: 10
+    depends_on: ["SI-22"]
+    blocks: ["SI-23", "SI-29"]
+    wave: 21
+    promotion_order: 188
+    promotion_predecessor: "SI-22"
+    role: implementation
+    objective: >-
+      GOAL-pinned-eval-toolchain is MET for the EVAL toolchain and the pin
+      demonstrably changes which bytes run. The BOOTSTRAP CLI is pinned by
+      nothing. Make the substrate state the skill-manager version it requires
+      and NOTICE when the installed one is older, so a stale CLI can never again
+      silently define a goal measurement.
+    desired_actions: []
+    implementation_scope:
+      - "THE EVIDENCE THIS TICKET EXISTS FOR. SI-22 measured that a completely successful install exits 11, filed it high-severity, and diagnosed the fix as installer-side work still to do. The fix had been written on 2026-09-23 (skill-manager #397) and never released; v0.28.1 was cut 2026-09-17, six days earlier, and that is what brew installs. So the ENTIRE GOAL-one-plugin bootstrap walk was measured against a CLI predating its own fix. Released as v0.28.2 on 2026-09-25 under owner authorisation; the code half is done and is NOT this ticket."
+      - "What remains: nothing in the plugin declares a minimum skill-manager version, and nothing compares the installed one against it. A six-day-old CLI was indistinguishable from a current one at every surface an agent can see."
+      - "NO NEW SCRIPT AND NO NEW SURFACE. `skt check` already exists, already reports new-version and sync notifications at session start, and is already the notification path agents read. Extend THAT. A new checker would be a second thing to remember to run, which is how the first one got missed."
+      - "GOAL-no-new-gates is live and SI-23 decides it: this WARNS and exits 0. It never refuses an install, a session or a command. Name the installed version, the required floor, and the upgrade command."
+      - "Falsification is the acceptance, not the implementation: prove the warning FIRES on an older CLI and is SILENT on a current one. A check that cannot be shown to fire is the defect it is meant to catch."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["skills/skt/**"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-one-plugin
+        contribution: direct
+        expected_effect: "the clause 'the CLI comes from brew' becomes checkable rather than assumed, and a stale CLI is named instead of silently measured"
+        local_signal: "the warning fires against a pinned older CLI and is silent against the current one, both shown"
+    acceptance:
+      commands: []
+      assertions:
+        - "The required skill-manager version is declared in the plugin, in one place, and named in the warning."
+        - "The check warns and exits 0. It refuses nothing."
+        - "Falsified BOTH ways: fires on an older CLI, silent on a current one, both demonstrated."
+        - "No new command to remember: it rides the notification path agents already read."
+      evidence: []
+
+  - id: SI-29
+    title: "Disclosure routes by agent role, and every role's path ends in how it feeds the substrate back"
+    status: planned
+    schedule_revision: 10
+    depends_on: ["SI-28"]
+    blocks: ["SI-23"]
+    wave: 22
+    promotion_order: 192
+    promotion_predecessor: "SI-28"
+    role: implementation
+    objective: >-
+      Four agent roles -- ticket, epic, review, testing -- each read a path
+      sized to their job, and each path ENDS in how that role hands what it
+      learned back to the epic agent. The plugin works because agents improve it
+      and then use it to improve their projects; a reading path that does not
+      close that loop is unfinished, not merely incomplete.
+    desired_actions: []
+    implementation_scope:
+      - "REFERENCES ONLY. OWNER CONSTRAINT, VERBATIM: 'There will be nothing but references. The agent must read the plugin, skill, and then based on what it sees and reads it reveals more relevant information to that agent. Do not add any sort of script for this.' No marker file, no environment variable, no role-detection code, no hook change. An agent arrives at its role by READING, not by being told by a mechanism."
+      - "THE IDIOM ALREADY EXISTS AND IS DOCUMENTARY: `skill-imports:` entries carrying a `reason` per entry. `discovery` uses it well -- it routes by TASK ('start this ticket', 'landing in an unfamiliar repo'). Nothing routes by ROLE. Extend the existing idiom; do not invent a second one."
+      - "DO NOT ADD A TWELFTH UNIT. A new unit adds a description to what loads every session, which is the quantity this ticket must REDUCE. The routing lives in pages the reader reaches, not in a new card."
+      - "THE NUMBERS, MEASURED AT 7ba79bee by the epic agent: descriptions total 1005 words against a target of 600; 6 of 11 card bodies exceed 1500 (skt 2242, unit-authoring 1797, git-issue-workflow 1788, git-epic-workflow 1820, skill-manager 1648, spec-double-2 1567). SI-09 cut descriptions to 594 mid-epic and the restructure grew them back by nesting units in, so a second round of word-cutting does not hold. Route, do not trim."
+      - "EACH ROLE'S PATH ENDS IN PROPAGATION, and this is the ticket's point rather than its last section. A ticket agent has `## Skill changes proposed` and a per-ticket inbox. AN EPIC AGENT, A REVIEW AGENT AND A TESTING AGENT HAVE NOTHING: they are not named as roles anywhere, ship no agent definition, and open no PR carrying that section. specs/results/deferred/EPIC-AGENT.yaml exists and holds ZERO rows -- the one role that consumes findings has never filed one."
+      - "THE GRAMMAR TO REUSE, NOT REPLACE: skill_change `none|proposed(unit,what)|applied(x)|declined(x)`, read advisorily by skills/spec-double-2/scripts/improvement_ledger.py. It is already how a finding becomes a change. Make every role able to write it, and say where each role writes it when that role opens no PR."
+      - "SAY WHAT COMES BACK THE OTHER WAY. The loop has two legs and only one is documented. A role that reports friction should be able to learn that the epic agent CHANGED the plugin because of it -- otherwise reporting is a write-only channel and agents stop doing it. Name where a role looks to see its own finding's disposition."
+      - "The four roles are the owner's: ticket, epic, review, testing. `TICKET_ROLES = (implementation, evaluation)` in validate_epic_plan.py is a PLAN vocabulary read by the validator, not an agent vocabulary. Do not conflate them, and do not break the plan schema to reuse the word."
+    current_increment:
+      model_state: []
+      model_actions: []
+      adapters: []
+      unit_tests: []
+      graph_after_unit_pass: []
+    conflict_keys:
+      production: ["skills/**/SKILL.md", "skills/**/references/**", "README.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    goals:
+      - goal: GOAL-progressive-disclosure
+        contribution: direct
+        expected_effect: "descriptions fall under 600 words in total and every card body under 1500, by routing rather than trimming, so the next nested unit does not undo it"
+        local_signal: "the pinned word-count method re-run before and after, both numbers reported"
+      - goal: GOAL-findings-become-changes
+        contribution: direct
+        expected_effect: "three roles that today have no channel gain one, and the epic agent's own empty inbox gets a documented use"
+        local_signal: "each of the four roles' paths ends at a named propagation destination, demonstrated by reading"
+    acceptance:
+      commands: []
+      assertions:
+        - "Nothing executes to decide disclosure: no marker, no environment variable, no detection code, no hook change."
+        - "An agent reaching the plugin cold can arrive at its own role's path by reading alone, and this is DEMONSTRATED by walking it, not asserted."
+        - "Descriptions total <= 600 words and every card body <= 1500, measured with SI-09's pinned method, before and after."
+        - "No twelfth unit."
+        - "Each of the four roles' paths ends in how that role propagates back, with a named destination for roles that open no PR."
+        - "The return leg is documented: where a role sees what became of what it reported."
+        - "Reuses the skill_change grammar rather than inventing a second one."
+      evidence: []
+
   - id: SI-23
     title: "Evaluation B: judge the restructured substrate and the eval ladder"
     status: planned
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/372"
     schedule_revision: 4
-    depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24"]
+    depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24", "SI-28", "SI-29"]
     blocks: []
-    wave: 21
-    promotion_order: 200
-    promotion_predecessor: "SI-22"
+    wave: 23
+    promotion_order: 210
+    promotion_predecessor: "SI-29"
     role: evaluation
     owns_goals:
       - GOAL-one-plugin
