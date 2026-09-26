@@ -112,9 +112,12 @@ a ticket that did open a workspace and skipped its close is still caught.
 
 `close_mode` is in this plan today as a field with **no reader**. Making it real
 is #394's work.
-`finalize.md` is explicit that accepted state is never hand-edited on an epic
-branch, so deleting `specs/desired_program_model` by hand — the literal request —
-is the one thing that must not happen quietly.
+
+**What was never on the table**, under any of the three options: deleting
+`specs/desired_program_model` by hand. `finalize.md` is explicit that accepted
+state is never hand-edited on an epic branch, so the literal request — *there
+shouldn't be a specs/desired at all* — is the one thing that must not happen
+quietly. It stays until #394's path can promote it through the close.
 
 ---
 
