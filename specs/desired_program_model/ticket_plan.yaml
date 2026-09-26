@@ -2347,7 +2347,77 @@ tickets:
 
   - id: SI-23
     title: "Evaluation B: judge the restructured substrate and the eval ladder"
-    status: planned
+    status: done
+    delivery_note: >-
+      Merged 2026-09-26 as PR #7 on tla-spec-dev-plugin, merge commit e0b9ea84.
+      The terminal evaluation. Measurement only: no target edited, nothing
+      outside specs/results/ touched, no defect fixed by the evaluator.
+
+      SIX MET, FOUR NOT MET, FOUR UNDECIDED, TWO SPLIT BY REF. Not a clean
+      sweep, which is the credible outcome for an epic whose own record says its
+      headline numbers were wrong twice.
+
+      IT FOUND A LIVE REGRESSION THE EPIC AGENT CAUSED THE SAME DAY. specWorkflow
+      was RED at the tip -- 69 assertions where REVIEW-BEFORE-SI-23.md reported
+      74 green -- because the cache-schema fix the epic agent ORDERED in review
+      replaced a hardcoded literal with a module-level skt import, and
+      spec_workflow_failure_cleanup_probe builds a NESTED graph that DESCRIBES
+      all 17 sources, so a describe-time import took the graph down. The
+      identical hazard is documented in that file's own comment forty lines
+      above. Bisected by a controlled two-arm test. Fixed at a232d296;
+      specWorkflow now passes 74/74, sktHooks 167/167, sktSurface 318/318.
+      Worse than the regression: SI-29 had ALREADY reported specWorkflow errored,
+      and the epic agent carried a stale 74 into the review anyway, with a
+      verification script that checked ledger counts, case counts, word counts
+      and ancestry -- and never a graph verdict.
+
+      IT CORRECTED THE EPIC'S HEADLINE. "16% -> 47%" for
+      GOAL-findings-become-changes pairs a FOUR-FILE numerator with a ONE-FILE
+      ratio. Like-for-like at this tip: 71 of 193 = 36.8%, and the ledger
+      attributes 66 rather than 71 to deferred_findings_final.yaml. Real
+      movement, roughly 2.3x, about ten points smaller than reported. The
+      review's "21 claims verified, no mismatches" missed it because the script
+      re-measured its own denominator.
+
+      IT NAMED A THIRD SUBSTRATE NOBODY HAD. Three refs, not two: tip; main at
+      ac5f7491 (-47); and what every home actually loads, main@a3761e30 (-83).
+      THE 592-WORD DISCLOSURE THAT GOAL-PROGRESSIVE-DISCLOSURE REPORTS MET IS NOT
+      WHAT ANY HOME LOADS -- they load 1005, with no bootstrap-floor.toml and no
+      role routing. Every ref-dependent verdict is reported twice as a result.
+
+      IT CONFIRMED A GOAL IS DEFECTIVE, as a verdict rather than an aside:
+      GOAL-progressive-disclosure's target is IMPROVED by deleting the activation
+      vocabulary a harness matches an intent against -- 588 scores better than
+      592 -- and only a measurement neither the goal nor the ticket required
+      caught it (SI-23-DF-04).
+
+      FOUR MORE CORRECTIONS TO THE RECORD: install-pipeline holds 6 findings not
+      5, and the wave-19-22 bin table accounted for 15 of 20 rows; the work order
+      said 7 spec-unit failures where both baseline and run hold 9; 1853 does not
+      reconcile with 1742 + 127 = 1869; and the shipped skt wrapper pins an
+      ABSOLUTE interpreter path with no fallback. The epic agent verified that
+      last one before relaying it further and found the framing overstated --
+      skt imports yaml nowhere and runs fine through it -- so it is fragility,
+      not a live failure.
+
+      GOAL-EVALS-EARNED SPLITS ON ITS OWN DENOMINATOR, which no earlier reading
+      had noticed: MET over the LADDER (5 of 5 rungs, is-ancestor rc=0, zero
+      case.yaml in any record commit) and NOT MET over eval stages SHIPPED (14 of
+      75; 61 cases predate the first record). The metric's own baseline counts
+      the second.
+
+      23 findings against a budget of 5, with the overrun stated in the file
+      header rather than hidden by dropping rows. It flagged two instruction
+      conflicts rather than silently choosing, and disclosed two bugs it caught
+      in its own sweeps plus a third it nearly shipped.
+
+      LEFT UNDONE AND PUT IN FRONT OF THE EPIC AGENT RATHER THAN BURIED: SI-08
+      asked SI-23 to run a judged round with a clean negative arm before
+      GOAL-blockers-propose is decided in either direction. It did not run one,
+      so that goal stands at SI-08's NOT MET with SI-08's confound intact. It
+      argues the round is now constructible for the first time, since the epic
+      holds ten applied() rows and the I2 ceiling that flattened SI-08's two
+      subjects has moved (SI-23-DF-23).
     github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/372"
     schedule_revision: 4
     depends_on: ["SI-08", "SI-16", "SI-17", "SI-18", "SI-19", "SI-20", "SI-21", "SI-22", "SI-24", "SI-28", "SI-29"]
