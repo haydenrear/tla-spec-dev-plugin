@@ -2148,6 +2148,11 @@ tickets:
       - "THE GRAMMAR TO REUSE, NOT REPLACE: skill_change `none|proposed(unit,what)|applied(x)|declined(x)`, read advisorily by skills/spec-double-2/scripts/improvement_ledger.py. It is already how a finding becomes a change. Make every role able to write it, and say where each role writes it when that role opens no PR."
       - "SAY WHAT COMES BACK THE OTHER WAY. The loop has two legs and only one is documented. A role that reports friction should be able to learn that the epic agent CHANGED the plugin because of it -- otherwise reporting is a write-only channel and agents stop doing it. Name where a role looks to see its own finding's disposition."
       - "The four roles are the owner's: ticket, epic, review, testing. `TICKET_ROLES = (implementation, evaluation)` in validate_epic_plan.py is a PLAN vocabulary read by the validator, not an agent vocabulary. Do not conflate them, and do not break the plan schema to reuse the word."
+      - "EVALS PER ROLE, AND THEY ARE THE PROOF THIS TICKET WORKED. A routing change that nothing exercises is a claim, and this epic has caught several. At least one case per role -- ticket, epic, review, testing -- measuring the thing that actually matters: an agent arriving cold READS ITS WAY to its own role's path, and reaches the propagation destination at the end of it. Not that a file exists; that a reader gets there."
+      - "AT LEAST ONE CASE MUST MEASURE THE BACK-CHANNEL ITSELF, not just the reading: a role that hits substrate friction states what it would propagate, in the skill_change grammar, to the destination its own path named. That is the loop under test, and it is the half no existing case covers."
+      - "GOAL-evals-earned APPLIES AND IS DECIDED BY A CHECK ON GIT, not by a claim: the manual record of walking each role's path by hand must be committed BEFORE the first case.yaml, and the record commit must contain no case files. Four rungs have passed this -- 8e362bbb->eefe3aa8, 70549f90->7daa8e18, bec1934b->c96de147, 679f76f1->3dc106fb. Walk all four roles by hand first."
+      - "THE INSTRUMENT DISCIPLINE THE LANE EARNED, because these cases will be billed: run evals/setup-eval-home.sh --smoke once first; run evals/lib/check_graders.py BEFORE billing anything (graders are a JavaScript regex engine, not Python -- SI-21 billed a 0.00 learning that); register each case in BOTH lib/place.sh and lib/verify.sh's verify_from_expect arm (SI-22-DF-07: two consecutive tickets hit that undocumented step); and state sample count and spread, never a bare mean -- --runs 6 does NOT pin a score, measured 0.89->0.81 and 0.97->0.94 on unchanged cases."
+      - "A case whose case.yaml does not parse DROPS OUT OF THE CORPUS SILENTLY and the run still looks clean (#389). Parse every case file you add, with a non-vacuity assert, before reporting any score."
     current_increment:
       model_state: []
       model_actions: []
@@ -2155,7 +2160,7 @@ tickets:
       unit_tests: []
       graph_after_unit_pass: []
     conflict_keys:
-      production: ["skills/**/SKILL.md", "skills/**/references/**", "README.md"]
+      production: ["skills/**/SKILL.md", "skills/**/references/**", "README.md", "evals/**"]
       tla: []
       adapters: []
       test_graph: []
@@ -2169,6 +2174,14 @@ tickets:
         contribution: direct
         expected_effect: "three roles that today have no channel gain one, and the epic agent's own empty inbox gets a documented use"
         local_signal: "each of the four roles' paths ends at a named propagation destination, demonstrated by reading"
+      - goal: GOAL-evals-earned
+        contribution: direct
+        expected_effect: "a fifth stage, manual record first: each role's path walked by hand before any case encodes it"
+        local_signal: "the record names all four roles and what walking each one reached"
+      - goal: GOAL-evals-one-command
+        contribution: direct
+        expected_effect: "the four agent roles become a covered surface in the one command, which today has no case at all"
+        local_signal: "per-role coverage counted, each case green or explicitly UNDECIDED with a reason"
     acceptance:
       commands: []
       assertions:
@@ -2179,6 +2192,11 @@ tickets:
         - "Each of the four roles' paths ends in how that role propagates back, with a named destination for roles that open no PR."
         - "The return leg is documented: where a role sees what became of what it reported."
         - "Reuses the skill_change grammar rather than inventing a second one."
+        - "At least one eval case PER ROLE, measuring that a cold reader arrives at that role's path and reaches its propagation destination -- not that a file exists."
+        - "At least one case measures the BACK-CHANNEL: a role stating what it would propagate, in the skill_change grammar, to the destination its own path named."
+        - "The manual record of walking all four roles precedes the first case.yaml in git, and the record commit carries no case files."
+        - "Every case file added parses, checked with a non-vacuity assert, because an unloadable case drops out of the corpus silently (#389)."
+        - "Scores reported with sample count and spread, never a bare mean."
       evidence: []
 
   - id: SI-23
