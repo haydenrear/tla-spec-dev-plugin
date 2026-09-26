@@ -58,3 +58,37 @@ skt check: 2 notification(s), tier project
     then re-check this home: skt check
   build: skt 0.8.2; skill-manager 0.28.1 @ artifact deadbeef built 2026-09-17T00:00:00Z (skill-manager.jar)
 HOOK_EXIT=0
+
+================ ARM 5: the INSTALLED layout, not just a checkout ======
+Everything above ran skt from this git checkout. The layout that matters
+for bootstrap is the installed one — <home>/plugins/tla-spec-dev/skills/
+skt/src/skt/check.py — because plugin_root() resolves the floor from its
+own __file__ five parents up, and a wrong depth there fails SILENTLY
+(None, no floor, no warning, no error). So it is exercised for real:
+plugin.json, bootstrap-floor.toml and skt's source copied into a scratch
+home at exactly the install path, with the home's CLI pin at 0.28.1.
+
+$ python3.12 -c 'from skt import check; check.plugin_root(); check.bootstrap_floor()'
+  plugin_root -> /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/installed/.skill-manager/plugins/tla-spec-dev
+  state       -> declared
+  minimum     -> 0.28.2
+  assert: resolved from the installed layout, not the checkout
+
+$ SKILL_MANAGER_HOME=<installed scratch home> python3.12 <home>/plugins/tla-spec-dev/skills/skt/src/skt/cli.py check
+skt check: 2 notification(s), tier project
+  skill-manager 0.28.1 is installed here, and this plugin requires 0.28.2 or newer (bootstrap-floor.toml) — 0.28.1 and earlier fail this plugin's install with MarkdownImportValidator violations on skills/*/fixtures/** (skill-manager PR #397, released in 0.28.2)
+    upgrade with: brew update && brew upgrade skill-manager
+    nothing was refused — this is a warning; the floor is declared in /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/7839c261-ef83-40a5-bbde-456292085410/scratchpad/installed/.skill-manager/plugins/tla-spec-dev/bootstrap-floor.toml
+  skill-manager 0.28.1 is installed here, and 0.28.2 is available — this session's commands run the older one
+    upgrade with: skill-manager upgrade --self
+    then re-check this home: skt check
+  build: skt 0.8.2; skill-manager 0.28.1 @ old
+EXIT=10
+
+Note this run shows BOTH notifications, in order: the floor first, then
+the pre-existing cli-version one. They are different questions — 'older
+than this plugin requires' and 'a newer release exists' — and on this
+machine TODAY brew knows about 0.28.2, so both are answerable. On
+2026-09-24 brew's formula cache did not, the second would have been
+silent, and only the first would have fired. That is the whole reason
+the floor could not simply reuse cli-version.

@@ -1,25 +1,25 @@
-SI-28 — graph verdicts
+SI-28 — graph verdicts (re-run on the committed code, 650edb35)
 
-COMMAND (the two graphs named explicitly — they are OPT-IN, and a bare
+COMMAND (both graphs named explicitly — they are OPT-IN, and a bare
 `python3 test_graph/run-graphs.py` runs three OTHER graphs, prints
-PASSED three times, and reports these two as NOT RUN):
+PASSED three times, and reports these two as NOT RUN in a line that is
+easy to read past):
   python3 test_graph/run-graphs.py --only sktSurface --only sktHooks
 
 Runner exit code: 0 — DISREGARDED. run-graphs.py always exits 0 and says
-so in its own footer: 'A red or undecided graph is a report, not a refusal.'
-Each verdict below is read from that run's OWN summary.json.
+so in its own footer: 'A red or undecided graph is a report, not a
+refusal.' Every verdict below is read from that run's OWN summary.json.
 
-Run started (UTC): 2026-09-26T12:51:02Z
-This worktree held NO build/validation-reports/ before the run, so there
-were no earlier passing reports that a graph which never executed could
-have been mistaken for. Every report below is younger than the run.
+Run started (UTC): 2026-09-26T12:56:20Z
+build/validation-reports/ was DELETED before this run, so no report from
+an earlier pass could stand in for a graph that never executed.
 
   PASSED   sktSurface   nodes=5 non-passing=none
-           summary.json mtime 2026-09-26T12:52:22.889099+00:00
-           test_graph/build/validation-reports/20260926-125133/summary.json
+           summary.json mtime 2026-09-26T12:57:21.672196+00:00
+           test_graph/build/validation-reports/20260926-125632/summary.json
   PASSED   sktHooks     nodes=3 non-passing=none
-           summary.json mtime 2026-09-26T12:53:00.325946+00:00
-           test_graph/build/validation-reports/20260926-125233/summary.json
+           summary.json mtime 2026-09-26T12:57:57.266817+00:00
+           test_graph/build/validation-reports/20260926-125731/summary.json
 
-  assert: both reports post-date the run start, both status=passed,
-          and no node in either is non-passing.
+  assert: exactly 2 reports; both post-date the run start; both
+          status=passed; both non-empty; no non-passing node in either.
