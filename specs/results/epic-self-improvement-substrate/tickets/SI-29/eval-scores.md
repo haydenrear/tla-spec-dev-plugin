@@ -99,3 +99,31 @@ above are the second kind and were left alone.
   on it is a different claim and is unmeasured.
 - Not that 592 words holds against the next nested unit.
 - Not a re-measurement of any case outside `w-roles-*`; the other 70 were not run.
+
+---
+
+## Post-review confirmation run (after the activation restoration)
+
+The review restored activation vocabulary to `skill-manager`, `skt`,
+`unit-authoring` and `discovery`, which changed **eight of eleven** descriptions.
+Descriptions are the surface these cases depend on — every case grades
+`reaches-a-skill`, and `spec-double-2`'s description is the cold-session entry to
+the role map — so the corpus was re-run rather than assumed unaffected.
+
+```
+$ evals/run.sh --case 'w-roles-*'        # 1 run each, on aceb7bf3
+  w-roles-epic-finds-its-empty-inbox     1.00  100%  1  $0.23
+  w-roles-propagation-is-checkable       1.00  100%  1  $0.24
+  w-roles-review-finds-its-destination   1.00  100%  1  $0.27
+  w-roles-testing-finds-its-destination  1.00  100%  1  $0.23
+  w-roles-ticket-finds-its-back-channel  1.00  100%  1  $0.21
+  5 case(s) · 131s · $1.18 · rc 0
+```
+
+**All five at 1.00 on one run each.** Routing survived the redistribution.
+
+**This is one sample, not six, and it does not replace the table above.** The
+6-run means and spreads stand as measured at `d2e89c40`; two of those cases have a
+known one-in-six bad run, so a clean 1-run sweep here is consistent with them and
+is not evidence that the spread closed. Total billed for this ticket is now
+**$9.46** across 41 case-runs.

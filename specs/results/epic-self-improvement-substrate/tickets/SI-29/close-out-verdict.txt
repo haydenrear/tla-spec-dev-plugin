@@ -7,6 +7,8 @@ WHAT WAS RUN, AND WHAT IT SAID
   repository unit suite   base 10 failed / 1736 passed / 6 skipped
                           branch 10 failed / 1742 passed / 6 skipped
                           IDENTICAL SET OF 10 FAILURE NAMES (diff -q empty)
+                          RE-RUN after the review's activation fix, on aceb7bf3:
+                          10 failed / 1742 passed / 6 skipped, same 10 names.
   spec-unit --target      base 9 failed / 47 passed; branch 9 failed / 47 passed
                           identical names
   specWorkflow graph      base errored; branch errored; same node, same five
@@ -17,7 +19,12 @@ WHAT WAS RUN, AND WHAT IT SAID
   eval lane smoke         w-harness-smoke 1.00, rc 0
 
 GOAL SIGNALS (verdicts belong to SI-23 / SI-08)
-  GOAL-progressive-disclosure  descriptions 1005 -> 588 (<= 600)  MET
+  GOAL-progressive-disclosure  descriptions 1005 -> 592 (<= 600)  MET
+                               and all 11 units carry an activation clause, with
+                               all 42 quoted user phrases at or above base. The
+                               first pass reached 588 by DELETING activation
+                               vocabulary; 592 is the better number and the
+                               target did not need relaxing.
                                bodies over 1500  6 -> 0            MET
   GOAL-findings-become-changes 4 of 4 roles have a named destination and a
                                documented return leg; was 1 of 4
@@ -36,10 +43,11 @@ WHAT WAS NOT RUN, AND WHY
       No real home was written by hand at any point.
   the other 70 eval cases
       Not re-run. Nothing here is a claim about their scores.
-  skill triggering
-      NOT MEASURED, and 417 words were cut from the descriptions that drive it.
-      This is the largest unmeasured risk in the ticket and it is stated in the
-      PR under `## Review input` rather than left implicit.
+  skill triggering IN A LIVE SESSION
+      Activation VOCABULARY is now measured per unit (local-signal.md) after the
+      review found skill-manager had lost its activation condition entirely and
+      skt five of ten trigger phrases. Whether the harness actually SELECTS on
+      that vocabulary is a different claim and remains unmeasured.
 
 BOUNDARIES
   skills/skill-manager/SKILL.md and references/cli.md were edited (the MCP/CLI
