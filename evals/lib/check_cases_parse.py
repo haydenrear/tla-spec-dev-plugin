@@ -38,12 +38,50 @@ identical to a clean corpus -- the exact shape of the bug it is checking for,
 and a mistake this epic has already shipped once (`find` on an absent directory
 reporting "ok, no symlinks"). So it asserts it found a plausible number of case
 files and says how many it scanned, every time, even when all is well.
+
+WHY IT OBTAINS PyYAML INSTEAD OF ASSUMING IT (`SI-29-DF-03`, CORRECTED).
+The first version simply imported `yaml` and printed, when that failed:
+
+    cases: SKIPPED -- PyYAML is not importable here, so no case file was parsed.
+
+SI-29 reported that as a high-severity inert check: `run.sh` invoking a `python3`
+without PyYAML, so nothing was ever parsed. **That claim does not hold on this
+machine, and the epic agent repeated it before checking.** `run.sh` is a bash
+script, and in a non-interactive bash `python3` resolves to `/usr/bin/python3`,
+which HAS PyYAML. Verified by running the original file through bash exactly as
+line 269 does: `cases: 70 case file(s) parse.` The SKIPPED line both of us saw
+came from an INTERACTIVE zsh carrying `alias python3=python`, and an alias does
+not exist inside a script. So the check was working where it runs.
+
+What survives the correction is a portability hole and a wording bug, and both
+are worth the code below. On any host whose `/usr/bin/python3` lacks PyYAML --
+most Linux images, most containers, most CI -- the original would have gone
+quiet, and this lane's whole subject is checks that fail quietly. And "SKIPPED"
+was the wrong word: a line a reader mistakes for a non-failure is how such a
+thing survives. The warning now says the corpus is UNVERIFIED and never says
+skipped.
+
+So the dependency is obtained rather than assumed: the module RE-EXECS itself
+through `uv` (already a hard dependency of this lane -- `run.sh` stages wheels
+with it), measured at 135ms warm, and warns loudly only if even that is
+impossible.
+
+Worth keeping in view: the other four `evals/lib` checkers import nothing beyond
+the standard library. This one needs a YAML parser to do its job at all, so it
+cannot follow that convention -- it can only make the dependency its own problem
+instead of the caller's.
 """
 
 from __future__ import annotations
 
+import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
+
+#: Set in the re-exec'd child so a broken uv environment cannot loop.
+_REEXEC_GUARD = "SKT_CASES_PARSE_REEXEC"
 
 #: Below this, assume the scan is broken rather than the corpus tiny. The
 #: corpus was 70 files at 82015294; a real corpus never shrinks by an order of
@@ -84,10 +122,45 @@ def check(root: Path) -> tuple[int, list[tuple[Path, str]]]:
     return len(files), bad
 
 
+def _reexec_through_uv(argv: list[str]) -> int | None:
+    """Re-run this module under a uv environment that HAS PyYAML.
+
+    Returns the child's exit code, or None when no re-exec was possible — the
+    caller then warns rather than reporting a clean corpus. Guarded by an
+    environment variable so a uv that cannot supply yaml fails once, not
+    forever.
+    """
+    if os.environ.get(_REEXEC_GUARD):
+        return None
+    uv = shutil.which("uv")
+    if uv is None:
+        return None
+    env = dict(os.environ, **{_REEXEC_GUARD: "1"})
+    cmd = [uv, "run", "--quiet", "--python", "3.12", "--with", "pyyaml",
+           "python", str(Path(__file__).resolve()), *argv[1:]]
+    try:
+        return subprocess.run(cmd, env=env, timeout=120).returncode
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 def main(argv: list[str]) -> int:
     root = Path(argv[1]) if len(argv) > 1 else Path(__file__).resolve().parent.parent
     if _load_yaml() is None:
-        print("cases: SKIPPED -- PyYAML is not importable here, so no case file was parsed.")
+        # Obtain the dependency rather than assume it. SI-29-DF-03, corrected:
+        # this branch is NOT reached under `run.sh` on the development machine
+        # (bash resolves /usr/bin/python3, which has PyYAML). It is reached on a
+        # host whose system python lacks it, and the first version went quiet
+        # there -- which is the portability hole worth closing.
+        rc = _reexec_through_uv(argv)
+        if rc is not None:
+            return rc
+        print(
+            "cases: WARNING -- NO case file was checked. PyYAML is not importable "
+            f"under {sys.executable} and this could not re-run itself through uv. "
+            "An unparseable case.yaml would drop out of the corpus silently and the "
+            "run would still look clean (#389). Treat the corpus as UNVERIFIED."
+        )
         return 0
 
     scanned, bad = check(root)
