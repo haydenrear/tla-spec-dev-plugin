@@ -259,6 +259,15 @@ grant=$(python3 "$here/lib/grant.py" "$here" "${case_globs[@]}") || grant=""
 # (GOAL-no-new-gates) and `|| true` keeps its own failure off the run.
 python3 "$here/lib/check_graders.py" "$here" || true
 
+# #389 (SI-22-DF-08): an unparseable `case.yaml` drops out of the corpus
+# SILENTLY -- the runner prints one unnamed line mid-run and the totals look
+# normal, so 57 of 58 reads exactly like 58 of 58. It already cost this repo a
+# case that had been measured at 1.00 and then broken by its own ticket's last
+# commit, merged without anyone noticing. Parsing costs nothing and needs no
+# billing. It never refuses (GOAL-no-new-gates) and `|| true` keeps its own
+# failure off the run.
+python3 "$here/lib/check_cases_parse.py" "$here" || true
+
 if [ -n "$grant" ]; then
     echo "eval: granting $grant (derived from the cases' allowed_tools)"
     # shellcheck disable=SC2206
