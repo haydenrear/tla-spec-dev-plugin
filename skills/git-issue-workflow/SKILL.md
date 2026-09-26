@@ -2,10 +2,10 @@
 name: git-issue-workflow
 description: >-
   Use when handed a GitHub issue to implement, or asked to start, complete or
-  close out a ticket — including one assigned from a shared epic. Owns the
-  worktree lifecycle. Read before touching the repo. Trigger on "implement this
-  issue", "complete this ticket", "work this epic ticket", "run the evaluation
-  ticket", "open the MR", or receiving an agent-tagged PR.
+  close out a ticket — including one assigned from a shared epic. Read before
+  touching the repo. Trigger on "implement this issue", "complete this ticket",
+  "work this epic ticket", "run the evaluation ticket", "open the MR", or
+  receiving an agent-tagged PR.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/references/agent_roles.md

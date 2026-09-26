@@ -3,10 +3,11 @@ name: skt
 description: >-
   The `skt` CLI: orientation and change management for skill-manager homes. Use
   at SESSION START for what is loaded, which home tier this session writes,
-  whether you are in an epic or a ticket, and what is stale; when a skill edit
-  must survive the worktree; and for `skt ticket new|close|list|sweep`. Trigger
-  on "what skills are loaded", "am I in a ticket/epic", "sync skills", "publish
-  my skill edit", "start/finish a ticket", session startup.
+  whether you are in an epic or a ticket, and what is stale. Trigger on "what
+  skills are loaded", "am I in a ticket/epic", "update this skill", "new
+  version", "sync skills", "publish my skill edit", "please sync with root to
+  publish changes globally", "start/finish a ticket", "clean up/retire/sweep
+  worktrees", "reclaim disk space from worktrees", session startup.
 ---
 
 # skt

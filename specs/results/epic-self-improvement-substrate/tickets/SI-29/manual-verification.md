@@ -45,9 +45,17 @@ YAML-parsed `description` scalar for descriptions):
 
 | | base `59370837` | this branch | target |
 |---|---|---|---|
-| descriptions, 11 units | **1005** | **588** | ≤ 600 |
+| descriptions, 11 units | **1005** | **592** | ≤ 600 |
 | card bodies over 1500 | **6 of 11** | **0 of 11** | 0 |
 | body total | 17738 | 15370 | — |
+
+(Descriptions read **588** when this record was first written. The epic agent's
+review measured activation vocabulary, found that `skill-manager` had lost its
+activation condition entirely and `skt` five of its ten quoted trigger phrases,
+and the restoration brought the total to **592** — still under target, with every
+activation clause and all 42 quoted user phrases at or above base. `local-signal.md`
+carries the per-unit audit. 588 was the *worse* number: it was only reachable by
+deleting vocabulary a harness matches on.)
 
 Per card, body, base → now: skt 2470→1430, unit-authoring 1797→1332,
 git-epic-workflow 1820→1498, git-issue-workflow 1788→1497, skill-manager
@@ -69,7 +77,7 @@ the next nested unit — and §7 says why not.
 
 ### The cold entry, by hand
 
-Of 588 description words, **one** description names the role map
+Of 592 description words, **one** description names the role map
 (`spec-double-2`). A session that has read nothing else can get from there to a
 four-row table and from the table to its own section. That is the whole
 mechanism and it is one hop deep on purpose.

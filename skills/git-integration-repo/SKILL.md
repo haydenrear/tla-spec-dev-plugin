@@ -2,9 +2,9 @@
 name: git-integration-repo
 description: >-
   Create and operate integration repositories — a parent git repo holding
-  several constituent repos as ordinary tracked files, never submodules, so one
-  cross-repo change fans back out as branches, MRs and a tracking issue. Use to
-  onboard repos, propagate a merged change out, or refresh from upstream.
+  constituent repos as tracked files, never submodules. Use to onboard repos
+  into one parent, propagate a merged change out as branches and MRs, or refresh
+  from upstream.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/SKILL.md

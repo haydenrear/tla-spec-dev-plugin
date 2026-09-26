@@ -2,10 +2,9 @@
 name: plugin-repository
 description: >-
   Create and operate plugin repositories — a skill-manager PLUGIN whose
-  `skills/` directory holds several skill repos as tracked files, so a bundle
-  versions, installs, syncs and improves as ONE unit. Use when several skills
-  always ship together, or a change spans more than one. A specialization of
-  `git-integration-repo`.
+  `skills/` holds several skill repos, so a bundle versions, installs and syncs
+  as ONE unit. Use when several skills always ship together, or a change spans
+  more than one.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/git-integration-repo/SKILL.md

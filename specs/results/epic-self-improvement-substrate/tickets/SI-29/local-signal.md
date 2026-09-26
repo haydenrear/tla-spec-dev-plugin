@@ -24,7 +24,7 @@ unit-authoring 1797, git-issue-workflow 1788, skill-manager 1648, spec-double-2
 
 | | base `59370837` | this branch | target | verdict |
 |---|---|---|---|---|
-| descriptions, 11 units | **1005** | **588** | ≤ 600 | **MET**, 12 words of headroom |
+| descriptions, 11 units | **1005** | **592** | ≤ 600 | **MET**, 8 words of headroom |
 | card bodies over 1500 | **6 of 11** | **0 of 11** | 0 | **MET** |
 | body total | 17738 | 15370 | — | −2368 |
 
@@ -32,18 +32,18 @@ Per card:
 
 | card | desc base → now | body base → now |
 |---|---|---|
-| discovery | 60 → 54 | 996 → 996 |
-| git-epic-workflow | 71 → 51 | 1820 → 1498 |
-| git-integration-repo | 75 → 47 | 1349 → 1349 |
-| git-issue | 82 → 60 | 1499 → 1499 |
-| git-issue-workflow | 95 → 59 | 1788 → 1497 |
-| plugin-repository | 86 → 48 | 1472 → 1472 |
-| skill-manager | 104 → 44 | 1648 → 1481 |
-| skt | 200 → 72 | 2470 → 1460 |
-| spec-double-2 | 73 → 55 | 1567 → 1484 |
-| test-graph | 51 → 49 | 1332 → 1332 |
-| unit-authoring | 108 → 49 | 1797 → 1332 |
-| **total** | **1005 → 588** | **17738 → 15370** |
+| discovery | 60 → 59 | 996 → 996 |
+| git-epic-workflow | 71 → 44 | 1820 → 1498 |
+| git-integration-repo | 75 → 38 | 1349 → 1349 |
+| git-issue | 82 → 47 | 1499 → 1499 |
+| git-issue-workflow | 95 → 55 | 1788 → 1497 |
+| plugin-repository | 86 → 39 | 1472 → 1472 |
+| skill-manager | 104 → 77 | 1648 → 1481 |
+| skt | 200 → 80 | 2470 → 1460 |
+| spec-double-2 | 73 → 49 | 1567 → 1484 |
+| test-graph | 51 → 40 | 1332 → 1332 |
+| unit-authoring | 108 → 64 | 1797 → 1332 |
+| **total** | **1005 → 592** | **17738 → 15370** |
 
 **The issue's baseline is `7ba79bee`, not this ticket's base.** They differ on
 exactly one figure: `skt`'s body is 2242 there and **2470** at `59370837`. Every
@@ -57,7 +57,62 @@ points at, in the same commit: twelve relocations, listed in
 `manual-verification.md` §6. The check is that the phrase still exists in the
 repository and the card names the page — not that the total went down.
 
-**What is NOT evidenced: that 588 holds.** SI-09 reached exactly 600 and three
+### Activation vocabulary — added at review, and it found two real regressions
+
+The first pass hit 588 words and **lost activation vocabulary**, which the epic
+agent measured at review. A description is what the harness matches an intent
+against, so a word count that improves while activation degrades is a worse
+description, not a better one. Measured per unit, base vs now — a `Use when` /
+`Trigger on` clause, and every quoted user phrase:
+
+| unit | base → now | use-when | trigger-on | quoted user phrases |
+|---|---|---|---|---|
+| discovery | 60 → 59 | kept | kept | 5 → **5** |
+| git-epic-workflow | 71 → 44 | kept | kept | 5 → **5** |
+| git-integration-repo | 75 → 38 | kept | — | *(0; base's one quote is the defined term)* |
+| git-issue | 82 → 47 | kept | kept | 3 → **3** |
+| git-issue-workflow | 95 → 55 | kept | kept | 5 → **5** |
+| plugin-repository | 86 → 39 | kept | — | *(0; base's one quote is the defined term)* |
+| skill-manager | 104 → **77** | **RESTORED** | **ADDED** | 0 → **5** |
+| skt | 200 → **80** | kept | kept | 10 → **10** |
+| spec-double-2 | 73 → 49 | kept | — | 0 → 0 |
+| test-graph | 51 → 40 | — | kept | 4 → **4** |
+| unit-authoring | 108 → **64** | **RESTORED** | — | 0 → 0 |
+
+The two regressions that mattered:
+
+- **`skill-manager` at 44 words had no activation condition at all.** It had lost
+  *"Use when the user asks to find, add, remove, inspect, bind, unbind,
+  instantiate, sync, upgrade, or resolve one of those surfaces"* and carried no
+  trigger phrases, so nothing in it said *when* to invoke the skill. Restored, and
+  it now carries **five** quoted trigger phrases where base carried none — the one
+  unit whose activation surface is better than it was.
+- **`skt` had lost five of its ten quoted phrases** (the review flagged four; the
+  fifth is *"please sync with root to publish changes globally"*). Sweep, retire
+  and disk-reclaim intents had vanished — the verbs an epic agent needs at exactly
+  the moment nobody remembers they exist. **All ten restored.**
+
+`unit-authoring` also lost `Use when`; judged worth restoring and restored.
+
+**Where the words came from — redistribution, not addition.** Every word funding
+the restorations came from *capability* prose the reference pages already carry,
+never from an activation clause: the definition sentences in
+`git-integration-repo` (−9 from the first pass) and `plugin-repository` (−9),
+`git-issue`'s three-clause work-order list (−13), `spec-double-2`'s role-map
+clause (−6, keeping `ROLE MAP` and all four role names because that is the
+cold-session entry point), `test-graph`'s six-verb capability list (−9),
+`git-epic-workflow`'s duplicated assignment-marker clause (−7), and
+`git-issue-workflow`'s "Owns the worktree lifecycle" (−4).
+
+**Does the 600 target hold both clauses? YES — at 592, with 8 words spare.** The
+first redistribution landed at 612, over target; compressing three further
+capability lists brought it to 592 with every activation clause and all 42 quoted
+user phrases intact. So the target did *not* have to be relaxed, and the epic
+agent's offer to take 615 to the owner is not needed. The honest floor is not
+588: that number was only reachable by deleting activation vocabulary, and **588
+was a worse description set than 592**.
+
+**What is NOT evidenced: that 592 holds.** SI-09 reached exactly 600 and three
 nested units put it back to 1005. This ticket adds a *place* for the prose that
 regrew it (each role's reading path) and writes the convention where the next
 author reads it (`skills/unit-authoring/references/skills.md`, SI-29-DF-05).

@@ -89,42 +89,50 @@ findings:
 
   - id: SI-29-DF-03
     status: open
-    severity: high
+    severity: low
     title: >-
-      `check_cases_parse.py`, shipped TODAY to stop a silent corpus drop, is
-      itself silently inert on the interpreter `run.sh` invokes it with
+      CORRECTED. `check_cases_parse.py` was NOT inert in the lane; my original
+      claim was an artefact of my own shell. What survives is a portability hole
+      and a misleading word, and the epic agent has fixed both.
     what: >-
-      `evals/run.sh:269` runs `python3 "$here/lib/check_cases_parse.py"`. On this
-      machine that `python3` is /opt/homebrew/opt/python@3.14/bin/python3.14,
-      which has no PyYAML, so the checker prints `cases: SKIPPED -- PyYAML is not
-      importable here, so no case file was parsed.` and exits 0. Run with a
-      PyYAML-carrying interpreter it prints `cases: 75 case file(s) parse.` The
-      whole purpose of #389 was that an unparseable case.yaml drops out of the
-      corpus silently and the run still looks clean; as invoked, the fix for that
-      is silent too. `check_graders.py:260` is unaffected — it shells out to
-      `node` and imports no third-party module.
+      ORIGINALLY FILED AS HIGH, and the claim was WRONG. I reported that
+      `evals/run.sh:269` invokes the checker with a `python3` that has no PyYAML,
+      so the #389 fix printed `SKIPPED` and checked nothing. `run.sh` is a BASH
+      script, and in non-interactive bash `python3` resolves to
+      /usr/bin/python3 (3.9.6), which HAS PyYAML 6.0. Run as the lane runs it the
+      original checker prints `cases: 75 case file(s) parse.` The `SKIPPED` I saw
+      came from my own interactive ZSH, which carries `alias python3=python` and
+      sends it to Homebrew 3.14, which lacks PyYAML. An alias does not exist
+      inside a script.
+      WHAT IS ACTUALLY TRUE, and it is much smaller: the checker depended on the
+      host's system interpreter happening to carry PyYAML, so a host whose
+      /usr/bin/python3 lacks it would have gone quiet; and `SKIPPED` reads as a
+      benign non-failure rather than as "the corpus was not verified".
     surface:
       production:
-        - evals/run.sh
         - evals/lib/check_cases_parse.py
     anchor: UNMODELED/record-keeping
     evidence: >-
-      `python3 evals/lib/check_cases_parse.py evals` -> "cases: SKIPPED", rc 0.
-      `uv run --python 3.12 --with pyyaml python evals/lib/check_cases_parse.py evals`
-      -> "cases: 75 case file(s) parse.", rc 0. `python3 -c "import yaml"` ->
-      ModuleNotFoundError. Same class as SF-105 and as SI-21 §0 (a wrapper
-      reaching a different interpreter than the author believed).
-    disposition: routed
+      `bash -c 'type python3'` -> /usr/bin/python3, 3.9.6, `import yaml` -> 6.0.
+      `zsh -ic 'type python3'` -> "python3 is an alias for python", 3.14.6, no
+      yaml. The original file under bash: `cases: 75 case file(s) parse.` The same
+      file under my zsh: `cases: SKIPPED`. Both captured after the correction.
+    disposition: consumed
     goal: GOAL-evals-one-command
-    skill_change: proposed(tla-spec-dev, "evals/run.sh:269 should invoke the parse checker with an interpreter that carries PyYAML - the pinned SKT_PYTHON or `uv run --with pyyaml` - and the checker's SKIPPED line should be loud enough to read as a non-result rather than a pass")
+    skill_change: applied(57f05cf4)
     note: >-
-      NOT FIXED HERE, and the reason is a measurement one rather than a scope one:
-      `evals/**` IS inside this ticket's production conflict keys, so I could
-      have. But this ticket bills five cases through that same `run.sh`, and
-      editing the lane in the commit whose scores I then report would put two
-      changes inside one measurement. Flagged prominently instead so the epic
-      agent can take it as a one-line change with its own run.
-
+      THE ERROR IS THE FINDING WORTH KEEPING, and it is not a new class: it is
+      SI-21-DF-01 exactly, reached from the other side. SI-21 §0 recorded that
+      `python3` is a zsh alias and that six of its measurements silently ran under
+      an interpreter it did not intend. I READ THAT FINDING WHILE WORKING THIS
+      TICKET and then made the same mistake in the opposite direction --
+      measuring in zsh and attributing the result to a bash script. SI-21's
+      remedy ("anything that measures by shelling out to python3 should print
+      sys.executable and sys.version") would have caught it, and so would running
+      the command in the shell that actually runs it. The epic agent fixed the
+      real hole at 57f05cf4 (the checker re-execs through uv and says UNVERIFIED
+      rather than SKIPPED), which is merged into this branch and verified here in
+      both shells.
   - id: SI-29-DF-04
     status: open
     severity: low

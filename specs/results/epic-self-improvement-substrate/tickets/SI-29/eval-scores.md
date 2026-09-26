@@ -93,7 +93,9 @@ above are the second kind and were left alone.
 
 ## What these scores are NOT evidence of
 
-- Not that the descriptions still trigger skill selection. Nothing here measures
-  triggering, and 417 description words were cut.
-- Not that 588 words holds against the next nested unit.
+- Not that the descriptions still trigger skill selection in a live session.
+  Activation VOCABULARY is measured per unit in `local-signal.md` and is at or
+  above base everywhere after the review restoration; whether the harness selects
+  on it is a different claim and is unmeasured.
+- Not that 592 words holds against the next nested unit.
 - Not a re-measurement of any case outside `w-roles-*`; the other 70 were not run.

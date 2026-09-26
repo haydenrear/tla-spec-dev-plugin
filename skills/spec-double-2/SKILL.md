@@ -2,10 +2,9 @@
 name: spec-double-2
 description: >-
   Use when a repository keeps a TLA+ program model under `specs/` and a ticket
-  must read, extend, check or close it through the tla-spec-dev CLI. Also the
-  home of the organizational standards for evals and bug attribution, and of the
-  ROLE MAP that routes ticket, epic, review and testing agents to their own
-  reading path.
+  must read, extend, check or close it through the tla-spec-dev CLI. Also holds
+  the ROLE MAP routing ticket, epic, review and testing agents to their reading
+  paths, and the standards for evals and bug attribution.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/skill-manager/references/cli.md

@@ -4,8 +4,8 @@ description: >-
   Use when kicking off work in a repository and the agent must learn how it
   works before changing it. Starts from the `specs/` tree and the `test_graph`
   project rather than raw source. Trigger on "start this ticket", "pick up this
-  issue", "do discovery", "how does this codebase work", or landing in an
-  unfamiliar repo.
+  issue", "do discovery", "create issues for this repo", "how does this codebase
+  work", or landing in an unfamiliar repo.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/SKILL.md

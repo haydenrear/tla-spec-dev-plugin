@@ -3,8 +3,11 @@ name: skill-manager
 description: >-
   Search, install, bind, sync and remove skill-manager units — skills, plugins,
   doc-repos, harnesses — and manage skill projects, child homes, CLI and MCP
-  tools. This is the plumbing; for day-to-day lifecycle questions prefer the
-  `skt` front door. CLI syntax is authoritative in `skill-manager --help`.
+  tools. Use when the user asks to find, add, remove, inspect, bind, unbind,
+  instantiate, sync, upgrade or resolve one of those surfaces. Trigger on
+  "install a skill", "what units are installed", "bind this doc-repo",
+  "instantiate a harness", "resolve this skill project". This is the plumbing;
+  for day-to-day lifecycle questions prefer the `skt` front door.
 ---
 
 # skill-manager

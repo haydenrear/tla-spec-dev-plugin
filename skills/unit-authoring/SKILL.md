@@ -2,10 +2,11 @@
 name: unit-authoring
 description: >-
   Author and maintain installable skill-manager units: skills, plugins, doc-
-  repos and harnesses. Read this before editing any file inside a unit —
-  SKILL.md, its frontmatter or description, skill-manager.toml, plugin.json,
-  harness.toml, or a references/ page — not only when creating one from scratch.
-  Detailed schemas live in this skill's references.
+  repos and harnesses. Use when making a directory installable, choosing a unit
+  kind, scaffolding a unit, writing or reviewing a manifest, or shipping an edit
+  to an already-installed unit. Read before editing any file inside a unit —
+  SKILL.md, its frontmatter or description, skill-manager.toml, plugin.json or
+  harness.toml — not only when creating one from scratch.
 skill-imports:
   - unit: tla-spec-dev
     path: skills/skill-manager/references/skill-imports.md

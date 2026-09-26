@@ -2,10 +2,9 @@
 name: git-epic-workflow
 description: >-
   Use when planning, scheduling, dispatching, rescoping, resuming or finalizing
-  a multi-ticket Git epic on an `epic/*` branch, and when a GitHub issue carries
+  a multi-ticket Git epic on an `epic/*` branch, or when a GitHub issue carries
   a `git-epic-workflow:assignment` block. Trigger on "plan an epic", "dispatch
-  the next wave", "merge this wave", "retire a ticket", "finalize the epic", or
-  an issue containing the assignment marker.
+  the next wave", "merge this wave", "retire a ticket", "finalize the epic".
 skill-imports:
   - unit: tla-spec-dev
     path: skills/spec-double-2/references/agent_roles.md
