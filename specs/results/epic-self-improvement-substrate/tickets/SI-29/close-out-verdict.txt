@@ -1,0 +1,50 @@
+SI-29 -- close-out verdict
+
+STOPPED AT pr_open, as the assignment requires. Not merged. Not targeted at main.
+Issue #391 not closed.
+
+WHAT WAS RUN, AND WHAT IT SAID
+  repository unit suite   base 10 failed / 1736 passed / 6 skipped
+                          branch 10 failed / 1742 passed / 6 skipped
+                          IDENTICAL SET OF 10 FAILURE NAMES (diff -q empty)
+  spec-unit --target      base 9 failed / 47 passed; branch 9 failed / 47 passed
+                          identical names
+  specWorkflow graph      base errored; branch errored; same node, same five
+                          failed assertion names. Read from each run's OWN
+                          summary.json -- the runner exited 0 on both.
+  evals w-roles-*         5 cases, 6 runs each: 1.00, 1.00, 0.94, 1.00, 0.94
+                          all green, spread reported in eval-scores.md
+  eval lane smoke         w-harness-smoke 1.00, rc 0
+
+GOAL SIGNALS (verdicts belong to SI-23 / SI-08)
+  GOAL-progressive-disclosure  descriptions 1005 -> 588 (<= 600)  MET
+                               bodies over 1500  6 -> 0            MET
+  GOAL-findings-become-changes 4 of 4 roles have a named destination and a
+                               documented return leg; was 1 of 4
+  GOAL-evals-earned            fifth rung: f8a3994e (0 case.yaml) -> b929e07c
+  GOAL-evals-one-command       5 cases, one glob: --case 'w-roles-*'
+  GOAL-no-new-gates            improvement_ledger.py rc 0, no sys.exit added,
+                               BACKLOGS unchanged, no validator or linter added
+
+WHAT WAS NOT RUN, AND WHY
+  open ticket / close ticket / close_tickets.py / --accept-new
+      Forbidden by planning_rules.model_ownership_rule. Not run in any form,
+      including in a fixture. specs/current, specs/tickets/ and the plan carry
+      NO change from this ticket.
+  home sync
+      Forbidden. `home close-out` was run into this worktree's own home.
+      No real home was written by hand at any point.
+  the other 70 eval cases
+      Not re-run. Nothing here is a claim about their scores.
+  skill triggering
+      NOT MEASURED, and 417 words were cut from the descriptions that drive it.
+      This is the largest unmeasured risk in the ticket and it is stated in the
+      PR under `## Review input` rather than left implicit.
+
+BOUNDARIES
+  skills/skill-manager/SKILL.md and references/cli.md were edited (the MCP/CLI
+      detail moved into the reference). That unit is in this ticket's conflict
+      keys.
+  tests/test_new_ticket_workflow.py was edited. tests/ is NOT in this ticket's
+      declared conflict keys; it is reported as a scope correction in the PR.
+  No .tla, no adapter, no binding, no graph node, no hook, no new unit.

@@ -1,0 +1,27 @@
+checking the eval home at /Users/hayde/.local/state/tla-spec-dev/evalhome
+  ok    the home exists
+  ok    .docker/config.json is present
+  ok    .docker exists and holds no symlinks (this is the whole point)
+  ok    Library/Keychains is linked (auth works under the HOME override)
+  ok    .claude is linked
+  ok    .claude.json is linked
+  ok    JDK: java version "21" 2023-09-19 LTS
+        JAVA_HOME=/Users/hayde/.sdkman/candidates/java/current
+  MISS  no offline uv wheels -- every 'uv run --script' skill script fails in a sandboxed run
+  ok    python for the orientation hook: /opt/homebrew/bin/python3.14
+
+1 check(s) failed. Re-run with no arguments to build, or fix the tool above.
+Nothing refuses on this: evals/run.sh warns and carries on.
+
+to use it:
+  EVAL_HOME=/Users/hayde/.local/state/tla-spec-dev/evalhome evals/run.sh --case w-harness-smoke
+or nothing at all -- run.sh picks up /Users/hayde/.local/state/tla-spec-dev/evalhome when EVAL_HOME is unset.
+
+smoke: billing one case (w-harness-smoke) to prove the lane end to end
+eval: SKT_PYTHON=/opt/homebrew/bin/python3.14 (the orientation hook needs >= 3.11; the system python3 is 3.9)
+eval: java -- java version "21" 2023-09-19 LTS
+eval:   the CLI starts: skill-manager 0.28.1+g7941f4e1dd9e
+  w-harness-smoke run 1/1: score 1.00  $0.14
+✓ w-harness-smoke  score 1.00  (1 run)  $0.14
+smoke: PASSED -- w-harness-smoke scored 1.00, so the lane is real
+smoke rc=0
