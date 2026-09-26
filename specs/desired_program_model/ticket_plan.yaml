@@ -2075,6 +2075,7 @@ tickets:
 
   - id: SI-28
     title: "The bootstrap CLI has a floor, and the substrate says so"
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/390"
     status: planned
     schedule_revision: 10
     depends_on: ["SI-22"]
@@ -2124,6 +2125,7 @@ tickets:
 
   - id: SI-29
     title: "Disclosure routes by agent role, and every role's path ends in how it feeds the substrate back"
+    github_issue: "https://github.com/haydenrear/tla-spec-dev/issues/391"
     status: planned
     schedule_revision: 10
     depends_on: ["SI-28"]
