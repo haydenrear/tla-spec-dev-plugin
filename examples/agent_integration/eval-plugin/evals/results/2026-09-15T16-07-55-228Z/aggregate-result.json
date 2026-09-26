@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.272",
+  "startedAt": "2026-09-15T16:07:55.228Z",
+  "durationSeconds": 639,
+  "costUsd": 4.687053000000001,
+  "partial": false,
+  "suite": {
+    "root": "/Users/hayde/IdeaProjects/tla-spec-dev/examples/agent_integration/eval-plugin",
+    "ablation": "none",
+    "threshold": 1,
+    "concurrency": 2,
+    "plugins": [
+      {
+        "name": "spec-double-compiler-eval",
+        "version": "0.1.0",
+        "path": "/Users/hayde/IdeaProjects/tla-spec-dev/examples/agent_integration/eval-plugin"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "catch-the-drift",
+      "dir": "evals/catch-the-drift",
+      "source": "mixed",
+      "promptMarkdown": "This repository carries an ecommerce backend and a TLA+ model of it under\n`specs/program_model/`. Somewhere in the last two commits the program\nstopped doing what the model says it does.\n\nFind the disagreement and repair it, then say which action of the model\nthe break sat under and what in the model would have caught it.\n\nThe model is the reference. Do not edit it.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 1800,
+      "maxTurns": 60,
+      "graders": [
+        {
+          "name": "every-module-parses",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/parses",
+            "exists": true
+          }
+        },
+        {
+          "name": "names-the-action",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "Score 1 only if the response names the model action the break sat under --\naccount creation, under whatever name the module gives it -- AND names what in\nthe model would have caught it (the invariant over the account store, or the\ngenerated conformance case for that action).\n\nTHIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.\nMeasured with a probe whose hook wrote `banana` into SECRET.txt: the judge\nvoted FAIL when the agent never mentioned the file, FAIL again when it READ the\nfile without quoting it, and PASS only when the word appeared in the reply. The\nverdict graders beside this one carry the artefact; this one is the diagnosis,\nand it is the only grader here a confident paragraph can move.",
+          "config": {
+            "criteria": "Score 1 only if the response names the model action the break sat under --\naccount creation, under whatever name the module gives it -- AND names what in\nthe model would have caught it (the invariant over the account store, or the\ngenerated conformance case for that action).\n\nTHIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.\nMeasured with a probe whose hook wrote `banana` into SECRET.txt: the judge\nvoted FAIL when the agent never mentioned the file, FAIL again when it READ the\nfile without quoting it, and PASS only when the word appeared in the reply. The\nverdict graders beside this one carry the artefact; this one is the diagnosis,\nand it is the only grader here a confident paragraph can move.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "the-model-was-not-edited-into-agreement",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/model-intact",
+            "exists": true
+          }
+        },
+        {
+          "name": "the-program-behaves-again",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/behaviour",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 25,
+            "costUsd": 0.8140454999999999,
+            "judgeCostUsd": 0.003558,
+            "durationSeconds": 120,
+            "startedAt": "2026-09-15T16:07:55.248Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-j9P4UU/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "every-module-parses",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/parses exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-the-action",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "Fixed. Here's what happened and where it sat.\n\n## The disagreement\n\nThe second commit, `059c0ab \"accounts: simplify creation\"`, gutted the write in `ecommerce_backend/domain.py:88`:\n\n```python\ndef create_account(self, account_id: str) -> OperationResult:\n    with self._conn:\n        pass  # a change from an earlier commit\n    return OperationResult(201, {\"account\": account_id})\n```\n\nThe endpoint still answered `201 {\"account\": ...}`, so the response contract looked intact — but no row ever landed in `accounts`. Every downstream guard that reads account existence (`add_cart_item`, `checkout`, both via `_account_exists`) then failed with `404 account_not_found` for an account the client had just been told was created. All three service roles (`monolith`, `database`, `gateway` at `service.py:152,205,248`) funnel into this one method, so it was a single break with a whole-surface blast radius.\n\n## The repair\n\nRestored the insert:\n\n```python\nself._conn.execute(\"insert or ignore into accounts(account_id) values (?)\", (account_id,))\n```\n\n`insert or ignore` is what the model wants for the duplicate case too. Verified by exercising the store directly: create → `accounts: ['acct-1']`; re-create → still `201`, still one row (matches `SubmitDuplicateCreateAccount`); then `add_cart_item` 202, `checkout` 202 with the order in the outbox, `process_outbox` 200 draining it to `ready_to_ship`, re-checkout 200 idempotent, unknown account 404. The model itself is untouched.\n\n## Which action it sat under\n\n`Internal.CreateAccount` — surfaced at the outer view as `External.SubmitCreateAccount`, which conjoins it (`External.tla:44`). The adapters confirm the binding is exactly one call: `CreateAccountInternalAdapter` → `store.create_account`, `CreateAccountHttpAdapter` → `POST /accounts`.\n\n## What in the model would have caught it\n\nThe action's next-state relation, not an invariant — worth being precise about, because the invariants would have stayed green:\n\n- **`Internal.tla:18` — `accounts' = accounts \\cup {a}`.** This is the whole catch. The model has no step in which a `201`-returning create leaves `accounts` unchanged: `CreateAccount` is guarded by `a \\notin accounts` and *must* grow the set; the only other 201 is `SubmitDuplicateCreateAccount`, guarded by `a \\in accounts` (`External.tla:51`) and explicitly `UNCHANGED InternalVars`. The broken program produced a step matching neither — 201 with an empty set — so a conformance check of the post-state against that action fails on the very first case.\n- **The downstream enabling condition, `AddCartItem`'s `a \\in accounts` (`Internal.tla:23`).** In the model, a successful create *enables* `AddCartItem` for that account. In the program it no longer did. Any generated two-step trace `SubmitCreateAccount` → `SubmitAddCartItem` — exactly the `Scenario_CheckoutHappyPath` slice declared in `spec_manifest.yaml:29` — diverges at step two: model says 202, program said 404.\n\nBy contrast, `InternalInvariant` (`Internal.tla:53`) only constrains `outbox ⊆ Orders` and that queued orders are `accepted`, and `ExternalInvariant` adds only service-health and route well-formedness. All of those hold happily in a world where no account is ever created. The state-based safety properties were blind here; the step relation of the action was not."
+              },
+              {
+                "name": "the-model-was-not-edited-into-agreement",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/model-intact exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "the-program-behaves-again",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/behaviour exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    },
+    {
+      "name": "scaffold-a-program-model",
+      "dir": "evals/scaffold-a-program-model",
+      "source": "mixed",
+      "promptMarkdown": "This repository's behaviour should be carried by a TLA+ program spec. Set it\nup so that one exists and reflects what the program actually does.\n\nEnd your reply by quoting the generated module's action list -- the\ndisjuncts of `Next`, verbatim -- and say what would have caught you if you\nhad got it wrong. Quote it: the grader reads your reply and cannot open the\nfiles you wrote.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 2700,
+      "maxTurns": 120,
+      "graders": [
+        {
+          "name": "every-module-parses",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/parses",
+            "exists": true
+          }
+        },
+        {
+          "name": "models-the-trace-property",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "The fixture's one interesting property is false of any single state and true\nonly over a trace: a claimed slug may be released and re-reserved by a\nDIFFERENT owner, but never while the first owner still holds it.\n\nONE QUESTION ONLY: does the action list the response quotes contain a release\naction -- under any name -- so that the release-then-re-reserve sequence is\nexpressible? Score 0 if it does not, or if no action list is quoted.\n\nDo not also judge whether the quote is present or well-formed. That half moved\nto `quotes-the-action-list.md`, a regex, after three judges split FAIL PASS FAIL\nover a 6,300-character report whose artefact was correct. A judge asked two\nquestions at once answers neither reliably.\n\nTHIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.\nMeasured, not assumed: a probe case whose hook wrote `banana` into SECRET.txt\nand whose criterion was \"score 1 only if SECRET.txt contains banana\" voted\nFAIL FAIL FAIL when the agent never mentioned the file, FAIL FAIL FAIL again\nwhen the agent READ the file but did not quote it, and PASS PASS PASS only when\nthe word appeared in the final response. The judge sees the final text and\nnothing else -- not the file tree, not tool output.\n\nThe previous version of this grader ended by telling the judge to grade the\ngenerated modules rather than the reply. That instruction could never be\nfollowed, so what it scored was the reply while reading as though it scored the\nmodules -- SS-02, with the grader itself as the absent input. The verdict\ngraders beside this one carry the artefact; this one is the report, and now\nsays so.\n\n(Stated in paraphrase deliberately. A pin forbids an `llm` grader from carrying\nphrases that direct the judge at the workspace, and a verbatim quotation of the\nold instruction would trip it -- correctly, since a reader skimming for the\nrule cannot tell a quotation from an instruction either.)",
+          "config": {
+            "criteria": "The fixture's one interesting property is false of any single state and true\nonly over a trace: a claimed slug may be released and re-reserved by a\nDIFFERENT owner, but never while the first owner still holds it.\n\nONE QUESTION ONLY: does the action list the response quotes contain a release\naction -- under any name -- so that the release-then-re-reserve sequence is\nexpressible? Score 0 if it does not, or if no action list is quoted.\n\nDo not also judge whether the quote is present or well-formed. That half moved\nto `quotes-the-action-list.md`, a regex, after three judges split FAIL PASS FAIL\nover a 6,300-character report whose artefact was correct. A judge asked two\nquestions at once answers neither reliably.\n\nTHIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.\nMeasured, not assumed: a probe case whose hook wrote `banana` into SECRET.txt\nand whose criterion was \"score 1 only if SECRET.txt contains banana\" voted\nFAIL FAIL FAIL when the agent never mentioned the file, FAIL FAIL FAIL again\nwhen the agent READ the file but did not quote it, and PASS PASS PASS only when\nthe word appeared in the final response. The judge sees the final text and\nnothing else -- not the file tree, not tool output.\n\nThe previous version of this grader ended by telling the judge to grade the\ngenerated modules rather than the reply. That instruction could never be\nfollowed, so what it scored was the reply while reading as though it scored the\nmodules -- SS-02, with the grader itself as the absent input. The verdict\ngraders beside this one carry the artefact; this one is the report, and now\nsays so.\n\n(Stated in paraphrase deliberately. A pin forbids an `llm` grader from carrying\nphrases that direct the judge at the workspace, and a verbatim quotation of the\nold instruction would trip it -- correctly, since a reader skimming for the\nrule cannot tell a quotation from an instruction either.)",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "quotes-the-action-list",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "Next\\s*==[\\s\\S]{0,800}\\\\\\/",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "the-manifest-is-a-manifest",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/manifest",
+            "exists": true
+          }
+        },
+        {
+          "name": "tlc-explores-the-model",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/checks",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 66,
+            "costUsd": 3.8730075000000004,
+            "judgeCostUsd": 0.004902,
+            "durationSeconds": 639,
+            "startedAt": "2026-09-15T16:07:55.248Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-ELCbJr/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "every-module-parses",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/parses exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "models-the-trace-property",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The spec is in place under `specs/program_model/` and checks clean.\n\n**What I built.** `shortlink.py` is one `Shortener` with three dicts and four public methods, so the model is one action per method and one guard per `raise ShortlinkError`. A refused call is a *disabled* action, not a transition — the program raises and changes nothing. `Blank` does double duty for \"key absent from the dict\" and \"caller passed an empty string\", which is faithful: `if not slug` and the dict lookup are testing the same thing.\n\nThree rules turned out not to be invariants at all — they're false of no single state, so they're `PROPERTIES` over the next-state relation: `OwnershipNeverTransfersInPlace` (the release-then-re-reserve rule), `OnlyTheOwnerReleases`, and `ClaimGrantsToTheReservationHolder`. The last two are the authorization rules; a slug released by a stranger lands in a state indistinguishable from one the owner released, so only the transition tells them apart.\n\n**Results:** `Internal.cfg` — 169 distinct states, depth 6, no error. `HandoffWitness.cfg` — the expected violation, printing ana reserves → claims → releases → bo reserves → claims. Repo tests: 9 passed, 2 skipped (the four fixture tests green).\n\nThree things worth flagging:\n\n- **The scaffold shipped a failing test.** `test_program_model_onboarding.py` read `External.tla` and `testgraph_bindings.yml` unconditionally, contradicting its own docstring and the four-file minimum — it fails on every minimum baseline. I made those two checks skip when the optional layer is absent.\n- **The CLI is broken under `python3`.** `bin/tla-spec-dev` execs `python3`, which is 3.9.6 here, and `scripts/onboard_program_model.py:1138` uses a PEP 701 nested-quote f-string: every subcommand dies with `SyntaxError`. I ran the checkout's script directly under `/opt/homebrew/bin/python3.14`.\n- **TLC needed two sandbox workarounds.** `/usr/bin/java` is the Xcode stub; and `tlc2.tool.fp.FPSet extends java.rmi.server.UnicastRemoteObject`, so every run binds an anonymous RMI port — which this sandbox forbids (`ExportException: Listen failed on port: 0`). I ran TLC through a small launcher installing an `RMISocketFactory` whose server socket never binds, plus `-Djava.io.tmpdir=$TMPDIR`. Both are recorded in `results/negative_controls.md`. I tried to save these toolchain notes to memory but that directory is denied for writing in this session.\n\nThe module's action list, verbatim from `specs/program_model/Internal.tla`:\n\n```tla\nInternalNext ==\n  \\/ \\E s \\in SlugArgs, o \\in OwnerArgs : Reserve(s, o)\n  \\/ \\E s \\in SlugArgs, o \\in Owners, t \\in TargetArgs : Claim(s, o, t)\n  \\/ \\E s \\in SlugArgs, o \\in Owners : Release(s, o)\n  \\/ \\E s \\in SlugArgs : Resolve(s)\n```\n\n**What would have caught me if I'd got it wrong.** Not the passing TLC run — a spec with no actions passes too. I ran seven mutations against the unchanged config (`results/negative_controls.md`): dropping the already-live guard from `Reserve`, the stranger guard from `Claim`, and the ownership guard from `Release` each fire a specific named failure, as do a `Claim` that leaves the reservation behind, a `Claim` that writes `links` but not `slugOwners`, and an added in-place `Transfer`.\n\nThe one that matters is row 7. Deleting `Release` entirely — the documented way to under-model this program — leaves `Internal.cfg` reporting **no error**, because every invariant and property is then vacuously true. Nothing in the main config notices. That is why `HandoffWitness.tla` exists: it runs the same next-state relation with one history variable and asserts a deliberately false invariant, so it must report a violation. With `Release` deleted it goes quiet. A green witness run is the bug report, and that specific gap is what would have caught me."
+              },
+              {
+                "name": "quotes-the-action-list",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched Next\\s*==[\\s\\S]{0,800}\\\\\\/",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "the-manifest-is-a-manifest",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/manifest exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "tlc-explores-the-model",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/checks exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 2,
+    "casesPassed": 2,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}
