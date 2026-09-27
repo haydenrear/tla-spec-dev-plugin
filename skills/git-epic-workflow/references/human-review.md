@@ -339,7 +339,12 @@ Two targets still ship through different doors, but the doors have changed:
   place and publish upstream**. Reach for the third whenever the finding is in a
   skill, a reference page, a validator or a CLI the bundle ships — that is the
   self-improvement loop, and declining to use it turns every recurrence into
-  another deferred row. `skill-manager project sync` without `--checkout` will
+  another deferred row. Accumulate the wave's machinery fixes on one
+  `skill/<ticket>-<unit>` branch and raise the pull request against the unit's
+  trunk as the epic closes: the fix is live in the project home the moment you
+  make it, so this epic benefits immediately, and the PR becomes the record of
+  what the epic taught the bundle. Report it in this section either way —
+  `applied(<commit>)` when it is in the home, and name the PR once it is open. `skill-manager project sync` without `--checkout` will
   not do: it reconciles the projection and leaves you unable to publish. The
   mechanism, the tier model and what `unit publish` refuses when the unit is not
   a checkout are specified in the `skill-manager` skill's
