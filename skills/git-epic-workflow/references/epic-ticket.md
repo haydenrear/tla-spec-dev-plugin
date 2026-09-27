@@ -385,6 +385,9 @@ minimum, record:
 
 ```bash
 # Name the target explicitly, once per target. See the warning below.
+# Add --uv-project DIR when the repo's spec adapters import a package living in
+# a uv project subdirectory; a bare `uv run` cannot see it and collection dies
+# on ModuleNotFoundError before a single test runs.
 tla-spec-dev --spec-root specs run spec-unit-tests --target specs/current
 tla-spec-dev --spec-root specs run spec-unit-tests \
   --target specs/tickets/<stable-ticket-id>/desired
@@ -392,10 +395,24 @@ tla-spec-dev --spec-root specs run spec-unit-tests \
 <test-graph-skill>/scripts/run.py <graph>
 ```
 
-**Do not use `--ticket <id>` as the measurement.** Confirmed at source
-(`SIS-KICKOFF-F-04`): it resolves both targets, **executes only the first**,
-and prints both — so it reports a target it never ran, and a green line covers
-a suite that did not execute. It is the same silent-vacuity shape as a stale
+**Do not use `--ticket <id>` as the measurement.** It resolves both targets,
+prints both, and then runs them in a **fail-fast loop that returns on the first
+non-zero exit** (`run_spec_unit_tests`). So when the first target is red the
+second never executes, nothing in the output says so, and the failures the
+caller reads are the first target's, attributed by the command line to the
+ticket. `SIS-KICKOFF-F-04` phrases this "resolves two targets, executes one",
+which is true but sounds like a resolution bug; the mechanism is the fail-fast
+return, and that is what makes `--target` the remedy.
+
+**A green `--ticket` run is not evidence the defect is gone.** On the success
+path every target does run, and the only line that counts targets is on that
+same path — so "it printed two `running pytest:` lines and said 2 targets"
+is exactly what a working first target looks like, defect intact. Measured
+2026-09-26: a ticket agent reported precisely that and proposed retiring this
+warning; the epic agent relayed it as a stale-guidance finding. Both were
+wrong, and the eval
+`evals/spec-double-2/w-sdc-spec-unit-ticket-runs-only-the-first-target`
+encodes the observed behaviour. Retire this only against a red first target. It is the same silent-vacuity shape as a stale
 pathspec that matches nothing: the negative result is indistinguishable from
 not having looked. `--target` runs exactly what it names, so run it twice and
 say in the PR which targets you ran.

@@ -89,7 +89,12 @@ the rule names — moved, not dropped.
     `skill-manager home close-out`. **The epic agent owns that change
     management.** The declared worktree+home pair is one `skt ticket new`
     command, and you test the resulting PATH, not the exit code
-    (`references/worktree-lifecycle.md`).
+    (`references/worktree-lifecycle.md`). A home only reaches one tier up, so a
+    unit you improved also needs `skill-manager unit publish` — and that needs
+    the unit to be a **git checkout**, which `skill-project.toml` plus
+    `project sync --checkout <unit>` is what produces. Developing the bundle
+    from the repository the epic runs in is a supported door, not a workaround
+    (`references/human-review.md` §3.4).
 11. **The epic owns whether the homes are CURRENT, and checks before
     scheduling.** Copies do not update themselves: run `skt check` in the root
     home and again in the project home, and sync anything behind its merged
