@@ -9,6 +9,7 @@ state, adapters, and validation evidence in sync.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -1090,6 +1091,13 @@ def scaffold_ticket_directory(
         "source": str(source_current),
         "excluded": sorted(skip_project_tests),
         "desired": workflow_tree_seed_paths(source_current, skip_project_tests),
+        # What each seeded path HELD at open, so promotion can tell "the ticket
+        # changed this file" from "project current/ moved underneath the ticket".
+        "desired_sha256": {
+            relative: hashlib.sha256((source_current / relative).read_bytes()).hexdigest()
+            for relative in workflow_tree_seed_paths(source_current, skip_project_tests)
+            if (source_current / relative).is_file()
+        },
         "note": (
             "Paths seeded from project current/ into this ticket workspace. Promotion may "
             "remove a project current/ path only if it appears here and the ticket dropped it; "
