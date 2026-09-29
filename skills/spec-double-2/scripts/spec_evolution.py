@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import hashlib
 import json
 import os
 import re
@@ -1136,13 +1137,15 @@ def validate_equivalent_model_dirs(left_dir: Path, right_dir: Path, *, left_labe
     return errors
 
 
-def merge_tree(src: Path, dst: Path) -> list[dict[str, Any]]:
+def merge_tree(src: Path, dst: Path, skip: set[str] | None = None) -> list[dict[str, Any]]:
     if not src.exists():
         return []
     copied: list[dict[str, Any]] = []
     for source in sorted(path for path in src.rglob("*") if path.is_file()):
         relative = source.relative_to(src)
         if any(part in IGNORED_COPY_NAMES for part in relative.parts):
+            continue
+        if skip and relative.as_posix() in skip:
             continue
         destination = dst / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -1210,6 +1213,65 @@ def load_ticket_seed_manifest(active_dir: Path) -> set[str] | None:
     return {str(item) for item in desired}
 
 
+def load_ticket_seed_digests(active_dir: Path) -> dict[str, str] | None:
+    """sha256 of each path as it was seeded at open, or None when unrecorded.
+
+    Tickets opened before this was recorded return None: promotion then cannot
+    tell a ticket edit from a project ``current/`` change and keeps its old,
+    two-way behaviour.
+    """
+    path = active_dir / "ticket.yaml"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    seed = payload.get("seed_manifest") if isinstance(payload, dict) else None
+    digests = seed.get("desired_sha256") if isinstance(seed, dict) else None
+    if not isinstance(digests, dict):
+        return None
+    return {str(key): str(value) for key, value in digests.items()}
+
+
+def _file_sha256(path: Path) -> str | None:
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+
+
+class PromotionConflict(RuntimeError):
+    """Project current/ and the ticket both changed a seeded path since open."""
+
+
+def three_way_promotion_plan(
+    src: Path, dst: Path, seed: set[str] | None, seed_digests: dict[str, str] | None
+) -> tuple[set[str], list[str]]:
+    """Which ticket files to leave alone, and which paths conflict.
+
+    A ticket workspace is a copy of project ``current/`` taken at open. If
+    another ticket promoted since, a file THIS ticket never touched is stale in
+    its ``desired/``, and copying it back would silently revert the other
+    ticket's work (measured: epic #234, CDC-ISF-040's close deleted
+    CDC-ISF-065's model and reverted CDC-ISF-067's binding owners). So, per
+    seeded path: ticket unchanged -> keep current; current unchanged -> take the
+    ticket; both changed to different bytes -> conflict. A dropped path is only
+    removed when current still holds what was seeded.
+    """
+    keep_current: set[str] = set()
+    conflicts: list[str] = []
+    if seed_digests is None:
+        return keep_current, conflicts
+    for relative, seeded in sorted(seed_digests.items()):
+        ticket = _file_sha256(src / relative)
+        project = _file_sha256(dst / relative)
+        if project == seeded or ticket == project:
+            continue
+        if ticket == seeded:
+            keep_current.add(relative)
+        elif ticket is None:
+            conflicts.append(f"{relative}: the ticket dropped it, but project current/ changed it since open")
+        else:
+            conflicts.append(f"{relative}: changed by the ticket AND in project current/ since open")
+    return keep_current, conflicts
+
+
 def prune_empty_directories(root: Path) -> None:
     if not root.exists():
         return
@@ -1220,7 +1282,9 @@ def prune_empty_directories(root: Path) -> None:
             path.rmdir()
 
 
-def promote_current_tree(src: Path, dst: Path, seed: set[str] | None) -> dict[str, Any]:
+def promote_current_tree(
+    src: Path, dst: Path, seed: set[str] | None, seed_digests: dict[str, str] | None = None
+) -> dict[str, Any]:
     """Promote ticket ``desired/`` onto project ``current/`` without silent loss.
 
     ``dst`` stays a whole-program working copy rather than becoming an
@@ -1235,6 +1299,11 @@ def promote_current_tree(src: Path, dst: Path, seed: set[str] | None) -> dict[st
     Every removal and every preservation is reported so that close output can
     enumerate them. Nothing leaves ``dst`` unannounced.
     """
+    keep_current, conflicts = three_way_promotion_plan(src, dst, seed, seed_digests)
+    if conflicts:
+        raise PromotionConflict(
+            "project current/ changed under this ticket since it was opened; merge by hand, "
+            "then re-run the close:\n  - " + "\n  - ".join(conflicts))
     src_files = tree_relative_files(src)
     dst_files = tree_relative_files(dst)
     unmatched = dst_files - src_files
@@ -1248,6 +1317,8 @@ def promote_current_tree(src: Path, dst: Path, seed: set[str] | None) -> dict[st
         preserved = unmatched - seed
         basis = "seed manifest recorded at open; removing only seeded paths the ticket dropped"
 
+    if seed_digests is not None:
+        removed = {r for r in removed if _file_sha256(dst / r) == seed_digests.get(r)}
     for relative in sorted(removed):
         target = dst / relative
         if target.is_file():
@@ -1263,7 +1334,8 @@ def promote_current_tree(src: Path, dst: Path, seed: set[str] | None) -> dict[st
         "seed_recorded": seed is not None,
         "removed": sorted(removed),
         "preserved": sorted(preserved),
-        "files": merge_tree(src, dst),
+        "kept_current": sorted(keep_current),
+        "files": merge_tree(src, dst, skip=keep_current),
     }
 
 
@@ -1273,6 +1345,7 @@ def promote_ticket_outputs(active_dir: Path, specs_dir: Path) -> dict[str, Any]:
             active_dir / "desired",
             specs_dir / "current",
             load_ticket_seed_manifest(active_dir),
+            load_ticket_seed_digests(active_dir),
         )
     ]
     for name in ("testgraph", "test_graph"):
@@ -2066,6 +2139,17 @@ def create_ticket_history_entry(
     entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
+    # Refuse a three-way conflict BEFORE anything is written (the ledger and the
+    # history entry below), so a refused close can simply be re-run after a merge.
+    if active_dir.exists() and promote_current:
+        _kept, _conflicts = three_way_promotion_plan(
+            active_dir / "desired", specs_dir / "current",
+            load_ticket_seed_manifest(active_dir), load_ticket_seed_digests(active_dir))
+        if _conflicts:
+            raise SystemExit(
+                "ERROR: project current/ changed under this ticket since it was opened; merge by hand "
+                "into the ticket desired/ (and current/), then re-run the close:\n  - "
+                + "\n  - ".join(_conflicts))
 
     # MF-019: the ledger measures and records every close; it is advisory and
     # never refuses (record_complexity_ledger). When the ticket workdir is
