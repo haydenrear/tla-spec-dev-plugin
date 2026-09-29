@@ -246,7 +246,7 @@ inclusion: *if reversing this later needs another ticket, it belongs here.*
 | skipped, xfailed, or quarantined tests | `git diff "$base..$tip" -- '*test*' \| grep -nE '^\+.*(skip\|xfail\|Disabled\|\.only)'` |
 | a REQUIRED matrix entry downgraded to `N/A` | diff each assignment's `validation` block against its canonical plan entry |
 | a weakened invariant or a dropped TLC property | `git diff "$base..$tip" -- '*.tla' '*.cfg'` |
-| `wt close --force`, or a `home close-out` blocker cleared with the wrong remedy | the close-out verdict line in each ticket PR body |
+| `wt close --force` over a blocker that was not custody-only, or a `home close-out` blocker cleared with the wrong remedy | the close-out verdict line in each ticket PR body |
 | out-of-scope fixes made inline | backlog entries with `disposition: fixed-inline` |
 | a ticket over its deferral budget | count backlog entries per `found_by` against `deferment_policy.budget` |
 | a goal target edited after dispatch | `git log -p "$base..$tip" -- specs/desired_program_model/ticket_plan.yaml` over the `epic_goals` block |

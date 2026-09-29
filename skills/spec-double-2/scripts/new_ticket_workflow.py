@@ -895,6 +895,8 @@ tickets:
         - replace.with.graph.node
     acceptance:
       commands:
+        # A wrapper that saves transcripts derives its output dir from the
+        # target model; checking desired/ never writes current's transcripts.
         - python scripts/run_tlc_or_project_specific_check.py
       assertions:
         - The production slice refines to the current model.

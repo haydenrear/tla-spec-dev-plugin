@@ -68,7 +68,15 @@ All take `--spec-root specs` (or wherever the repository keeps its specs).
 | `python scripts/close_tickets.py` | Workflow close: promotes into `program_model`, removes the workflow dirs. |
 
 `scripts/run_tlc.sh <tla> <cfg>` runs TLC from the spec directory with the
-`tlc_seconds` budget as an external timeout.
+`tlc_seconds` budget as an external timeout. It writes only to stdout.
+
+**A TLC transcript belongs to the model it checks.** A project wrapper that
+saves transcripts must derive the output directory from the target: the project
+`current` model's transcripts may be tracked evidence, and checking a ticket's
+`desired/` must never write them — it would replace `current`'s committed
+evidence with a model that is not yet current. Write a ticket's transcripts
+under that ticket (`specs/tickets/<id>/results/tlc/`) or its evidence root, and
+make an explicit `--out` the only way to write anywhere else.
 
 ## The minimum baseline
 

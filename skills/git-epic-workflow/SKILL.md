@@ -180,8 +180,11 @@ keys before dispatch, and validate each assignment against its plan entry.
   architectural changes it recommends. Both re-enter as tickets.
 - Do not remove a worktree before the default-branch merge is verified, or one
   whose home is unreconciled or whose tree still holds uncommitted, stashed,
-  unpushed or epic-unmerged work. Never `rm -rf` a worktree, never reach for
-  `wt close --force` to finish faster, and do not leave the sweep undone.
+  unpushed or epic-unmerged work. Never `rm -rf` a worktree, and do not leave
+  the sweep undone. A close-out refusal whose only blockers are **custody** — a
+  unit materialized as a git checkout, or work already pushed to its own repo —
+  loses nothing: close with `--force` and record the verdict line (owner policy,
+  `references/worktree-lifecycle.md` §7).
 
 ## Role map
 

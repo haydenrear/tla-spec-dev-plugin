@@ -108,7 +108,10 @@ result. Do not encode the cadence in `mode`.
   `skill-manager home close-out --home <worktree>/.skill-manager --into <main-working-tree>/.skill-manager`
   (the **main working tree's** home, not `$PWD`'s nearest git toplevel, which
   from inside your worktree names your own home)
-  and state the verdict in the PR body, then list every unit you changed and why
+  and state the verdict in the PR body. `home close-out` only reads; always run
+  it. A refusal whose only blockers are custody (a unit materialized as a git
+  checkout) is expected and is not yours to clear — record it as
+  `custody only` and continue. Then list every unit you changed and why
   under `## Review input` → *Machinery friction*. You may
   `skill-manager unit publish <unit> --ticket <ticket>` your own edits — that
   reaches the unit's own repository and contends with nothing. Do **not** run
