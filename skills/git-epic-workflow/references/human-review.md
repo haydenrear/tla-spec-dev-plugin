@@ -246,7 +246,7 @@ inclusion: *if reversing this later needs another ticket, it belongs here.*
 | skipped, xfailed, or quarantined tests | `git diff "$base..$tip" -- '*test*' \| grep -nE '^\+.*(skip\|xfail\|Disabled\|\.only)'` |
 | a REQUIRED matrix entry downgraded to `N/A` | diff each assignment's `validation` block against its canonical plan entry |
 | a weakened invariant or a dropped TLC property | `git diff "$base..$tip" -- '*.tla' '*.cfg'` |
-| `wt close --force`, or a `home close-out` blocker cleared with the wrong remedy | the close-out verdict line in each ticket PR body |
+| `wt close --force` over a blocker that was not custody-only, or a `home close-out` blocker cleared with the wrong remedy | the close-out verdict line in each ticket PR body |
 | out-of-scope fixes made inline | backlog entries with `disposition: fixed-inline` |
 | a ticket over its deferral budget | count backlog entries per `found_by` against `deferment_policy.budget` |
 | a goal target edited after dispatch | `git log -p "$base..$tip" -- specs/desired_program_model/ticket_plan.yaml` over the `epic_goals` block |
@@ -303,10 +303,52 @@ Two targets still ship through different doors, but the doors have changed:
   schema, harnesses, and instruments. **Where those files are tracked in the
   repository the epic is running in, the epic agent applies the change here,
   in the epic worktree, and says so below.** Where they are not — a unit
-  outside the bundle, `skt`, another repository — the old route is still the
-  only one: `skill-manager unit publish`, or `home sync --merge` to reach one
+  outside the bundle, `skt`, another repository — the route is
+  `skill-manager unit publish`, or `home sync --merge` to reach one
   tier up, and it dies with the worktree otherwise (SKILL.md rule 10,
   finalize.md §1b).
+
+  **`unit publish` needs the unit to be a git checkout, and a projected unit is
+  not one.** This is the step the paragraph above used to omit, and the omission
+  has a measured cost: an epic agent read "reaches nothing by being merged",
+  concluded no PR could fix a CLI defect it had just diagnosed, and filed a
+  recommendation instead of a fix. The unit was in the project home the whole
+  time. From the repository the epic runs in:
+
+  ```bash
+  # 1. Declare the unit in the checkout's own manifest. Git coords only; the
+  #    coord names the REPOSITORY, not the installed unit.
+  #      [plugins.tla-spec-dev]
+  #      source = "github:haydenrear/tla-spec-dev-plugin"
+  # 2. Point at the project home FIRST -- resolve writes whatever
+  #    SKILL_MANAGER_HOME names, and before a local home exists that is the
+  #    operator's global one.
+  export SKILL_MANAGER_HOME=<repo>/.skill-manager
+  skill-manager project register --project-dir <repo>
+  skill-manager project resolve  --project-dir <repo>
+  # 3. Materialize it as its OWN git checkout, which is what makes step 5 work.
+  skill-manager project sync --project-dir <repo> --checkout <unit>
+  # 4. Edit under <repo>/.skill-manager/plugins/<unit>/ (or skills/<unit>/) and
+  #    prove the fix against this repository, before/after.
+  # 5. Ship it to every project on every machine.
+  skill-manager unit publish <unit> --child-home <repo>/.skill-manager --ticket <T>
+  ```
+
+  So the epic agent has three doors, not two: a tracked repository file, a
+  gitignored home it can only sync one tier, and **a unit it can develop in
+  place and publish upstream**. Reach for the third whenever the finding is in a
+  skill, a reference page, a validator or a CLI the bundle ships — that is the
+  self-improvement loop, and declining to use it turns every recurrence into
+  another deferred row. Accumulate the wave's machinery fixes on one
+  `skill/<ticket>-<unit>` branch and raise the pull request against the unit's
+  trunk as the epic closes: the fix is live in the project home the moment you
+  make it, so this epic benefits immediately, and the PR becomes the record of
+  what the epic taught the bundle. Report it in this section either way —
+  `applied(<commit>)` when it is in the home, and name the PR once it is open. `skill-manager project sync` without `--checkout` will
+  not do: it reconciles the projection and leaves you unable to publish. The
+  mechanism, the tier model and what `unit publish` refuses when the unit is not
+  a checkout are specified in the `skill-manager` skill's
+  `references/projects.md`.
 
 That split is why this section belongs at a wave boundary rather than at
 finalization: the ticket worktrees are still standing and their authors are

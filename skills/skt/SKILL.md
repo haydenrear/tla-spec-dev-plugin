@@ -144,6 +144,63 @@ and `skt ticket sweep <epic>` retires them in one safety-gated pass — never a
 hand-rolled `git worktree remove --force` loop. The gates, the dry run, and what
 sweep refuses to remove are in `references/worktree-sweep.md`.
 
+## Developing this plugin from the repository you are standing in
+
+**This is the supported loop, not a workaround.** A bundled unit is not
+read-only, and "it lives in a gitignored home so nothing I do reaches anyone"
+is the wrong conclusion — it is the conclusion that turns every recurrence of a
+defect into another deferred backlog row. Measured on 2026-09-27: an epic agent
+diagnosed a CLI defect in this bundle, read that homes reach nothing by being
+merged, and filed a recommendation instead of a fix. The unit was in the
+project home the whole time.
+
+The point of declaring the plugin in a checkout's `skill-project.toml` is that
+`project sync --checkout` makes it **a real git checkout of its own repository**
+inside `<repo>/.skill-manager/plugins/<plugin>/`, with its true `origin`. You
+edit it there, prove the fix against the repository that exposed it, and ship it.
+
+```bash
+# 1. Declare it. Git coords only; the coord names the REPOSITORY, not the unit.
+#      [plugins.tla-spec-dev]
+#      source = "github:haydenrear/tla-spec-dev-plugin"
+# 2. Point at the project home FIRST. resolve writes whatever
+#    SKILL_MANAGER_HOME names, and before a local home exists that is the
+#    operator's global one.
+export SKILL_MANAGER_HOME=<repo>/.skill-manager
+skill-manager project register --project-dir <repo>
+skill-manager project resolve  --project-dir <repo>
+# 3. The step that makes publishing possible at all.
+skill-manager project sync --project-dir <repo> --checkout tla-spec-dev
+# 4. Edit under <repo>/.skill-manager/plugins/tla-spec-dev/, and RUN ITS TESTS:
+#      uv run --with pytest --with pyyaml -m pytest tests -q
+#    Pre-existing failures are common here; prove yours are not new by
+#    re-running the failing set with your changes stashed.
+# 5. Ship it.
+skill-manager unit publish tla-spec-dev --child-home <repo>/.skill-manager --ticket <T>
+```
+
+**When to publish, inside an epic.** Accumulate the machinery fixes on one
+`skill/<ticket>-<unit>` branch as the epic finds them, and open or update the
+pull request against the plugin's trunk. The natural cadence is one PR per epic,
+raised when the epic closes — the fixes are already live in the project home
+from the moment you make them, so the epic gets the benefit immediately and the
+PR is the record of what the epic taught the bundle. Do not sit on a fix locally
+without publishing it at all: a home reaches exactly one tier up, so an unpublished
+improvement never reaches a sibling project, and dies with the checkout.
+
+Two consequences worth holding on to:
+
+- **`unit publish` needs a git checkout.** Without step 3 the unit is a
+  projection and publish refuses — with a message that reads the same as
+  "you typed the name wrong", so run `skill-manager list` before believing it.
+- **Publishing moves the store off the trunk.** After publish, `skt check` may
+  say the store is ahead of the remote tip while the PR is open. That is the PR,
+  not drift, and `skt check`'s "unpushed commit" hint is a false lead once you
+  have confirmed the branch is on the remote.
+
+Full mechanism, the tier model, and what `unit publish` refuses: the
+`skill-manager` skill's `references/projects.md`.
+
 ## The three-tier home model, in one table
 
 | Tier | Path | Updated by | Your obligation |
