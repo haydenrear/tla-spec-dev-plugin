@@ -202,18 +202,15 @@ def test_a_bare_binding_resolves_to_the_TICKET_view_on_the_close_gate_path(tmp_p
         sys.modules.update(saved_modules)
 
 
-def test_opening_a_ticket_un_roots_a_binding_map_it_copies(tmp_path, capsys) -> None:
-    """The fix has to reach projects that were onboarded before it.
+def test_opening_a_ticket_copies_the_project_binding_coordinates_verbatim(tmp_path, capsys) -> None:
+    """DEF-507 (commit-diff-context-parent#388, owner decision 2026-10-04).
 
-    Correcting the scaffold template only helps NEW projects. `open ticket`
-    copies the baseline's binding maps verbatim, so every existing project keeps
-    `specs.program_model.adapters:X` in its ticket views and keeps the hole.
-    `close_tickets.promote_semantic_files` already re-roots on the way out; this
-    is the symmetric move on the way in, and it strips to BARE because that is
-    the form `reroot_module_prefixes` itself calls the one that cannot rot.
-
-    It must also be LOUD: a silent rewrite of a file the operator is about to
-    edit is worse than the defect it fixes.
+    `open ticket` used to strip `specs.program_model.adapters:X` to bare
+    `adapters:X` in the ticket copy (G-10). `close ticket` then promoted the
+    bare form into `specs/current`, and a project whose spec-unit requires the
+    qualified form went red for the whole epic on one unnoticed close -- twice
+    in commit-diff-context-parent. The project's coordinates are the project's:
+    the ticket copy carries them byte for byte, qualified or bare.
     """
     sys.path.insert(0, str(REPO_ROOT))
     try:
@@ -225,25 +222,26 @@ def test_opening_a_ticket_un_roots_a_binding_map_it_copies(tmp_path, capsys) -> 
 
     src, dst = tmp_path / "program_model", tmp_path / "ticket_current"
     src.mkdir()
-    (src / "case_adapters.toml").write_text(
+    qualified = (
         '[adapters.Reserve]\n'
         'adapter = "specs.program_model.adapters:ReserveInternalAdapter"\n'
-        'kind = "shortlink-internal"\n',
-        encoding="utf-8",
+        'kind = "shortlink-internal"\n'
     )
+    bindings = (
+        "bindings:\n"
+        "  - adapter: specs.current.adapters:IndexPipelineModelAdapter\n"
+        "  - adapter: adapters:BareAdapter\n"
+    )
+    (src / "case_adapters.toml").write_text(qualified, encoding="utf-8")
+    (src / "testgraph_bindings.yml").write_text(bindings, encoding="utf-8")
     (src / "Internal.tla").write_text("---- MODULE Internal ----\n====\n", encoding="utf-8")
 
     copy_baseline_tree(src, dst, force=False, dry_run=False)
 
-    copied = (dst / "case_adapters.toml").read_text(encoding="utf-8")
-    assert "specs.program_model.adapters:" not in copied, (
-        "the ticket copy still names the baseline's adapters module, so the "
-        "ticket's own adapters.py will not be the one that runs"
+    assert (dst / "case_adapters.toml").read_text(encoding="utf-8") == qualified, (
+        "the ticket copy rewrote the project's adapter coordinates; close ticket "
+        "would promote the rewritten form over the project's own"
     )
-    assert 'adapter = "adapters:ReserveInternalAdapter"' in copied
-    assert "un-rooted 1 view-qualified module reference" in capsys.readouterr().out, (
-        "the rewrite happened silently; an operator about to edit this file is "
-        "not told its module references changed"
-    )
-    # A non-binding file is copied untouched.
+    assert (dst / "testgraph_bindings.yml").read_text(encoding="utf-8") == bindings
+    assert "un-rooted" not in capsys.readouterr().out
     assert (dst / "Internal.tla").read_text(encoding="utf-8").startswith("---- MODULE")
