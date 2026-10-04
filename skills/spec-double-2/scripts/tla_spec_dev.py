@@ -360,6 +360,19 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
         env["PYTHONPATH"] = os.pathsep.join(part for part in python_path if part)
         return env
 
+    # A spec dir in a user repo is usually NOT importable from a bare
+    # interpreter: its adapters import the repository's own package, which lives
+    # in that repo's uv project (`ml/` here, not the repo root). The historical
+    # command was a fixed `uv run --with pytest`, with no project and no knob, so
+    # every such repo hit ModuleNotFoundError and worked around it per-invocation
+    # with ad-hoc PYTHONPATH and UV_PYTHON. Name the project instead. Default is
+    # unchanged, so this is additive.
+    uv_project = getattr(args, "uv_project", None) or base_env.get("TLA_SPEC_DEV_UV_PROJECT") or ""
+    uv_project_args = ["--project", uv_project] if uv_project else []
+    uv_with_args: list[str] = []
+    for dependency in getattr(args, "uv_with", None) or ["pytest"]:
+        uv_with_args.extend(["--with", dependency])
+
     cases_dirs = spec_unit_cases_dirs(args, specs_dir)
     commands: list[tuple[str, list[str], dict[str, str]]] = []
     empty_targets: list[Path] = []
@@ -376,8 +389,8 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
                     [
                         "uv",
                         "run",
-                        "--with",
-                        "pytest",
+                        *uv_project_args,
+                        *uv_with_args,
                         "-m",
                         "pytest",
                         str(tests_dir),
@@ -631,6 +644,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--fuzz-iteration",
         type=int,
         help="Replay exactly this deterministic effect-provider iteration.",
+    )
+    run_spec_units.add_argument(
+        "--uv-project",
+        help=(
+            "Directory of the uv project whose environment the spec tests need, "
+            "passed through as `uv run --project DIR`. Falls back to "
+            "$TLA_SPEC_DEV_UV_PROJECT. Omit for the historical bare `uv run`, "
+            "which cannot import a repository package that lives in a project "
+            "subdirectory."
+        ),
+    )
+    run_spec_units.add_argument(
+        "--uv-with",
+        action="append",
+        help=(
+            "Dependency for `uv run --with`. May be repeated. Defaults to "
+            "pytest alone; pass it again when a repo's spec tests also need, "
+            "for example, pyyaml."
+        ),
     )
     run_spec_units.add_argument(
         "--pytest-arg",

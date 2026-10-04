@@ -89,7 +89,12 @@ the rule names — moved, not dropped.
     `skill-manager home close-out`. **The epic agent owns that change
     management.** The declared worktree+home pair is one `skt ticket new`
     command, and you test the resulting PATH, not the exit code
-    (`references/worktree-lifecycle.md`).
+    (`references/worktree-lifecycle.md`). A home only reaches one tier up, so a
+    unit you improved also needs `skill-manager unit publish` — and that needs
+    the unit to be a **git checkout**, which `skill-project.toml` plus
+    `project sync --checkout <unit>` is what produces. Developing the bundle
+    from the repository the epic runs in is a supported door, not a workaround
+    (`references/human-review.md` §3.4).
 11. **The epic owns whether the homes are CURRENT, and checks before
     scheduling.** Copies do not update themselves: run `skt check` in the root
     home and again in the project home, and sync anything behind its merged
@@ -175,8 +180,11 @@ keys before dispatch, and validate each assignment against its plan entry.
   architectural changes it recommends. Both re-enter as tickets.
 - Do not remove a worktree before the default-branch merge is verified, or one
   whose home is unreconciled or whose tree still holds uncommitted, stashed,
-  unpushed or epic-unmerged work. Never `rm -rf` a worktree, never reach for
-  `wt close --force` to finish faster, and do not leave the sweep undone.
+  unpushed or epic-unmerged work. Never `rm -rf` a worktree, and do not leave
+  the sweep undone. A close-out refusal whose only blockers are **custody** — a
+  unit materialized as a git checkout, or work already pushed to its own repo —
+  loses nothing: close with `--force` and record the verdict line (owner policy,
+  `references/worktree-lifecycle.md` §7).
 
 ## Role map
 
