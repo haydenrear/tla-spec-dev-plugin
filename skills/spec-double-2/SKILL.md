@@ -95,7 +95,16 @@ The TLA+ subset is `references/tla_profile.md`.
 4. Mark the ticket `done` in `ticket_plan.yaml` and
    `close ticket <id> --summary "<what landed>" --result <evidence>`. The close
    promotes `desired/` into `current`, snapshots into `specs/.history/`, and
-   records the complexity ledger. A close printing
+   records the complexity ledger. If project `current` moved under the ticket
+   since it opened, the close **carries the ticket itself**: per file both sides
+   changed, a three-way `git merge-file` (base: the committed seed blob; ours:
+   project `current`; theirs: the ticket's model), then spec-unit on the merged
+   model, all before anything is written. A conflict, a seed blob no commit
+   holds, or a spec-unit failure refuses by name and leaves the tree as it was.
+   Resolve the named hunks in the ticket model and re-run the close. **Never copy
+   project `current` over the ticket's model, and never re-record seed digests
+   by hand** — that is how a close dropped a ticket's invariants
+   (`references/spec_evolution.md`, "When project current moved"). A close printing
    `WARNING: complexity ledger ... rejected` **has closed the ticket** — do not
    run it again; a rerun refuses to overwrite the entry it just wrote.
 5. Before closing, **attribute what the ticket hit**: for each regression or

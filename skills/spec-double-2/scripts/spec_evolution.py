@@ -1272,6 +1272,306 @@ def three_way_promotion_plan(
     return keep_current, conflicts
 
 
+# --- Three-way close carry ---------------------------------------------------
+#
+# Measured: commit-diff-context-parent #462, MS-015. Project current/ moved
+# under the ticket (another ticket promoted), the ticket had CHANGED lines of
+# the same file, and `three_way_promotion_plan` refused the close as a
+# conflict. The only workaround the epic agent had was to copy specs/current
+# over the ticket's model and re-record the seed digests by hand -- which
+# silently dropped MS-015's TLA invariants while its spec test was promoted
+# (tip tlaSpecStatic red). 16 such hand carries over three epics, 2 shipped a
+# regression. The close now carries the ticket forward itself, per file, with a
+# real three-way merge whose base is the exact bytes the ticket was seeded with.
+
+#: What `git merge-file` calls each side in a conflict hunk.
+CARRY_LABELS = ("project current/", "seed (ticket open)", "ticket model")
+
+
+def _git_toplevel(path: Path) -> Path | None:
+    probe = path if path.is_dir() else path.parent
+    while not probe.exists() and probe != probe.parent:
+        probe = probe.parent
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], cwd=probe, capture_output=True, text=True, check=False
+    )
+    if result.returncode != 0:
+        return None
+    return Path(result.stdout.strip()).resolve()
+
+
+def _cat_file_batch(toplevel: Path, objects: list[str]) -> list[tuple[str, bytes]]:
+    """(object name, blob bytes) for every object that exists, in order."""
+    if not objects:
+        return []
+    result = subprocess.run(
+        ["git", "cat-file", "--batch"],
+        cwd=toplevel,
+        input=("\n".join(objects) + "\n").encode(),
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return []
+    out = result.stdout
+    found: list[tuple[str, bytes]] = []
+    position = 0
+    for name in objects:
+        end = out.index(b"\n", position)
+        header = out[position:end].split()
+        position = end + 1
+        if len(header) < 3 or header[1] != b"blob":
+            # "<name> missing" (the path did not exist at that commit), or not a blob.
+            if len(header) >= 3:
+                position += int(header[2]) + 1
+            continue
+        size = int(header[2])
+        found.append((name, out[position:position + size]))
+        position += size + 1
+    return found
+
+
+def find_seed_blob(candidates: list[Path], digest: str) -> tuple[bytes, str] | None:
+    """The committed bytes whose sha256 is ``digest``, and the commit holding them.
+
+    ``candidates`` are the working-tree paths the seed could have been copied
+    from (``specs/current/<file>``, and ``specs/program_model/<file>`` for a
+    ticket opened between workflows). Every commit in the repository's history
+    that touched one of them is searched; None when none holds the digest.
+    """
+    for candidate in candidates:
+        toplevel = _git_toplevel(candidate)
+        if toplevel is None:
+            continue
+        try:
+            relative = candidate.resolve().relative_to(toplevel).as_posix()
+        except ValueError:
+            continue
+        log = subprocess.run(
+            ["git", "log", "--all", "--full-history", "--format=%H", "--", relative],
+            cwd=toplevel, capture_output=True, text=True, check=False,
+        )
+        commits = [line for line in log.stdout.split() if line] if log.returncode == 0 else []
+        objects = [f"{commit}:{relative}" for commit in commits]
+        # The index too: a seed staged but never committed is still the seed.
+        objects.append(f":{relative}")
+        for name, blob in _cat_file_batch(toplevel, objects):
+            if hashlib.sha256(blob).hexdigest() == digest:
+                return blob, name.split(":", 1)[0] or "index"
+    return None
+
+
+def _merge_file(ours: bytes, base: bytes, theirs: bytes) -> tuple[int, bytes]:
+    """`git merge-file --diff3 -p`: (number of conflicts, merged bytes)."""
+    with tempfile.TemporaryDirectory(prefix="tla-spec-dev-carry-") as scratch:
+        paths = []
+        for name, data in (("ours", ours), ("base", base), ("theirs", theirs)):
+            path = Path(scratch) / name
+            path.write_bytes(data)
+            paths.append(str(path))
+        labels = [arg for label in CARRY_LABELS for arg in ("-L", label)]
+        result = subprocess.run(
+            ["git", "merge-file", "-p", "--diff3", *labels, *paths], capture_output=True, check=False
+        )
+    if result.returncode < 0 or result.returncode > 127:
+        raise SystemExit(
+            "ERROR: three-way close carry: `git merge-file` failed: "
+            + result.stderr.decode(errors="replace").strip())
+    return result.returncode, result.stdout
+
+
+def conflict_hunks(merged: bytes) -> list[str]:
+    """One line per conflict hunk in ``merged``: where it is and what each side holds."""
+    hunks: list[str] = []
+    side: str | None = None
+    start = 0
+    ours: list[str] = []
+    theirs: list[str] = []
+
+    def brief(lines: list[str]) -> str:
+        shown = " | ".join(line.strip() for line in lines[:3]) or "(nothing)"
+        return shown + (f" | ... (+{len(lines) - 3} lines)" if len(lines) > 3 else "")
+
+    for number, raw in enumerate(merged.decode(errors="replace").splitlines(), start=1):
+        if raw.startswith("<<<<<<< "):
+            side, start, ours, theirs = "ours", number, [], []
+        elif raw.startswith("||||||| ") and side == "ours":
+            side = "base"
+        elif raw == "=======" and side in ("ours", "base"):
+            side = "theirs"
+        elif raw.startswith(">>>>>>> ") and side == "theirs":
+            hunks.append(
+                f"hunk at merged line {start}: {CARRY_LABELS[0]} has [{brief(ours)}]; "
+                f"{CARRY_LABELS[2]} has [{brief(theirs)}]")
+            side = None
+        elif side == "ours":
+            ours.append(raw)
+        elif side == "theirs":
+            theirs.append(raw)
+    return hunks
+
+
+def default_carry_validator(repo_root: Path, specs_dir: Path, model_dir: Path) -> tuple[int, str]:
+    """Run `tla-spec-dev run spec-unit-tests` on the carried ticket model."""
+    command = [
+        sys.executable,
+        str(Path(__file__).resolve().parent / "tla_spec_dev.py"),
+        "--repo-root", str(repo_root),
+        "--spec-root", str(specs_dir),
+        "run", "spec-unit-tests",
+        "--target", str(model_dir),
+    ]
+    result = subprocess.run(command, cwd=repo_root, capture_output=True, text=True, check=False)
+    return result.returncode, " ".join(shlex.quote(part) for part in command) + "\n" + result.stdout + result.stderr
+
+
+def three_way_carry(
+    *,
+    repo_root: Path,
+    specs_dir: Path,
+    active_dir: Path,
+    validator: Any = None,
+) -> dict[str, Any] | None:
+    """Carry a ticket over project ``current/`` changes made since it opened.
+
+    For every seeded file that BOTH the ticket and project ``current/`` changed
+    since open, merge three ways with ``git merge-file``:
+
+    - base: the seed blob, the committed ``specs/current/<file>`` whose sha256
+      is the digest ``open ticket`` recorded (refused by name if no commit
+      holds it);
+    - ours: project ``current/`` now;
+    - theirs: the ticket's model (``desired/``, and ``current/`` when the
+      ticket keeps both).
+
+    A clean merge is written to the ticket and the seed digest is re-recorded
+    as what project ``current/`` holds now, so promotion takes the merged file.
+    Any conflict refuses with every file and hunk named, before anything is
+    written. Then spec-unit runs on the carried ticket model; a failure restores
+    every byte the carry wrote and refuses. Project ``current/`` is never
+    copied over the ticket's model.
+
+    Returns None when there is nothing to carry (no digests recorded, or no
+    file changed on both sides).
+    """
+    seed_digests = load_ticket_seed_digests(active_dir)
+    if seed_digests is None:
+        return None
+    project = specs_dir / "current"
+    ticket_models = [active_dir / "desired"]
+    if (active_dir / "current").is_dir():
+        ticket_models.append(active_dir / "current")
+
+    to_carry: list[tuple[str, str]] = []
+    for relative, seeded in sorted(seed_digests.items()):
+        ticket = _file_sha256(active_dir / "desired" / relative)
+        now = _file_sha256(project / relative)
+        if now == seeded or ticket == now or ticket == seeded:
+            continue
+        if ticket is None or now is None:
+            # A deletion on either side has no lines to merge; the promotion
+            # plan refuses it by name.
+            continue
+        to_carry.append((relative, seeded))
+    if not to_carry:
+        return None
+
+    seed_source = None
+    try:
+        seed_source = json.loads((active_dir / "ticket.yaml").read_text(encoding="utf-8"))["seed_manifest"].get("source")
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        seed_source = None
+
+    refusals: list[str] = []
+    writes: dict[Path, bytes] = {}
+    files: list[dict[str, Any]] = []
+    for relative, seeded in to_carry:
+        candidates = [project / relative, specs_dir / "program_model" / relative]
+        if seed_source:
+            source = Path(seed_source)
+            source = source if source.is_absolute() else repo_root / source
+            if source / relative not in candidates:
+                candidates.append(source / relative)
+        found = find_seed_blob(candidates, seeded)
+        if found is None:
+            refusals.append(
+                f"{relative}: seed blob not found -- no commit (or the index) holds "
+                f"{rel(project / relative)} with the sha256 recorded at open ({seeded}); "
+                "the base of the three-way merge is unknown, so nothing can be carried. "
+                "Merge this file by hand into the ticket model and set its "
+                "seed_manifest.desired_sha256 to the sha256 of project current/ now.")
+            continue
+        base, commit = found
+        ours = (project / relative).read_bytes()
+        for model in ticket_models:
+            target = model / relative
+            if not target.is_file():
+                continue
+            conflicts, merged = _merge_file(ours, base, target.read_bytes())
+            if conflicts:
+                hunks = conflict_hunks(merged)
+                refusals.append(
+                    f"{rel(target)}: {conflicts} conflicting hunk(s) against project current/ "
+                    f"(seed from {commit[:12]}):\n      " + "\n      ".join(hunks))
+                continue
+            writes[target] = merged
+            files.append({
+                "path": relative,
+                "ticket_file": rel(target),
+                "seed_sha256": seeded,
+                "seed_commit": commit,
+                "project_current_sha256": hashlib.sha256(ours).hexdigest(),
+                "merged_sha256": hashlib.sha256(merged).hexdigest(),
+            })
+    if refusals:
+        raise SystemExit(
+            "ERROR: project current/ changed under this ticket since it was opened, and the "
+            "three-way carry (base: the seed blob, ours: project current/, theirs: the ticket) "
+            "refused; nothing was written. Resolve these in the ticket model, then re-run the "
+            "close. Never copy project current/ over the ticket model -- that drops the "
+            "ticket's own changes:\n  - " + "\n  - ".join(refusals))
+
+    ticket_yaml = active_dir / "ticket.yaml"
+    backup: dict[Path, bytes] = {path: path.read_bytes() for path in writes}
+    backup[ticket_yaml] = ticket_yaml.read_bytes()
+    payload = json.loads(backup[ticket_yaml].decode("utf-8"))
+    seed = payload["seed_manifest"]
+    rebased = list(seed.get("rebased") or [])
+    for relative, seeded in to_carry:
+        now = _file_sha256(project / relative)
+        seed["desired_sha256"][relative] = now
+        rebased.append({"path": relative, "from_sha256": seeded, "to_sha256": now, "by": "close ticket three-way carry"})
+    seed["rebased"] = rebased
+
+    model_dir = active_dir / "current" if (active_dir / "current").is_dir() else active_dir / "desired"
+    run = validator or default_carry_validator
+    try:
+        for path, data in writes.items():
+            path.write_bytes(data)
+        ticket_yaml.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        returncode, output = run(repo_root, specs_dir, model_dir)
+    except BaseException:
+        for path, data in backup.items():
+            path.write_bytes(data)
+        raise
+    if returncode != 0:
+        for path, data in backup.items():
+            path.write_bytes(data)
+        tail = "\n".join(output.strip().splitlines()[-25:])
+        raise SystemExit(
+            f"ERROR: the three-way carry merged cleanly, but spec-unit on {rel(model_dir)} failed "
+            f"(rc={returncode}) on the merged model; the ticket was restored byte for byte and "
+            "nothing was closed. Carried: " + ", ".join(sorted({f['path'] for f in files}))
+            + "\n" + tail)
+    for path in writes:
+        print(f"three-way carry: merged project current/ changes into {rel(path)}")
+    return {
+        "performed": True,
+        "files": files,
+        "validation": {"command": "tla-spec-dev run spec-unit-tests", "target": rel(model_dir), "returncode": returncode},
+    }
+
+
 def prune_empty_directories(root: Path) -> None:
     if not root.exists():
         return
@@ -1302,7 +1602,8 @@ def promote_current_tree(
     keep_current, conflicts = three_way_promotion_plan(src, dst, seed, seed_digests)
     if conflicts:
         raise PromotionConflict(
-            "project current/ changed under this ticket since it was opened; merge by hand, "
+            "project current/ changed under this ticket since it was opened and was not carried "
+            "(`close ticket` carries it three ways first); resolve it in the ticket model, "
             "then re-run the close:\n  - " + "\n  - ".join(conflicts))
     src_files = tree_relative_files(src)
     dst_files = tree_relative_files(dst)
@@ -2055,8 +2356,16 @@ def create_ticket_history_entry(
     accept_new: bool = False,
     emit_feedback: bool = True,
     force: bool = False,
+    carry_validator: Any = None,
 ) -> HistoryEntryResult:
     """Close one ticket.
+
+    When project current/ changed under the ticket since it opened, the close
+    first carries the ticket over those changes with a per-file three-way merge
+    (`three_way_carry`) and re-runs spec-unit on the merged model; a conflict,
+    a missing seed blob, or a spec-unit failure refuses with nothing written.
+    `carry_validator(repo_root, specs_dir, model_dir) -> (rc, output)` replaces
+    the spec-unit run (tests only).
 
     Under `force` (or SKILL_GATES=off) the status, receipt, and convergence
     refusals print one warning line each and the close proceeds; a divergent
@@ -2139,16 +2448,26 @@ def create_ticket_history_entry(
     entry_dir = history_root(specs_dir, resolved_workflow) / resolved_entry_name
     if entry_dir.exists():
         raise SystemExit(f"ERROR: refusing to overwrite existing history entry: {entry_dir}")
-    # Refuse a three-way conflict BEFORE anything is written (the ledger and the
-    # history entry below), so a refused close can simply be re-run after a merge.
+    # Carry the ticket over project current/ changes made since it opened
+    # (three-way, per file, spec-unit re-run) BEFORE anything is written, so a
+    # refused carry leaves the tree as it was and the close can be re-run.
+    three_way_carry_record: dict[str, Any] | None = None
+    if active_dir.exists() and promote_current:
+        three_way_carry_record = three_way_carry(
+            repo_root=repo_root, specs_dir=specs_dir, active_dir=active_dir, validator=carry_validator)
+    # Refuse what the carry cannot merge (a deletion on one side, a change on
+    # the other) BEFORE anything is written (the ledger and the history entry
+    # below), so a refused close can simply be re-run after a merge.
     if active_dir.exists() and promote_current:
         _kept, _conflicts = three_way_promotion_plan(
             active_dir / "desired", specs_dir / "current",
             load_ticket_seed_manifest(active_dir), load_ticket_seed_digests(active_dir))
         if _conflicts:
             raise SystemExit(
-                "ERROR: project current/ changed under this ticket since it was opened; merge by hand "
-                "into the ticket desired/ (and current/), then re-run the close:\n  - "
+                "ERROR: project current/ changed under this ticket since it was opened, and a "
+                "deletion cannot be merged three ways; resolve it in the ticket desired/ (and "
+                "current/), then re-run the close. Never copy project current/ over the ticket "
+                "model:\n  - "
                 + "\n  - ".join(_conflicts))
 
     # MF-019: the ledger measures and records every close; it is advisory and
@@ -2266,6 +2585,7 @@ def create_ticket_history_entry(
         # uses. What changed is that the record now says so.
         "guard_weakening": guard_weakening_record,
         "promotion": promotion_record,
+        "three_way_carry": three_way_carry_record,
         "skill_feedback": skill_feedback_record,
         "feedback_filed": bool(skill_feedback_record and skill_feedback_record.get("resolved")),
         "feedback_filed_where": (skill_feedback_record or {}).get("filed_where", []),

@@ -104,6 +104,42 @@ manifest at `open ticket` time) and the ticket then dropped it. Current-only
 paths the ticket was never seeded with are preserved, and every removal and
 preservation is enumerated in the close output and manifest.
 
+### When project current moved under the ticket
+
+`open ticket` records the sha256 of every seeded file in `ticket.yaml`
+(`seed_manifest.desired_sha256`). At close, per seeded file:
+
+| Ticket | Project `current/` since open | Close |
+|---|---|---|
+| unchanged | changed | keeps project `current/` |
+| changed | unchanged | takes the ticket |
+| changed | changed | **three-way carry** |
+| dropped | changed (or the reverse) | refuses by name: a deletion has no lines to merge |
+
+The three-way carry runs `git merge-file --diff3` with base = the seed blob
+(the committed `specs/current/<file>` whose sha256 is the recorded digest,
+found in the repository's history or index), ours = project `current/` now,
+theirs = the ticket's `desired/` (and `current/`, when the ticket keeps both).
+A clean merge is written to the ticket, the digest is re-recorded and the
+rebase is noted under `seed_manifest.rebased`, and `run spec-unit-tests` runs
+on the merged ticket model before the close writes anything else. The history
+manifest records it as `three_way_carry`.
+
+It refuses, with nothing written, when:
+
+- a file conflicts — every file and hunk is named, with what each side holds;
+- no commit or index entry holds the seed bytes — the merge base is unknown;
+- spec-unit fails on the merged model — every carried byte is restored.
+
+Resolve the named hunks in the ticket model and re-run the close. Do not copy
+project `current/` over the ticket's model or re-record digests by hand: in
+commit-diff-context-parent #462 that copy dropped MS-015's TLA invariants while
+its spec test was promoted, and across three epics 2 of 16 such hand carries
+shipped a regression. The carry is the default because a flag the close needed
+every time a predecessor promoted would be a flag everyone has to remember.
+It does not run TLC; run `scripts/run_tlc.sh` on the merged model when the
+merge touched a `.tla` file whose spec-unit tests do not.
+
 - The default close requires ticket-local `current/` to *semantically match*
   `desired/`. Semantic comparison covers `.tla`, `.cfg`, `.yaml`/`.yml`, `.py`,
   `.toml`, and `.json` files; planning files (`README.md`, `ticket_plan.yaml`,

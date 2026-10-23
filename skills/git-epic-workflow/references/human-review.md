@@ -64,6 +64,12 @@ git fetch origin && git log --oneline -1 origin/epic/<slug>
   required checks are green; the assignment's scheduling fields still equal the
   canonical plan entry; the plan entry is not `retired`; the declared
   `promotion_predecessor` is already merged.
+- **Closing a spec ticket after its predecessor promoted** needs no hand carry:
+  `close ticket` merges each file both sides changed three ways and re-runs
+  spec-unit (spec-double-2 `references/spec_evolution.md`). If it refuses,
+  resolve the named hunks in the ticket model; never copy `specs/current` over
+  it and never re-record seed digests by hand, and check the close's exit code
+  directly — not through a pipe that hides it.
 - **A merge conflict is a stop, not a task.** The promotion lane exists so that
   every ticket reconciles onto the current tip *before* it closes its spec
   ticket (epic-ticket.md §5). A conflict means that did not happen, so the
