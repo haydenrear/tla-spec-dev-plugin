@@ -129,7 +129,10 @@ the close if the ledger gate rejects), moves `specs/tickets/<ticket-id>` to
 ticket `desired/` onto project `specs/current` — removing only paths that
 were seeded into the ticket workspace and dropped there, and preserving
 current-only files the ticket was never seeded with — and merges ticket-local
-Test Graph artifacts into project specs.
+Test Graph artifacts into project specs. When project `current` moved under the
+ticket since it opened, the close first carries the ticket three ways and
+re-runs spec-unit; a conflict refuses naming the hunks
+(`spec_evolution.md`, "When project current moved under the ticket").
 
 The lower-level scripts remain implementation details behind the CLI. The
 tla-spec-dev repository validates this CLI flow with its parent Test
