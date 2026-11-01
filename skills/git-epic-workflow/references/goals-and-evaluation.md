@@ -15,10 +15,37 @@ will be judged by.
 Goals are agreed with the user at epic creation, alongside the deferment policy
 (`deferment.md`). Do not infer them from the codebase and do not default them.
 
+## One epic, one bounded product increment
+
+A **goal** is the outcome to decide; an **epic** is the bounded delivery unit
+that achieves one meaningful MVP increment toward it. A larger product goal
+may span several epics. An epic may carry several supporting measurable goals,
+but they must serve the same increment, not collect unrelated improvements.
+Describe the user, the usable end-to-end behavior they gain, the acceptance
+scenario, and what is explicitly deferred. A bug epic may instead restore a
+named product behavior or reliability property; state the affected user impact.
+
+Size the epic for its validation and repair cost as well as its implementation.
+Before dispatch, record the expected full integrated Test Graph duration,
+manual scenarios, likely repair/rerun cost, and a practical validation budget
+agreed with the user. Use measured runtimes where available and label estimates
+and unknowns. Many coupled surfaces, unrelated journeys, an expanding matrix,
+or a final validation/repair cycle too long for that budget are reasons to
+recommend splitting **before** dispatch. Recommend the smaller increments,
+their individual acceptance scenarios and validation scope, and their order.
+Do not split into technical fragments that provide no meaningful outcome.
+Revisit the recommendation when measured cost or newly discovered bugs exceed
+the plan; do not keep adding scope and repeating an unbounded full-suite loop.
+
+Ticket validation covers the affected slice and its dependency closure. The
+integrated full graph and one manual product-testing phase belong at the end
+of the epic (`finalize.md` §2–2c). A passing ticket is evidence for that slice;
+the final graph plus manual acceptance decides the delivered increment.
+
 ## What counts as a goal
 
-A goal is a specific, falsifiable claim about the program after the epic, with
-a named instrument that decides it. Write goals as outcomes, not as work.
+An epic goal is a specific, falsifiable claim about the program after this
+increment, with a named instrument that decides it. Write goals as outcomes, not as work.
 
 | Not a goal | Goal |
 | --- | --- |

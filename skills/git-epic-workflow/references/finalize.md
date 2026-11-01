@@ -147,7 +147,9 @@ succeeded. `held-back` is a `home sync` status; `close-out` never reports it.
 
 ## 2. Validate the integrated epic
 
-Run the union of every ticket matrix plus any epic-level regression graph. Do
+Run the full integrated Test Graph scope declared for the epic, including the
+union of every ticket matrix and the epic-level regression graphs. This is the
+agent-owned final full run, before manual product testing (§2c). Do
 not reuse branch-local reports as proof of the integrated state.
 
 At minimum:
@@ -272,6 +274,46 @@ Name any wave with no artifact, and say whether the plan's `review_policy`
 waived it or nobody produced it. Those are different facts and the epic PR
 reports which one happened.
 
+## 2c. Perform one final manual product-testing phase
+
+After the full integrated Test Graph passes and its evidence is inspected,
+exercise the agreed MVP acceptance scenarios on the integrated product in a
+representative environment. This is one manual phase at the end of the epic,
+not a per-ticket or per-wave activity. The agent prepares the build, scenarios,
+expected outcomes and evidence paths; the named tester executes them. Record
+the tested commit, environment, tester, actual results and any untested scenario
+with its reason. Untested required acceptance scenarios need an explicit user
+disposition; automated reports alone cannot establish manual acceptance.
+Wave product-contract reviews remain evidence reviews, not manual test sessions.
+
+For each defect manual testing catches that the graph missed:
+
+1. Record a CATCH using the existing attribution contract in spec-double-2's
+   `references/bug_attribution.md`: original discovery channel, affected area
+   and model anchor (or explicit unmodeled area), reproduction, and the graph's
+   missed coverage. A later automated reproduction does not change the original
+   discovery channel. Record the related BLIND where a green test could not
+   observe the failure.
+2. Add a regression assertion to the appropriate Test Graph node/adapter where
+   feasible. Demonstrate it fails on the faulty behavior and passes with the
+   fix. Record `pinned_by`; where automation is infeasible, record `pin_note`
+   and the remaining manual coverage rather than claiming a pin.
+3. Route the fix through a scoped ticket into the epic branch. Run its applicable
+   graphs, then rerun affected nodes and their downstream dependents, rebuilding
+   prerequisite context when the saved context is invalid. Recheck the failed
+   manual scenario within this same phase.
+4. After repairs, run a fresh full integrated graph confirmation on the repaired
+   tip and refresh any goal measurement affected by those changes. Retain both
+   the original and repaired evidence. This is a justified rerun after changes,
+   not another open-ended manual campaign or a loop to obtain a better score.
+
+If no defects were found, record that claim and the scenarios actually exercised;
+no extra unchanged full run is required. If repair cost or new discoveries blow
+past the agreed validation budget, recommend splitting/deferment with explicit
+user disposition and preserved findings. Do not weaken acceptance or silently
+expand the epic. Behavior changes after acceptance invalidate affected evidence;
+recheck that scope and refresh the integrated confirmation before closing.
+
 ## 3. Pass the external semantic-review gate
 
 Push the fully integrated, still-open workflow state and open or update a draft
@@ -336,6 +378,8 @@ tip and the close commit changed workflow artifacts only. Its body includes:
   decision identity/time, receipt, affected-goal disposition, and successor;
 - the dependency/promotion order actually integrated;
 - full validation commands, run IDs, summaries, and report paths;
+- the manual acceptance record from §2c, original escapes and attribution IDs,
+  regression pins or automation limits, repair tickets and final rerun evidence;
 - the goal table from step 2a — baseline, measured, target, and verdict per
   goal, with the user's recorded acceptance for any missed goal;
 - the workflow closed-snapshot path;

@@ -188,13 +188,25 @@ Before scaffolding the workflow, ask the user what should be measurably better
 when the epic is done. This is a required decision, like the deferment policy;
 do not infer goals from the codebase and do not default them.
 
-Ask for each outcome: the metric, the command that measures it, today's value,
-and the threshold that counts as success. Then:
+First bound one meaningful MVP increment (or a named restoration for a bug
+epic): user, usable behavior, acceptance scenario, non-goals. Record the full
+integrated graph scope and expected duration, the final manual scenarios, likely
+repair/rerun cost, and an agreed validation budget. Label unknown costs and
+schedule a bounded measurement when needed. If the scope cannot fit, recommend
+smaller useful epics with their acceptance scenarios and order; seek agreement
+before dispatch. Revisit scope when actual validation costs exceed the estimate
+(`goals-and-evaluation.md`, *One epic, one bounded product increment*).
+
+For each outcome, name the metric or observable acceptance result, deciding
+instrument, baseline and success criterion. Then:
 
 - write each answer as a goal in the schema from `goals-and-evaluation.md`;
 - measure the baseline now, on the fresh epic branch, whenever the harness
   already exists, and commit it under the epic evidence root;
 - schedule a wave-1 harness+baseline ticket when it does not;
+- assign ticket matrices only the affected graphs and their dependency closure,
+  and reserve the full integrated matrix and one manual product-testing phase
+  for finalization (`finalize.md` §2–2c);
 - schedule the terminal evaluation ticket(s) that run the harnesses on the
   integrated epic and decide each goal;
 - give every other ticket a goal relation — contribution kind, expected effect,

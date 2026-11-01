@@ -204,6 +204,21 @@ three things beyond the existing schema.
   goal: GOAL-findings-become-changes     # the measurement this bears on, if any
 ```
 
+### Final epic manual-testing escapes
+
+In an epic, the full integrated Test Graph runs before one final manual
+product-testing phase (`git-epic-workflow/references/finalize.md` §2c).
+Record defects discovered there as CATCH rows with their original channel
+(`operator-doing-the-work` for manual product interaction), reproduction,
+affected area/model anchor and missed graph coverage.
+Add a BLIND for a passing instrument that could not observe the defect. Where
+feasible, add a Test Graph regression assertion, demonstrate red before the fix
+and green after, and cite it in `pinned_by`. Otherwise supply `pin_note` with
+the automation limit and remaining manual coverage. Preserve the original
+catch channel when the regression later becomes automated. Repairs rerun the
+affected dependency closure and the final integrated confirmation; the manual
+phase stays at epic finalization rather than recurring during every ticket.
+
 ### 4.1 The channel vocabulary, and its class
 
 **Nine tokens.** Seven are `CA-02`'s, unchanged and not relabelled. Two —

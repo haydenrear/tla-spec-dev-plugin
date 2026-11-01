@@ -228,6 +228,14 @@ adapter, or Test Graph effects.
 
 ## 4. Run the assigned validation loop
 
+The epic owner scopes this matrix to the ticket's affected graphs and their
+required dependency closure. Run all REQUIRED entries; request an amendment
+when the assignment unnecessarily demands a full epic sweep, rather than
+silently skipping it. Reconciliation reruns the ticket matrix. The full
+integrated graph followed by one manual product-testing phase belongs to epic
+finalization, after ticket integration (git-epic-workflow's
+`references/finalize.md` §2–2c).
+
 Run every validation matrix entry marked REQUIRED, using the exact command from
 the issue. At minimum for a spec ticket, record the assigned-ticket spec unit
 result and discover each affected graph before running it:

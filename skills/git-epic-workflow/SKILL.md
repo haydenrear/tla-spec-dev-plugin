@@ -78,8 +78,11 @@ the rule names — moved, not dropped.
    not a task: it goes back to its agent, mechanical conflicts included.
 8. **Only finalization closes the workflow.** After every delivered ticket PR is
    on the epic branch and every retired ticket has its verified no-delivery
-   receipt, the finalizer runs integrated validation, promotes the accepted
-   model, closes the workflow, and opens the epic PR.
+   receipt, the finalizer runs the full integrated graph, then one manual
+   product-testing phase. Attribute escapes, add regression assertions where
+   feasible, fix through tickets and rerun affected dependencies before the
+   final full confirmation; then promote, close and open the epic PR
+   (`references/finalize.md` §2c).
 9. **Out-of-scope findings are deferred, not chased.** Agree a deferment policy
    when the branch is created; ticket agents append out-of-scope failures to the
    backlog rather than widening scope (`references/deferment.md`).
@@ -101,7 +104,11 @@ the rule names — moved, not dropped.
     source in dependency order. A worktree cloned from a stale project home
     carries the staleness into work you then redo
     (`references/plan-and-schedule.md` §2).
-12. **Every epic states measurable goals; every ticket relates to one.** Ask
+12. **One epic delivers one bounded, meaningful MVP increment.** A bug epic
+    restores a named product behavior. Price full validation, manual testing and
+    likely repairs before dispatch; recommend smaller useful epics when scope
+    or measured validation cost is too large. Every epic states measurable goals;
+    every ticket relates to one. Ask
     the user what should be measurably better before scaffolding, and record
     each goal with metric, harness, baseline and target
     (`references/goals-and-evaluation.md`).
