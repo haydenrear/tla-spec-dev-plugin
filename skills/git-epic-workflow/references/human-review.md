@@ -145,6 +145,12 @@ and one manual phase are finalization's responsibility (`finalize.md` §2–2c).
 If a review exposes excessive scope or validation cost, recommend splitting
 into smaller meaningful increments before dispatching more work.
 
+Include the delivery-velocity review from `validation-review.md` in the existing
+wave artifact. Use a short evidence-based assessment when work is converging;
+expand to the deeper architectural/options review when its triggers fire. Those
+triggers also apply between waves and during finalization, independently of the
+user's regular review cadence. Review effort should scale with unresolved risk.
+
 ## 2. When the review happens
 
 **Default: at every wave boundary, and it is a gate.** After the last PR of

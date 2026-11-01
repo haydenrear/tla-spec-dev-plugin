@@ -124,6 +124,14 @@ the rule names — moved, not dropped.
     the step that carries the merge, and the sweep is measured with free space,
     never `du` (`references/worktree-lifecycle.md`).
 
+15. **Validation must converge within a bounded cost.** The epic owner runs a
+    short review before repairs/reruns and a deeper review at wave boundaries,
+    before final validation, and whenever progress stalls or the budget is at
+    risk. Stop automatic repetition at a trigger; use bug attribution to compare
+    scoped repair, splitting, simplification and bounded replacement. Carry
+    delivery-velocity evidence forward alongside MVP value
+    (`references/validation-review.md`).
+
 ## Preconditions
 
 Use this workflow only in a repository onboarded to both dependencies:

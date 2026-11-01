@@ -42,6 +42,10 @@ integrated full graph and one manual product-testing phase belong at the end
 of the epic (`finalize.md` §2–2c). A passing ticket is evidence for that slice;
 the final graph plus manual acceptance decides the delivered increment.
 
+Right-sizing includes the cost of reaching validated acceptance, not just the
+first full run. Use `validation-review.md` for cumulative budgets, review
+triggers, architectural alternatives and delivery-velocity trends across epics.
+
 ## What counts as a goal
 
 An epic goal is a specific, falsifiable claim about the program after this
