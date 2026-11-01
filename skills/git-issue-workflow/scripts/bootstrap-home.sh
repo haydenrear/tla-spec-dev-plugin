@@ -1714,7 +1714,7 @@ project_agent_homes() {
     # violation — on runs that projected every unit correctly. The verdict comes
     # from re-measuring the links, which is what the word `verified` is about.
     # shellcheck disable=SC2046
-    env $(agent_env_words) SKILL_MANAGER_HOME="$STORE" "$CLI" sync --skip-mcp >&2 || true
+    env $(agent_env_words) SKILL_MANAGER_HOME="$STORE" "$CLI" sync --skip-mcp --home "$STORE" >&2 || true
     after="$(store_unit_list)"
     added="$(command comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") 2>/dev/null || true)"
     # The sync creates the missing records; materialize whatever it declared but
@@ -1766,7 +1766,10 @@ register_plugins() {
   # >&2: stdout carries the contract, nothing else. Non-fatal on failure —
   # registration is re-attemptable and a missing harness CLI is not an error.
   # shellcheck disable=SC2046
-  env $(agent_env_words) SKILL_MANAGER_HOME="$STORE" "$CLI" home refresh-plugins >&2 || \
+  # --home as well as the env: a home-bound shim picked as $CLI refuses a SKILL_MANAGER_HOME
+  # it was not built for (exit 79), and this line downgraded that to a warning, so a child
+  # home never got its codex config.toml (commit-diff-context-parent DEF-456).
+  env $(agent_env_words) SKILL_MANAGER_HOME="$STORE" "$CLI" home refresh-plugins --home "$STORE" >&2 || \
     out "warning:   plugin registration reported a failure (non-fatal). Re-run: $(home_env_prefix) $CLI home refresh-plugins"
 }
 register_plugins

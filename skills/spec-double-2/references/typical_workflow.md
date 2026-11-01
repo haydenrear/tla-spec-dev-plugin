@@ -98,7 +98,10 @@ rejected with one warning line — the close still proceeds), promotes ticket
 `desired/` onto project-level `specs/current` (removing only seeded paths the
 ticket dropped and preserving current-only files the ticket was never seeded
 with), merges ticket-local Test Graph artifacts into project specs, and moves
-`specs/tickets/TICKET-123` into history.
+`specs/tickets/TICKET-123` into history. A file both the ticket and project
+`current` changed since open is merged three ways first, and spec-unit re-runs
+on the result (`spec_evolution.md`, "When project current moved under the
+ticket").
 
 Do not model tests, CI jobs, test graph nodes, integration harnesses, or
 validation workflow mechanics as TLA+ program state/actions. Record them as

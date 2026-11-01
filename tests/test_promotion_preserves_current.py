@@ -186,3 +186,48 @@ def test_tree_relative_files_skips_ignored_names(tmp_path: Path) -> None:
     _write(tmp_path / "nested" / "d.py", "d")
 
     assert tree_relative_files(tmp_path) == {"a.tla", "nested/d.py"}
+
+
+# --- three-way promotion (epic #234: CDC-ISF-040's close reverted two other tickets' work) ---
+
+def _three_way_workspace(tmp_path: Path, *, seeded: str, ticket: str, project: str | None):
+    import hashlib
+    from scripts.spec_evolution import promote_current_tree  # noqa: E402
+    src, dst = tmp_path / "desired", tmp_path / "current"
+    _write(src / "Internal.tla", ticket)
+    if project is not None:
+        _write(dst / "Internal.tla", project)
+    digests = {"Internal.tla": hashlib.sha256(seeded.encode()).hexdigest()}
+    return src, dst, digests, promote_current_tree
+
+
+def test_a_file_the_ticket_never_touched_keeps_what_another_ticket_promoted(tmp_path: Path) -> None:
+    src, dst, digests, promote = _three_way_workspace(
+        tmp_path, seeded="v1\n", ticket="v1\n", project="v2 from another ticket\n")
+    record = promote(src, dst, {"Internal.tla"}, digests)
+    assert (dst / "Internal.tla").read_text() == "v2 from another ticket\n"
+    assert record["kept_current"] == ["Internal.tla"]
+
+
+def test_a_file_only_the_ticket_changed_is_promoted(tmp_path: Path) -> None:
+    src, dst, digests, promote = _three_way_workspace(
+        tmp_path, seeded="v1\n", ticket="v1 edited by the ticket\n", project="v1\n")
+    promote(src, dst, {"Internal.tla"}, digests)
+    assert (dst / "Internal.tla").read_text() == "v1 edited by the ticket\n"
+
+
+def test_a_file_both_sides_changed_is_refused_and_nothing_is_written(tmp_path: Path) -> None:
+    import pytest
+    from scripts.spec_evolution import PromotionConflict  # noqa: E402
+    src, dst, digests, promote = _three_way_workspace(
+        tmp_path, seeded="v1\n", ticket="ticket edit\n", project="other ticket's edit\n")
+    with pytest.raises(PromotionConflict, match="Internal.tla"):
+        promote(src, dst, {"Internal.tla"}, digests)
+    assert (dst / "Internal.tla").read_text() == "other ticket's edit\n"
+
+
+def test_without_recorded_digests_promotion_keeps_its_old_behaviour(tmp_path: Path) -> None:
+    src, dst, _digests, promote = _three_way_workspace(
+        tmp_path, seeded="v1\n", ticket="v1\n", project="v2\n")
+    promote(src, dst, {"Internal.tla"}, None)
+    assert (dst / "Internal.tla").read_text() == "v1\n"
