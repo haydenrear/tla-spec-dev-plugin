@@ -138,6 +138,13 @@ anything other than the epic branch. Do not force-push `epic/<slug>`, bypass
 branch protection, or merge the epic PR into the default branch — that last one
 needs the user's explicit authorization at finalization and nowhere else.
 
+Wave reviews inspect evidence, plan fidelity and product-contract coverage.
+They do not require a full integrated Test Graph sweep or a manual product test
+at every boundary. Ticket-scoped validation remains required; the full graph
+and one manual phase are finalization's responsibility (`finalize.md` §2–2c).
+If a review exposes excessive scope or validation cost, recommend splitting
+into smaller meaningful increments before dispatching more work.
+
 ## 2. When the review happens
 
 **Default: at every wave boundary, and it is a gate.** After the last PR of
@@ -273,8 +280,9 @@ point to find it.
 
 Name the repository's product contract: the document that says what the
 product fundamentally is (a core contract, decisions record, or architecture
-baseline), not a ticket. Check the wave's delivered behavior against each core
-element, citing code rather than PR text:
+baseline), not a ticket. Map its core elements to this epic's agreed MVP boundary
+and explicitly deferred successor increments. Check the wave's delivered behavior
+against those commitments, citing code rather than PR text:
 
 | Core element (contract § or decision ID) | State after this wave: implemented / partial / absent / not yet scheduled | Evidence (file:line, command) | Scheduled where, if not yet |
 | --- | --- | --- | --- |
@@ -287,9 +295,11 @@ Flag these whenever they appear:
   where the contract calls for several;
 - an element that no ticket in this or any later wave is scheduled to deliver.
 
-An element that is `absent` and `not yet scheduled` is a plan defect. Raise it
-to the user at this boundary, before the next wave dispatches, not at
-finalization. Write the table even when every row is `implemented`: as with
+An element required by this MVP that is absent and not scheduled is a plan
+defect: raise it to the user at this boundary, before the next wave dispatches,
+not at finalization. An explicitly deferred future increment is reported with
+its successor and reason, rather than pulled into this epic merely to complete
+the product. Write the table even when every row is `implemented`: as with
 the five blocks in §3.4, an absent list is not a claim.
 
 ### 3.3 Where the bugs probably are

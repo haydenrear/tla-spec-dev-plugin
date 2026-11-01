@@ -382,6 +382,15 @@ dependencies from the ticket branch.
 
 ### 4. Run the ticket validation loop
 
+During an epic, run the ticket's affected graphs and their required dependency
+closure, including assertions for the behavior changed. The assignment must name
+that scope; an unrelated full repository/epic sweep belongs to finalization.
+Run every REQUIRED entry, and ask the epic owner to amend an unnecessarily broad
+matrix rather than silently skipping it. Reconciliation reruns this ticket
+matrix. Tickets merge into the epic branch; the full integrated graph followed
+by one manual product-testing phase runs at the epic's end (`finalize.md` §2c).
+
+
 Run every matrix entry marked REQUIRED. Discover each affected graph before
 running it and use Test Graph's saved-context loop for isolated failures. At a
 minimum, record:
