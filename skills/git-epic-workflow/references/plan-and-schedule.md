@@ -217,6 +217,11 @@ If the user has no measurable outcome, record `epic_goals: []` with a
 `references/goals-and-evaluation.md` for goal kinds, baselines, contribution
 kinds, the evaluation-ticket contract, and reporting.
 
+Before dispatch, apply `validation-review.md`: record cumulative validation and
+repair allowances, the short/deep review cadence, convergence triggers and the
+prior epic's delivery-cost findings. These are planning/review records, not new
+runtime schema fields. Agree how scope or budget changes will be decided.
+
 ## 4. Scaffold the shared workflow once
 
 Choose stable ticket IDs before scaffolding. Use the first ticket only as the
