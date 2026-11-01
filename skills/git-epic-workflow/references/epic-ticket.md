@@ -386,8 +386,8 @@ During an epic, run the ticket's affected graphs and their required dependency
 closure, including assertions for the behavior changed. The assignment must name
 that scope; an unrelated full repository/epic sweep belongs to finalization.
 Before repairs/reruns, record the short convergence review from
-git-epic-workflow's `references/validation-review.md`. Escalate its budget,
-recurrence or stalled-progress triggers to the epic owner; do not keep retrying
+git-epic-workflow's `references/validation-review.md`. Escalate its recurrence, coupling
+or stalled-progress triggers to the epic owner; do not keep retrying
 or broaden the architecture from this ticket.
 
 Run every REQUIRED entry, and ask the epic owner to amend an unnecessarily broad

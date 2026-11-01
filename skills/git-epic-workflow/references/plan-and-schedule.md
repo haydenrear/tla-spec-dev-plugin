@@ -190,11 +190,11 @@ do not infer goals from the codebase and do not default them.
 
 First bound one meaningful MVP increment (or a named restoration for a bug
 epic): user, usable behavior, acceptance scenario, non-goals. Record the full
-integrated graph scope and expected duration, the final manual scenarios, likely
-repair/rerun cost, and an agreed validation budget. Label unknown costs and
-schedule a bounded measurement when needed. If the scope cannot fit, recommend
-smaller useful epics with their acceptance scenarios and order; seek agreement
-before dispatch. Revisit scope when actual validation costs exceed the estimate
+integrated graph scope, final manual scenarios and the fast feedback available
+for each changed contract. Assess whether the proposed changes are too broad or
+coupled to stabilize together. When they are, recommend a smaller first epic
+and a second epic, identifying the interactions removed and each useful
+acceptance scenario. Revisit this throughout planning and whenever scope grows
 (`goals-and-evaluation.md`, *One epic, one bounded product increment*).
 
 For each outcome, name the metric or observable acceptance result, deciding
@@ -217,10 +217,11 @@ If the user has no measurable outcome, record `epic_goals: []` with a
 `references/goals-and-evaluation.md` for goal kinds, baselines, contribution
 kinds, the evaluation-ticket contract, and reporting.
 
-Before dispatch, apply `validation-review.md`: record cumulative validation and
-repair allowances, the short/deep review cadence, convergence triggers and the
-prior epic's delivery-cost findings. These are planning/review records, not new
-runtime schema fields. Agree how scope or budget changes will be decided.
+Before dispatch, apply `validation-review.md`: assess loop risk using earlier
+bug attribution, choose the short/deep review cadence, and identify faster
+intermediate checks and valid targeted reruns. The planning agent recommends a
+split when the requested increment is likely to keep reopening validation;
+the epic owner carries that assessment into execution and subsequent reviews.
 
 ## 4. Scaffold the shared workflow once
 

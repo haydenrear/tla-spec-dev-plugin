@@ -25,17 +25,17 @@ Describe the user, the usable end-to-end behavior they gain, the acceptance
 scenario, and what is explicitly deferred. A bug epic may instead restore a
 named product behavior or reliability property; state the affected user impact.
 
-Size the epic for its validation and repair cost as well as its implementation.
-Before dispatch, record the expected full integrated Test Graph duration,
-manual scenarios, likely repair/rerun cost, and a practical validation budget
-agreed with the user. Use measured runtimes where available and label estimates
-and unknowns. Many coupled surfaces, unrelated journeys, an expanding matrix,
-or a final validation/repair cycle too long for that budget are reasons to
-recommend splitting **before** dispatch. Recommend the smaller increments,
-their individual acceptance scenarios and validation scope, and their order.
+Size the epic so its interacting changes can be reviewed, isolated and validated
+as one useful increment. During planning, identify scope likely to sustain a
+repair-and-revalidate loop: coupled surfaces changing together, unrelated user
+journeys, or faults visible only in slow final integration. Use prior bug
+attribution to inform that judgment. When asked for an overly broad increment,
+recommend a smaller first epic and a second epic, with useful acceptance
+scenarios, clear boundaries and an order that reduces the interactions under
+test. Reassess when scope grows or repairs keep introducing new failures.
+Review and validation are sources of acceleration: improve failure isolation,
+rerun from the broken node where valid, and add faster intermediate assertions.
 Do not split into technical fragments that provide no meaningful outcome.
-Revisit the recommendation when measured cost or newly discovered bugs exceed
-the plan; do not keep adding scope and repeating an unbounded full-suite loop.
 
 Ticket validation covers the affected slice and its dependency closure. The
 integrated full graph and one manual product-testing phase belong at the end
@@ -43,7 +43,7 @@ of the epic (`finalize.md` §2–2c). A passing ticket is evidence for that slic
 the final graph plus manual acceptance decides the delivered increment.
 
 Right-sizing includes the cost of reaching validated acceptance, not just the
-first full run. Use `validation-review.md` for cumulative budgets, review
+first full run. Use `validation-review.md` for loop diagnosis, review
 triggers, architectural alternatives and delivery-velocity trends across epics.
 
 ## What counts as a goal

@@ -105,9 +105,10 @@ the rule names — moved, not dropped.
     carries the staleness into work you then redo
     (`references/plan-and-schedule.md` §2).
 12. **One epic delivers one bounded, meaningful MVP increment.** A bug epic
-    restores a named product behavior. Price full validation, manual testing and
-    likely repairs before dispatch; recommend smaller useful epics when scope
-    or measured validation cost is too large. Every epic states measurable goals;
+    restores a named product behavior. Throughout planning, assess whether too
+    many interacting changes could sustain a repair-and-validation loop. When
+    the requested increment is too broad, recommend a smaller first epic and a
+    second epic, each with useful acceptance and fewer coupled changes. Every epic states measurable goals;
     every ticket relates to one. Ask
     the user what should be measurably better before scaffolding, and record
     each goal with metric, harness, baseline and target
@@ -124,10 +125,10 @@ the rule names — moved, not dropped.
     the step that carries the merge, and the sweep is measured with free space,
     never `du` (`references/worktree-lifecycle.md`).
 
-15. **Validation must converge within a bounded cost.** The epic owner runs a
+15. **Choose increments whose validation can converge.** The epic owner runs a
     short review before repairs/reruns and a deeper review at wave boundaries,
-    before final validation, and whenever progress stalls or the budget is at
-    risk. Stop automatic repetition at a trigger; use bug attribution to compare
+    before final validation, and when repairs repeatedly reopen other failures.
+    Stop automatic repetition at a trigger; use bug attribution to compare
     scoped repair, splitting, simplification and bounded replacement. Carry
     delivery-velocity evidence forward alongside MVP value
     (`references/validation-review.md`).

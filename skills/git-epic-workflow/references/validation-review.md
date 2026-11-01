@@ -1,29 +1,42 @@
 # Review validation convergence and delivery velocity
 
-Right-sizing an epic is a delivery constraint. An increment that can be built
-but cannot be validated and repaired within a practical budget is too large.
-Count diagnosis, fixtures, environments, automated runs, manual testing, repairs
-and revalidation in that budget. A single final manual phase can still loop
-forever; calling it one phase does not bound its cost.
+Right-sizing an epic means choosing a useful increment whose changes can be
+reviewed, isolated and validated together. Too many interacting changes can
+produce a self-renewing validation loop: repairing one failure exposes or causes
+another, manual testing keeps discovering new defect families, and acceptance
+never stabilizes. Review and validation are the bottleneck and therefore a
+primary source of development acceleration.
 
-The epic owner owns this outer review loop. Ticket agents report evidence and
-escalate triggers; they do not expand scope or start architectural rewrites.
-Use existing run reports, attribution rows and wave artifacts. These reviews
-require no new test suite, scoring harness or mandatory reviewer agent.
+The planning agent and epic owner both own this concern. Ticket agents report
+failure evidence and attribution; the epic owner reviews the combined pattern.
+Use existing reports and review artifacts to improve the delivery path.
 
-## Before dispatch: price the smallest useful increment
+## During planning: choose an increment that can converge
 
-Record the MVP acceptance boundary, ticket-local graph scopes, final integrated
-scope, measured or estimated run costs, and a cumulative validation/repair
-budget. Include a bounded repair allowance and the point at which the next run
-would exceed it. Unknown costs require a bounded discovery measurement before
-committing to a large delivery plan. Preserve these estimates beside actuals;
-a larger estimate after every failure is not evidence of convergence.
+Assess loop risk whenever an epic is proposed, expanded or split, before turning
+the requested outcome into tickets. Inspect the affected user journeys, changed
+interfaces, shared state, environment dependencies and existing tests. Ask
+whether failures will be attributable to a small change and whether fixes can
+be checked without repeatedly exercising every changed surface.
 
-Recommend splitting when independent user journeys, coupled changes or the
-expected repair cost make that budget implausible. Each successor epic needs a
-useful acceptance scenario. Shared setup that makes even a small increment
-expensive is itself evidence to investigate the architecture or test harness.
+Warning signs include several independent journeys, simultaneous changes across
+coupled layers, large migrations mixed with new behavior, and basic contracts
+observable only in the final end-to-end run. Use prior bug attribution and run
+reports to identify where earlier increments repeatedly needed repairs.
+
+When a requested increment is too broad, the planning or epic agent recommends
+a smaller first epic and a second epic before dispatch. Explain which changes
+interact to create loop risk, what useful behavior the first epic delivers,
+what moves to the second, and how each can be independently accepted. Preserve
+the larger product goal across the sequence. Discuss this throughout planning,
+including revisions that add scope; do not wait for final validation to discover
+that the chosen increment cannot stabilize.
+
+For each proposed increment, identify ticket-local feedback, the final integrated
+acceptance path and the likely blind spots. Add fast intermediate contract,
+component or integration assertions where faults would otherwise first appear
+in the slow full graph. Shared setup that makes even a small change expensive
+is a candidate for improvement in the harness or architecture.
 
 ## Short review: before each repair/rerun and at ticket handoff
 
@@ -32,15 +45,21 @@ reliable delivery of the next user-value increment here?** Record:
 
 - What changed or what hypothesis will this run discriminate? Link the failure,
   fix and attribution. An unchanged retry needs a concrete transient-failure
-  hypothesis and a bounded retry allowance.
+  hypothesis and evidence that repeating it can distinguish that cause.
 - What is the smallest valid rerun? Use Test Graph's saved-context rerun for an
   isolated node when its inputs/environment remain valid; rerun downstream
   dependents when published outputs change and rebuild stale prerequisites.
   Name why a full fresh run is necessary when choosing one. Keep the required
-  final integrated confirmation.
+  final integrated confirmation. Follow test-graph's `references/workflows.md`
+  smart failure loop, including fresh execution when context is stale and the
+  containing-graph confirmation after the targeted repair passes.
+- Can feedback move earlier? Promote the reproduction into a fast intermediate
+  assertion that exercises the relevant production contract and runs in the
+  ticket graph. Establish red before the fix and green after it; retain the
+  final end-to-end coverage.
 - Are we converging? Record cumulative elapsed validation/repair time, cycles,
   remaining acceptance failures, recurring defect families and new escapes.
-  Compare with the budget and the previous run. More tests executed or more
+  Compare the failure pattern with the previous run. More tests executed or more
   bugs found does not by itself establish progress toward acceptance.
 
 Do not add a human approval round for an ordinary scoped rerun within the agreed
@@ -50,22 +69,27 @@ plan. The short review is a routing decision, not another validation campaign.
 
 At wave boundaries, add a concise delivery-velocity section to the existing
 review artifact. Before starting final full validation/manual acceptance, check
-that the remaining work and repair allowance still fit. Escalate immediately,
+whether the combined increment is stabilizing and failures remain isolatable. Escalate immediately,
 without waiting for either boundary, when:
 
-- the next run would exceed the agreed cumulative budget or repair allowance;
-- two consecutive repair/rerun cycles fail to reduce the known acceptance
-  failures, or replace them with new failures so acceptance is no closer;
+- repairs repeatedly replace known acceptance failures with new failures, so
+  the delivered behavior is not stabilizing;
+- failures span many newly changed surfaces and fixing one repeatedly requires
+  reopening others;
 - the same attributed defect family returns after a purported root-cause fix;
 - one repair repeatedly breaks other surfaces, or manual testing keeps finding
   defects in areas the graph reports green.
 
-These are default review triggers, not automatic verdicts that architecture is
-bad. A project can agree tighter or better-supported thresholds at kickoff.
+These patterns call for diagnosis of scope, architecture and feedback quality.
+A long but steadily converging run is different from a self-renewing loop.
 Changing cadence to `finalization-only` or making wave reviews non-gating does
 not waive these triggers. Suspend further automatic repair/rerun cycles at a
 trigger; finish collecting the current run's evidence, then make a decision.
-A new ticket, wave or “manual phase” does not reset the cumulative accounting.
+When excessive interacting changes are sustaining the loop, recommend splitting
+out a second epic now. Name the coherent MVP that can stabilize first, the work
+that moves, dependency/interface boundaries and the acceptance evidence each
+needs. Already integrated changes need an explicit isolation or reconciliation
+plan; relabeling tickets alone does not reduce coupling.
 
 Review the attribution across this epic and comparable earlier increments:
 where do CATCHes cluster, what remains BLIND, and which fixes actually reduced
@@ -78,7 +102,7 @@ Compare concrete options using the evidence:
 
 | Option | Required argument |
 | --- | --- |
-| Continue a scoped repair | Root-cause hypothesis, smallest discriminating run, remaining cost and explicit stop condition |
+| Continue a scoped repair | Root-cause hypothesis, smallest discriminating run, expected failure reduction and the evidence that would refute the hypothesis |
 | Split or defer | Useful MVP retained, acceptance impact, successor scope and findings preserved |
 | Simplify/refactor | Fault-prone boundary or coupling removed, affected contracts, migration and validation cost |
 | Replace/rewrite a bounded component | Why repeated repair is inferior, preserved external contract, bounded prototype/comparison, migration/rollback and total validation cost |
@@ -89,13 +113,13 @@ Use a successor epic when it exceeds the current increment. Keep the original
 failures as regression cases; re-anchor findings if the model changes, following
 spec-double-2's bug-attribution carry-through rules.
 
-Record a decision, owner, next action, expected improvement, remaining allowance
-and next review trigger. The epic owner may adjust rerun selection within the
-agreed scope. Scope changes, revised budgets, accepted shortfalls or architectural
+Record a decision, owner, next action, expected improvement in feedback or
+convergence, and the evidence to inspect at the next review. The epic owner may
+adjust rerun selection within the agreed scope. Scope changes, accepted shortfalls or architectural
 replacement require the user's explicit decision before dependent work resumes.
 If a trigger fires again, bring new evidence and compare alternatives again;
-do not silently renew the same allowance. Never turn a budget exhaustion into
-PASS or weaken assertions to finish.
+check whether the chosen intervention changed the failure pattern. Keep
+acceptance criteria intact and preserve unresolved findings through a split.
 
 ## Across epics: user value and improving delivery capability
 
