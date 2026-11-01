@@ -264,6 +264,34 @@ place a human sees the plan's own history rather than its current state.
 Report an override even when it was clearly right. The reviewer decides whether
 it was; the agent's obligation is that nobody had to go looking.
 
+**Product-contract conformance** is the third list, and it is required.
+Checking deliveries against their work orders proves the plan was followed.
+It does not prove the plan built the product. When the work orders themselves
+dropped a core requirement, every ticket passes, every review is green, and
+the gap first shows up when the evaluator runs. That is the most expensive
+point to find it.
+
+Name the repository's product contract: the document that says what the
+product fundamentally is (a core contract, decisions record, or architecture
+baseline), not a ticket. Check the wave's delivered behavior against each core
+element, citing code rather than PR text:
+
+| Core element (contract § or decision ID) | State after this wave: implemented / partial / absent / not yet scheduled | Evidence (file:line, command) | Scheduled where, if not yet |
+| --- | --- | --- | --- |
+
+Flag these whenever they appear:
+- a central structure built as a container but never populated from real input;
+- agents or engines that read raw input where the contract says they act over
+  that structure;
+- a single implementation choice (one model tier, one engine, one data path)
+  where the contract calls for several;
+- an element that no ticket in this or any later wave is scheduled to deliver.
+
+An element that is `absent` and `not yet scheduled` is a plan defect. Raise it
+to the user at this boundary, before the next wave dispatches, not at
+finalization. Write the table even when every row is `implemented`: as with
+the five blocks in §3.4, an absent list is not a claim.
+
 ### 3.3 Where the bugs probably are
 
 Not a bug list. Real, reproducible defects are deferred findings with entries in
