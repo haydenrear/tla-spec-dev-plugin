@@ -184,17 +184,18 @@ def _parse_failure(text: str, exit_code: int) -> WtError:
     return cls(reason, fix=fix, log=log, exit_code=exit_code)
 
 
-def _run(args: list[str], cwd: str | Path | None = None) -> subprocess.CompletedProcess:
+def _run(args: list[str], cwd: str | Path | None = None, *, live_stderr: bool = False) -> subprocess.CompletedProcess:
     return subprocess.run(
         [str(wt_bin()), *args],
         cwd=str(cwd) if cwd else None,
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=None if live_stderr else subprocess.PIPE,
         text=True,
     )
 
 
 def _combined(proc: subprocess.CompletedProcess) -> str:
-    return proc.stdout + "\n" + proc.stderr
+    return proc.stdout + "\n" + (proc.stderr or "")
 
 
 def wt_info(ticket: str, cwd: str | Path | None = None) -> WorktreeContract:
@@ -267,10 +268,11 @@ def wt_close(
 ) -> CloseResult:
     args = ["close", ticket_or_path]
     if force:
-        args.append("--force")
+        args.extend(["--force", "--verbose"])
     if dry_run:
         args.append("--dry-run")
-    proc = _run(args, cwd=cwd)
+    # Forced removal must show the delegate's gate reasons before deletion.
+    proc = _run(args, cwd=cwd, live_stderr=force)
     if proc.returncode != 0:
         raise _parse_failure(_combined(proc), proc.returncode)
     keys = parse_contract(proc.stdout)

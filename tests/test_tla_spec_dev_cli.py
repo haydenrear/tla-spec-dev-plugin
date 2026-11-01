@@ -565,3 +565,22 @@ def test_generate_cases_metadir_delete_stays_inside_the_declared_tree(tmp_path: 
 # went with the static architecture scanners. The constraint itself is unchanged
 # and is exercised above through `analyze complexity`, which is the point: the
 # refusal lives in resolve_evidence_out, not in each caller.
+
+
+def test_uv_project_and_extra_dependencies_keep_pytest(tmp_path, monkeypatch):
+    target = tmp_path / "specs" / "current"
+    (target / "tests").mkdir(parents=True)
+    (target / "tests" / "test_example.py").write_text("def test_ok(): pass\n")
+    calls = []
+    monkeypatch.setenv("TLA_SPEC_DEV_UV_PROJECT", "fallback")
+    monkeypatch.setattr(tla_spec_dev.subprocess, "run", lambda cmd, **kw: (
+        calls.append((cmd, kw)) or subprocess.CompletedProcess(cmd, 0)))
+    parser = tla_spec_dev.build_parser()
+    for options, project in [([], "fallback"), (["--uv-project", "ml", "--uv-with", "pyyaml"], "ml")]:
+        args = parser.parse_args(["--repo-root", str(tmp_path), "run", "spec-unit-tests", "--scope", "project", *options])
+        assert tla_spec_dev.run_spec_unit_tests(args) == 0
+        cmd, kwargs = calls[-1]
+        assert cmd[cmd.index("--project") + 1] == project
+        assert ["--with", "pytest"] == cmd[cmd.index("--with"):cmd.index("--with")+2]
+        assert kwargs["cwd"] == tmp_path
+    assert "pyyaml" in calls[-1][0]

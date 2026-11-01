@@ -396,8 +396,26 @@ def run(
     into: str | None = None,
     yes: bool = False,
     as_json: bool = False,
+    force: bool = False,
+    dry_run: bool = False,
     start: str | Path = ".",
 ) -> int:
+    # close-only flags, refused loudly elsewhere. Silently ignoring a flag is
+    # how an agent comes to believe a dry run happened when nothing ran.
+    if (force or dry_run) and verb != "close":
+        flag = "--force" if force else "--dry-run"
+        print(
+            f"skt ticket {verb or '<verb>'}: {flag} applies to `close` only",
+            file=sys.stderr,
+        )
+        return 2
+    if force and dry_run:
+        print(
+            "skt ticket close: --force and --dry-run are contradictory; run --dry-run "
+            "first, read the gate, then decide",
+            file=sys.stderr,
+        )
+        return 2
     if verb in FLEET_VERBS:
         if ticket_id:
             print(
@@ -465,8 +483,28 @@ def run(
                 names = ", ".join(u["unit"] for u in leftovers)
                 print(f"note: edited unit(s) in this home before close: {names}")
                 print("      (`skt publish <unit>` moves them out; the gate below enforces it)")
-            result = giw.wt_close(ticket_id)
-            print(f"closed {result.worktree}")
+            if dry_run:
+                result = giw.wt_close(ticket_id, dry_run=True)
+                if result.dry_run_clean:
+                    print(f"would close {result.worktree} — the gate holds nothing back")
+                    return 0
+                print(f"gate refuses {result.worktree}; nothing was removed")
+                return 1
+            if force:
+                # Say what is being overridden, in the transcript, before doing
+                # it. A forced close that leaves no record of the refusal it
+                # walked past is indistinguishable from a clean one afterwards.
+                print(
+                    "warning: --force — the close-out gate will run; any refusal will be "
+                    "printed before removal and overridden, not cleared."
+                )
+                print(
+                    "         Each reason must already be established as not real unpublished "
+                    "work. If you have not read them, stop and run --dry-run.",
+                    flush=True,
+                )
+            result = giw.wt_close(ticket_id, force=force)
+            print(f"closed {result.worktree}" + (" (forced)" if force else ""))
             if result.branch:
                 print(f"branch {result.branch} kept — delete once the change has landed")
             if result.home_work:

@@ -89,6 +89,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ticket.add_argument("verb", nargs="?", choices=["new", "close", "info", "list", "sweep"])
     ticket.add_argument("ticket_id", nargs="?")
+    # `close` only. wt_close has carried force/dry_run since it was written;
+    # the CLI simply never exposed them, so an agent told to retire a verified
+    # worktree had no door at all and reached for `git worktree remove`, which
+    # deletes a gitignored home without asking. Exposing them is strictly safer
+    # than the workaround they invite.
+    ticket.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="close only: run the close-out gate and report, remove nothing. Do this first.",
+    )
+    ticket.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "close only: remove the worktree even though the close-out gate refused. "
+            "Only after reading the gate's reasons and establishing each one is not real "
+            "unpublished work -- a unit superseded by a plugin that ships it under a new "
+            "name, or a copy strictly behind its destination. Never to finish faster."
+        ),
+    )
     # THE POSITIONAL BASE, because the OTHER front door takes one.
     #
     # `wt new <ticket> <base>` is positional and is what git-issue-workflow
@@ -222,13 +242,21 @@ TICKET_VERB_HELP = {
         "  skt ticket new OUN-6 --base HEAD --path ../wt-oun-6\n"
     ),
     "close": (
-        "usage: skt ticket close <ticket>\n"
+        "usage: skt ticket close <ticket> [--dry-run] [--force]\n"
         "\n"
         "Tear the worktree down through the close-out gate, which REFUSES\n"
         "while removing it would destroy unpublished skill work. Resolves the\n"
         "worktree by SEARCH, so a hand-made path is found too.\n"
         "\n"
         "  <ticket>        the ticket id\n"
+        "  --dry-run       run the gate, report, remove nothing. Do this first.\n"
+        "  --force         remove anyway, after the gate refused\n"
+        "\n"
+        "A refusal is usually real. The one shape that is not: a home holding\n"
+        "units a PLUGIN now ships, possibly under a new name -- the gate compares\n"
+        "names at the top level and does not know plugins/<p>/skills/<u>\n"
+        "supersedes skills/<u>. Establish that per unit, publish or sync anything\n"
+        "genuinely only here, and only then --force. Never to finish faster.\n"
         "\n"
         "exit 0 is the only code that means the worktree is gone.\n"
     ),
@@ -312,6 +340,8 @@ def main(argv: list[str] | None = None) -> int:
             into=args.into,
             yes=args.yes,
             as_json=args.json,
+            force=args.force,
+            dry_run=args.dry_run,
         )
     if args.command == "build":
         return _import_sibling("build_cmd").run(

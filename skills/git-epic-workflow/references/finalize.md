@@ -411,8 +411,10 @@ only declines to stop, and it states that the work is being discarded. It exists
 a deliberate discard is named and loud instead of an improvised `rm -rf` that skips
 this check and every other one. `skill-manager home close-out` itself has no
 `--force`: the CLI owns the verdict, the script owns whether to obey it. Do not use
-it to finish an epic faster — a blocker at this point is an improvement somebody
-made and nobody published.
+it over unpublished work — that blocker is an improvement somebody made and nobody
+published. Custody-only blockers (a unit held as a git checkout, edits already
+pushed to the unit's branch) are the exception: force, and record
+`forced (custody only)` with the verdict (`worktree-lifecycle.md` §7).
 
 Finish the sweep and account for it:
 

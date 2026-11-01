@@ -342,10 +342,16 @@ Reducing the wave width is also an answer, and it is the user's call.
 
 - Never `rm -rf` a worktree. It skips the home gate and every other check; the
   gate exists because the home is invisible to `git status`.
-- Never use `wt close --force` (or `close-change.sh --force`) to finish an epic
-  faster. It still runs the gate and still prints every blocker — it only
-  declines to stop, and it states that the work is being discarded. It is for a
-  deliberate, named discard, not for a sweep in a hurry.
+- Never use `wt close --force` (or `close-change.sh --force`) over a blocker
+  that names **unpublished work** — an edited unit nobody published, an
+  uncommitted or unpushed tree. That is the loss the gate exists to prevent.
+- **Do** use `--force` (`skt ticket close --force`, `wt close --force`) when the
+  only blockers are **custody**: a unit materialized as a git checkout (the
+  plugin under development in `.skill-manager/plugins/<unit>`), or edits already
+  pushed to the unit's own branch. Custody is bookkeeping about where a copy
+  lives, not work; owner policy is that it never holds up a close. Run
+  `home close-out` first (it only reads), and record its verdict line and the
+  word `forced (custody only)` in the PR body or wave review.
 - Never let a ticket agent sync into the project home, and never run two syncs
   into it at once.
 - Never treat `held-back` as success, a merged PR as proof the home was
