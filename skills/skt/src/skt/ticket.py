@@ -495,12 +495,13 @@ def run(
                 # it. A forced close that leaves no record of the refusal it
                 # walked past is indistinguishable from a clean one afterwards.
                 print(
-                    "warning: --force — removing the worktree although the close-out gate "
-                    "refused. The refusal is above; it is not cleared, only overridden."
+                    "warning: --force — the close-out gate will run; any refusal will be "
+                    "printed before removal and overridden, not cleared."
                 )
                 print(
                     "         Each reason must already be established as not real unpublished "
-                    "work. If you have not read them, stop and run --dry-run."
+                    "work. If you have not read them, stop and run --dry-run.",
+                    flush=True,
                 )
             result = giw.wt_close(ticket_id, force=force)
             print(f"closed {result.worktree}" + (" (forced)" if force else ""))

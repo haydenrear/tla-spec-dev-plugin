@@ -370,7 +370,7 @@ def run_spec_unit_tests(args: argparse.Namespace) -> int:
     uv_project = getattr(args, "uv_project", None) or base_env.get("TLA_SPEC_DEV_UV_PROJECT") or ""
     uv_project_args = ["--project", uv_project] if uv_project else []
     uv_with_args: list[str] = []
-    for dependency in getattr(args, "uv_with", None) or ["pytest"]:
+    for dependency in dict.fromkeys(["pytest", *(getattr(args, "uv_with", None) or [])]):
         uv_with_args.extend(["--with", dependency])
 
     cases_dirs = spec_unit_cases_dirs(args, specs_dir)
@@ -659,8 +659,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--uv-with",
         action="append",
         help=(
-            "Dependency for `uv run --with`. May be repeated. Defaults to "
-            "pytest alone; pass it again when a repo's spec tests also need, "
+            "Additional dependency for `uv run --with`. May be repeated. Includes "
+            "pytest automatically; use this when a repo's spec tests also need, "
             "for example, pyyaml."
         ),
     )

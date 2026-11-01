@@ -252,3 +252,16 @@ def test_wt_bin_prefers_unit_copy_without_env(monkeypatch):
     resolved = wt_bin()
     assert resolved.name == "wt"
     assert (Path(__file__).resolve().parents[1] / "scripts" / "wt") == resolved
+
+
+def test_forced_close_shows_gate_reasons_before_removal(use_stub, tmp_path, capfd):
+    marker = tmp_path / "removed"
+    use_stub(
+        'case " $* " in *" --verbose "*) ;; *) exit 9;; esac\n'
+        'echo "BLOCKED custody-only-copy" >&2\n'
+        f'touch "{marker}"\n'
+        'echo "CLOSED /tmp/repo-T-1"\n'
+    )
+    assert wt_close("T-1", force=True).worktree == "/tmp/repo-T-1"
+    assert marker.exists()
+    assert "BLOCKED custody-only-copy" in capfd.readouterr().err

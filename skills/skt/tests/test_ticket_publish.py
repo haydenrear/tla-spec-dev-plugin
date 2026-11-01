@@ -568,3 +568,27 @@ def test_unpublished_commit_on_top_still_reads_edited_offline(tmp_path):
 
     edited = publish_mod.edited_units(home)
     assert [(e["unit"], e["state"]) for e in edited] == [("alpha", "ahead")]
+
+
+@pytest.mark.parametrize("verb", ["new", "info", "list", "sweep", None])
+@pytest.mark.parametrize("flag", ["force", "dry_run"])
+def test_close_options_refused_on_other_verbs(verb, flag, capsys):
+    assert ticket_mod.run(verb, "T-1", **{flag: True}) == 2
+    assert "close` only" in capsys.readouterr().err
+
+
+def test_close_options_are_mutually_exclusive(capsys):
+    assert ticket_mod.run("close", "T-1", force=True, dry_run=True) == 2
+    assert "contradictory" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("clean, expected", [(True, 0), (False, 1)])
+def test_close_dry_run_never_calls_removal(monkeypatch, clean, expected):
+    calls = []
+    def close(ticket, **kwargs):
+        calls.append(kwargs)
+        return types.SimpleNamespace(worktree="/tmp/T-1", dry_run_clean=clean)
+    fake_giw(monkeypatch, wt_close=close)
+    monkeypatch.setattr(publish_mod, "edited_units", lambda *_: [])
+    assert ticket_mod.run("close", "T-1", dry_run=True) == expected
+    assert calls == [{"dry_run": True}]
