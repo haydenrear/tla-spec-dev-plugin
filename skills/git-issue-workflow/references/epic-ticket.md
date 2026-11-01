@@ -237,8 +237,8 @@ finalization, after ticket integration (git-epic-workflow's
 `references/finalize.md` §2–2c).
 
 Before repairs/reruns, record the short convergence review from
-git-epic-workflow's `references/validation-review.md`. Escalate its budget,
-recurrence or stalled-progress triggers to the epic owner; do not keep retrying
+git-epic-workflow's `references/validation-review.md`. Escalate its recurrence, coupling
+or stalled-progress triggers to the epic owner; do not keep retrying
 or broaden the architecture from this ticket.
 
 Run every validation matrix entry marked REQUIRED, using the exact command from

@@ -146,8 +146,9 @@ rather than overwriting the first. That is a result to read, not a step that
 succeeded. `held-back` is a `home sync` status; `close-out` never reports it.
 
 Before launching final validation, perform `validation-review.md`'s deeper
-review: can the full run, manual scenarios and likely repairs still fit the
-remaining budget? Resolve triggered scope/architecture decisions first.
+review: is the increment stabilizing, and can its failures be isolated? Use
+attribution to identify interacting changes and improve feedback; recommend a
+second epic when excessive scope sustains the loop.
 
 ## 2. Validate the integrated epic
 
@@ -312,15 +313,16 @@ For each defect manual testing catches that the graph missed:
    not another open-ended manual campaign or a loop to obtain a better score.
 
 If no defects were found, record that claim and the scenarios actually exercised;
-no extra unchanged full run is required. If repair cost or new discoveries blow
-past the agreed validation budget, recommend splitting/deferment with explicit
-user disposition and preserved findings. Do not weaken acceptance or silently
+no extra unchanged full run is required. If repairs keep reopening other
+failures, diagnose their sources through bug attribution and recommend splitting
+out a second epic when interacting changes prevent this increment stabilizing.
+Preserve findings and record the user's scope decision. Do not weaken acceptance or silently
 expand the epic. Behavior changes after acceptance invalidate affected evidence;
 recheck that scope and refresh the integrated confirmation before closing.
 
 Every repair/rerun above follows `validation-review.md`'s short review and
-convergence triggers. One manual phase includes only bounded repairs and
-scenario rechecks; it never authorizes indefinite testing. A trigger interrupts
+convergence triggers. Keep the manual phase focused on the agreed acceptance scenarios and
+repair rechecks; it never authorizes indefinite testing. A trigger interrupts
 this phase for the deeper options review before another repair/rerun begins.
 Include the cumulative cost, decision record and cross-epic velocity trend in
 the final PR and carry the chosen improvement into the next epic's planning.
