@@ -109,6 +109,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import context as ctx_mod
+from .check import _is_ancestor as _git_is_ancestor
 from .publish import _cli, _cli_env
 
 #: Budget for one read (`status`, `rev-list`, a reflog walk). Generous for
@@ -450,6 +451,10 @@ class DeclaredTickets:
         return ticket in self.ids or ctx_mod.issue_number(ticket) in self.issues
 
 
+class PlanUnreadable(Exception):
+    """The epic branch's plan exists, or might, but could not be read."""
+
+
 def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     """The plan on `epic_ref`, read with `git show` — None when it has none.
 
@@ -457,37 +462,43 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     epic branch, and the primary checkout that runs the sweep is usually
     on `main`. Issue numbers go through `context.plan_issue_index`, the
     same join `skt status` uses.
+
+    Fails CLOSED. "No plan" is decided by git saying the path is absent,
+    never by a read that failed: that raises :class:`PlanUnreadable`, and
+    the sweep refuses rather than fall back to history. A plan present
+    with no entries is a plan declaring nothing, not "no plan".
     """
+    probe = _git("cat-file", "-e", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
+    if probe is None:
+        raise PlanUnreadable(f"git timed out checking for {TICKET_PLAN} on {epic_ref}")
+    if probe.returncode != 0:
+        return None
     text = _out("show", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
-    if not text:
-        return None
+    if text is None:
+        raise PlanUnreadable(f"git could not read {TICKET_PLAN} on {epic_ref}")
     _, _, all_tickets = ctx_mod.parse_ticket_plan(text)
-    if not all_tickets:
-        return None
     issues = ctx_mod.plan_issue_index(text)
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
 def resolve_trunks(root: Path) -> list[str]:
-    """Every ref that spells the repository's default branch, local and remote.
+    """Every ref that may be the repository's default branch, local and remote.
 
-    `origin/HEAD`'s target when the clone recorded it, else the first
-    conventional name that exists. Its remote-tracking ref AND its local
-    branch are both returned: either may be ahead of the other, and a
-    commit on EITHER is base history. Never the branch the primary checkout
+    `origin/HEAD`'s target when the clone recorded it, plus every
+    conventional name that exists (`main`, `master`, `develop`, `trunk`),
+    each as its remote-tracking ref AND its local branch. A commit on ANY
+    of them counts as base history: guessing one default where a gitflow
+    repo has two would count the other's history as the epic's. More bases
+    only ever select fewer worktrees. Never the branch the primary checkout
     happens to be on: that can be a planning branch holding the whole epic.
     """
     head = _out("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=root)
     names = [head.split("/", 1)[1]] if head and "/" in head else []
-    names += ["main", "master", "develop", "trunk"]
-    for name in names:
-        refs = [
-            ref for ref in (f"origin/{name}", name)
-            if _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root)
-        ]
-        if refs:
-            return refs
-    return []
+    names += [n for n in ("main", "master", "develop", "trunk") if n not in names]
+    return [
+        ref for name in names for ref in (f"origin/{name}", name)
+        if _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root)
+    ]
 
 
 def epic_bases(root: Path, epic_ref: str, trunks: list[str]) -> list[str] | None:
@@ -547,22 +558,17 @@ def epic_work(root: Path, epic_ref: str, bases: list[str] | None) -> EpicWork | 
     if bases is None:
         return None
     unique = _out("rev-list", epic_ref, "--not", *bases, cwd=root)
-    spine = _out("rev-list", "--first-parent", epic_ref, cwd=root)
+    # Only spine commits that are also unique matter, so the walk is bounded
+    # by the epic's own size, not the repository's history.
+    spine = _out("rev-list", "--first-parent", epic_ref, "--not", *bases, cwd=root)
     if unique is None or spine is None:
         return None
     return EpicWork(frozenset(unique.split()), frozenset(spine.split()))
 
 
 def _ancestry(root: Path, ancestor: str, descendant: str) -> bool | None:
-    """True/False when git decided, None when it could not (timeout, bad ref).
-
-    Tri-state like `check._is_ancestor`, so a membership test can fail
-    CLOSED: an error is never read as "not on the default branch".
-    """
-    proc = _git("merge-base", "--is-ancestor", ancestor, descendant, cwd=root)
-    if proc is None:
-        return None
-    return {0: True, 1: False}.get(proc.returncode)
+    """True/False when git decided, None when it could not — `check`'s probe."""
+    return _git_is_ancestor(root, ancestor, descendant, READ_TIMEOUT_SECONDS)
 
 
 # ----------------------------------------------------------------- the status
@@ -997,9 +1003,8 @@ class Plan:
 def _epic_exclusion(
     wt: Worktree,
     slug: str,
-    epic_ref: str | None,
+    epic_ref: str,
     declared: DeclaredTickets | None,
-    root: Path,
     *,
     work: EpicWork | None,
 ) -> str | None:
@@ -1042,7 +1047,7 @@ def _epic_exclusion(
         )
     if wt.owner_of_epic is not None:
         return f"the planning worktree of epic {wt.owner_of_epic}, not a ticket of epic {slug}"
-    if epic_ref is None or work is None:
+    if work is None:
         return (
             f"not part of epic {slug} (no plan on the epic branch, and the default branch "
             "before the epic cannot be told apart — run `git remote set-head origin --auto`, "
@@ -1090,7 +1095,16 @@ def build_plan(
         destination = root / HOME_DIR
 
     # Only an explicit --epic narrows, so only then is membership computed.
-    declared = epic_declared_tickets(root, epic_ref) if epic and epic_ref else None
+    try:
+        declared = epic_declared_tickets(root, epic_ref) if epic and epic_ref else None
+    except PlanUnreadable as exc:
+        return Plan(
+            root=root, destination=destination, target=resolved_target, epic=slug,
+            current=current, scoped=True,
+            error=f"{exc}; without it epic {epic}'s tickets cannot be told apart, "
+                  "so nothing was selected",
+            fix="re-run once git answers; check the repository with `git fsck` if it keeps failing",
+        )
     work = (
         epic_work(root, epic_ref, epic_bases(root, epic_ref, resolve_trunks(root)))
         if epic and epic_ref and declared is None else None
@@ -1123,7 +1137,7 @@ def build_plan(
             # containment target and nothing else: silently sweeping a
             # subset because one epic branch happened to exist is the
             # kind of surprise a destructive command must not have.
-            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, work=work)
+            excluded = _epic_exclusion(wt, epic, epic_ref, declared, work=work)
         status = inspect(wt, root=root, target=resolved_target) if excluded is None else Status(
             missing=wt.missing, locked=wt.locked, prunable=wt.prunable, target=resolved_target
         )

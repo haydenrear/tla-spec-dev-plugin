@@ -827,6 +827,62 @@ def test_unpushed_work_on_local_main_is_still_base_history(tmp_path, capsys):
     ], excluded
 
 
+def _commit_plan(root: Path, body: str) -> None:
+    git("checkout", "-q", "epic/demo", cwd=root)
+    plan_dir = root / "specs" / "desired_program_model"
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    (plan_dir / "ticket_plan.yaml").write_text(body)
+    git("add", "-A", cwd=root)
+    git("commit", "-q", "-m", "plan", cwd=root)
+    git("push", "-q", "origin", "epic/demo", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+
+
+def test_a_plan_with_no_entries_declares_nothing_rather_than_falling_back(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, "name: demo\ntickets: []\n")
+    add_worktree(repo, "201-alpha", commit=True, push=True)
+    git("merge", "-q", "--no-ff", "-m", "m", "origin/feature/201-alpha", cwd=root)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-201-alpha"] and "not declared in" in excluded["wt-201-alpha"]
+
+
+def test_a_plan_git_cannot_read_refuses_the_sweep(tmp_path, capsys, monkeypatch):
+    """A failed read is never "no plan": that would fall back to history."""
+    repo = epic_repo(tmp_path)
+    tickets = add_worktree(repo, "201-alpha")
+    real = sweep_mod._git
+    monkeypatch.setattr(
+        sweep_mod, "_git",
+        lambda *a, cwd=None: None if a[:2] == ("cat-file", "-e") else real(*a, cwd=cwd),
+    )
+    assert ticket_mod.run("sweep", None, start=repo["root"], epic="demo", yes=True) == 1
+    out = capsys.readouterr().out
+    assert "nothing was selected" in out
+    assert tickets.is_dir()
+
+
+def test_every_conventional_default_branch_is_base_history(tmp_path, capsys):
+    """gitflow, no origin/HEAD: work that reached the epic through `develop`
+    is base history even though `main` exists and is guessed first."""
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    git("branch", "develop", "main", cwd=root)
+    flow = add_worktree(repo, "306-flow", base="develop", commit=True, push=True)
+    git("checkout", "-q", "develop", cwd=root)
+    git("merge", "-q", "--ff-only", "feature/306-flow", cwd=root)
+    git("push", "-q", "origin", "develop", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+    epic_wt = root.parent / "wt-epic-demo"
+    git("worktree", "add", "-q", str(epic_wt), "epic/demo", cwd=root)
+    git("merge", "-q", "--no-ff", "-m", "merge develop", "develop", cwd=epic_wt)
+    git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-306-flow"] and "not part of epic demo" in excluded["wt-306-flow"]
+    assert flow.is_dir()
+
+
 def test_a_declared_ticket_whose_name_starts_with_epic_is_still_selected(tmp_path, capsys):
     repo = epic_repo(tmp_path)
     root = repo["root"]

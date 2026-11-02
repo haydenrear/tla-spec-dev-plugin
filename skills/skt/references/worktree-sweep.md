@@ -34,10 +34,13 @@ cannot. Which worktrees count as its tickets:
   `feature/<spec-id>`, or `feature/<issue>-<slug>` where `<issue>` matches the
   plan's `github_issue` (a URL, `#N` or `owner/repo#N`). A worktree the plan
   doesn't declare is excluded, whatever its history. Close it with `skt ticket
-  close <ticket>`.
+  close <ticket>`. A plan with no entries declares nothing. If git can't read
+  the plan, the sweep refuses and selects nothing; it never falls back to
+  history.
 - **With no plan,** a worktree's tip must be the epic's ticket work: reachable
-  from the epic branch, on neither the local nor the `origin/` default branch
-  as it stood before the epic merged, and not one of the epic's own
+  from the epic branch, on none of the default-branch refs as they stood
+  before the epic merged (`origin/HEAD`'s target plus whichever of `main`,
+  `master`, `develop` and `trunk` exist, local and `origin/`), and not one of the epic's own
   first-parent commits. That still works after finalize merges the epic with
   `--no-ff`. Nothing else selects a worktree: not a slug in a branch or
   directory name, not descending from the epic tip, and not being cut from the
