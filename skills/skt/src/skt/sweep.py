@@ -447,9 +447,7 @@ class DeclaredTickets:
     def declares(self, ticket: str | None) -> bool:
         if not ticket:
             return False
-        if ticket in self.ids or any(ticket.startswith(i + "-") for i in self.ids):
-            return True
-        return ctx_mod.issue_number(ticket) in self.issues
+        return ticket in self.ids or ctx_mod.issue_number(ticket) in self.issues
 
 
 def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
@@ -458,7 +456,7 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     `git show <ref>:<path>` rather than a file read: the plan lives on the
     epic branch, and the primary checkout that runs the sweep is usually
     on `main`. Issue numbers go through `context.plan_issue_index`, the
-    same join — and the same other-repository filter — `skt status` uses.
+    same join `skt status` uses.
     """
     text = _out("show", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
     if not text:
@@ -466,7 +464,7 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     _, _, all_tickets = ctx_mod.parse_ticket_plan(text)
     if not all_tickets:
         return None
-    issues = ctx_mod.plan_issue_index(text, ctx_mod.origin_repo(root))
+    issues = ctx_mod.plan_issue_index(text)
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
@@ -524,6 +522,35 @@ def epic_bases(root: Path, epic_ref: str, trunks: list[str]) -> list[str] | None
             return None
         bases.append(before)
     return bases
+
+
+@dataclass(frozen=True)
+class EpicWork:
+    """The commits that are the epic's TICKETS' work, computed once per plan.
+
+    `unique`: reachable from the epic and from none of the bases — work
+    the default branch did not already have. `spine`: the epic branch's
+    own first-parent chain — the epic's commits, and the tip of any
+    worktree merely cut from the epic (or from a branch cut from it).
+    A ticket's tip is in `unique` and not on `spine`.
+    """
+
+    unique: frozenset[str]
+    spine: frozenset[str]
+
+    def holds_ticket_tip(self, sha: str) -> bool:
+        return sha in self.unique and sha not in self.spine
+
+
+def epic_work(root: Path, epic_ref: str, bases: list[str] | None) -> EpicWork | None:
+    """None — nothing selects — when there are no bases or git fails."""
+    if bases is None:
+        return None
+    unique = _out("rev-list", epic_ref, "--not", *bases, cwd=root)
+    spine = _out("rev-list", "--first-parent", epic_ref, cwd=root)
+    if unique is None or spine is None:
+        return None
+    return EpicWork(frozenset(unique.split()), frozenset(spine.split()))
 
 
 def _ancestry(root: Path, ancestor: str, descendant: str) -> bool | None:
@@ -974,7 +1001,7 @@ def _epic_exclusion(
     declared: DeclaredTickets | None,
     root: Path,
     *,
-    bases: list[str] | None,
+    work: EpicWork | None,
 ) -> str | None:
     """Why this worktree is NOT one of epic `slug`'s tickets; None if it is.
 
@@ -984,21 +1011,21 @@ def _epic_exclusion(
     mistake costs its home.
 
     1. **A plan on the epic branch is authoritative.** The worktree's
-       ticket is declared there — by spec id (`feature/<id>` or
-       `feature/<id>-…`), or by the issue number its
-       `feature/<issue>-<slug>` branch leads with, joined through
-       `github_issue`. A plan miss is final.
-    2. **With no plan,** git must answer both: its tip IS contained in
-       the epic ref, and is NOT on any of `bases` — the default branch,
-       local and remote, as it stood before the epic merged. The ticket's
-       work is then unique to the epic (#390: tickets branched from old
-       epic tips and merged back, epic since finalized).
+       ticket is declared there — by spec id (`feature/<id>`), or by the
+       issue number its `feature/<issue>-<slug>` branch leads with,
+       joined through `github_issue`. A plan miss is final.
+    2. **With no plan,** its tip must be ticket work in `work`: reachable
+       from the epic, on none of the bases — the default branch, local
+       and remote, as it stood before the epic merged — and not one of
+       the epic's own first-parent commits (#390: tickets branched from
+       old epic tips and merged back, epic since finalized).
 
     **Shared ancestry alone never establishes membership (#157).** Every
     commit on the epic's base history is "contained" in the epic; once
-    the epic is merged, everything cut from main descends from its tip;
-    and a slug in a branch name is a coincidence of spelling. None of
-    those selects a worktree. A git error, or no `bases`, selects nothing.
+    the epic is merged, everything cut from main descends from its tip; a
+    worktree cut from the epic with no work of its own sits on the epic's
+    spine; and a slug in a branch name is a coincidence of spelling. None
+    of those selects a worktree. A git error, or no bases, selects nothing.
 
     A worktree on another `epic/*` branch is never a ticket; with no
     plan, neither is a `feature/epic-*` planning worktree. The epic's own
@@ -1015,15 +1042,13 @@ def _epic_exclusion(
         )
     if wt.owner_of_epic is not None:
         return f"the planning worktree of epic {wt.owner_of_epic}, not a ticket of epic {slug}"
-    if epic_ref is None or bases is None:
+    if epic_ref is None or work is None:
         return (
             f"not part of epic {slug} (no plan on the epic branch, and the default branch "
             "before the epic cannot be told apart — run `git remote set-head origin --auto`, "
             "or remove it with `skt ticket close <ticket>`)"
         )
-    if _ancestry(root, wt.rev, epic_ref) is True and all(
-        _ancestry(root, wt.rev, base) is False for base in bases
-    ):
+    if work.holds_ticket_tip(wt.head):
         return None
     return f"not part of epic {slug} (no plan on the epic branch, and no work unique to it)"
 
@@ -1066,8 +1091,8 @@ def build_plan(
 
     # Only an explicit --epic narrows, so only then is membership computed.
     declared = epic_declared_tickets(root, epic_ref) if epic and epic_ref else None
-    bases = (
-        epic_bases(root, epic_ref, resolve_trunks(root))
+    work = (
+        epic_work(root, epic_ref, epic_bases(root, epic_ref, resolve_trunks(root)))
         if epic and epic_ref and declared is None else None
     )
     plan = Plan(
@@ -1098,7 +1123,7 @@ def build_plan(
             # containment target and nothing else: silently sweeping a
             # subset because one epic branch happened to exist is the
             # kind of surprise a destructive command must not have.
-            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, bases=bases)
+            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, work=work)
         status = inspect(wt, root=root, target=resolved_target) if excluded is None else Status(
             missing=wt.missing, locked=wt.locked, prunable=wt.prunable, target=resolved_target
         )

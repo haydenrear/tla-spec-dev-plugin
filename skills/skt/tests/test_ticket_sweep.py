@@ -721,8 +721,13 @@ def _membership_repo(tmp_path, *, plan: bool, finalized: bool = False) -> dict:
     # A directory that spells the slug while the branch does not.
     named = root.parent / "demo-scratch"
     git("worktree", "add", "-q", str(named), "-b", "feature/302-scratch", "main", cwd=root)
-    # A branch that spells the slug as a token, sharing only ancestry.
-    extra = [named, add_worktree(repo, "303-demo-notes", base="main")]
+    # A branch that spells the slug as a token, sharing only ancestry; and
+    # a fresh worktree cut from the epic itself, with no work of its own.
+    extra = [
+        named,
+        add_worktree(repo, "303-demo-notes", base="main"),
+        add_worktree(repo, "305-fresh", base="epic/other"),
+    ]
     if finalized:
         git("merge", "-q", "--no-ff", "-m", "finalize epic demo", "epic/demo", cwd=root)
         git("push", "-q", "origin", "main", cwd=root)
@@ -766,7 +771,8 @@ def test_epic_sweep_selects_only_declared_tickets_not_shared_ancestry(
     assert "primary checkout" in excluded["repo"]
     assert "the epic's own worktree" in excluded["wt-epic-demo"]
     assert "the epic's own worktree" in excluded["wt-epic-demo-planning"]
-    for name in ("wt-300-unrelated", "wt-301-landed", "demo-scratch", "wt-303-demo-notes"):
+    for name in ("wt-300-unrelated", "wt-301-landed", "demo-scratch", "wt-303-demo-notes",
+                 "wt-305-fresh"):
         assert excluded[name] and "not part of epic demo" in excluded[name], excluded
     assert "another epic's own worktree" in excluded["wt-epic-other"]
     expected = "not declared in" if plan else "the planning worktree of epic next"
@@ -849,13 +855,10 @@ def test_a_plan_declares_tickets_by_spec_id_or_github_issue(tmp_path):
         "name: demo\ntickets:\n  - id: EP-1\n    status: open\n"
         "    github_issue: https://github.com/o/r/issues/201\n"
         "  - id: EP-2\n    status: open\n    github_issue: \"#202\"\n"
-        "  - id: EP-3\n    status: open\n"
-        "    github_issue: https://github.com/o/old-repo/issues/45\n"
     )
     git("add", "-A", cwd=root)
     git("commit", "-q", "-m", "plan", cwd=root)
     git("checkout", "-q", "main", cwd=root)
-    git("remote", "set-url", "origin", "https://github.com/O/r.git", cwd=root)
 
     declared = sweep_mod.epic_declared_tickets(root, "epic/demo")
     assert declared is not None
@@ -864,8 +867,7 @@ def test_a_plan_declares_tickets_by_spec_id_or_github_issue(tmp_path):
     assert not declared.declares("2010-other") and not declared.declares("300-unrelated")
     assert not declared.declares(None)
     assert declared.declares("202-beta")
-    # Issue 45 of ANOTHER repository is not this repository's issue 45.
-    assert declared.declares("EP-3") and not declared.declares("45-other")
+    assert not declared.declares("EP-1-alpha")  # a spec id is matched whole
 
 
 def test_an_unknown_epic_is_refused_rather_than_silently_widened(tmp_path, capsys):

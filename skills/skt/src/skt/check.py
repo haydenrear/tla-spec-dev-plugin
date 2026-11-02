@@ -1137,6 +1137,28 @@ def _artifact_notifications(state: dict, unit_notes: list[dict]) -> list[dict]:
     return out
 
 
+def _normalize_source(text: str | None) -> str | None:
+    """`github:o/r`, `git+https://github.com/o/r.git`, `https://github.com/o/r`
+    all as `github.com/o/r` — enough to match a manifest entry to a record."""
+    if not text:
+        return None
+    value = text.strip()
+    for prefix in ("git+",):
+        if value.startswith(prefix):
+            value = value[len(prefix):]
+    if value.startswith("github:"):
+        value = "github.com/" + value[len("github:"):]
+    for scheme in ("https://", "http://", "ssh://", "git://", "file://"):
+        if value.startswith(scheme):
+            value = value[len(scheme):]
+    if value.startswith("git@"):
+        value = value[len("git@"):].replace(":", "/", 1)
+    value = value.split("#", 1)[0].rstrip("/")
+    if value.endswith(".git"):
+        value = value[: -len(".git")]
+    return value.lower() or None
+
+
 def manifest_pins(root: Path) -> tuple[Path | None, list[dict]]:
     """The `revision` pins in `<root>/skill-project.toml`, one row per entry.
 
@@ -1170,14 +1192,14 @@ def manifest_pins(root: Path) -> tuple[Path | None, list[dict]]:
                     continue
                 rows.append({
                     "alias": alias,
-                    "source": ctx_mod.normalize_repo_url(entry.get("source") or entry.get("coord")),
+                    "source": _normalize_source(entry.get("source") or entry.get("coord")),
                     "revision": revision.strip(),
                 })
     return manifest, rows
 
 
 def _pin_for(unit: homes.Unit, rows: list[dict]) -> dict | None:
-    origin = ctx_mod.normalize_repo_url(unit.origin)
+    origin = _normalize_source(unit.origin)
     for row in rows:
         if row["alias"] == unit.name:
             return row

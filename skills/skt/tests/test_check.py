@@ -895,7 +895,7 @@ def test_the_root_home_ignores_pins_and_tracks_trunk(tmp_path, monkeypatch):
 
 def test_source_spellings_normalize_to_one_repository():
     same = {
-        check_mod.ctx_mod.normalize_repo_url(s)
+        check_mod._normalize_source(s)
         for s in (
             "github:haydenrear/tla-spec-dev",
             "git+https://github.com/haydenrear/tla-spec-dev.git",

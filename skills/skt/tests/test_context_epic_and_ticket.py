@@ -105,50 +105,15 @@ def test_an_unmeasured_artifact_surface_is_not_reported_as_all_current():
     )
 
 
-def test_issue_refs_read_every_spelling_and_keep_the_repository():
-    """#157: the sweep refuses an issue number from ANOTHER repository."""
+def test_issue_numbers_are_read_in_both_spellings():
+    """#157: the sweep joins a branch to the plan through these too."""
     text = (
         "tickets:\n"
-        "  - id: A\n    github_issue: https://github.com/Owner/Repo/issues/1\n"
+        "  - id: A\n    github_issue: https://github.com/o/r/issues/1\n"
         "  - id: B\n    github_issue: \"#2\"\n"
-        "  - id: C\n    github_issue: owner/other#3\n"
-        "  - id: D\n    github_issue: 4\n"
-        "  - id: E\n    github_issue: not-an-issue\n"
-        "  - id: F\n    github_issue: https://gitlab.com/grp/sub/proj/-/issues/6\n"
-        "  - id: G\n    github_issue: https://tracker.example/browse/7\n"
+        "  - id: C\n    github_issue: o/r#3\n"
     )
-    assert ctx.plan_issue_refs(text) == [
-        ("A", "owner/repo", "1"), ("B", None, "2"), ("C", "owner/other", "3"),
-        ("D", None, "4"), ("F", "grp/sub/proj", "6"), ("G", None, "7"),
-    ]
-    here = "owner/repo"
-    assert ctx.plan_issue_index(text, here) == {
-        "1": "A", "2": "B", "4": "D", "7": "G",
-    }
-    assert set(ctx.plan_issue_index(text)) == {"1", "2", "3", "4", "6", "7"}
+    assert ctx.plan_issue_index(text) == {"1": "A", "2": "B", "3": "C"}
     assert ctx.issue_number("201-alpha") == "201" and ctx.issue_number("201") == "201"
-    assert ctx.issue_number("2010x") is None and ctx.issue_number(None) is None
     assert ctx.issue_number("369_eval_ladder") == "369"
-
-
-def test_origin_spellings_name_one_repository(tmp_path):
-    """Token userinfo, an SSH port and a multi-account SSH alias are all
-    origin `o/r` — the path a plan's `github_issue` is compared with."""
-    import subprocess
-    repo = tmp_path / "r"
-    subprocess.run(["git", "init", "-q", str(repo)], check=True)
-    seen = set()
-    for url in (
-        "https://x-access-token:abc@github.com/O/r.git",
-        "git@github-work:o/r.git",
-        "ssh://git@github.com:22/o/r.git",
-        "https://github.com/o/r",
-    ):
-        subprocess.run(["git", "-C", str(repo), "remote", "remove", "origin"],
-                       capture_output=True)
-        subprocess.run(["git", "-C", str(repo), "remote", "add", "origin", url], check=True)
-        seen.add(ctx.origin_repo(repo))
-    assert seen == {"o/r"}
-    subprocess.run(["git", "-C", str(repo), "remote", "set-url", "origin", "/tmp/x/origin.git"],
-                   check=True)
-    assert ctx.origin_repo(repo) is None
+    assert ctx.issue_number("2010x") is None and ctx.issue_number(None) is None

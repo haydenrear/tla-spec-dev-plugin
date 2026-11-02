@@ -152,116 +152,17 @@ def epic_slug_from_refs(refs_text: str) -> str | None:
     return slugs[0] if len(slugs) == 1 else None
 
 
-def normalize_repo_url(text: str | None) -> str | None:
-    """`github:o/r`, `git+https://github.com/o/r.git`, `git@github.com:o/r`,
-    `https://github.com/o/r` all as `github.com/o/r`.
-
-    The one remote-URL normalizer: `check` matches manifest entries to
-    records with it, and the plan's `github_issue` is compared with
-    `origin` through it.
-    """
-    if not text:
-        return None
-    value = text.strip()
-    for prefix in ("git+",):
-        if value.startswith(prefix):
-            value = value[len(prefix):]
-    if value.startswith("github:"):
-        value = "github.com/" + value[len("github:"):]
-    scheme_url = False
-    for scheme in ("https://", "http://", "ssh://", "git://", "file://"):
-        if value.startswith(scheme):
-            value = value[len(scheme):]
-            scheme_url = True
-    # userinfo (`git@`, `x-access-token:…@`) names who connects, not what.
-    value = re.sub(r"^[^@/]+@", "", value)
-    if scheme_url:
-        value = re.sub(r"^([^/:]+):\d+(?=/)", r"\1", value)  # host:port
-    else:
-        value = value.replace(":", "/", 1)  # scp-style host:owner/repo
-    value = value.split("#", 1)[0].rstrip("/")
-    if value.endswith(".git"):
-        value = value[: -len(".git")]
-    return value.lower() or None
-
-
-def _repo_path(normalized: str | None) -> str | None:
-    """`github.com/o/r` -> `o/r`: the host is dropped, because an SSH alias
-    (`git@github-work:o/r`) names the same repository by another host."""
-    if not normalized or "/" not in normalized:
-        return None
-    path = normalized.split("/", 1)[1]
-    return path if "/" in path else None
-
-
-def origin_repo(root: Path) -> str | None:
-    """`origin` as a host-less repository path (`o/r`); None when it names
-    none — a local-path remote, or no origin at all."""
-    url = _git("remote", "get-url", "origin", cwd=root)
-    if not url or url.startswith(("/", ".", "file://")) or "://" not in url and "@" not in url:
-        return None
-    return _repo_path(normalize_repo_url(url))
-
-
-def same_repository(plan_repo: str | None, here: str | None) -> bool:
-    """Could `plan_repo` be `here`? Unknown on either side is not a refusal."""
-    if plan_repo is None or here is None:
-        return True
-    return plan_repo == here
-
-
-_ISSUE_PATH_RE = re.compile(r"^(?P<repo>.+?)/(?:-/)?(?:issues|pull|merge_requests)/(?P<num>\d+)/?$")
-
-
 def issue_number(ticket: str | None) -> str | None:
     """The issue number a ticket id LEADS with (`201-alpha` -> `201`).
 
-    One spelling for every caller: `skt status` and `skt ticket sweep`
-    both join a branch's ticket to the plan through it.
+    One spelling for both joins to the plan: `skt status` (below) and
+    `skt ticket sweep --epic` (#157).
     """
-    match = re.match(r"^(\d+)(?:[-_]|$)", ticket or "")
+    match = re.match(r"^(\d+)(?=[-_./]|$)", ticket or "")
     return match.group(1) if match else None
 
 
-def _issue_ref(value: str) -> tuple[str | None, str] | None:
-    """(host-less repository path or None, number) from one `github_issue`."""
-    value = value.strip("'\"").rstrip("/")
-    if re.fullmatch(r"#?\d+", value):
-        return None, value.lstrip("#")
-    short = re.fullmatch(r"([\w.-]+(?:/[\w.-]+)+)#(\d+)", value)
-    if short and "://" not in value:
-        return short.group(1).lower(), short.group(2)
-    path = _ISSUE_PATH_RE.match(value)
-    if path:
-        return _repo_path(normalize_repo_url(path.group("repo"))), path.group("num")
-    # Any other URL ending in a number: the number is trusted, the repository
-    # is not guessed (the reading `skt status` always had).
-    tail = value.rsplit("/", 1)[-1]
-    return (None, tail) if tail.isdigit() else None
-
-
-def plan_issue_refs(text: str) -> list[tuple[str, str | None, str]]:
-    """(spec id, host-less repository path or None, issue number) per `github_issue`.
-
-    Reads a full issue/PR/merge-request URL, `owner/repo#N`, `#N` and a
-    bare `N`; the repository is None when the value does not name one.
-    """
-    refs: list[tuple[str, str | None, str]] = []
-    current = None
-    for line in text.splitlines():
-        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
-        if m:
-            current = m.group(1).strip("'\"")
-            continue
-        m = re.match(r"^\s*github_issue:\s*(\S+)", line)
-        if m and current:
-            ref = _issue_ref(m.group(1))
-            if ref:
-                refs.append((current, *ref))
-    return refs
-
-
-def plan_issue_index(text: str, here: str | None = None) -> dict[str, str]:
+def plan_issue_index(text: str) -> dict[str, str]:
     """Issue number -> spec ticket id, from a plan's text.
 
     A ticket worktree's branch spells the ISSUE (`feature/369-eval-ladder-skt`)
@@ -270,16 +171,20 @@ def plan_issue_index(text: str, here: str | None = None) -> dict[str, str]:
     the one line of `skt status` that answers "am I where I should be"
     (SI-20-DF-06). The two are joined by `github_issue`, which is the only field
     carrying the number, so the mapping is read rather than guessed.
-
-    `here` (see :func:`origin_repo`) drops a `github_issue` naming ANOTHER
-    repository: issues are renumbered when a project moves, so its number
-    is not this repository's (#157). `skt status` and `skt ticket sweep`
-    both filter here, so they agree.
     """
-    return {
-        num: spec_id for spec_id, repo, num in plan_issue_refs(text)
-        if same_repository(repo, here)
-    }
+    index: dict[str, str] = {}
+    current = None
+    for line in text.splitlines():
+        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
+        if m:
+            current = m.group(1).strip("'\"")
+            continue
+        m = re.match(r"^\s*github_issue:\s*(\S+)", line)
+        if m and current:
+            num = m.group(1).strip("'\"").rstrip("/").rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+            if num.isdigit():
+                index[num] = current
+    return index
 
 
 def parse_ticket_plan(text: str) -> tuple[str | None, list[str], list[str]]:
@@ -355,9 +260,7 @@ def gather(start: str | Path, home: Path) -> TicketContext:
             if lead is not None:
                 plan = root / "specs" / "desired_program_model" / "ticket_plan.yaml"
                 try:
-                    mapped = plan_issue_index(
-                        plan.read_text(), origin_repo(root)
-                    ).get(lead)
+                    mapped = plan_issue_index(plan.read_text()).get(lead)
                 except OSError:
                     mapped = None
                 if mapped is not None:

@@ -30,25 +30,22 @@ running in and never touches the primary.
 cannot. Which worktrees count as its tickets:
 
 - **When `epic/<slug>` carries a `ticket_plan.yaml`, the plan decides.** A
-  worktree belongs to the epic only if the plan declares it, either by spec id
-  or by the issue number its `feature/<issue>-<slug>` branch starts with,
-  matched through the plan's `github_issue`. A worktree the plan doesn't
-  declare is excluded, whatever its history.
-- **With no plan,** git must confirm both of these: the worktree's tip is
-  contained in the epic branch, and it was on neither the local nor the
-  `origin/` default branch before the epic merged into it. That still works
-  after finalize merges the epic with `--no-ff`. Nothing else selects a
-  worktree: not a slug in a branch or directory name, and not descending from
-  the epic tip. If git can't answer, the default branch can't be resolved, or
-  the epic was fast-forwarded onto it, the worktree is left standing: run `git
-  remote set-head origin --auto`, or remove it with `skt ticket close <ticket>`.
-  The same applies to a ticket from an epic's earlier merge round once the epic
-  has moved on.
-- A plan declares a ticket by spec id (`feature/<id>` or `feature/<id>-…`) or by
-  the issue number its branch starts with. A `github_issue` that points at a
-  different repository from `origin` declares nothing, because issue numbers
-  change when a project moves. `skt status` applies the same filter. After a
-  rename, update the plan's URLs, or the old-name tickets are left standing.
+  worktree belongs to the epic only if the plan declares it: its branch is
+  `feature/<spec-id>`, or `feature/<issue>-<slug>` where `<issue>` matches the
+  plan's `github_issue` (a URL, `#N` or `owner/repo#N`). A worktree the plan
+  doesn't declare is excluded, whatever its history. Close it with `skt ticket
+  close <ticket>`.
+- **With no plan,** a worktree's tip must be the epic's ticket work: reachable
+  from the epic branch, on neither the local nor the `origin/` default branch
+  as it stood before the epic merged, and not one of the epic's own
+  first-parent commits. That still works after finalize merges the epic with
+  `--no-ff`. Nothing else selects a worktree: not a slug in a branch or
+  directory name, not descending from the epic tip, and not being cut from the
+  epic without any commits of its own. If git can't answer, the default branch
+  can't be resolved, or the epic was fast-forwarded onto it, the worktree is
+  left standing: run `git remote set-head origin --auto`, or remove it with
+  `skt ticket close <ticket>`. The same applies to a ticket from an epic's
+  earlier merge round once the epic has moved on.
 
 Shared Git ancestry alone never makes a worktree a ticket (#157). A feature
 worktree cut from `main`, or one whose work reached the epic only because
