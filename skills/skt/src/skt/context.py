@@ -168,33 +168,46 @@ def normalize_repo_url(text: str | None) -> str | None:
             value = value[len(prefix):]
     if value.startswith("github:"):
         value = "github.com/" + value[len("github:"):]
+    scheme_url = False
     for scheme in ("https://", "http://", "ssh://", "git://", "file://"):
         if value.startswith(scheme):
             value = value[len(scheme):]
-    if value.startswith("git@"):
-        value = value[len("git@"):].replace(":", "/", 1)
+            scheme_url = True
+    # userinfo (`git@`, `x-access-token:…@`) names who connects, not what.
+    value = re.sub(r"^[^@/]+@", "", value)
+    if scheme_url:
+        value = re.sub(r"^([^/:]+):\d+(?=/)", r"\1", value)  # host:port
+    else:
+        value = value.replace(":", "/", 1)  # scp-style host:owner/repo
     value = value.split("#", 1)[0].rstrip("/")
     if value.endswith(".git"):
         value = value[: -len(".git")]
     return value.lower() or None
 
 
+def _repo_path(normalized: str | None) -> str | None:
+    """`github.com/o/r` -> `o/r`: the host is dropped, because an SSH alias
+    (`git@github-work:o/r`) names the same repository by another host."""
+    if not normalized or "/" not in normalized:
+        return None
+    path = normalized.split("/", 1)[1]
+    return path if "/" in path else None
+
+
 def origin_repo(root: Path) -> str | None:
-    """`origin`, normalized (`github.com/o/r`); None for a local-path remote."""
+    """`origin` as a host-less repository path (`o/r`); None when it names
+    none — a local-path remote, or no origin at all."""
     url = _git("remote", "get-url", "origin", cwd=root)
     if not url or url.startswith(("/", ".", "file://")) or "://" not in url and "@" not in url:
         return None
-    return normalize_repo_url(url)
+    return _repo_path(normalize_repo_url(url))
 
 
 def same_repository(plan_repo: str | None, here: str | None) -> bool:
-    """Could `plan_repo` be `here`? Unknown on either side is not a refusal.
-
-    `owner/repo#N` names no host, so it is compared with the end of `here`.
-    """
+    """Could `plan_repo` be `here`? Unknown on either side is not a refusal."""
     if plan_repo is None or here is None:
         return True
-    return plan_repo == here or here.endswith("/" + plan_repo)
+    return plan_repo == here
 
 
 _ISSUE_PATH_RE = re.compile(r"^(?P<repo>.+?)/(?:-/)?(?:issues|pull|merge_requests)/(?P<num>\d+)/?$")
@@ -206,12 +219,12 @@ def issue_number(ticket: str | None) -> str | None:
     One spelling for every caller: `skt status` and `skt ticket sweep`
     both join a branch's ticket to the plan through it.
     """
-    match = re.match(r"^(\d+)(?:-|$)", ticket or "")
+    match = re.match(r"^(\d+)(?:[-_]|$)", ticket or "")
     return match.group(1) if match else None
 
 
 def _issue_ref(value: str) -> tuple[str | None, str] | None:
-    """(normalized repository or None, number) from one `github_issue`."""
+    """(host-less repository path or None, number) from one `github_issue`."""
     value = value.strip("'\"").rstrip("/")
     if re.fullmatch(r"#?\d+", value):
         return None, value.lstrip("#")
@@ -220,7 +233,7 @@ def _issue_ref(value: str) -> tuple[str | None, str] | None:
         return short.group(1).lower(), short.group(2)
     path = _ISSUE_PATH_RE.match(value)
     if path:
-        return normalize_repo_url(path.group("repo")), path.group("num")
+        return _repo_path(normalize_repo_url(path.group("repo"))), path.group("num")
     # Any other URL ending in a number: the number is trusted, the repository
     # is not guessed (the reading `skt status` always had).
     tail = value.rsplit("/", 1)[-1]
@@ -228,7 +241,7 @@ def _issue_ref(value: str) -> tuple[str | None, str] | None:
 
 
 def plan_issue_refs(text: str) -> list[tuple[str, str | None, str]]:
-    """(spec id, normalized repository or None, issue number) per `github_issue`.
+    """(spec id, host-less repository path or None, issue number) per `github_issue`.
 
     Reads a full issue/PR/merge-request URL, `owner/repo#N`, `#N` and a
     bare `N`; the repository is None when the value does not name one.

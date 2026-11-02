@@ -721,7 +721,8 @@ def _membership_repo(tmp_path, *, plan: bool, finalized: bool = False) -> dict:
     # A directory that spells the slug while the branch does not.
     named = root.parent / "demo-scratch"
     git("worktree", "add", "-q", str(named), "-b", "feature/302-scratch", "main", cwd=root)
-    extra = [named]
+    # A branch that spells the slug as a token, sharing only ancestry.
+    extra = [named, add_worktree(repo, "303-demo-notes", base="main")]
     if finalized:
         git("merge", "-q", "--no-ff", "-m", "finalize epic demo", "epic/demo", cwd=root)
         git("push", "-q", "origin", "main", cwd=root)
@@ -765,7 +766,7 @@ def test_epic_sweep_selects_only_declared_tickets_not_shared_ancestry(
     assert "primary checkout" in excluded["repo"]
     assert "the epic's own worktree" in excluded["wt-epic-demo"]
     assert "the epic's own worktree" in excluded["wt-epic-demo-planning"]
-    for name in ("wt-300-unrelated", "wt-301-landed", "demo-scratch"):
+    for name in ("wt-300-unrelated", "wt-301-landed", "demo-scratch", "wt-303-demo-notes"):
         assert excluded[name] and "not part of epic demo" in excluded[name], excluded
     assert "another epic's own worktree" in excluded["wt-epic-other"]
     expected = "not declared in" if plan else "the planning worktree of epic next"
@@ -798,6 +799,23 @@ def test_a_stale_local_main_is_not_taken_for_the_default_branch(tmp_path, capsys
     git("reset", "-q", "--hard", "feature/301-landed~1", cwd=root)
     excluded = _selected(root, capsys)
     assert excluded["wt-301-landed"] and "not part of epic demo" in excluded["wt-301-landed"]
+    assert sorted(n for n, why in excluded.items() if why is None) == [
+        "wt-201-alpha", "wt-202-beta"
+    ], excluded
+
+
+def test_unpushed_work_on_local_main_is_still_base_history(tmp_path, capsys):
+    """Local main AHEAD of origin/main: a worktree whose work is only on
+    local main — then merged into the epic — shares ancestry, nothing more."""
+    repo = _membership_repo(tmp_path, plan=False)
+    root = repo["root"]
+    local = add_worktree(repo, "304-local", base="main", commit=True, push=True)
+    git("merge", "-q", "--ff-only", "feature/304-local", cwd=root)  # not pushed
+    git("merge", "-q", "--no-ff", "-m", "merge main again", "main", cwd=repo["epic_wt"])
+    git("push", "-q", "origin", "epic/demo", cwd=repo["epic_wt"])
+    excluded = _selected(root, capsys)
+    assert excluded["wt-304-local"] and "not part of epic demo" in excluded["wt-304-local"]
+    assert local.is_dir()
     assert sorted(n for n, why in excluded.items() if why is None) == [
         "wt-201-alpha", "wt-202-beta"
     ], excluded

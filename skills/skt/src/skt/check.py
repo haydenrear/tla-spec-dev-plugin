@@ -1137,10 +1137,6 @@ def _artifact_notifications(state: dict, unit_notes: list[dict]) -> list[dict]:
     return out
 
 
-#: Moved to `context.normalize_repo_url` so the sweep shares it (#157).
-_normalize_source = ctx_mod.normalize_repo_url
-
-
 def manifest_pins(root: Path) -> tuple[Path | None, list[dict]]:
     """The `revision` pins in `<root>/skill-project.toml`, one row per entry.
 
@@ -1174,14 +1170,14 @@ def manifest_pins(root: Path) -> tuple[Path | None, list[dict]]:
                     continue
                 rows.append({
                     "alias": alias,
-                    "source": _normalize_source(entry.get("source") or entry.get("coord")),
+                    "source": ctx_mod.normalize_repo_url(entry.get("source") or entry.get("coord")),
                     "revision": revision.strip(),
                 })
     return manifest, rows
 
 
 def _pin_for(unit: homes.Unit, rows: list[dict]) -> dict | None:
-    origin = _normalize_source(unit.origin)
+    origin = ctx_mod.normalize_repo_url(unit.origin)
     for row in rows:
         if row["alias"] == unit.name:
             return row

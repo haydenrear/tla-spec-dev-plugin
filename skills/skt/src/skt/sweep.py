@@ -470,64 +470,72 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
-def resolve_trunk(root: Path) -> str | None:
-    """The repository's default branch, or None when it cannot be named.
+def resolve_trunks(root: Path) -> list[str]:
+    """Every ref that spells the repository's default branch, local and remote.
 
-    `origin/HEAD` when the clone recorded it, else the conventional names,
-    the remote-tracking ref before a possibly stale local branch. Never the
-    branch the primary checkout happens to be on: that can be a planning
-    branch which contains the whole epic.
+    `origin/HEAD`'s target when the clone recorded it, else the first
+    conventional name that exists. Its remote-tracking ref AND its local
+    branch are both returned: either may be ahead of the other, and a
+    commit on EITHER is base history. Never the branch the primary checkout
+    happens to be on: that can be a planning branch holding the whole epic.
     """
     head = _out("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=root)
-    candidates = [head] if head else []
-    for name in ("main", "master", "develop", "trunk"):
-        candidates += [f"origin/{name}", name]
-    for ref in candidates:
-        if _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root):
-            return ref
-    return None
+    names = [head.split("/", 1)[1]] if head and "/" in head else []
+    names += ["main", "master", "develop", "trunk"]
+    for name in names:
+        refs = [
+            ref for ref in (f"origin/{name}", name)
+            if _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root)
+        ]
+        if refs:
+            return refs
+    return []
 
 
-@dataclass(frozen=True)
-class EpicBase:
-    """What a no-plan sweep compares a worktree against.
+def epic_bases(root: Path, epic_ref: str, trunks: list[str]) -> list[str] | None:
+    """The default branch AS IT STOOD before the epic merged into it, per ref.
 
-    `ref` is the default branch AS IT STOOD before the epic merged into
-    it: work reachable from there is base history every branch shares,
-    not the epic's. `merged` is True once the epic is on the default
-    branch — from then on everything cut from it descends from the epic
-    tip, so descent proves nothing. `ref` None: cannot be told apart.
+    Work reachable from any of these is base history every branch shares,
+    not the epic's. Per trunk ref: before the epic lands, the ref itself;
+    after a `--no-ff` merge (what finalize does), the first parent of the
+    first-parent commit that brought the epic in. None — nothing can be
+    told apart — with no trunk, a git failure, or an epic fast-forwarded
+    onto the default branch.
     """
-
-    ref: str | None
-    merged: bool = False
-
-
-def epic_base(root: Path, epic_ref: str, trunk: str | None) -> EpicBase:
-    """Before the epic lands, `trunk`. After a `--no-ff` merge (what
-    finalize does), the first parent of the first-parent commit on `trunk`
-    that brought the epic in. Unknown with no trunk, or when the epic was
-    fast-forwarded onto it."""
-    if trunk is None:
-        return EpicBase(None)
-    if not _is_ancestor(root, epic_ref, trunk):
-        return EpicBase(trunk)
-    path = _out(
-        "rev-list", "--first-parent", "--ancestry-path", "--reverse",
-        f"{epic_ref}..{trunk}", cwd=root,
-    )
-    merge = (path or "").split()[:1]
-    if not merge:
-        return EpicBase(None, merged=True)
-    before = _out("rev-parse", "--verify", "--quiet", f"{merge[0]}^1", cwd=root)
-    if not before or _is_ancestor(root, epic_ref, before):
-        return EpicBase(None, merged=True)
-    return EpicBase(before, merged=True)
+    if not trunks:
+        return None
+    bases: list[str] = []
+    for trunk in trunks:
+        merged = _ancestry(root, epic_ref, trunk)
+        if merged is None:
+            return None
+        if not merged:
+            bases.append(trunk)
+            continue
+        path = _out(
+            "rev-list", "--first-parent", "--ancestry-path", "--reverse",
+            f"{epic_ref}..{trunk}", cwd=root,
+        )
+        merge = (path or "").split()[:1]
+        before = (
+            _out("rev-parse", "--verify", "--quiet", f"{merge[0]}^1", cwd=root) if merge else None
+        )
+        if not before or _ancestry(root, epic_ref, before) is not False:
+            return None
+        bases.append(before)
+    return bases
 
 
-def _is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
+def _ancestry(root: Path, ancestor: str, descendant: str) -> bool | None:
+    """True/False when git decided, None when it could not (timeout, bad ref).
+
+    Tri-state like `check._is_ancestor`, so a membership test can fail
+    CLOSED: an error is never read as "not on the default branch".
+    """
     proc = _git("merge-base", "--is-ancestor", ancestor, descendant, cwd=root)
-    return proc is not None and proc.returncode == 0
+    if proc is None:
+        return None
+    return {0: True, 1: False}.get(proc.returncode)
 
 
 # ----------------------------------------------------------------- the status
@@ -966,34 +974,31 @@ def _epic_exclusion(
     declared: DeclaredTickets | None,
     root: Path,
     *,
-    base: EpicBase,
+    bases: list[str] | None,
 ) -> str | None:
     """Why this worktree is NOT one of epic `slug`'s tickets; None if it is.
 
     There is no single fact in git that says "this worktree belongs to
-    that epic". The answers, and what each is allowed to prove:
+    that epic", so membership needs positive evidence and fails CLOSED:
+    a worktree left standing costs a `skt ticket close`, one removed by
+    mistake costs its home.
 
     1. **A plan on the epic branch is authoritative.** The worktree's
        ticket is declared there — by spec id (`feature/<id>` or
        `feature/<id>-…`), or by the issue number its
        `feature/<issue>-<slug>` branch leads with, joined through
-       `github_issue`. A plan miss is final: nothing else can add a
-       worktree the plan does not name.
-    2. With no plan, its tip is contained in the epic ref AND not in
-       `base.ref`, the default branch as it stood before the epic merged —
-       the ticket's work is unique to the epic (#390: tickets branched
-       from old epic tips and merged back, epic since finalized).
-    3. With no plan: the slug is a whole `/`/`-`/`_`-delimited token of
-       the BRANCH name; or, while the epic is not yet on the default
-       branch, the tip descends from the epic tip.
+       `github_issue`. A plan miss is final.
+    2. **With no plan,** git must answer both: its tip IS contained in
+       the epic ref, and is NOT on any of `bases` — the default branch,
+       local and remote, as it stood before the epic merged. The ticket's
+       work is then unique to the epic (#390: tickets branched from old
+       epic tips and merged back, epic since finalized).
 
     **Shared ancestry alone never establishes membership (#157).** Every
-    commit on the epic's base history is "contained" in the epic, so an
-    unrelated feature worktree cut from main — or whose work reached the
-    epic only through a merge of main — passed the old (2); and once the
-    epic is merged, everything cut from main descends from its tip. With
-    no `base.ref`, (2) and descent are not tried: the sweep leaves a
-    worktree standing rather than guess.
+    commit on the epic's base history is "contained" in the epic; once
+    the epic is merged, everything cut from main descends from its tip;
+    and a slug in a branch name is a coincidence of spelling. None of
+    those selects a worktree. A git error, or no `bases`, selects nothing.
 
     A worktree on another `epic/*` branch is never a ticket; with no
     plan, neither is a `feature/epic-*` planning worktree. The epic's own
@@ -1010,20 +1015,16 @@ def _epic_exclusion(
         )
     if wt.owner_of_epic is not None:
         return f"the planning worktree of epic {wt.owner_of_epic}, not a ticket of epic {slug}"
-    if epic_ref is not None and base.ref is not None:
-        if _is_ancestor(root, wt.rev, epic_ref) and not _is_ancestor(root, wt.rev, base.ref):
-            return None
-    if re.search(rf"(?:^|[/_-]){re.escape(slug)}(?:$|[/_-])", wt.branch or "", re.IGNORECASE):
-        return None
-    if epic_ref is not None and base.ref is not None and not base.merged:
-        if _is_ancestor(root, epic_ref, wt.rev):
-            return None
-    if base.ref is None:
+    if epic_ref is None or bases is None:
         return (
             f"not part of epic {slug} (no plan on the epic branch, and the default branch "
             "before the epic cannot be told apart — run `git remote set-head origin --auto`, "
             "or remove it with `skt ticket close <ticket>`)"
         )
+    if _ancestry(root, wt.rev, epic_ref) is True and all(
+        _ancestry(root, wt.rev, base) is False for base in bases
+    ):
+        return None
     return f"not part of epic {slug} (no plan on the epic branch, and no work unique to it)"
 
 
@@ -1065,9 +1066,9 @@ def build_plan(
 
     # Only an explicit --epic narrows, so only then is membership computed.
     declared = epic_declared_tickets(root, epic_ref) if epic and epic_ref else None
-    base = (
-        epic_base(root, epic_ref, resolve_trunk(root))
-        if epic and epic_ref and declared is None else EpicBase(None)
+    bases = (
+        epic_bases(root, epic_ref, resolve_trunks(root))
+        if epic and epic_ref and declared is None else None
     )
     plan = Plan(
         root=root, destination=destination, target=resolved_target, epic=slug,
@@ -1097,7 +1098,7 @@ def build_plan(
             # containment target and nothing else: silently sweeping a
             # subset because one epic branch happened to exist is the
             # kind of surprise a destructive command must not have.
-            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, base=base)
+            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, bases=bases)
         status = inspect(wt, root=root, target=resolved_target) if excluded is None else Status(
             missing=wt.missing, locked=wt.locked, prunable=wt.prunable, target=resolved_target
         )

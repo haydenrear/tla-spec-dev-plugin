@@ -34,17 +34,16 @@ cannot. Which worktrees count as its tickets:
   or by the issue number its `feature/<issue>-<slug>` branch starts with,
   matched through the plan's `github_issue`. A worktree the plan doesn't
   declare is excluded, whatever its history.
-- **With no plan,** a worktree belongs to the epic if its tip is contained in
-  the epic branch *and was not already on the default branch before the epic
-  merged into it*. It also belongs if the slug is a whole `/`, `-` or
-  `_`-separated part of its *branch* name; the directory name doesn't count.
-  Before the epic is merged, a worktree whose tip descends from the epic tip
-  also counts; after the merge, everything cut from the default branch descends
-  from it, so descent proves nothing. Containment still works after finalize
-  merges the epic with `--no-ff`. If the default
-  branch can't be resolved, or the epic was fast-forwarded onto it, only the
-  name match applies, and anything else is left standing: run `git remote
-  set-head origin --auto`, or remove it with `skt ticket close <ticket>`.
+- **With no plan,** git must confirm both of these: the worktree's tip is
+  contained in the epic branch, and it was on neither the local nor the
+  `origin/` default branch before the epic merged into it. That still works
+  after finalize merges the epic with `--no-ff`. Nothing else selects a
+  worktree: not a slug in a branch or directory name, and not descending from
+  the epic tip. If git can't answer, the default branch can't be resolved, or
+  the epic was fast-forwarded onto it, the worktree is left standing: run `git
+  remote set-head origin --auto`, or remove it with `skt ticket close <ticket>`.
+  The same applies to a ticket from an epic's earlier merge round once the epic
+  has moved on.
 - A plan declares a ticket by spec id (`feature/<id>` or `feature/<id>-…`) or by
   the issue number its branch starts with. A `github_issue` that points at a
   different repository from `origin` declares nothing, because issue numbers
