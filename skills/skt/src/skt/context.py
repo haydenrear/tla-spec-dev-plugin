@@ -179,24 +179,28 @@ def plan_issue_index(text: str) -> dict[str, str]:
     ticket, and `skt ticket sweep --epic` acts on this mapping (#157).
     """
     index: dict[str, str] = {}
-    current = None
-    item_indent = -1
+    items: list[tuple[int, str]] = []  # open `- id:` items: (dash indent, id)
     for line in text.splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         indent = len(line) - len(line.lstrip())
         m = re.match(r"^(\s*)-\s*id:\s*(\S+)", line)
         if m:
-            current = m.group(2).strip("'\"")
-            item_indent = len(m.group(1))
+            dash = len(m.group(1))
+            while items and items[-1][0] >= dash:
+                items.pop()
+            items.append((dash, m.group(2).strip("'\"")))
             continue
-        if current is not None and indent <= item_indent:
-            current = None  # left the item
+        while items and items[-1][0] >= indent:
+            items.pop()  # left that item (or its nested list)
         m = re.match(r"^\s*github_issue:\s*(\S+)", line)
-        if m and current:
-            num = m.group(1).strip("'\"").rstrip("/").rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+        if m and items:
+            raw = m.group(1)
+            if raw.startswith("#"):
+                continue  # unquoted `#N` is a YAML comment: no issue filed
+            num = raw.strip("'\"").rstrip("/").rsplit("/", 1)[-1].rsplit("#", 1)[-1]
             if num.isdigit():
-                index[num] = current
+                index[num] = items[-1][1]
     return index
 
 

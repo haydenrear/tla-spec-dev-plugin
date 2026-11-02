@@ -885,6 +885,26 @@ def test_every_conventional_default_branch_is_base_history(tmp_path, capsys):
     assert flow.is_dir()
 
 
+def test_a_forks_upstream_default_branch_is_base_history(tmp_path, capsys):
+    """origin and local main stale; the epic merged `upstream/main`."""
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    upstream = tmp_path / "upstream.git"
+    subprocess.run(["git", "clone", "-q", "--bare", str(repo["origin"]), str(upstream)],
+                   check=True)
+    git("remote", "add", "upstream", str(upstream), cwd=root)
+    newer = add_worktree(repo, "307-upstream", base="main", commit=True)
+    git("push", "-q", "upstream", "feature/307-upstream:main", cwd=newer)
+    git("push", "-q", "origin", "feature/307-upstream", cwd=newer)
+    git("fetch", "-q", "upstream", cwd=root)
+    epic_wt = root.parent / "wt-epic-demo"
+    git("worktree", "add", "-q", str(epic_wt), "epic/demo", cwd=root)
+    git("merge", "-q", "--no-ff", "-m", "merge upstream", "upstream/main", cwd=epic_wt)
+    git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-307-upstream"] and "not part of epic demo" in excluded["wt-307-upstream"]
+
+
 def test_a_declared_ticket_whose_name_starts_with_epic_is_still_selected(tmp_path, capsys):
     repo = epic_repo(tmp_path)
     root = repo["root"]

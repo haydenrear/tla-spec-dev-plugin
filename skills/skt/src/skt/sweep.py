@@ -483,24 +483,28 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
 
 
 def resolve_trunks(root: Path) -> list[str]:
-    """Every ref that may be the repository's default branch, local and remote.
+    """Every ref that may be the repository's default branch, on any remote.
 
-    `origin/HEAD`'s target when the clone recorded it, plus every
-    conventional name that exists (`main`, `master`, `develop`, `trunk`),
-    each as its remote-tracking ref AND its local branch. A commit on ANY
-    of them counts as base history: guessing one default where a gitflow
-    repo has two would count the other's history as the epic's. More bases
-    only ever select fewer worktrees. Never the branch the primary checkout
-    happens to be on: that can be a planning branch holding the whole epic.
+    `origin/HEAD`'s target plus every conventional name (`main`, `master`,
+    `develop`, `trunk`), as the local branch and as that branch on EVERY
+    remote — a fork's `upstream/main` is base history as much as its
+    `origin/main`. A commit on any of them is not the epic's own work, so
+    more bases only ever select fewer worktrees. Refs at the same commit
+    are probed once. Never the branch the primary checkout happens to be
+    on: that can be a planning branch holding the whole epic.
     """
     head = _out("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=root)
     names = [head.split("/", 1)[1]] if head and "/" in head else []
     names += [n for n in ("main", "master", "develop", "trunk") if n not in names]
+    patterns = [p for n in names for p in (f"refs/remotes/*/{n}", f"refs/heads/{n}")]
+    listing = _out(
+        "for-each-ref", "--format=%(objectname) %(refname:short)", *patterns, cwd=root
+    )
     refs: list[str] = []
     seen: set[str] = set()
-    for ref in (r for name in names for r in (f"origin/{name}", name)):
-        sha = _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root)
-        if sha and sha not in seen:  # local and origin/ usually agree: probe once
+    for line in (listing or "").splitlines():
+        sha, _, ref = line.partition(" ")
+        if sha and ref and sha not in seen:
             seen.add(sha)
             refs.append(ref)
     return refs
@@ -1017,6 +1021,7 @@ def _epic_exclusion(
     slug: str,
     epic_ref: str,
     declared: DeclaredTickets | None,
+    root: Path,
     *,
     work: EpicWork | None,
 ) -> str | None:
@@ -1063,10 +1068,13 @@ def _epic_exclusion(
         return (
             f"not part of epic {slug} (no plan on the epic branch, and its work cannot be "
             "told apart from the default branch's: none of main/master/develop/trunk "
-            "resolved, git did not answer, or the epic was fast-forwarded onto one; "
-            "remove it with `skt ticket close <ticket>`)"
+            "resolved, git did not answer, or the epic reached one without a --no-ff "
+            "merge of its own (fast-forwarded, or through another branch such as a "
+            "release); remove it with `skt ticket close <ticket>`)"
         )
-    if work.holds_ticket_tip(wt.head):
+    # The live tip — the same commit `inspect` judges — not the listing's HEAD.
+    tip = _out("rev-parse", "--verify", "--quiet", f"{wt.rev}^{{commit}}", cwd=root)
+    if tip and work.holds_ticket_tip(tip):
         return None
     return f"not part of epic {slug} (no plan on the epic branch, and no work unique to it)"
 
@@ -1150,7 +1158,7 @@ def build_plan(
             # containment target and nothing else: silently sweeping a
             # subset because one epic branch happened to exist is the
             # kind of surprise a destructive command must not have.
-            excluded = _epic_exclusion(wt, epic, epic_ref, declared, work=work)
+            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, work=work)
         status = inspect(wt, root=root, target=resolved_target) if excluded is None else Status(
             missing=wt.missing, locked=wt.locked, prunable=wt.prunable, target=resolved_target
         )
