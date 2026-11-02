@@ -592,3 +592,85 @@ def test_close_dry_run_never_calls_removal(monkeypatch, clean, expected):
     monkeypatch.setattr(publish_mod, "edited_units", lambda *_: [])
     assert ticket_mod.run("close", "T-1", dry_run=True) == expected
     assert calls == [{"dry_run": True}]
+
+
+# ---- #157: `skt ticket close --into <home>` was silently dropped -----------
+
+
+def test_close_forwards_into_through_the_real_wt_to_close_change(tmp_path, monkeypatch):
+    """End to end through the real `scripts/wt`: the flag reaches close-change.sh.
+
+    Only the lifecycle scripts are stubbed (via wt's own documented
+    GIT_ISSUE_WORKFLOW_SCRIPTS override); `wt` and the Python front door are
+    the shipped ones. Before #157 the argv logged here was `T-9` alone, and
+    close-change.sh then gated into the PRIMARY checkout's home.
+    """
+    monkeypatch.delenv("WT_BIN", raising=False)
+    monkeypatch.delenv("GIW_WT_BIN", raising=False)
+    scripts = tmp_path / "giw-scripts"
+    scripts.mkdir()
+    real_lib = Path(__file__).resolve().parents[2] / "git-issue-workflow" / "scripts" / "lib.sh"
+    (scripts / "lib.sh").write_text(real_lib.read_text())
+    log = tmp_path / "close-argv.log"
+    for name, body in (
+        ("close-change.sh",
+         f'printf "%s\\n" "$@" > "{log}"\n'
+         'echo "closed worktree /tmp/repo-T-9 (branch feature/T-9 kept)"\n'),
+        ("new-change.sh", 'echo "error: no worktree for T-9" >&2; exit 1\n'),
+    ):
+        script = scripts / name
+        script.write_text("#!/usr/bin/env bash\n" + body)
+        script.chmod(script.stat().st_mode | stat.S_IEXEC)
+    monkeypatch.setenv("GIT_ISSUE_WORKFLOW_SCRIPTS", str(scripts))
+    monkeypatch.setattr(publish_mod, "edited_units", lambda *_: [])
+    into = tmp_path / "else where" / ".skill-manager"
+
+    assert ticket_mod.run("close", "T-9", into=str(into), start=tmp_path) == 0
+    # One argv element per line, so a path with spaces stays one element, and
+    # the check is on the PAIR, not on where it sits among other flags.
+    argv = log.read_text().splitlines()
+    assert argv[0] == "T-9"
+    assert argv[argv.index("--into") + 1] == str(into)
+
+
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_close_passes_into_to_the_wrapper(monkeypatch, dry_run):
+    calls = []
+
+    def close(ticket, **kwargs):
+        calls.append(kwargs)
+        return types.SimpleNamespace(
+            worktree="/tmp/T-1", branch=None, delete=None, home_work=None,
+            dry_run_clean=True,
+        )
+
+    fake_giw(monkeypatch, wt_close=close)
+    monkeypatch.setattr(publish_mod, "edited_units", lambda *_: [])
+    assert ticket_mod.run("close", "T-1", into="/h/.skill-manager", dry_run=dry_run) == 0
+    assert calls[0]["into"] == "/h/.skill-manager"
+
+
+@pytest.mark.parametrize("verb, flags, named", [
+    ("close", {"epic": "demo"}, "--epic"),
+    ("close", {"target": "main"}, "--target"),
+    ("close", {"yes": True}, "--yes"),
+    ("new", {"into": "/h"}, "--into"),
+    ("info", {"into": "/h", "epic": "demo"}, "--epic"),
+    ("info", {"into": "/h", "epic": "demo"}, "--into"),
+])
+def test_one_ticket_verbs_refuse_flags_they_would_drop(monkeypatch, capsys, verb, flags, named):
+    """Refused before anything runs, rather than accepted and ignored (#157)."""
+    calls = []
+    fake_giw(
+        monkeypatch,
+        wt_new=lambda *a, **k: calls.append("new"),
+        wt_info=lambda *a, **k: calls.append("info"),
+        wt_close=lambda *a, **k: calls.append("close"),
+    )
+    assert ticket_mod.run(verb, "T-1", **flags) == 2
+    err = capsys.readouterr().err
+    assert named in err
+    # Each flag is named with the verbs that DO take it.
+    assert "--into applies to close, list and sweep only" in err or named != "--into"
+    assert "--epic applies to list and sweep only" in err or named != "--epic"
+    assert calls == []

@@ -36,7 +36,7 @@ skt status            # startup report: units, plugins, home tier, epic/ticket s
 skt check             # new-version-available, unit errors, stale artifacts, a stale OR too-old skill-manager
 skt sync <unit>       # pull a unit to its latest pushed source
 skt ticket new <T>    # ticket worktree + its own Skill Manager home, one command
-skt ticket close <T>  # teardown through the close-out gate
+skt ticket close <T>  # teardown through the close-out gate (--into <home> names the gate's destination)
 skt ticket list       # every ticket worktree here, and what blocks retiring it
 skt ticket sweep      # retire many at once — dry run unless you pass --yes
 skt publish [<unit>]  # a home-edited skill -> up one tier -> its own git repo

@@ -144,7 +144,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ticket.add_argument(
         "--into",
-        help="sweep: the destination home for the `home close-out` gate "
+        help="close/sweep: the destination home for the `home close-out` gate "
         "(default: the MAIN working tree's .skill-manager)",
     )
     ticket.add_argument(
