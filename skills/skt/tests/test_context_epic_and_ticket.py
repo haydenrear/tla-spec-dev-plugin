@@ -112,6 +112,8 @@ def test_issue_numbers_are_read_in_both_spellings():
         "  - id: A\n    github_issue: https://github.com/o/r/issues/1\n"
         "  - id: B\n    github_issue: \"#2\"\n"
         "  - id: C\n    github_issue: o/r#3\n"
+        "  - id: F\n    github_issue: https://github.com/o/r/issues/6#issuecomment-9\n"
+        "  - id: G\n    github_issue: https://github.com/o/r/issues/7?x=1\n"
         "  - id: D\n    github_issue: #4  # TODO, not filed\n"
         "  - id: E\n"
         "    acceptance:\n"
@@ -119,7 +121,9 @@ def test_issue_numbers_are_read_in_both_spellings():
         "        text: nested\n"
         "    github_issue: https://github.com/o/r/issues/5\n"
     )
-    assert ctx.plan_issue_index(text) == {"1": "A", "2": "B", "3": "C", "5": "E"}
+    assert ctx.plan_issue_index(text) == {
+        "1": "A", "2": "B", "3": "C", "5": "E", "6": "F", "7": "G",
+    }
     assert ctx.issue_number("201-alpha") == "201" and ctx.issue_number("201") == "201"
     assert ctx.issue_number("369_eval_ladder") == "369"
     assert ctx.issue_number("369eval-ladder") == "369"  # status's old reading

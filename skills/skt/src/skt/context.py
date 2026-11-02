@@ -243,9 +243,14 @@ def plan_issue_index(text: str) -> dict[str, str]:
             raw = m.group(1)
             if raw.startswith("#"):
                 continue  # unquoted `#N` is a YAML comment: no issue filed
-            num = raw.strip("'\"").rstrip("/").rsplit("/", 1)[-1].rsplit("#", 1)[-1]
-            if num.isdigit():
-                index[num] = items[-1][1]
+            value = raw.strip("'\"")
+            # `…/issues/201`, `…/issues/201#issuecomment-1`, `…/201?x=1`,
+            # `o/r#201`, `#201`, `201`.
+            num = re.search(r"/(?:issues|pull)/(\d+)(?:[/?#]|$)", value) or re.search(
+                r"(?:^|#|/)(\d+)/?$", value
+            )
+            if num:
+                index[num.group(1)] = items[-1][1]
     return index
 
 
