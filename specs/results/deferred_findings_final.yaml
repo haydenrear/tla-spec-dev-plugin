@@ -8791,3 +8791,139 @@ findings:
       BE RUN AGAINST THE REFERENCE IMPLEMENTATION BEFORE IT IS TRUSTED. This one would have been
       caught the day it was written by pointing it at test_graph/ in this repository, which takes
       one command.'
+
+  # ---- #157 / PR #158, filed 2026-11-02 by the ticket agent (feature/157-attribution).
+  # Not an epic ticket, so there is no wave close to absorb an inbox file: the
+  # rows are filed here directly, the one ledger, and nowhere else.
+
+  - id: I157-DF-01
+    severity: data-loss-adjacent
+    status: fixed
+    title: >-
+      `skt ticket sweep --epic <slug>` planned unrelated worktrees for removal,
+      including another epic's owner, because membership fell back to shared
+      ancestry
+    found_by: issue reporter, reading a read-only `sweep --epic --json` plan (#157)
+    found_at_commit: 20c34d70
+    channel: operator-doing-the-work
+    channel_note: >-
+      The instrument printed the wrong plan and reported nothing wrong; the
+      operator noticed an unrelated worktree among `planned`. Hand, by the
+      section 4.1 tie-break.
+    area: "skt sweep membership selection (sweep.py _matches_epic / build_plan)"
+    what: >-
+      Ticket branches spell the ISSUE (`feature/201-alpha`), the plan spells the
+      SPEC ID (`EP-1`), and `_matches_epic` compared the two literally, so no
+      declared ticket ever matched. Selection then fell back to "tip is an
+      ancestor of the epic ref", which every worktree cut from the shared base
+      history also satisfies.
+    reproduction: >-
+      Measured 2026-11-02 through the real CLI on a hand-built synthetic repo
+      (2 declared tickets, 3 gated tickets, 8 unrelated worktrees: work landed
+      on main, a fresh branch from main, a scratch dir spelling the slug,
+      another epic's owner, its planning worktree, this epic's planning
+      worktree, a branch cut from the other epic). Pre-fix source
+      (23e43f63^) with `--yes`: 10 removed -- the 2 tickets AND all 8 unrelated
+      worktrees. Post-fix (23e43f63): 2 removed, 3 held by their gates, 10
+      excluded with a reason each. Same with no plan on the epic branch.
+      Close-out gate stubbed clean; git and `git worktree remove` real.
+    evidence:
+      - "pre-fix --yes: 10 removed, 1 skipped for safety, 0 failed, 4 excluded"
+      - "post-fix --yes: 2 removed, 3 skipped for safety, 0 failed, 10 excluded"
+      - "pre-fix also EXCLUDED the declared tickets 204/205 as 'not part of epic demo'"
+    repeat_of: >-
+      SI-20-DF-06 -- the same slug-vs-spec-id comparison, fixed in 3ff232bb for
+      `skt status` only. The sweep kept its own literal comparison; see the
+      REACH row for this invariant in attribution.yaml.
+    pinned_by: "skills/skt/tests/test_ticket_sweep.py::test_epic_sweep_selects_only_declared_tickets_not_shared_ancestry"
+    attribution: SktTicketSweep
+    attribution_note: >-
+      The action exists in the model but carries only containment, so the
+      model could not express this defect. BLIND row in attribution.yaml.
+    skill_change: applied(23e43f63)
+    disposition: fixed
+    fixed_by: "23e43f63"
+
+  - id: I157-DF-02
+    severity: major
+    status: fixed
+    title: >-
+      `skt ticket close <T> --into <home>` silently dropped `--into` and gated
+      into the primary checkout's home
+    found_by: issue reporter (#157, "related front-door observation")
+    found_at_commit: 20c34d70
+    channel: operator-doing-the-work
+    channel_note: >-
+      The gate refused, but for an unrelated reason (a frozen primary); the
+      dropped flag was noticed by the operator, not reported by anything.
+    area: "skt ticket front door: argument forwarding to wt / close-change.sh"
+    what: >-
+      `cli.py` parses `--into` for every ticket verb and `ticket.run` received
+      it, but only list/sweep read it; `close` called `wt_close` without it,
+      although close-change.sh documents and honours `--into HOME`. `--epic`,
+      `--target` and `--yes` were likewise accepted and ignored on
+      new/info/close.
+    reproduction: >-
+      Through the real `scripts/wt` with only the lifecycle scripts stubbed:
+      `skt ticket close T-9 --into <home>` reached close-change.sh as argv
+      `T-9` alone.
+    process_note: >-
+      MISSED BY PR #158, which closed #157 while handling only the sweep half.
+      Found 2026-11-02 by re-reading the issue body while filing these rows.
+      The PR's review rounds read the diff, never the issue's full request
+      list, so nothing in eleven rounds could have seen it.
+    pinned_by: "skills/skt/tests/test_ticket_publish.py::test_close_forwards_into_through_the_real_wt_to_close_change"
+    attribution: UNMODELED/cli-argument-forwarding
+    skill_change: applied(feature/157-attribution -- forward --into on close; refuse fleet flags on one-ticket verbs)
+    disposition: fixed
+    fixed_by: "feature/157-attribution (this ticket's PR)"
+
+  - id: I157-DF-03
+    severity: major
+    status: fixed
+    title: >-
+      a review-round fix to the sweep un-declared every ticket in an
+      integration repo (introduced and caught inside PR #158)
+    found_by: code review, round 4 of PR #158
+    found_at_commit: "PR #158 round-1 head"
+    channel: independent-review
+    area: "skt sweep membership: cross-repository github_issue filter"
+    what: >-
+      Round 1 added a filter dropping any `github_issue` whose repository did
+      not match `origin`. In an integration repo the issues live in the
+      constituents' trackers, so every declared ticket was dropped and the
+      sweep selected nothing. Fail-safe (nothing deleted) but the command
+      stopped working. The filter was removed; the residual cross-repo
+      issue-number collision is declined and documented in
+      skills/skt/references/worktree-sweep.md.
+    pinned_by: "skills/skt/tests/test_ticket_sweep.py::test_a_plan_declares_tickets_by_spec_id_or_github_issue"
+    pin_note: >-
+      The pin's origin is a local bare repo while the plan names o/r -- the
+      shape that the filter rejected.
+    attribution: SktTicketSweep
+    skill_change: none
+    disposition: fixed
+    fixed_by: "23e43f63 (squashed)"
+
+  - id: I157-DF-04
+    severity: major
+    status: fixed
+    title: >-
+      the plan parser kept only the first ticket when entries were separated
+      by blank lines (introduced and caught inside PR #158)
+    found_by: code review, round 9 of PR #158
+    found_at_commit: "PR #158 round-8 head"
+    channel: independent-review
+    area: "skt context: ticket_plan.yaml outer-item parsing"
+    what: >-
+      An id regex used `\s*`, which crosses newlines, so a blank line between
+      `- id:` items ended the match. With the plan authoritative, every
+      declared ticket after the first read as "not declared" and was left
+      standing. Replaced by one line-based parser (context.plan_outer_items)
+      and checked against the real tg-3 plan in
+      skills/test-graph/specs/.history (TG-3A..TG-3E all read).
+    pinned_by: "skills/skt/tests/test_ticket_sweep.py::test_blank_lines_between_entries_and_later_sections"
+    attribution: SktTicketSweep
+    skill_change: none
+    disposition: fixed
+    fixed_by: "23e43f63 (squashed)"

@@ -373,7 +373,8 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
 
 USAGE = "\n".join(
     [
-        "usage: skt ticket new|close|info <TICKET> [--base <branch>] [--path <dir>]",
+        "usage: skt ticket new|info <TICKET> [--base <branch>] [--path <dir>]",
+        "       skt ticket close <TICKET> [--into <home>] [--dry-run|--force]",
         "       skt ticket list  [--epic <slug>] [--target <ref>] [--into <home>] [--json]",
         "       skt ticket sweep [--epic <slug>] [--target <ref>] [--into <home>] "
         "[-y|--yes] [--json]",
@@ -416,6 +417,21 @@ def run(
             file=sys.stderr,
         )
         return 2
+    # Fleet flags on a one-ticket verb are refused, never dropped (#157):
+    # `close --into <home>` used to close into the PRIMARY's home while the
+    # operator believed they had named another one.
+    if verb in ("new", "info", "close"):
+        stray = [flag for flag, given in (
+            ("--epic", epic), ("--target", target), ("--yes", yes),
+            ("--into", into if verb != "close" else None),
+        ) if given]
+        if stray:
+            where = "close, list and sweep" if stray == ["--into"] else "list and sweep"
+            print(
+                f"skt ticket {verb}: {', '.join(stray)} applies to {where} only",
+                file=sys.stderr,
+            )
+            return 2
     if verb in FLEET_VERBS:
         if ticket_id:
             print(
@@ -467,6 +483,9 @@ def run(
         if verb == "close":
             from . import publish as publish_mod
 
+            # Forwarded to close-change.sh, which honours `--into HOME`.
+            into_kw = {"into": into} if into else {}
+
             # The advisory must inspect the TARGET worktree's home, not
             # cwd's — `skt ticket close <T>` runs from anywhere, and the
             # edited skills at risk live in the home being torn down.
@@ -484,7 +503,7 @@ def run(
                 print(f"note: edited unit(s) in this home before close: {names}")
                 print("      (`skt publish <unit>` moves them out; the gate below enforces it)")
             if dry_run:
-                result = giw.wt_close(ticket_id, dry_run=True)
+                result = giw.wt_close(ticket_id, dry_run=True, **into_kw)
                 if result.dry_run_clean:
                     print(f"would close {result.worktree} — the gate holds nothing back")
                     return 0
@@ -503,7 +522,7 @@ def run(
                     "work. If you have not read them, stop and run --dry-run.",
                     flush=True,
                 )
-            result = giw.wt_close(ticket_id, force=force)
+            result = giw.wt_close(ticket_id, force=force, **into_kw)
             print(f"closed {result.worktree}" + (" (forced)" if force else ""))
             if result.branch:
                 print(f"branch {result.branch} kept — delete once the change has landed")
