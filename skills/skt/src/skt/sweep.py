@@ -447,7 +447,12 @@ class DeclaredTickets:
     def declares(self, ticket: str | None) -> bool:
         if not ticket:
             return False
-        return ticket in self.ids or ctx_mod.issue_number(ticket) in self.issues
+        if ticket in self.ids:
+            return True
+        # Stricter than `skt status`'s greedy reading: this path deletes, and
+        # `2fa-login` must not be read as issue 2.
+        lead = re.match(r"^(\d+)(?:[-_]|$)", ticket)
+        return lead is not None and lead.group(1) in self.issues
 
 
 def _top_level_section(text: str, key: str) -> str:
@@ -494,8 +499,13 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     # Only the `tickets:` list declares tickets: `epic_goals:` and other
     # lists also carry `- id:` items, and may carry a `github_issue`.
     section = _top_level_section(text, "tickets")
-    _, _, all_tickets = ctx_mod.parse_ticket_plan(section)
     issues = ctx_mod.plan_issue_index(section)
+    # Ticket entries are the OUTERMOST `- id:` items; nested ones are
+    # acceptance criteria and the like, never branches.
+    items = re.findall(r"^(\s*)-\s*id:\s*(\S+)", section, re.MULTILINE)
+    outer = min((len(i) for i, _ in items), default=0)
+    all_tickets = [t.strip("'\"") for i, t in items if len(i) == outer]
+    issues = {num: tid for num, tid in issues.items() if tid in all_tickets}
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
@@ -514,15 +524,17 @@ def resolve_trunks(root: Path) -> list[str]:
     names = [head.split("/", 1)[1]] if head and "/" in head else []
     names += [n for n in ("main", "master", "develop", "trunk") if n not in names]
     patterns = [p for n in names for p in (f"refs/remotes/*/{n}", f"refs/heads/{n}")]
-    listing = _out(
-        "for-each-ref", "--format=%(objectname) %(refname:short)", *patterns, cwd=root
+    # FULL refnames: a short `develop` is ambiguous beside a `develop/` directory.
+    listing = _out("for-each-ref", "--format=%(objectname) %(refname)", *patterns, cwd=root)
+    exact = re.compile(
+        r"^refs/(?:heads|remotes/[^/]+)/(?:" + "|".join(re.escape(n) for n in names) + r")$"
     )
     refs: list[str] = []
     seen: set[str] = set()
     for line in (listing or "").splitlines():
         sha, _, ref = line.partition(" ")
-        # for-each-ref matches by prefix: `refs/heads/main` also lists main/x.
-        if not any(ref == n or ref.endswith("/" + n) and ref.count("/") == 1 for n in names):
+        # for-each-ref matches by prefix: `refs/heads/develop` also lists develop/x.
+        if not exact.match(ref):
             continue
         if sha and ref and sha not in seen:
             seen.add(sha)
@@ -1098,7 +1110,11 @@ def _epic_exclusion(
         return f"not part of epic {slug} (git could not resolve its tip {wt.rev})"
     if work.holds_ticket_tip(tip):
         return None
-    return f"not part of epic {slug} (no plan on the epic branch, and no work unique to it)"
+    return (
+        f"not part of epic {slug} (no plan on the epic branch, and its tip is not ticket "
+        f"work merged into epic/{slug}: unmerged, already on the default branch, or "
+        "the epic's own commit)"
+    )
 
 
 def build_plan(

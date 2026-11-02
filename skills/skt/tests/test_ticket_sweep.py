@@ -868,13 +868,29 @@ def test_only_the_tickets_section_declares_tickets(tmp_path, capsys):
     assert excluded["wt-45-unrelated"] and excluded["wt-GOAL-1"], excluded
 
 
+def test_nested_ids_and_digit_led_names_declare_nothing(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, (
+        "name: demo\ntickets:\n"
+        "  - id: EP-1\n    acceptance:\n      - id: AC-1\n"
+        "    github_issue: https://github.com/o/r/issues/2\n"
+    ))
+    add_worktree(repo, "AC-1", base="main")
+    add_worktree(repo, "2fa-login", base="main")
+    add_worktree(repo, "2-real")
+    excluded = _selected(root, capsys)
+    assert excluded["wt-2-real"] is None, excluded
+    assert excluded["wt-AC-1"] and excluded["wt-2fa-login"], excluded
+
+
 def test_a_branch_under_a_default_branch_name_is_not_a_default_branch(tmp_path):
     repo = epic_repo(tmp_path)
     root = repo["root"]
     # No `develop` exists, so `refs/heads/develop` prefix-matches this.
     git("branch", "develop/demo-tickets", "epic/demo", cwd=root)
     trunks = sweep_mod.resolve_trunks(root)
-    assert "develop/demo-tickets" not in trunks and trunks, trunks
+    assert "refs/heads/develop/demo-tickets" not in trunks and trunks, trunks
 
 
 def test_a_plan_git_cannot_read_refuses_the_sweep(tmp_path, capsys, monkeypatch):
