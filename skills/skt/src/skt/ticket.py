@@ -426,11 +426,9 @@ def run(
             ("--into", into if verb != "close" else None),
         ) if given]
         if stray:
-            where = "close, list and sweep" if stray == ["--into"] else "list and sweep"
-            print(
-                f"skt ticket {verb}: {', '.join(stray)} applies to {where} only",
-                file=sys.stderr,
-            )
+            for flag in stray:
+                where = "close, list and sweep" if flag == "--into" else "list and sweep"
+                print(f"skt ticket {verb}: {flag} applies to {where} only", file=sys.stderr)
             return 2
     if verb in FLEET_VERBS:
         if ticket_id:

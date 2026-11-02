@@ -614,7 +614,7 @@ def test_close_forwards_into_through_the_real_wt_to_close_change(tmp_path, monke
     log = tmp_path / "close-argv.log"
     for name, body in (
         ("close-change.sh",
-         f'printf "%s\\n" "$*" >> "{log}"\n'
+         f'printf "%s\\n" "$@" > "{log}"\n'
          'echo "closed worktree /tmp/repo-T-9 (branch feature/T-9 kept)"\n'),
         ("new-change.sh", 'echo "error: no worktree for T-9" >&2; exit 1\n'),
     ):
@@ -623,10 +623,14 @@ def test_close_forwards_into_through_the_real_wt_to_close_change(tmp_path, monke
         script.chmod(script.stat().st_mode | stat.S_IEXEC)
     monkeypatch.setenv("GIT_ISSUE_WORKFLOW_SCRIPTS", str(scripts))
     monkeypatch.setattr(publish_mod, "edited_units", lambda *_: [])
-    into = tmp_path / "elsewhere" / ".skill-manager"
+    into = tmp_path / "else where" / ".skill-manager"
 
     assert ticket_mod.run("close", "T-9", into=str(into), start=tmp_path) == 0
-    assert log.read_text().split() == ["T-9", "--into", str(into)]
+    # One argv element per line, so a path with spaces stays one element, and
+    # the check is on the PAIR, not on where it sits among other flags.
+    argv = log.read_text().splitlines()
+    assert argv[0] == "T-9"
+    assert argv[argv.index("--into") + 1] == str(into)
 
 
 @pytest.mark.parametrize("dry_run", [False, True])
@@ -651,7 +655,8 @@ def test_close_passes_into_to_the_wrapper(monkeypatch, dry_run):
     ("close", {"target": "main"}, "--target"),
     ("close", {"yes": True}, "--yes"),
     ("new", {"into": "/h"}, "--into"),
-    ("info", {"into": "/h", "epic": "demo"}, "--epic, --into"),
+    ("info", {"into": "/h", "epic": "demo"}, "--epic"),
+    ("info", {"into": "/h", "epic": "demo"}, "--into"),
 ])
 def test_one_ticket_verbs_refuse_flags_they_would_drop(monkeypatch, capsys, verb, flags, named):
     """Refused before anything runs, rather than accepted and ignored (#157)."""
@@ -663,5 +668,9 @@ def test_one_ticket_verbs_refuse_flags_they_would_drop(monkeypatch, capsys, verb
         wt_close=lambda *a, **k: calls.append("close"),
     )
     assert ticket_mod.run(verb, "T-1", **flags) == 2
-    assert f"{named} applies to" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert named in err
+    # Each flag is named with the verbs that DO take it.
+    assert "--into applies to close, list and sweep only" in err or named != "--into"
+    assert "--epic applies to list and sweep only" in err or named != "--epic"
     assert calls == []
