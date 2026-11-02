@@ -447,26 +447,7 @@ class DeclaredTickets:
     def declares(self, ticket: str | None) -> bool:
         if not ticket:
             return False
-        if ticket in self.ids:
-            return True
-        # Stricter than `skt status`'s greedy reading: this path deletes, and
-        # `2fa-login` must not be read as issue 2.
-        lead = re.match(r"^(\d+)(?:[-_]|$)", ticket)
-        return lead is not None and lead.group(1) in self.issues
-
-
-def _top_level_section(text: str, key: str) -> str:
-    """The lines of top-level `key:` up to the next top-level key; "" if absent."""
-    out: list[str] = []
-    inside = False
-    for line in text.splitlines():
-        top = re.match(r"^([A-Za-z_][\w-]*):", line)
-        if top:
-            inside = top.group(1) == key
-            continue
-        if inside:
-            out.append(line)
-    return "\n".join(out)
+        return ticket in self.ids or ctx_mod.issue_number(ticket, strict=True) in self.issues
 
 
 class PlanUnreadable(Exception):
@@ -498,14 +479,9 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
         raise PlanUnreadable(f"git could not read {TICKET_PLAN} on {epic_ref}")
     # Only the `tickets:` list declares tickets: `epic_goals:` and other
     # lists also carry `- id:` items, and may carry a `github_issue`.
-    section = _top_level_section(text, "tickets")
-    issues = ctx_mod.plan_issue_index(section)
-    # Ticket entries are the OUTERMOST `- id:` items; nested ones are
-    # acceptance criteria and the like, never branches.
-    items = re.findall(r"^(\s*)-\s*id:\s*(\S+)", section, re.MULTILINE)
-    outer = min((len(i) for i, _ in items), default=0)
-    all_tickets = [t.strip("'\"") for i, t in items if len(i) == outer]
-    issues = {num: tid for num, tid in issues.items() if tid in all_tickets}
+    items = ctx_mod.plan_outer_items(ctx_mod.plan_tickets_section(text))
+    all_tickets = [tid for tid, _ in items]
+    issues = {num for _, num in items if num}
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
@@ -1100,9 +1076,9 @@ def _epic_exclusion(
         return (
             f"not part of epic {slug} (no plan on the epic branch, and its work cannot be "
             "told apart from the default branch's: none of main/master/develop/trunk "
-            "resolved, git did not answer, or the epic reached one without a --no-ff "
-            "merge of its own (fast-forwarded, or through another branch such as a "
-            "release); remove it with `skt ticket close <ticket>`)"
+            "resolved, git did not answer, or one of them holds the epic without a "
+            "--no-ff merge commit of its own (e.g. fast-forwarded onto it); remove it "
+            "with `skt ticket close <ticket>`)"
         )
     # The live tip — the same commit `inspect` judges — not the listing's HEAD.
     tip = _out("rev-parse", "--verify", "--quiet", f"{wt.rev}^{{commit}}", cwd=root)

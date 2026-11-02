@@ -868,6 +868,26 @@ def test_only_the_tickets_section_declares_tickets(tmp_path, capsys):
     assert excluded["wt-45-unrelated"] and excluded["wt-GOAL-1"], excluded
 
 
+def test_blank_lines_between_entries_and_later_sections(tmp_path, capsys):
+    """Real plans space their entries; every one is still a ticket. A later
+    top-level key, however spelled, ends `tickets:`."""
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, (
+        "name: demo\ntickets:\n"
+        "  - id: EP-1\n    github_issue: https://github.com/o/r/issues/201\n\n"
+        "  - id: EP-2\n    github_issue: https://github.com/o/r/issues/202\n\n"
+        "\"epic.goals\":\n"
+        "  - id: GOAL-1\n    github_issue: https://github.com/o/r/issues/45\n"
+    ))
+    add_worktree(repo, "201-alpha")
+    add_worktree(repo, "202-beta")
+    add_worktree(repo, "45-unrelated", base="main")
+    excluded = _selected(root, capsys)
+    assert excluded["wt-201-alpha"] is None and excluded["wt-202-beta"] is None, excluded
+    assert excluded["wt-45-unrelated"], excluded
+
+
 def test_nested_ids_and_digit_led_names_declare_nothing(tmp_path, capsys):
     repo = epic_repo(tmp_path)
     root = repo["root"]

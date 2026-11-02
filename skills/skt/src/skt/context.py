@@ -152,15 +152,60 @@ def epic_slug_from_refs(refs_text: str) -> str | None:
     return slugs[0] if len(slugs) == 1 else None
 
 
-def issue_number(ticket: str | None) -> str | None:
+def issue_number(ticket: str | None, *, strict: bool = False) -> str | None:
     """The issue number a ticket id LEADS with (`201-alpha` -> `201`).
 
-    One spelling for both joins to the plan: `skt status` (below) and
-    `skt ticket sweep --epic` (#157).
+    One helper for both joins to the plan. `skt status` reads greedy
+    digits, as it always has (`369eval` -> 369). `skt ticket sweep --epic`
+    deletes, so it passes `strict`: the number must end the id or be
+    followed by `-`/`_`, and `2fa-login` is not issue 2 (#157).
     """
-    # Greedy digits, as `skt status` always read them (`369eval` -> 369).
-    match = re.match(r"^(\d+)", ticket or "")
+    pattern = r"^(\d+)(?:[-_]|$)" if strict else r"^(\d+)"
+    match = re.match(pattern, ticket or "")
     return match.group(1) if match else None
+
+
+def plan_tickets_section(text: str) -> str:
+    """The body of the plan's top-level `tickets:` key; "" when absent.
+
+    Ends at the next column-0 line that is not a list item, comment or
+    blank — any other top-level key, however spelled — or a `---`/`...`
+    document marker. `epic_goals:` and other lists also hold `- id:`.
+    """
+    out: list[str] = []
+    inside = False
+    for line in text.splitlines():
+        if re.match(r"^tickets:\s*(#.*)?$", line):
+            inside = True
+            continue
+        if not inside:
+            continue
+        if line.startswith(("---", "...")):
+            break
+        if line and not line[0].isspace() and not line.startswith(("-", "#")):
+            break
+        out.append(line)
+    return "\n".join(out)
+
+
+def plan_outer_items(text: str) -> list[tuple[str, str | None]]:
+    """(id, github_issue number or None) per OUTERMOST `- id:` item.
+
+    Line-based, like :func:`plan_issue_index`: nested items (acceptance
+    criteria) are not tickets, and blank lines between entries do not
+    change an entry's depth.
+    """
+    items = []
+    for line in text.splitlines():
+        m = re.match(r"^([ \t]*)-[ \t]*id:[ \t]*(\S+)", line)
+        if m:
+            items.append((len(m.group(1)), m.group(2).strip("'\"")))
+    if not items:
+        return []
+    outer = min(depth for depth, _ in items)
+    index = plan_issue_index(text)
+    by_id = {tid: num for num, tid in index.items()}
+    return [(tid, by_id.get(tid)) for depth, tid in items if depth == outer]
 
 
 def plan_issue_index(text: str) -> dict[str, str]:
