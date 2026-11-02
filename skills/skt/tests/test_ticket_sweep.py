@@ -718,11 +718,17 @@ def _membership_repo(tmp_path, *, plan: bool, finalized: bool = False) -> dict:
     owner_planning = root.parent / "wt-epic-demo-planning"
     git("worktree", "add", "-q", str(owner_planning), "-b", "feature/epic-demo",
         "epic/demo", cwd=root)
+    # A directory that spells the slug while the branch does not.
+    named = root.parent / "demo-scratch"
+    git("worktree", "add", "-q", str(named), "-b", "feature/302-scratch", "main", cwd=root)
+    extra = [named]
     if finalized:
         git("merge", "-q", "--no-ff", "-m", "finalize epic demo", "epic/demo", cwd=root)
         git("push", "-q", "origin", "main", cwd=root)
+        # Cut from main AFTER finalize: it descends from the epic tip.
+        extra.append(add_worktree(repo, "400-next", base="main"))
     return {**repo, "epic_wt": epic_wt, "tickets": tickets,
-            "unrelated": [unrelated, landed, other, planning, owner_planning]}
+            "unrelated": [unrelated, landed, other, planning, owner_planning, *extra]}
 
 
 def _selected(root: Path, capsys) -> dict[str, str | None]:
@@ -759,8 +765,13 @@ def test_epic_sweep_selects_only_declared_tickets_not_shared_ancestry(
     assert "primary checkout" in excluded["repo"]
     assert "the epic's own worktree" in excluded["wt-epic-demo"]
     assert "the epic's own worktree" in excluded["wt-epic-demo-planning"]
-    for name in ("wt-300-unrelated", "wt-301-landed", "wt-epic-other", "wt-epic-next"):
+    for name in ("wt-300-unrelated", "wt-301-landed", "demo-scratch"):
         assert excluded[name] and "not part of epic demo" in excluded[name], excluded
+    assert "another epic's own worktree" in excluded["wt-epic-other"]
+    expected = "not declared in" if plan else "the planning worktree of epic next"
+    assert excluded["wt-epic-next"] and expected in excluded["wt-epic-next"], excluded
+    if finalized:
+        assert excluded["wt-400-next"] and "not part of epic demo" in excluded["wt-400-next"]
 
     assert ticket_mod.run("sweep", None, start=repo["root"], epic="demo", yes=True) == 0
     assert not any(t.is_dir() for t in repo["tickets"])
@@ -774,6 +785,19 @@ def test_the_primary_checkouts_branch_is_never_taken_for_the_default_branch(tmp_
     root = repo["root"]
     git("checkout", "-q", "-b", "feature/scratch", "epic/demo", cwd=root)
     excluded = _selected(root, capsys)
+    assert sorted(n for n, why in excluded.items() if why is None) == [
+        "wt-201-alpha", "wt-202-beta"
+    ], excluded
+
+
+def test_a_stale_local_main_is_not_taken_for_the_default_branch(tmp_path, capsys):
+    """No origin/HEAD and local main behind origin/main: 301-landed is on
+    origin/main, so its work is base history — not the epic's."""
+    repo = _membership_repo(tmp_path, plan=False)
+    root = repo["root"]
+    git("reset", "-q", "--hard", "feature/301-landed~1", cwd=root)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-301-landed"] and "not part of epic demo" in excluded["wt-301-landed"]
     assert sorted(n for n, why in excluded.items() if why is None) == [
         "wt-201-alpha", "wt-202-beta"
     ], excluded

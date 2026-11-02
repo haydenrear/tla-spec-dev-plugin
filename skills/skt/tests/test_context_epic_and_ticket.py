@@ -114,9 +114,17 @@ def test_issue_refs_read_every_spelling_and_keep_the_repository():
         "  - id: C\n    github_issue: owner/other#3\n"
         "  - id: D\n    github_issue: 4\n"
         "  - id: E\n    github_issue: not-an-issue\n"
+        "  - id: F\n    github_issue: https://gitlab.com/grp/sub/proj/-/issues/6\n"
+        "  - id: G\n    github_issue: https://tracker.example/browse/7\n"
     )
     assert ctx.plan_issue_refs(text) == [
-        ("A", "owner/repo", "1"), ("B", None, "2"), ("C", "owner/other", "3"), ("D", None, "4"),
+        ("A", "github.com/owner/repo", "1"), ("B", None, "2"), ("C", "owner/other", "3"),
+        ("D", None, "4"), ("F", "gitlab.com/grp/sub/proj", "6"), ("G", None, "7"),
     ]
+    here = "github.com/owner/repo"
+    assert ctx.plan_issue_index(text, here) == {
+        "1": "A", "2": "B", "4": "D", "7": "G",
+    }
+    assert set(ctx.plan_issue_index(text)) == {"1", "2", "3", "4", "6", "7"}
     assert ctx.issue_number("201-alpha") == "201" and ctx.issue_number("201") == "201"
     assert ctx.issue_number("2010x") is None and ctx.issue_number(None) is None

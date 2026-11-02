@@ -437,7 +437,7 @@ class DeclaredTickets:
     A ticket worktree's branch spells the ISSUE (`feature/201-alpha`, the
     assignment block's `feature_branch`); the plan spells the SPEC ID
     (`EP-1`) and joins the two through `github_issue`. Comparing only the
-    spec id missed every real ticket, and `_matches_epic` then fell through
+    spec id missed every real ticket, and `build_plan` then fell through
     to ancestry — which also selected unrelated worktrees (#157).
     """
 
@@ -447,19 +447,9 @@ class DeclaredTickets:
     def declares(self, ticket: str | None) -> bool:
         if not ticket:
             return False
-        return ticket in self.ids or ctx_mod.issue_number(ticket) in self.issues
-
-
-def origin_repo(root: Path) -> str | None:
-    """`owner/repo` of the `origin` remote, lower-cased; None when unparseable."""
-    url = _out("remote", "get-url", "origin", cwd=root)
-    # A hosted remote only — `https://host/owner/repo` or `git@host:owner/repo`.
-    # A local path names no repository an issue URL could be compared with.
-    match = re.match(
-        r"^(?:[a-z+]+://(?:[^@/]+@)?[^/]+/|[^@/:]+@[^:/]+:)([^/]+/[^/]+?)(?:\.git)?/?$",
-        url or "",
-    )
-    return match.group(1).lower() if match else None
+        if ticket in self.ids or any(ticket.startswith(i + "-") for i in self.ids):
+            return True
+        return ctx_mod.issue_number(ticket) in self.issues
 
 
 def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
@@ -467,9 +457,8 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
 
     `git show <ref>:<path>` rather than a file read: the plan lives on the
     epic branch, and the primary checkout that runs the sweep is usually
-    on `main`. A `github_issue` naming ANOTHER repository is not this
-    repository's issue number — issues are renumbered when a project
-    moves — so it declares nothing here.
+    on `main`. Issue numbers go through `context.plan_issue_index`, the
+    same join — and the same other-repository filter — `skt status` uses.
     """
     text = _out("show", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
     if not text:
@@ -477,55 +466,63 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     _, _, all_tickets = ctx_mod.parse_ticket_plan(text)
     if not all_tickets:
         return None
-    here = origin_repo(root)
-    issues = {
-        num for _, repo, num in ctx_mod.plan_issue_refs(text)
-        if repo is None or here is None or repo == here
-    }
+    issues = ctx_mod.plan_issue_index(text, ctx_mod.origin_repo(root))
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
 def resolve_trunk(root: Path) -> str | None:
     """The repository's default branch, or None when it cannot be named.
 
-    `origin/HEAD` when the clone recorded it, else the conventional names.
-    Never the branch the primary checkout happens to be on: that can be a
-    planning branch which contains the whole epic.
+    `origin/HEAD` when the clone recorded it, else the conventional names,
+    the remote-tracking ref before a possibly stale local branch. Never the
+    branch the primary checkout happens to be on: that can be a planning
+    branch which contains the whole epic.
     """
     head = _out("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=root)
     candidates = [head] if head else []
     for name in ("main", "master", "develop", "trunk"):
-        candidates += [name, f"origin/{name}"]
+        candidates += [f"origin/{name}", name]
     for ref in candidates:
         if _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root):
             return ref
     return None
 
 
-def epic_base(root: Path, epic_ref: str, trunk: str | None) -> str | None:
-    """The default branch AS IT STOOD before the epic merged into it.
+@dataclass(frozen=True)
+class EpicBase:
+    """What a no-plan sweep compares a worktree against.
 
-    Work reachable from here is base history every branch shares, not the
-    epic's. Before the epic lands that is `trunk` itself. After a
-    `--no-ff` merge (what finalize does) it is the first parent of the
-    first-parent commit on `trunk` that brought the epic in. None when it
-    cannot be told apart — no trunk, or the epic fast-forwarded onto it.
+    `ref` is the default branch AS IT STOOD before the epic merged into
+    it: work reachable from there is base history every branch shares,
+    not the epic's. `merged` is True once the epic is on the default
+    branch — from then on everything cut from it descends from the epic
+    tip, so descent proves nothing. `ref` None: cannot be told apart.
     """
+
+    ref: str | None
+    merged: bool = False
+
+
+def epic_base(root: Path, epic_ref: str, trunk: str | None) -> EpicBase:
+    """Before the epic lands, `trunk`. After a `--no-ff` merge (what
+    finalize does), the first parent of the first-parent commit on `trunk`
+    that brought the epic in. Unknown with no trunk, or when the epic was
+    fast-forwarded onto it."""
     if trunk is None:
-        return None
+        return EpicBase(None)
     if not _is_ancestor(root, epic_ref, trunk):
-        return trunk
+        return EpicBase(trunk)
     path = _out(
         "rev-list", "--first-parent", "--ancestry-path", "--reverse",
         f"{epic_ref}..{trunk}", cwd=root,
     )
     merge = (path or "").split()[:1]
     if not merge:
-        return None
+        return EpicBase(None, merged=True)
     before = _out("rev-parse", "--verify", "--quiet", f"{merge[0]}^1", cwd=root)
     if not before or _is_ancestor(root, epic_ref, before):
-        return None
-    return before
+        return EpicBase(None, merged=True)
+    return EpicBase(before, merged=True)
 
 
 def _is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
@@ -951,7 +948,7 @@ class Plan:
     epic: str | None
     current: Path | None
     #: True when `--epic` was passed, so the candidate set was NARROWED.
-    #: A discovered epic sets `target` only. See `_matches_epic`.
+    #: A discovered epic sets `target` only. See `_epic_exclusion`.
     scoped: bool = False
     candidates: list[Candidate] = field(default_factory=list)
     error: str | None = None
@@ -962,57 +959,72 @@ class Plan:
         return [c for c in self.candidates if c.excluded is None]
 
 
-def _matches_epic(
+def _epic_exclusion(
     wt: Worktree,
     slug: str,
     epic_ref: str | None,
     declared: DeclaredTickets | None,
     root: Path,
-    base: str | None = None,
-) -> bool:
-    """Is this worktree one of epic `slug`'s tickets?
+    *,
+    base: EpicBase,
+) -> str | None:
+    """Why this worktree is NOT one of epic `slug`'s tickets; None if it is.
 
     There is no single fact in git that says "this worktree belongs to
     that epic". The answers, and what each is allowed to prove:
 
     1. **A plan on the epic branch is authoritative.** The worktree's
-       ticket is declared there — by spec id, or by the issue number its
+       ticket is declared there — by spec id (`feature/<id>` or
+       `feature/<id>-…`), or by the issue number its
        `feature/<issue>-<slug>` branch leads with, joined through
        `github_issue`. A plan miss is final: nothing else can add a
        worktree the plan does not name.
     2. With no plan, its tip is contained in the epic ref AND not in
-       `base`, the default branch as it stood before the epic merged —
+       `base.ref`, the default branch as it stood before the epic merged —
        the ticket's work is unique to the epic (#390: tickets branched
        from old epic tips and merged back, epic since finalized).
-    3. With no plan: the slug appears in the branch or directory name, or
-       the tip descends from the epic tip.
+    3. With no plan: the slug is a whole `/`/`-`/`_`-delimited token of
+       the BRANCH name; or, while the epic is not yet on the default
+       branch, the tip descends from the epic tip.
 
     **Shared ancestry alone never establishes membership (#157).** Every
     commit on the epic's base history is "contained" in the epic, so an
     unrelated feature worktree cut from main — or whose work reached the
-    epic only through a merge of main — passed the old (2). With no
-    `base` to compare against, (2) and the descent half of (3) are not
-    tried: the sweep leaves a worktree standing rather than guess.
+    epic only through a merge of main — passed the old (2); and once the
+    epic is merged, everything cut from main descends from its tip. With
+    no `base.ref`, (2) and descent are not tried: the sweep leaves a
+    worktree standing rather than guess.
 
     A worktree on another `epic/*` branch is never a ticket; with no
     plan, neither is a `feature/epic-*` planning worktree. The epic's own
     is excluded by `build_plan` before asking.
     """
     if wt.epic_slug is not None:
-        return False
+        return f"another epic's own worktree (epic/{wt.epic_slug}), not a ticket of epic {slug}"
     if declared is not None:
-        return declared.declares(wt.ticket)
+        if declared.declares(wt.ticket):
+            return None
+        return (
+            f"not part of epic {slug} (not declared in {TICKET_PLAN} on {epic_ref}, "
+            "by spec id or github_issue)"
+        )
     if wt.owner_of_epic is not None:
-        return False
-    if epic_ref is not None and base is not None:
-        if _is_ancestor(root, wt.rev, epic_ref) and not _is_ancestor(root, wt.rev, base):
-            return True
-    needle = slug.lower()
-    if needle in (wt.branch or "").lower() or needle in wt.path.name.lower():
-        return True
-    if epic_ref is not None and base is not None:
-        return _is_ancestor(root, epic_ref, wt.rev)
-    return False
+        return f"the planning worktree of epic {wt.owner_of_epic}, not a ticket of epic {slug}"
+    if epic_ref is not None and base.ref is not None:
+        if _is_ancestor(root, wt.rev, epic_ref) and not _is_ancestor(root, wt.rev, base.ref):
+            return None
+    if re.search(rf"(?:^|[/_-]){re.escape(slug)}(?:$|[/_-])", wt.branch or "", re.IGNORECASE):
+        return None
+    if epic_ref is not None and base.ref is not None and not base.merged:
+        if _is_ancestor(root, epic_ref, wt.rev):
+            return None
+    if base.ref is None:
+        return (
+            f"not part of epic {slug} (no plan on the epic branch, and the default branch "
+            "before the epic cannot be told apart — run `git remote set-head origin --auto`, "
+            "or remove it with `skt ticket close <ticket>`)"
+        )
+    return f"not part of epic {slug} (no plan on the epic branch, and no work unique to it)"
 
 
 def build_plan(
@@ -1055,7 +1067,7 @@ def build_plan(
     declared = epic_declared_tickets(root, epic_ref) if epic and epic_ref else None
     base = (
         epic_base(root, epic_ref, resolve_trunk(root))
-        if epic and epic_ref and declared is None else None
+        if epic and epic_ref and declared is None else EpicBase(None)
     )
     plan = Plan(
         root=root, destination=destination, target=resolved_target, epic=slug,
@@ -1080,20 +1092,12 @@ def build_plan(
                 f"the epic's own worktree — an --epic sweep retires epic {epic}'s "
                 "tickets, never the epic; remove it on its own once the epic is finalized"
             )
-        elif epic and not _matches_epic(wt, epic, epic_ref, declared, root, base):
+        elif epic:
             # Only an EXPLICIT --epic narrows. A DISCOVERED slug sets the
             # containment target and nothing else: silently sweeping a
             # subset because one epic branch happened to exist is the
             # kind of surprise a destructive command must not have.
-            excluded = f"not part of epic {epic}" + (
-                f" (not declared in {TICKET_PLAN} on {epic_ref}, by spec id or github_issue)"
-                if declared is not None
-                else " (no plan on the epic branch, and no work unique to it)"
-                if base is not None
-                else " (no plan on the epic branch, and the default branch before the "
-                "epic cannot be told apart — run `git remote set-head origin --auto`, "
-                "or remove it with `skt ticket close <ticket>`)"
-            )
+            excluded = _epic_exclusion(wt, epic, epic_ref, declared, root, base=base)
         status = inspect(wt, root=root, target=resolved_target) if excluded is None else Status(
             missing=wt.missing, locked=wt.locked, prunable=wt.prunable, target=resolved_target
         )
