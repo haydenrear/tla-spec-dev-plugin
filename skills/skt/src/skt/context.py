@@ -152,6 +152,62 @@ def epic_slug_from_refs(refs_text: str) -> str | None:
     return slugs[0] if len(slugs) == 1 else None
 
 
+def issue_number(ticket: str | None, *, strict: bool = False) -> str | None:
+    """The issue number a ticket id LEADS with (`201-alpha` -> `201`).
+
+    One helper for both joins to the plan. `skt status` reads greedy
+    digits, as it always has (`369eval` -> 369). `skt ticket sweep --epic`
+    deletes, so it passes `strict`: the number must end the id or be
+    followed by `-`/`_`, and `2fa-login` is not issue 2 (#157).
+    """
+    pattern = r"^(\d+)(?:[-_]|$)" if strict else r"^(\d+)"
+    match = re.match(pattern, ticket or "")
+    return match.group(1) if match else None
+
+
+def plan_tickets_section(text: str) -> str:
+    """The body of the plan's top-level `tickets:` key; "" when absent.
+
+    Ends at the next column-0 line that is not a list item, comment or
+    blank — any other top-level key, however spelled — or a `---`/`...`
+    document marker. `epic_goals:` and other lists also hold `- id:`.
+    """
+    out: list[str] = []
+    inside = False
+    for line in text.splitlines():
+        if re.match(r"^tickets:\s*(#.*)?$", line):
+            inside = True
+            continue
+        if not inside:
+            continue
+        if line.startswith(("---", "...")):
+            break
+        if line and not line[0].isspace() and not line.startswith(("-", "#")):
+            break
+        out.append(line)
+    return "\n".join(out)
+
+
+def plan_outer_items(text: str) -> list[tuple[str, str | None]]:
+    """(id, github_issue number or None) per OUTERMOST `- id:` item.
+
+    Line-based, like :func:`plan_issue_index`: nested items (acceptance
+    criteria) are not tickets, and blank lines between entries do not
+    change an entry's depth.
+    """
+    items = []
+    for line in text.splitlines():
+        m = re.match(r"^([ \t]*)-[ \t]*id:[ \t]*(\S+)", line)
+        if m:
+            items.append((len(m.group(1)), m.group(2).strip("'\"")))
+    if not items:
+        return []
+    outer = min(depth for depth, _ in items)
+    index = plan_issue_index(text)
+    by_id = {tid: num for num, tid in index.items()}
+    return [(tid, by_id.get(tid)) for depth, tid in items if depth == outer]
+
+
 def plan_issue_index(text: str) -> dict[str, str]:
     """Issue number -> spec ticket id, from a plan's text.
 
@@ -161,19 +217,40 @@ def plan_issue_index(text: str) -> dict[str, str]:
     the one line of `skt status` that answers "am I where I should be"
     (SI-20-DF-06). The two are joined by `github_issue`, which is the only field
     carrying the number, so the mapping is read rather than guessed.
+
+    A `github_issue` counts only INSIDE its `- id:` list item — indented
+    deeper than that item's dash. The same key elsewhere (the epic's own
+    parent issue under `status:`, another list's entries) belongs to no
+    ticket, and `skt ticket sweep --epic` acts on this mapping (#157).
     """
     index: dict[str, str] = {}
-    current = None
+    items: list[tuple[int, str]] = []  # open `- id:` items: (dash indent, id)
     for line in text.splitlines():
-        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
-        if m:
-            current = m.group(1).strip("'\"")
+        if not line.strip() or line.lstrip().startswith("#"):
             continue
+        indent = len(line) - len(line.lstrip())
+        m = re.match(r"^(\s*)-\s*id:\s*(\S+)", line)
+        if m:
+            dash = len(m.group(1))
+            while items and items[-1][0] >= dash:
+                items.pop()
+            items.append((dash, m.group(2).strip("'\"")))
+            continue
+        while items and items[-1][0] >= indent:
+            items.pop()  # left that item (or its nested list)
         m = re.match(r"^\s*github_issue:\s*(\S+)", line)
-        if m and current:
-            num = m.group(1).strip("'\"").rstrip("/").rsplit("/", 1)[-1]
-            if num.isdigit():
-                index[num] = current
+        if m and items:
+            raw = m.group(1)
+            if raw.startswith("#"):
+                continue  # unquoted `#N` is a YAML comment: no issue filed
+            value = raw.strip("'\"")
+            # `…/issues/201`, `…/issues/201#issuecomment-1`, `…/201?x=1`,
+            # `o/r#201`, `#201`, `201`.
+            num = re.search(r"/(?:issues|pull)/(\d+)(?:[/?#]|$)", value) or re.search(
+                r"(?:^|#|/)(\d+)/?$", value
+            )
+            if num:
+                index[num.group(1)] = items[-1][1]
     return index
 
 
@@ -246,11 +323,11 @@ def gather(start: str | Path, home: Path) -> TicketContext:
         # join them through `github_issue` (SI-20-DF-06).
         ticket_in_plan = ticket in all_tickets
         if not ticket_in_plan:
-            lead = re.match(r"^(\d+)", ticket)
+            lead = issue_number(ticket)
             if lead is not None:
                 plan = root / "specs" / "desired_program_model" / "ticket_plan.yaml"
                 try:
-                    mapped = plan_issue_index(plan.read_text()).get(lead.group(1))
+                    mapped = plan_issue_index(plan.read_text()).get(lead)
                 except OSError:
                     mapped = None
                 if mapped is not None:

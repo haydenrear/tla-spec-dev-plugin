@@ -575,11 +575,10 @@ def test_free_space_is_measured_not_computed_from_du(tmp_path):
 
 
 def test_epic_scoping_limits_the_pass(tmp_path, capsys):
-    """No ticket plan here, so `--epic` falls back to fork-point containment.
+    """No ticket plan here, so `--epic` falls back to the epic's unique work.
 
-    Which means the epic branches have to have actually diverged — the
-    documented weakness of that fallback, and the reason a DISCOVERED
-    slug never narrows anything.
+    T-23 did work and it landed on epic/demo; X-9 is cut from another
+    epic. Asserted per ROW — the dry-run footer also says `would remove`.
     """
     repo = epic_repo(tmp_path)
     root = repo["root"]
@@ -592,14 +591,17 @@ def test_epic_scoping_limits_the_pass(tmp_path, capsys):
         git("commit", "-q", "-m", f"{slug} epic work", cwd=root)
     git("checkout", "-q", "main", cwd=root)
 
-    in_epic = add_worktree(repo, "T-23", base="epic/demo")
+    in_epic = add_worktree(repo, "T-23", base="epic/demo", commit=True, push=True)
+    git("checkout", "-q", "epic/demo", cwd=root)
+    git("merge", "-q", "--no-ff", "-m", "merge T-23", "feature/T-23", cwd=root)
+    git("push", "-q", "origin", "epic/demo", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
     other = root.parent / "wt-other"
     git("worktree", "add", "-q", str(other), "-b", "feature/X-9", "epic/other", cwd=root)
 
-    assert ticket_mod.run("sweep", None, start=root, epic="demo") == 0
-    out = capsys.readouterr().out
-    assert "not part of epic demo" in out
-    assert "would remove" in out and "T-23" in out
+    excluded = _selected(root, capsys)
+    assert excluded["wt-T-23"] is None, excluded
+    assert excluded["wt-other"] and "not part of epic demo" in excluded["wt-other"], excluded
     assert in_epic.is_dir() and other.is_dir()
 
 
@@ -654,7 +656,359 @@ def test_epic_scoping_uses_the_ticket_plan_on_the_epic_branch(tmp_path, capsys):
     git("commit", "-q", "-m", "plan", cwd=root)
     git("checkout", "-q", "main", cwd=root)
 
-    assert sweep_mod.epic_ticket_ids(root, "epic/demo") == {"T-24"}
+    declared = sweep_mod.epic_declared_tickets(root, "epic/demo")
+    assert declared is not None and declared.ids == {"T-24"}
+
+
+# --------------------------------------------------- epic membership (#157)
+
+
+def _membership_repo(tmp_path, *, plan: bool, finalized: bool = False) -> dict:
+    """Primary on main, an epic owner, two declared tickets, unrelated work.
+
+    The ticket branches spell the ISSUE (`feature/201-alpha`), the plan
+    spells the SPEC ID (`EP-1`) and joins them through `github_issue` —
+    the shape git-epic-workflow's assignment block produces. The
+    unrelated worktrees share the epic's ancestry and nothing else:
+
+      feature/300-unrelated  cut from main, no commits — its tip is the
+                             epic's base, so it is "contained" in the epic
+      feature/301-landed     its work landed on main, and main was merged
+                             into the epic — contained again, by ancestry
+      epic/other             another epic's owner worktree, cut from
+                             this epic's tip
+      feature/epic-next      another epic's planning worktree, the branch
+                             `skt ticket new epic-<slug>` creates
+      feature/epic-demo      THIS epic's planning worktree — the owner
+
+    `finalized` then merges the epic into main with `--no-ff`, the way
+    finalize lands it: every ticket's work is now on main too.
+    """
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    epic_wt = root.parent / "wt-epic-demo"
+    git("worktree", "add", "-q", str(epic_wt), "epic/demo", cwd=root)
+    if plan:
+        plan_dir = epic_wt / "specs" / "desired_program_model"
+        plan_dir.mkdir(parents=True)
+        (plan_dir / "ticket_plan.yaml").write_text(
+            "name: demo\ntickets:\n"
+            "  - id: EP-1\n    status: open\n"
+            "    github_issue: https://github.com/o/r/issues/201\n"
+            "  - id: EP-2\n    status: open\n"
+            "    github_issue: https://github.com/o/r/issues/202\n"
+        )
+        git("add", "-A", cwd=epic_wt)
+        git("commit", "-q", "-m", "plan", cwd=epic_wt)
+        git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+
+    unrelated = add_worktree(repo, "300-unrelated", base="main")
+    landed = add_worktree(repo, "301-landed", base="main", commit=True, push=True)
+    git("merge", "-q", "--ff-only", "feature/301-landed", cwd=root)
+    git("push", "-q", "origin", "main", cwd=root)
+
+    tickets = [add_worktree(repo, t, commit=True, push=True) for t in ("201-alpha", "202-beta")]
+    for t in ("201-alpha", "202-beta"):
+        git("merge", "-q", "--no-ff", "-m", f"merge {t}", f"feature/{t}", cwd=epic_wt)
+    git("merge", "-q", "--no-ff", "-m", "merge main", "main", cwd=epic_wt)
+    git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+
+    other = root.parent / "wt-epic-other"
+    git("worktree", "add", "-q", str(other), "-b", "epic/other", "epic/demo", cwd=root)
+    git("push", "-q", "origin", "epic/other", cwd=root)
+    planning = add_worktree(repo, "epic-next", base="epic/demo")
+    owner_planning = root.parent / "wt-epic-demo-planning"
+    git("worktree", "add", "-q", str(owner_planning), "-b", "feature/epic-demo",
+        "epic/demo", cwd=root)
+    # A directory that spells the slug while the branch does not.
+    named = root.parent / "demo-scratch"
+    git("worktree", "add", "-q", str(named), "-b", "feature/302-scratch", "main", cwd=root)
+    # A branch that spells the slug as a token, sharing only ancestry; and
+    # a fresh worktree cut from the epic itself, with no work of its own.
+    extra = [
+        named,
+        add_worktree(repo, "303-demo-notes", base="main"),
+        add_worktree(repo, "305-fresh", base="epic/other"),
+    ]
+    if finalized:
+        git("merge", "-q", "--no-ff", "-m", "finalize epic demo", "epic/demo", cwd=root)
+        git("push", "-q", "origin", "main", cwd=root)
+        # Cut from main AFTER finalize: it descends from the epic tip.
+        extra.append(add_worktree(repo, "400-next", base="main"))
+    return {**repo, "epic_wt": epic_wt, "tickets": tickets,
+            "unrelated": [unrelated, landed, other, planning, owner_planning, *extra]}
+
+
+def _selected(root: Path, capsys) -> dict[str, str | None]:
+    """Worktree directory name -> why it is excluded, None when planned.
+
+    Read from the dry-run JSON the issue reproduced with
+    (`skt ticket sweep --epic <slug> --json`).
+    """
+    assert ticket_mod.run("sweep", None, start=root, epic="demo", as_json=True) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["dry_run"] is True
+    return {
+        Path(s["path"]).name: None if s["action"] == "planned" else " ".join(s["reasons"])
+        for s in payload["steps"]
+    }
+
+
+@pytest.mark.parametrize("finalized", [False, True], ids=["in-flight", "finalized"])
+@pytest.mark.parametrize("plan", [True, False], ids=["with-plan", "no-plan"])
+def test_epic_sweep_selects_only_declared_tickets_not_shared_ancestry(
+    tmp_path, capsys, plan, finalized
+):
+    """#157: an unrelated worktree contained in the epic only by ancestry.
+
+    Before: `_matches_epic` compared `201-alpha` with `EP-1` literally,
+    missed, and fell through to "tip reachable from epic/demo" — which is
+    also true of every commit on the epic's base history.
+    """
+    repo = _membership_repo(tmp_path, plan=plan, finalized=finalized)
+    excluded = _selected(repo["root"], capsys)
+
+    selected = sorted(name for name, why in excluded.items() if why is None)
+    assert selected == ["wt-201-alpha", "wt-202-beta"], excluded
+    assert "primary checkout" in excluded["repo"]
+    assert "the epic's own worktree" in excluded["wt-epic-demo"]
+    assert "the epic's own worktree" in excluded["wt-epic-demo-planning"]
+    for name in ("wt-300-unrelated", "wt-301-landed", "demo-scratch", "wt-303-demo-notes",
+                 "wt-305-fresh"):
+        assert excluded[name] and "not part of epic demo" in excluded[name], excluded
+    assert "another epic's own worktree" in excluded["wt-epic-other"]
+    expected = "not declared in" if plan else "the planning worktree of epic next"
+    assert excluded["wt-epic-next"] and expected in excluded["wt-epic-next"], excluded
+    if finalized:
+        assert excluded["wt-400-next"] and "not part of epic demo" in excluded["wt-400-next"]
+
+    assert ticket_mod.run("sweep", None, start=repo["root"], epic="demo", yes=True) == 0
+    assert not any(t.is_dir() for t in repo["tickets"])
+    assert repo["epic_wt"].is_dir() and all(p.is_dir() for p in repo["unrelated"])
+
+
+def test_the_primary_checkouts_branch_is_never_taken_for_the_default_branch(tmp_path, capsys):
+    """origin/HEAD unset and the primary sitting on a branch that holds the
+    whole epic: taking that branch as trunk excluded every ticket."""
+    repo = _membership_repo(tmp_path, plan=False)
+    root = repo["root"]
+    git("checkout", "-q", "-b", "feature/scratch", "epic/demo", cwd=root)
+    excluded = _selected(root, capsys)
+    assert sorted(n for n, why in excluded.items() if why is None) == [
+        "wt-201-alpha", "wt-202-beta"
+    ], excluded
+
+
+def test_a_stale_local_main_is_not_taken_for_the_default_branch(tmp_path, capsys):
+    """No origin/HEAD and local main behind origin/main: 301-landed is on
+    origin/main, so its work is base history — not the epic's."""
+    repo = _membership_repo(tmp_path, plan=False)
+    root = repo["root"]
+    git("reset", "-q", "--hard", "feature/301-landed~1", cwd=root)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-301-landed"] and "not part of epic demo" in excluded["wt-301-landed"]
+    assert sorted(n for n, why in excluded.items() if why is None) == [
+        "wt-201-alpha", "wt-202-beta"
+    ], excluded
+
+
+def test_unpushed_work_on_local_main_is_still_base_history(tmp_path, capsys):
+    """Local main AHEAD of origin/main: a worktree whose work is only on
+    local main — then merged into the epic — shares ancestry, nothing more."""
+    repo = _membership_repo(tmp_path, plan=False)
+    root = repo["root"]
+    local = add_worktree(repo, "304-local", base="main", commit=True, push=True)
+    git("merge", "-q", "--ff-only", "feature/304-local", cwd=root)  # not pushed
+    git("merge", "-q", "--no-ff", "-m", "merge main again", "main", cwd=repo["epic_wt"])
+    git("push", "-q", "origin", "epic/demo", cwd=repo["epic_wt"])
+    excluded = _selected(root, capsys)
+    assert excluded["wt-304-local"] and "not part of epic demo" in excluded["wt-304-local"]
+    assert local.is_dir()
+    assert sorted(n for n, why in excluded.items() if why is None) == [
+        "wt-201-alpha", "wt-202-beta"
+    ], excluded
+
+
+def _commit_plan(root: Path, body: str) -> None:
+    git("checkout", "-q", "epic/demo", cwd=root)
+    plan_dir = root / "specs" / "desired_program_model"
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    (plan_dir / "ticket_plan.yaml").write_text(body)
+    git("add", "-A", cwd=root)
+    git("commit", "-q", "-m", "plan", cwd=root)
+    git("push", "-q", "origin", "epic/demo", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+
+
+def test_a_plan_with_no_entries_declares_nothing_rather_than_falling_back(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, "name: demo\ntickets: []\n")
+    add_worktree(repo, "201-alpha", commit=True, push=True)
+    git("merge", "-q", "--no-ff", "-m", "m", "origin/feature/201-alpha", cwd=root)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-201-alpha"] and "not declared in" in excluded["wt-201-alpha"]
+
+
+def test_only_the_tickets_section_declares_tickets(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, (
+        "name: demo\n"
+        "epic_goals:\n"
+        "- id: GOAL-1\n  github_issue: https://github.com/o/r/issues/45\n"
+        "tickets:\n"
+        "  - id: EP-1\n    status: open\n    github_issue: https://github.com/o/r/issues/201\n"
+    ))
+    add_worktree(repo, "45-unrelated", base="main")
+    add_worktree(repo, "GOAL-1", base="main")
+    add_worktree(repo, "201-alpha")
+    excluded = _selected(root, capsys)
+    assert excluded["wt-201-alpha"] is None, excluded
+    assert excluded["wt-45-unrelated"] and excluded["wt-GOAL-1"], excluded
+
+
+def test_blank_lines_between_entries_and_later_sections(tmp_path, capsys):
+    """Real plans space their entries; every one is still a ticket. A later
+    top-level key, however spelled, ends `tickets:`."""
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, (
+        "name: demo\ntickets:\n"
+        "  - id: EP-1\n    github_issue: https://github.com/o/r/issues/201\n\n"
+        "  - id: EP-2\n    github_issue: https://github.com/o/r/issues/202\n\n"
+        "\"epic.goals\":\n"
+        "  - id: GOAL-1\n    github_issue: https://github.com/o/r/issues/45\n"
+    ))
+    add_worktree(repo, "201-alpha")
+    add_worktree(repo, "202-beta")
+    add_worktree(repo, "45-unrelated", base="main")
+    excluded = _selected(root, capsys)
+    assert excluded["wt-201-alpha"] is None and excluded["wt-202-beta"] is None, excluded
+    assert excluded["wt-45-unrelated"], excluded
+
+
+def test_nested_ids_and_digit_led_names_declare_nothing(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, (
+        "name: demo\ntickets:\n"
+        "  - id: EP-1\n    acceptance:\n      - id: AC-1\n"
+        "    github_issue: https://github.com/o/r/issues/2\n"
+    ))
+    add_worktree(repo, "AC-1", base="main")
+    add_worktree(repo, "2fa-login", base="main")
+    add_worktree(repo, "2-real")
+    excluded = _selected(root, capsys)
+    assert excluded["wt-2-real"] is None, excluded
+    assert excluded["wt-AC-1"] and excluded["wt-2fa-login"], excluded
+
+
+def test_a_branch_under_a_default_branch_name_is_not_a_default_branch(tmp_path):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    # No `develop` exists, so `refs/heads/develop` prefix-matches this.
+    git("branch", "develop/demo-tickets", "epic/demo", cwd=root)
+    trunks = sweep_mod.resolve_trunks(root)
+    assert "refs/heads/develop/demo-tickets" not in trunks and trunks, trunks
+
+
+def test_a_plan_git_cannot_read_refuses_the_sweep(tmp_path, capsys, monkeypatch):
+    """A failed read is never "no plan": that would fall back to history."""
+    repo = epic_repo(tmp_path)
+    tickets = add_worktree(repo, "201-alpha")
+    real = sweep_mod._git
+    monkeypatch.setattr(
+        sweep_mod, "_git",
+        lambda *a, cwd=None: None if a[:1] == ("ls-tree",) else real(*a, cwd=cwd),
+    )
+    assert ticket_mod.run("sweep", None, start=repo["root"], epic="demo", yes=True) == 1
+    out = capsys.readouterr().out
+    assert "nothing was selected" in out
+    assert tickets.is_dir()
+
+
+def test_every_conventional_default_branch_is_base_history(tmp_path, capsys):
+    """gitflow, no origin/HEAD: work that reached the epic through `develop`
+    is base history even though `main` exists and is guessed first."""
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    git("branch", "develop", "main", cwd=root)
+    flow = add_worktree(repo, "306-flow", base="develop", commit=True, push=True)
+    git("checkout", "-q", "develop", cwd=root)
+    git("merge", "-q", "--ff-only", "feature/306-flow", cwd=root)
+    git("push", "-q", "origin", "develop", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+    epic_wt = root.parent / "wt-epic-demo"
+    git("worktree", "add", "-q", str(epic_wt), "epic/demo", cwd=root)
+    git("merge", "-q", "--no-ff", "-m", "merge develop", "develop", cwd=epic_wt)
+    git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-306-flow"] and "not part of epic demo" in excluded["wt-306-flow"]
+    assert flow.is_dir()
+
+
+def test_a_forks_upstream_default_branch_is_base_history(tmp_path, capsys):
+    """origin and local main stale; the epic merged `upstream/main`."""
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    upstream = tmp_path / "upstream.git"
+    subprocess.run(["git", "clone", "-q", "--bare", str(repo["origin"]), str(upstream)],
+                   check=True)
+    git("remote", "add", "upstream", str(upstream), cwd=root)
+    newer = add_worktree(repo, "307-upstream", base="main", commit=True)
+    git("push", "-q", "upstream", "feature/307-upstream:main", cwd=newer)
+    git("push", "-q", "origin", "feature/307-upstream", cwd=newer)
+    git("fetch", "-q", "upstream", cwd=root)
+    epic_wt = root.parent / "wt-epic-demo"
+    git("worktree", "add", "-q", str(epic_wt), "epic/demo", cwd=root)
+    git("merge", "-q", "--no-ff", "-m", "merge upstream", "upstream/main", cwd=epic_wt)
+    git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+    excluded = _selected(root, capsys)
+    assert excluded["wt-307-upstream"] and "not part of epic demo" in excluded["wt-307-upstream"]
+
+
+def test_a_declared_ticket_whose_name_starts_with_epic_is_still_selected(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    git("checkout", "-q", "epic/demo", cwd=root)
+    plan_dir = root / "specs" / "desired_program_model"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "ticket_plan.yaml").write_text(
+        "name: demo\ntickets:\n  - id: epic-close-gaps\n    status: open\n"
+    )
+    git("add", "-A", cwd=root)
+    git("commit", "-q", "-m", "plan", cwd=root)
+    git("push", "-q", "origin", "epic/demo", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+    add_worktree(repo, "epic-close-gaps", base="epic/demo")
+
+    excluded = _selected(root, capsys)
+    assert excluded["wt-epic-close-gaps"] is None, excluded
+
+
+def test_a_plan_declares_tickets_by_spec_id_or_github_issue(tmp_path):
+    root = epic_repo(tmp_path)["root"]
+    git("checkout", "-q", "epic/demo", cwd=root)
+    plan_dir = root / "specs" / "desired_program_model"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "ticket_plan.yaml").write_text(
+        "name: demo\ntickets:\n  - id: EP-1\n    status: open\n"
+        "    github_issue: https://github.com/o/r/issues/201\n"
+        "  - id: EP-2\n    status: open\n    github_issue: \"#202\"\n"
+    )
+    git("add", "-A", cwd=root)
+    git("commit", "-q", "-m", "plan", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+
+    declared = sweep_mod.epic_declared_tickets(root, "epic/demo")
+    assert declared is not None
+    assert declared.declares("EP-1")
+    assert declared.declares("201-alpha") and declared.declares("201")
+    assert not declared.declares("2010-other") and not declared.declares("300-unrelated")
+    assert not declared.declares(None)
+    assert declared.declares("202-beta")
+    assert not declared.declares("EP-1-alpha")  # a spec id is matched whole
 
 
 def test_an_unknown_epic_is_refused_rather_than_silently_widened(tmp_path, capsys):

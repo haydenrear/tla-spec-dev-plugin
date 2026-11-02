@@ -27,10 +27,40 @@ Run it **from the primary checkout**. `sweep` refuses the worktree it is
 running in and never touches the primary.
 
 `--epic <slug>` resolves `epic/<slug>` (local or remote) and refuses if it
-cannot. A worktree is one of its tickets when its ticket id is in the epic's
-`ticket_plan.yaml`, or its tip is contained in the epic branch. The epic's
-own worktree is never swept by `--epic`; remove it on its own once the
-epic is finalized.
+cannot. Which worktrees count as its tickets:
+
+- **When `epic/<slug>` carries a `ticket_plan.yaml`, the plan decides.** A
+  worktree belongs to the epic only if the plan declares it: its branch is
+  `feature/<spec-id>`, or `feature/<issue>-<slug>` where `<issue>` matches the
+  plan's `github_issue` (a URL, `#N` or `owner/repo#N`). Only entries under the
+  plan's top-level `tickets:` count; `epic_goals:` and other lists don't. Only
+  the number is compared, so a `github_issue` from another repository can match
+  a local branch with the same number. A worktree the plan
+  doesn't declare is excluded, whatever its history. Close it with `skt ticket
+  close <ticket>`. A plan with no entries declares nothing. If git can't read
+  the plan, the sweep refuses and selects nothing; it never falls back to
+  history.
+- **With no plan,** a worktree's tip must be the epic's ticket work: reachable
+  from the epic branch, on none of the default-branch refs as they stood
+  before the epic merged (`origin/HEAD`'s target plus whichever of `main`,
+  `master`, `develop` and `trunk` exist, as local branches and on every remote,
+  `upstream/` included), and not one of the epic's own
+  first-parent commits. That still works after finalize merges the epic with
+  `--no-ff`. Nothing else selects a worktree: not a slug in a branch or
+  directory name, not descending from the epic tip, and not being cut from the
+  epic without any commits of its own. If git can't answer, the default branch
+  can't be resolved, or the epic was fast-forwarded onto it, the worktree is
+  left standing: run `git remote set-head origin --auto`, or remove it with
+  `skt ticket close <ticket>`. The same applies to a ticket from an epic's
+  earlier merge round once the epic has moved on.
+
+Shared Git ancestry alone never makes a worktree a ticket (#157). A feature
+worktree cut from `main`, or one whose work reached the epic only because
+`main` was merged into it, is "contained" in the epic without belonging to it.
+An epic's owner or planning worktree (on `epic/<slug>` or on the
+`feature/epic-<slug>` branch that `skt ticket new epic-<slug>` creates) is
+never a ticket of another epic, and `--epic` never sweeps its own epic's owner
+worktree either; remove that separately once the epic is finalized.
 
 `--yes` needs a containment target. With no `--epic`, no `--target` and no
 single discoverable `epic/*` branch, the dry run still lists every worktree
