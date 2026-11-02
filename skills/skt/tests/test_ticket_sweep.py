@@ -657,6 +657,127 @@ def test_epic_scoping_uses_the_ticket_plan_on_the_epic_branch(tmp_path, capsys):
     assert sweep_mod.epic_ticket_ids(root, "epic/demo") == {"T-24"}
 
 
+# --------------------------------------------------- epic membership (#157)
+
+
+def _membership_repo(tmp_path, *, plan: bool) -> dict:
+    """Primary on main, an epic owner, two declared tickets, unrelated work.
+
+    The ticket branches spell the ISSUE (`feature/201-alpha`), the plan
+    spells the SPEC ID (`EP-1`) and joins them through `github_issue` —
+    the shape git-epic-workflow's assignment block produces. The
+    unrelated worktrees share the epic's ancestry and nothing else:
+
+      feature/300-unrelated  cut from main, no commits — its tip is the
+                             epic's base, so it is "contained" in the epic
+      feature/301-landed     its work landed on main, and main was merged
+                             into the epic — contained again, by ancestry
+      epic/other             another epic's owner worktree, cut from
+                             this epic's tip
+      feature/epic-next      another epic's planning worktree, the branch
+                             `skt ticket new epic-<slug>` creates
+      feature/epic-demo      THIS epic's planning worktree — the owner
+    """
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    epic_wt = root.parent / "wt-epic-demo"
+    git("worktree", "add", "-q", str(epic_wt), "epic/demo", cwd=root)
+    if plan:
+        plan_dir = epic_wt / "specs" / "desired_program_model"
+        plan_dir.mkdir(parents=True)
+        (plan_dir / "ticket_plan.yaml").write_text(
+            "name: demo\ntickets:\n"
+            "  - id: EP-1\n    status: open\n"
+            "    github_issue: https://github.com/o/r/issues/201\n"
+            "  - id: EP-2\n    status: open\n"
+            "    github_issue: https://github.com/o/r/issues/202\n"
+        )
+        git("add", "-A", cwd=epic_wt)
+        git("commit", "-q", "-m", "plan", cwd=epic_wt)
+        git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+
+    unrelated = add_worktree(repo, "300-unrelated", base="main")
+    landed = add_worktree(repo, "301-landed", base="main", commit=True, push=True)
+    git("merge", "-q", "--ff-only", "feature/301-landed", cwd=root)
+    git("push", "-q", "origin", "main", cwd=root)
+
+    tickets = [add_worktree(repo, t, commit=True, push=True) for t in ("201-alpha", "202-beta")]
+    for t in ("201-alpha", "202-beta"):
+        git("merge", "-q", "--no-ff", "-m", f"merge {t}", f"feature/{t}", cwd=epic_wt)
+    git("merge", "-q", "--no-ff", "-m", "merge main", "main", cwd=epic_wt)
+    git("push", "-q", "origin", "epic/demo", cwd=epic_wt)
+
+    other = root.parent / "wt-epic-other"
+    git("worktree", "add", "-q", str(other), "-b", "epic/other", "epic/demo", cwd=root)
+    git("push", "-q", "origin", "epic/other", cwd=root)
+    planning = add_worktree(repo, "epic-next", base="epic/demo")
+    owner_planning = root.parent / "wt-epic-demo-planning"
+    git("worktree", "add", "-q", str(owner_planning), "-b", "feature/epic-demo",
+        "epic/demo", cwd=root)
+    return {**repo, "epic_wt": epic_wt, "tickets": tickets,
+            "unrelated": [unrelated, landed, other, planning, owner_planning]}
+
+
+def _selected(root: Path, capsys) -> dict[str, str | None]:
+    """Worktree directory name -> why it is excluded, None when planned.
+
+    Read from the dry-run JSON the issue reproduced with
+    (`skt ticket sweep --epic <slug> --json`).
+    """
+    assert ticket_mod.run("sweep", None, start=root, epic="demo", as_json=True) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["dry_run"] is True
+    return {
+        Path(s["path"]).name: None if s["action"] == "planned" else " ".join(s["reasons"])
+        for s in payload["steps"]
+    }
+
+
+@pytest.mark.parametrize("plan", [True, False], ids=["with-plan", "no-plan"])
+def test_epic_sweep_selects_only_declared_tickets_not_shared_ancestry(tmp_path, capsys, plan):
+    """#157: an unrelated worktree contained in the epic only by ancestry.
+
+    Before: `_matches_epic` compared `201-alpha` with `EP-1` literally,
+    missed, and fell through to "tip reachable from epic/demo" — which is
+    also true of every commit on the epic's base history.
+    """
+    repo = _membership_repo(tmp_path, plan=plan)
+    excluded = _selected(repo["root"], capsys)
+
+    selected = sorted(name for name, why in excluded.items() if why is None)
+    assert selected == ["wt-201-alpha", "wt-202-beta"], excluded
+    assert "primary checkout" in excluded["repo"]
+    assert "the epic's own worktree" in excluded["wt-epic-demo"]
+    assert "the epic's own worktree" in excluded["wt-epic-demo-planning"]
+    for name in ("wt-300-unrelated", "wt-301-landed", "wt-epic-other", "wt-epic-next"):
+        assert excluded[name] and "not part of epic demo" in excluded[name], excluded
+
+    assert ticket_mod.run("sweep", None, start=repo["root"], epic="demo", yes=True) == 0
+    assert not any(t.is_dir() for t in repo["tickets"])
+    assert repo["epic_wt"].is_dir() and all(p.is_dir() for p in repo["unrelated"])
+
+
+def test_a_plan_declares_tickets_by_spec_id_or_github_issue(tmp_path):
+    root = epic_repo(tmp_path)["root"]
+    git("checkout", "-q", "epic/demo", cwd=root)
+    plan_dir = root / "specs" / "desired_program_model"
+    plan_dir.mkdir(parents=True)
+    (plan_dir / "ticket_plan.yaml").write_text(
+        "name: demo\ntickets:\n  - id: EP-1\n    status: open\n"
+        "    github_issue: https://github.com/o/r/issues/201\n"
+    )
+    git("add", "-A", cwd=root)
+    git("commit", "-q", "-m", "plan", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
+
+    declared = sweep_mod.epic_declared_tickets(root, "epic/demo")
+    assert declared is not None
+    assert declared.declares("EP-1")
+    assert declared.declares("201-alpha") and declared.declares("201")
+    assert not declared.declares("2010-other") and not declared.declares("300-unrelated")
+    assert not declared.declares(None)
+
+
 def test_an_unknown_epic_is_refused_rather_than_silently_widened(tmp_path, capsys):
     repo = epic_repo(tmp_path)
     add_worktree(repo, "T-25")

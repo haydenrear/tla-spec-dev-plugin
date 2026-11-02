@@ -27,10 +27,24 @@ Run it **from the primary checkout**. `sweep` refuses the worktree it is
 running in and never touches the primary.
 
 `--epic <slug>` resolves `epic/<slug>` (local or remote) and refuses if it
-cannot. A worktree is one of its tickets when its ticket id is in the epic's
-`ticket_plan.yaml`, or its tip is contained in the epic branch. The epic's
-own worktree is never swept by `--epic`; remove it on its own once the
-epic is finalized.
+cannot. Which worktrees count as its tickets:
+
+- **When `epic/<slug>` carries a `ticket_plan.yaml`, the plan decides.** A
+  worktree belongs to the epic only if the plan declares it, either by spec id
+  or by the issue number its `feature/<issue>-<slug>` branch starts with,
+  matched through the plan's `github_issue`. A worktree the plan doesn't
+  declare is excluded, whatever its history.
+- **With no plan,** a worktree belongs to the epic if its tip is contained in
+  the epic branch *and is not on the default branch*, or if the slug appears in
+  its branch or directory name.
+
+Shared Git ancestry alone never makes a worktree a ticket (#157). A feature
+worktree cut from `main`, or one whose work reached the epic only because
+`main` was merged into it, is "contained" in the epic without belonging to it.
+An epic's owner or planning worktree (on `epic/<slug>` or on the
+`feature/epic-<slug>` branch that `skt ticket new epic-<slug>` creates) is
+never a ticket of another epic, and `--epic` never sweeps its own epic's owner
+worktree either; remove that separately once the epic is finalized.
 
 `--yes` needs a containment target. With no `--epic`, no `--target` and no
 single discoverable `epic/*` branch, the dry run still lists every worktree
