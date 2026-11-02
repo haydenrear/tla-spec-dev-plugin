@@ -109,7 +109,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import context as ctx_mod
-from .check import _is_ancestor as _git_is_ancestor
 from .publish import _cli, _cli_env
 
 #: Budget for one read (`status`, `rev-list`, a reflog walk). Generous for
@@ -468,10 +467,12 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     the sweep refuses rather than fall back to history. A plan present
     with no entries is a plan declaring nothing, not "no plan".
     """
-    probe = _git("cat-file", "-e", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
-    if probe is None:
-        raise PlanUnreadable(f"git timed out checking for {TICKET_PLAN} on {epic_ref}")
-    if probe.returncode != 0:
+    # `ls-tree` answers "absent" as success with no output; `cat-file -e`
+    # exits 128 alike for an absent path and an unreadable ref or object.
+    listing = _out("ls-tree", "--name-only", epic_ref, "--", TICKET_PLAN, cwd=root)
+    if listing is None:
+        raise PlanUnreadable(f"git could not list {TICKET_PLAN} on {epic_ref}")
+    if not listing:
         return None
     text = _out("show", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
     if text is None:
@@ -495,10 +496,14 @@ def resolve_trunks(root: Path) -> list[str]:
     head = _out("symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", cwd=root)
     names = [head.split("/", 1)[1]] if head and "/" in head else []
     names += [n for n in ("main", "master", "develop", "trunk") if n not in names]
-    return [
-        ref for name in names for ref in (f"origin/{name}", name)
-        if _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root)
-    ]
+    refs: list[str] = []
+    seen: set[str] = set()
+    for ref in (r for name in names for r in (f"origin/{name}", name)):
+        sha = _out("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}", cwd=root)
+        if sha and sha not in seen:  # local and origin/ usually agree: probe once
+            seen.add(sha)
+            refs.append(ref)
+    return refs
 
 
 def epic_bases(root: Path, epic_ref: str, trunks: list[str]) -> list[str] | None:
@@ -567,8 +572,15 @@ def epic_work(root: Path, epic_ref: str, bases: list[str] | None) -> EpicWork | 
 
 
 def _ancestry(root: Path, ancestor: str, descendant: str) -> bool | None:
-    """True/False when git decided, None when it could not — `check`'s probe."""
-    return _git_is_ancestor(root, ancestor, descendant, READ_TIMEOUT_SECONDS)
+    """True/False when git decided, None when it could not (timeout, bad ref).
+
+    Tri-state so membership fails CLOSED, and through this module's own
+    runner like every other read in the sweep.
+    """
+    proc = _git("merge-base", "--is-ancestor", ancestor, descendant, cwd=root)
+    if proc is None:
+        return None
+    return {0: True, 1: False}.get(proc.returncode)
 
 
 # ----------------------------------------------------------------- the status
@@ -1049,9 +1061,10 @@ def _epic_exclusion(
         return f"the planning worktree of epic {wt.owner_of_epic}, not a ticket of epic {slug}"
     if work is None:
         return (
-            f"not part of epic {slug} (no plan on the epic branch, and the default branch "
-            "before the epic cannot be told apart — run `git remote set-head origin --auto`, "
-            "or remove it with `skt ticket close <ticket>`)"
+            f"not part of epic {slug} (no plan on the epic branch, and its work cannot be "
+            "told apart from the default branch's: none of main/master/develop/trunk "
+            "resolved, git did not answer, or the epic was fast-forwarded onto one; "
+            "remove it with `skt ticket close <ticket>`)"
         )
     if work.holds_ticket_tip(wt.head):
         return None

@@ -575,11 +575,10 @@ def test_free_space_is_measured_not_computed_from_du(tmp_path):
 
 
 def test_epic_scoping_limits_the_pass(tmp_path, capsys):
-    """No ticket plan here, so `--epic` falls back to fork-point containment.
+    """No ticket plan here, so `--epic` falls back to the epic's unique work.
 
-    Which means the epic branches have to have actually diverged — the
-    documented weakness of that fallback, and the reason a DISCOVERED
-    slug never narrows anything.
+    T-23 did work and it landed on epic/demo; X-9 is cut from another
+    epic. Asserted per ROW — the dry-run footer also says `would remove`.
     """
     repo = epic_repo(tmp_path)
     root = repo["root"]
@@ -592,14 +591,17 @@ def test_epic_scoping_limits_the_pass(tmp_path, capsys):
         git("commit", "-q", "-m", f"{slug} epic work", cwd=root)
     git("checkout", "-q", "main", cwd=root)
 
-    in_epic = add_worktree(repo, "T-23", base="epic/demo")
+    in_epic = add_worktree(repo, "T-23", base="epic/demo", commit=True, push=True)
+    git("checkout", "-q", "epic/demo", cwd=root)
+    git("merge", "-q", "--no-ff", "-m", "merge T-23", "feature/T-23", cwd=root)
+    git("push", "-q", "origin", "epic/demo", cwd=root)
+    git("checkout", "-q", "main", cwd=root)
     other = root.parent / "wt-other"
     git("worktree", "add", "-q", str(other), "-b", "feature/X-9", "epic/other", cwd=root)
 
-    assert ticket_mod.run("sweep", None, start=root, epic="demo") == 0
-    out = capsys.readouterr().out
-    assert "not part of epic demo" in out
-    assert "would remove" in out and "T-23" in out
+    excluded = _selected(root, capsys)
+    assert excluded["wt-T-23"] is None, excluded
+    assert excluded["wt-other"] and "not part of epic demo" in excluded["wt-other"], excluded
     assert in_epic.is_dir() and other.is_dir()
 
 
@@ -855,7 +857,7 @@ def test_a_plan_git_cannot_read_refuses_the_sweep(tmp_path, capsys, monkeypatch)
     real = sweep_mod._git
     monkeypatch.setattr(
         sweep_mod, "_git",
-        lambda *a, cwd=None: None if a[:2] == ("cat-file", "-e") else real(*a, cwd=cwd),
+        lambda *a, cwd=None: None if a[:1] == ("ls-tree",) else real(*a, cwd=cwd),
     )
     assert ticket_mod.run("sweep", None, start=repo["root"], epic="demo", yes=True) == 1
     out = capsys.readouterr().out

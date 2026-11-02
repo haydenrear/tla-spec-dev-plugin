@@ -158,7 +158,8 @@ def issue_number(ticket: str | None) -> str | None:
     One spelling for both joins to the plan: `skt status` (below) and
     `skt ticket sweep --epic` (#157).
     """
-    match = re.match(r"^(\d+)(?=[-_./]|$)", ticket or "")
+    # Greedy digits, as `skt status` always read them (`369eval` -> 369).
+    match = re.match(r"^(\d+)", ticket or "")
     return match.group(1) if match else None
 
 
@@ -171,14 +172,26 @@ def plan_issue_index(text: str) -> dict[str, str]:
     the one line of `skt status` that answers "am I where I should be"
     (SI-20-DF-06). The two are joined by `github_issue`, which is the only field
     carrying the number, so the mapping is read rather than guessed.
+
+    A `github_issue` counts only INSIDE its `- id:` list item — indented
+    deeper than that item's dash. The same key elsewhere (the epic's own
+    parent issue under `status:`, another list's entries) belongs to no
+    ticket, and `skt ticket sweep --epic` acts on this mapping (#157).
     """
     index: dict[str, str] = {}
     current = None
+    item_indent = -1
     for line in text.splitlines():
-        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
-        if m:
-            current = m.group(1).strip("'\"")
+        if not line.strip() or line.lstrip().startswith("#"):
             continue
+        indent = len(line) - len(line.lstrip())
+        m = re.match(r"^(\s*)-\s*id:\s*(\S+)", line)
+        if m:
+            current = m.group(2).strip("'\"")
+            item_indent = len(m.group(1))
+            continue
+        if current is not None and indent <= item_indent:
+            current = None  # left the item
         m = re.match(r"^\s*github_issue:\s*(\S+)", line)
         if m and current:
             num = m.group(1).strip("'\"").rstrip("/").rsplit("/", 1)[-1].rsplit("#", 1)[-1]

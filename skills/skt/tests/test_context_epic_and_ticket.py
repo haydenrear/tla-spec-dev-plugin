@@ -116,4 +116,17 @@ def test_issue_numbers_are_read_in_both_spellings():
     assert ctx.plan_issue_index(text) == {"1": "A", "2": "B", "3": "C"}
     assert ctx.issue_number("201-alpha") == "201" and ctx.issue_number("201") == "201"
     assert ctx.issue_number("369_eval_ladder") == "369"
-    assert ctx.issue_number("2010x") is None and ctx.issue_number(None) is None
+    assert ctx.issue_number("369eval-ladder") == "369"  # status's old reading
+    assert ctx.issue_number("EP-1") is None and ctx.issue_number(None) is None
+
+
+def test_a_github_issue_outside_a_ticket_item_maps_nothing():
+    text = (
+        "tickets:\n"
+        "  - id: A\n"
+        "    status: open\n"
+        "    github_issue: https://github.com/o/r/issues/1\n"
+        "status:\n"
+        "  github_issue: https://github.com/o/r/issues/157\n"
+    )
+    assert ctx.plan_issue_index(text) == {"1": "A"}
