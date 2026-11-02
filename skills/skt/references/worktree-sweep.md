@@ -32,7 +32,10 @@ cannot. Which worktrees count as its tickets:
 - **When `epic/<slug>` carries a `ticket_plan.yaml`, the plan decides.** A
   worktree belongs to the epic only if the plan declares it: its branch is
   `feature/<spec-id>`, or `feature/<issue>-<slug>` where `<issue>` matches the
-  plan's `github_issue` (a URL, `#N` or `owner/repo#N`). A worktree the plan
+  plan's `github_issue` (a URL, `#N` or `owner/repo#N`). Only entries under the
+  plan's top-level `tickets:` count; `epic_goals:` and other lists don't. Only
+  the number is compared, so a `github_issue` from another repository can match
+  a local branch with the same number. A worktree the plan
   doesn't declare is excluded, whatever its history. Close it with `skt ticket
   close <ticket>`. A plan with no entries declares nothing. If git can't read
   the plan, the sweep refuses and selects nothing; it never falls back to
@@ -40,7 +43,8 @@ cannot. Which worktrees count as its tickets:
 - **With no plan,** a worktree's tip must be the epic's ticket work: reachable
   from the epic branch, on none of the default-branch refs as they stood
   before the epic merged (`origin/HEAD`'s target plus whichever of `main`,
-  `master`, `develop` and `trunk` exist, local and `origin/`), and not one of the epic's own
+  `master`, `develop` and `trunk` exist, as local branches and on every remote,
+  `upstream/` included), and not one of the epic's own
   first-parent commits. That still works after finalize merges the epic with
   `--no-ff`. Nothing else selects a worktree: not a slug in a branch or
   directory name, not descending from the epic tip, and not being cut from the

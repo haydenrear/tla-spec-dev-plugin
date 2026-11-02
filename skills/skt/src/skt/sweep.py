@@ -450,6 +450,20 @@ class DeclaredTickets:
         return ticket in self.ids or ctx_mod.issue_number(ticket) in self.issues
 
 
+def _top_level_section(text: str, key: str) -> str:
+    """The lines of top-level `key:` up to the next top-level key; "" if absent."""
+    out: list[str] = []
+    inside = False
+    for line in text.splitlines():
+        top = re.match(r"^([A-Za-z_][\w-]*):", line)
+        if top:
+            inside = top.group(1) == key
+            continue
+        if inside:
+            out.append(line)
+    return "\n".join(out)
+
+
 class PlanUnreadable(Exception):
     """The epic branch's plan exists, or might, but could not be read."""
 
@@ -477,8 +491,11 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     text = _out("show", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
     if text is None:
         raise PlanUnreadable(f"git could not read {TICKET_PLAN} on {epic_ref}")
-    _, _, all_tickets = ctx_mod.parse_ticket_plan(text)
-    issues = ctx_mod.plan_issue_index(text)
+    # Only the `tickets:` list declares tickets: `epic_goals:` and other
+    # lists also carry `- id:` items, and may carry a `github_issue`.
+    section = _top_level_section(text, "tickets")
+    _, _, all_tickets = ctx_mod.parse_ticket_plan(section)
+    issues = ctx_mod.plan_issue_index(section)
     return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
 
 
@@ -504,6 +521,9 @@ def resolve_trunks(root: Path) -> list[str]:
     seen: set[str] = set()
     for line in (listing or "").splitlines():
         sha, _, ref = line.partition(" ")
+        # for-each-ref matches by prefix: `refs/heads/main` also lists main/x.
+        if not any(ref == n or ref.endswith("/" + n) and ref.count("/") == 1 for n in names):
+            continue
         if sha and ref and sha not in seen:
             seen.add(sha)
             refs.append(ref)
@@ -1074,7 +1094,9 @@ def _epic_exclusion(
         )
     # The live tip — the same commit `inspect` judges — not the listing's HEAD.
     tip = _out("rev-parse", "--verify", "--quiet", f"{wt.rev}^{{commit}}", cwd=root)
-    if tip and work.holds_ticket_tip(tip):
+    if not tip:
+        return f"not part of epic {slug} (git could not resolve its tip {wt.rev})"
+    if work.holds_ticket_tip(tip):
         return None
     return f"not part of epic {slug} (no plan on the epic branch, and no work unique to it)"
 

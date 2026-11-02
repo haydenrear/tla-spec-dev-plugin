@@ -850,6 +850,33 @@ def test_a_plan_with_no_entries_declares_nothing_rather_than_falling_back(tmp_pa
     assert excluded["wt-201-alpha"] and "not declared in" in excluded["wt-201-alpha"]
 
 
+def test_only_the_tickets_section_declares_tickets(tmp_path, capsys):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    _commit_plan(root, (
+        "name: demo\n"
+        "epic_goals:\n"
+        "- id: GOAL-1\n  github_issue: https://github.com/o/r/issues/45\n"
+        "tickets:\n"
+        "  - id: EP-1\n    status: open\n    github_issue: https://github.com/o/r/issues/201\n"
+    ))
+    add_worktree(repo, "45-unrelated", base="main")
+    add_worktree(repo, "GOAL-1", base="main")
+    add_worktree(repo, "201-alpha")
+    excluded = _selected(root, capsys)
+    assert excluded["wt-201-alpha"] is None, excluded
+    assert excluded["wt-45-unrelated"] and excluded["wt-GOAL-1"], excluded
+
+
+def test_a_branch_under_a_default_branch_name_is_not_a_default_branch(tmp_path):
+    repo = epic_repo(tmp_path)
+    root = repo["root"]
+    # No `develop` exists, so `refs/heads/develop` prefix-matches this.
+    git("branch", "develop/demo-tickets", "epic/demo", cwd=root)
+    trunks = sweep_mod.resolve_trunks(root)
+    assert "develop/demo-tickets" not in trunks and trunks, trunks
+
+
 def test_a_plan_git_cannot_read_refuses_the_sweep(tmp_path, capsys, monkeypatch):
     """A failed read is never "no plan": that would fall back to history."""
     repo = epic_repo(tmp_path)
