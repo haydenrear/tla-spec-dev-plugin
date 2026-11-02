@@ -152,6 +152,44 @@ def epic_slug_from_refs(refs_text: str) -> str | None:
     return slugs[0] if len(slugs) == 1 else None
 
 
+_ISSUE_REF_RE = re.compile(
+    r"^(?:https?://[^/]+/(?P<url_repo>[^/]+/[^/]+?)(?:\.git)?/(?:issues|pull)/"
+    r"|(?P<short_repo>[\w.-]+/[\w.-]+)#|#)?(?P<num>\d+)/?$"
+)
+
+
+def issue_number(ticket: str | None) -> str | None:
+    """The issue number a ticket id LEADS with (`201-alpha` -> `201`).
+
+    One spelling for every caller: `skt status` and `skt ticket sweep`
+    both join a branch's ticket to the plan through it.
+    """
+    match = re.match(r"^(\d+)(?:-|$)", ticket or "")
+    return match.group(1) if match else None
+
+
+def plan_issue_refs(text: str) -> list[tuple[str, str | None, str]]:
+    """(spec id, `owner/repo` or None, issue number) per `github_issue`.
+
+    Accepts a full issue/PR URL, `owner/repo#N`, `#N` and a bare `N`; the
+    repository is None when the value does not name one.
+    """
+    refs: list[tuple[str, str | None, str]] = []
+    current = None
+    for line in text.splitlines():
+        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
+        if m:
+            current = m.group(1).strip("'\"")
+            continue
+        m = re.match(r"^\s*github_issue:\s*(\S+)", line)
+        if m and current:
+            ref = _ISSUE_REF_RE.match(m.group(1).strip("'\""))
+            if ref:
+                repo = ref.group("url_repo") or ref.group("short_repo")
+                refs.append((current, repo.lower() if repo else None, ref.group("num")))
+    return refs
+
+
 def plan_issue_index(text: str) -> dict[str, str]:
     """Issue number -> spec ticket id, from a plan's text.
 
@@ -162,19 +200,7 @@ def plan_issue_index(text: str) -> dict[str, str]:
     (SI-20-DF-06). The two are joined by `github_issue`, which is the only field
     carrying the number, so the mapping is read rather than guessed.
     """
-    index: dict[str, str] = {}
-    current = None
-    for line in text.splitlines():
-        m = re.match(r"^\s*-\s*id:\s*(\S+)", line)
-        if m:
-            current = m.group(1).strip("'\"")
-            continue
-        m = re.match(r"^\s*github_issue:\s*(\S+)", line)
-        if m and current:
-            num = m.group(1).strip("'\"").rstrip("/").rsplit("/", 1)[-1]
-            if num.isdigit():
-                index[num] = current
-    return index
+    return {num: spec_id for spec_id, _, num in plan_issue_refs(text)}
 
 
 def parse_ticket_plan(text: str) -> tuple[str | None, list[str], list[str]]:
@@ -246,11 +272,11 @@ def gather(start: str | Path, home: Path) -> TicketContext:
         # join them through `github_issue` (SI-20-DF-06).
         ticket_in_plan = ticket in all_tickets
         if not ticket_in_plan:
-            lead = re.match(r"^(\d+)", ticket)
+            lead = issue_number(ticket)
             if lead is not None:
                 plan = root / "specs" / "desired_program_model" / "ticket_plan.yaml"
                 try:
-                    mapped = plan_issue_index(plan.read_text()).get(lead.group(1))
+                    mapped = plan_issue_index(plan.read_text()).get(lead)
                 except OSError:
                     mapped = None
                 if mapped is not None:

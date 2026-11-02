@@ -103,3 +103,20 @@ def test_an_unmeasured_artifact_surface_is_not_reported_as_all_current():
     assert 'art_state in ("timeout", "error")' in src, (
         "the unmeasured states this guards are no longer named"
     )
+
+
+def test_issue_refs_read_every_spelling_and_keep_the_repository():
+    """#157: the sweep refuses an issue number from ANOTHER repository."""
+    text = (
+        "tickets:\n"
+        "  - id: A\n    github_issue: https://github.com/Owner/Repo/issues/1\n"
+        "  - id: B\n    github_issue: \"#2\"\n"
+        "  - id: C\n    github_issue: owner/other#3\n"
+        "  - id: D\n    github_issue: 4\n"
+        "  - id: E\n    github_issue: not-an-issue\n"
+    )
+    assert ctx.plan_issue_refs(text) == [
+        ("A", "owner/repo", "1"), ("B", None, "2"), ("C", "owner/other", "3"), ("D", None, "4"),
+    ]
+    assert ctx.issue_number("201-alpha") == "201" and ctx.issue_number("201") == "201"
+    assert ctx.issue_number("2010x") is None and ctx.issue_number(None) is None

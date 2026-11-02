@@ -35,8 +35,14 @@ cannot. Which worktrees count as its tickets:
   matched through the plan's `github_issue`. A worktree the plan doesn't
   declare is excluded, whatever its history.
 - **With no plan,** a worktree belongs to the epic if its tip is contained in
-  the epic branch *and is not on the default branch*, or if the slug appears in
-  its branch or directory name.
+  the epic branch *and was not already on the default branch before the epic
+  merged into it*, or if the slug appears in its branch or directory name. This
+  still works after finalize merges the epic with `--no-ff`. If the default
+  branch can't be resolved, or the epic was fast-forwarded onto it, only the
+  name match applies, and anything else is left standing: run `git remote
+  set-head origin --auto`, or remove it with `skt ticket close <ticket>`.
+- A `github_issue` that points at a different repository from `origin` declares
+  nothing here, because issue numbers change when a project moves.
 
 Shared Git ancestry alone never makes a worktree a ticket (#157). A feature
 worktree cut from `main`, or one whose work reached the epic only because
