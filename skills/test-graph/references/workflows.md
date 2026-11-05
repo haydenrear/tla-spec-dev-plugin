@@ -116,6 +116,20 @@ For all registered graphs:
 <skill>/scripts/run.py --all
 ```
 
+A sweep (`--all`, several graphs, or `--continue`) ends with one status per
+graph, counted from that invocation only and written to
+`build/validation-sweeps/<id>/sweep.json`. `FAILED` and `ERRORED` need opposite
+responses, so read the status before reading code:
+
+| Status | Means | Do | Sweep exit |
+| --- | --- | --- | --- |
+| `FAILED` | a node completed and an assertion was red (the graph's own `summary.json` says `failed`) | investigate the code | 1 |
+| `ERRORED` | the run did not complete: the Gradle process or daemon died mid-task, or a node never reported a verdict | retry, or fix the environment | 3 (when nothing failed) |
+| `NOT RUN` | Gradle never started it (stopped earlier, or never scheduled) | see the reason column | 1 |
+
+`sweep.py --retry-failed-from` resumes a `FAILED` graph from its first failing
+node and restarts an `ERRORED` one.
+
 ## Add Nodes
 
 Run node generators from the user repo root or anywhere inside the scaffold.
