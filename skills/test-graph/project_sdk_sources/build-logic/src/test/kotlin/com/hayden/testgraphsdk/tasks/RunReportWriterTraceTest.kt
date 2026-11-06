@@ -1872,6 +1872,109 @@ class RunReportWriterTraceTest {
         assertContains(runDir.resolve("report.md").readText(), "**Overall**: ERRORED")
     }
 
+    @Test
+    fun verifiedFullResumeResumeRetainsFullPlanAndActualPrefix() {
+        val root = Files.createTempDirectory("test-graph-chain").toFile()
+        val full = root.resolve("full").apply { mkdirs() }
+        val nodes = listOf("one", "two", "three")
+        RunReportWriter.persistExecutionScope(full, graphName, nodes)
+        writePassingEnvelopes(full, nodes)
+        closeAttempt(full, nodes)
+        val first = root.resolve("first").apply { mkdirs() }
+        val replay = replayMetadata(RunReportWriter.ReplayMode.RESUME_FROM_NODE, "two", full)
+        val trace = "0123456789abcdef0123456789abcdef"
+        writeTraceCarrier(first, trace)
+        RunReportWriter.persistExecutionScope(first, graphName, nodes.drop(1), replay)
+        writeInputContextSnapshot(listOf(ContextItem("one", emptyMap())), first, "two")
+        writePublishedEnvelope(first, "two", mapOf("actual" to "new"))
+        val prefix = listOf(ContextItem("one", emptyMap()), ContextItem("two", mapOf("actual" to "new")))
+        writeInputContextSnapshot(prefix, first, "three")
+        writePublishedEnvelope(first, "three", emptyMap(), status = "failed")
+        RunReportWriter.persistAttemptClosure(first, graphName, nodes.drop(1), trace, replay)
+        val captured = RunReportWriter.requireReplaySource(first, graphName, "three")
+        assertEquals(nodes, captured.sourceExpectedNodeIds)
+        assertEquals(prefix, captured.selectedContext)
+        val second = root.resolve("second").apply { mkdirs() }
+        val next = replayMetadata(RunReportWriter.ReplayMode.RESUME_FROM_NODE, "three", first)
+        writeTraceCarrier(second, trace)
+        RunReportWriter.persistExecutionScope(second, graphName, listOf("three"), next)
+        writeInputContextSnapshot(prefix, second, "three")
+        writePublishedEnvelope(second, "three", emptyMap())
+        RunReportWriter.persistAttemptClosure(second, graphName, listOf("three"), trace, next)
+        assertEquals(nodes, RunReportWriter.requireReplaySource(second, graphName, "three").sourceExpectedNodeIds)
+    }
+
+    private fun closedResumeFixture(): Pair<java.io.File, java.io.File> {
+        val root = Files.createTempDirectory("test-graph-chain-negative").toFile()
+        val full = root.resolve("full").apply { mkdirs() }
+        val nodes = listOf("one", "two", "three")
+        RunReportWriter.persistExecutionScope(full, graphName, nodes)
+        writePassingEnvelopes(full, nodes)
+        closeAttempt(full, nodes)
+        val resumed = root.resolve("resumed").apply { mkdirs() }
+        val replay = replayMetadata(RunReportWriter.ReplayMode.RESUME_FROM_NODE, "two", full)
+        val trace = "0123456789abcdef0123456789abcdef"
+        writeTraceCarrier(resumed, trace)
+        RunReportWriter.persistExecutionScope(resumed, graphName, nodes.drop(1), replay)
+        writeInputContextSnapshot(listOf(ContextItem("one", emptyMap())), resumed, "two")
+        writePublishedEnvelope(resumed, "two", mapOf("value" to "actual"))
+        writeInputContextSnapshot(listOf(ContextItem("one", emptyMap()), ContextItem("two", mapOf("value" to "actual"))), resumed, "three")
+        writePublishedEnvelope(resumed, "three", emptyMap(), status = "failed")
+        RunReportWriter.persistAttemptClosure(resumed, graphName, nodes.drop(1), trace, replay)
+        return full to resumed
+    }
+
+    @Test
+    fun chainedResumeRefusesMissingOrMutatedParentAndInheritedInput() {
+        for (mutation in listOf("missing", "closure", "context", "inherited")) {
+            val (full, resumed) = closedResumeFixture()
+            when (mutation) {
+                "missing" -> full.resolve("attempt-closure.json").delete()
+                "closure" -> full.resolve("attempt-closure.json").appendText(" ")
+                "context" -> full.resolve("context/two.input.json").appendText(" ")
+                "inherited" -> resumed.resolve("context/two.input.json").appendText(" ")
+            }
+            assertFailsWith<IllegalArgumentException>(mutation) {
+                RunReportWriter.requireReplaySource(resumed, graphName, "three")
+            }
+        }
+    }
+
+    @Test
+    fun chainedResumeRefusesResealedScopeDriftAndCycle() {
+        for (mutation in listOf("scope", "cycle")) {
+            val (full, resumed) = closedResumeFixture()
+            val scope = resumed.resolve("execution-scope.json")
+            val old = scope.readText()
+            val changed = if (mutation == "scope") old.replace("\"two\",\"three\"", "\"two\",\"foreign\",\"three\"")
+                else old.replace(full.canonicalPath, resumed.canonicalPath)
+            assertTrue(old != changed)
+            scope.writeText(changed)
+            val closure = resumed.resolve("attempt-closure.json")
+            fun digest(body: String) = java.security.MessageDigest.getInstance("SHA-256").digest(body.toByteArray()).joinToString("") { "%02x".format(it) }
+            closure.writeText(closure.readText().replace(old.trim(), changed.trim()).replace(digest(old), digest(changed)))
+            val error = assertFailsWith<IllegalArgumentException>(mutation) {
+                RunReportWriter.requireReplaySource(resumed, graphName, "three")
+            }
+            assertContains(error.message.orEmpty(), if (mutation == "scope") "exact full-plan suffix" else "distinct from the target")
+        }
+    }
+
+    @Test
+    fun replayRefusesFailedOrSkippedInheritedPrefix() {
+        val full = Files.createTempDirectory("test-graph-failed-prefix").toFile()
+        writeInputContextSnapshot(emptyList(), full, "one")
+        writePublishedEnvelope(full, "one", emptyMap(), status = "failed")
+        writeInputContextSnapshot(listOf(ContextItem("one", emptyMap())), full, "two")
+        writePublishedEnvelope(full, "two", emptyMap(), status = "skipped")
+        RunReportWriter.persistExecutionScope(full, graphName, listOf("one", "two"))
+        closeAttempt(full, listOf("one", "two"))
+        val error = assertFailsWith<IllegalArgumentException> {
+            RunReportWriter.requireReplaySource(full, graphName, "two")
+        }
+        assertContains(error.message.orEmpty(), "failed or skipped prefix")
+    }
+
     private fun writePublishedEnvelope(
         runDir: java.io.File,
         nodeId: String,
