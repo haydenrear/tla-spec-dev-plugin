@@ -87,6 +87,7 @@ internal object RunReportWriter {
         val envelopeSha256: Map<String, String>,
         val selectedContextJson: String? = null,
         val selectedContext: List<ContextItem>? = null,
+        val firstContextJson: String? = null,
     )
 
     data class Outcome(
@@ -665,7 +666,21 @@ internal object RunReportWriter {
         sourceDir: File,
         graphName: String,
         selectedNodeId: String,
+    ): ReplaySourceSnapshot = requireReplaySource(
+        sourceDir, graphName, selectedNodeId, linkedSetOf(),
+        AggregateJsonStructureBudget(MAX_AGGREGATE_JSON_STRUCTURAL_TOKENS),
+    )
+
+    private fun requireReplaySource(
+        sourceDir: File,
+        graphName: String,
+        selectedNodeId: String,
+        ancestry: MutableSet<File>,
+        aggregateBudget: AggregateJsonStructureBudget,
     ): ReplaySourceSnapshot {
+        require(ancestry.size < 32) { "replay ancestry exceeds 32 closed attempts" }
+        requireRegularDirectory(sourceDir, "replay source")
+        require(ancestry.add(sourceDir.canonicalFile)) { "replay ancestry contains a cycle" }
         require(isValidNodeId(selectedNodeId)) {
             "replay selected node id must match [a-z0-9._-]{1,128}"
         }
@@ -684,8 +699,8 @@ internal object RunReportWriter {
         require(sourceScope.graphName == graphName) {
             "replay source graph '${sourceScope.graphName}' does not match requested graph '$graphName'"
         }
-        require(sourceScope.replay == null) {
-            "replay source must be a full graph attempt, not another replay attempt"
+        require(sourceScope.replay?.mode != ReplayMode.RUN_ONLY_NODE) {
+            "replay source must be a full graph attempt or verified graph resume, not run-only"
         }
         require(selectedNodeId in sourceScope.expectedNodeIds) {
             "replay source scope does not contain selected node '$selectedNodeId'"
@@ -716,16 +731,39 @@ internal object RunReportWriter {
         require(closure.traceId == capturedTraceId) {
             "replay source attempt closure does not match its trace carrier"
         }
+        // A suffix is usable only when its complete inherited prefix is itself
+        // rooted in a verified full attempt. Never promote a resume to full scope.
+        val parent = sourceScope.replay?.let { replay ->
+            require(replay.sourceBuild.canonicalFile.parentFile == sourceDir.canonicalFile.parentFile) {
+                "replay ancestry must stay in the same report root"
+            }
+            val verified = requireReplaySource(
+                replay.sourceBuild, graphName, replay.selectedNodeId, ancestry, aggregateBudget,
+            )
+            require(verified.traceId == capturedTraceId && verified.carrierJson == capturedCarrier.text) {
+                "replay ancestry trace carrier differs from its verified parent"
+            }
+            require(verified.closureSha256 == replay.sourceClosureSha256 &&
+                    verified.selectedContextSha256 == replay.sourceContextSha256) {
+                "replay ancestry closure/context pins do not match the verified parent"
+            }
+            val start = verified.sourceExpectedNodeIds.indexOf(replay.selectedNodeId)
+            require(start >= 0 && sourceScope.expectedNodeIds == verified.sourceExpectedNodeIds.drop(start)) {
+                "replay source scope is not the exact full-plan suffix"
+            }
+            verified
+        }
         val evidence = captureAndValidateClosedEvidence(
             runDir = sourceDir,
             scope = sourceScope,
             traceId = capturedTraceId,
             selectedNodeId = selectedNodeId,
             finalizerNodeIds = closure.finalizerNodeIds.toSet(),
-            aggregateBudget = AggregateJsonStructureBudget(
-                MAX_AGGREGATE_JSON_STRUCTURAL_TOKENS
-            ),
+            aggregateBudget = aggregateBudget,
         )
+        require(parent == null || evidence.firstContextJson == parent.selectedContextJson) {
+            "replay inherited prefix differs from its verified parent input"
+        }
         require(evidence.contextSha256 == closure.contextSha256) {
             "replay source context file set or digest does not match its attempt closure"
         }
@@ -741,7 +779,7 @@ internal object RunReportWriter {
             sourceBuild = sourceDir.canonicalFile,
             graphName = graphName,
             selectedNodeId = selectedNodeId,
-            sourceExpectedNodeIds = sourceScope.expectedNodeIds,
+            sourceExpectedNodeIds = parent?.sourceExpectedNodeIds ?: sourceScope.expectedNodeIds,
             traceId = capturedTraceId,
             carrierJson = capturedCarrier.text,
             carrier = carrier,
@@ -801,6 +839,7 @@ internal object RunReportWriter {
         val expectedContext = mutableListOf<ContextItem>()
         var selectedContextJson: String? = null
         var selectedContext: List<ContextItem>? = null
+        var firstContextJson: String? = null
         var aggregateContextBytes = 0L
         var aggregateEnvelopeBytes = 0L
         var observedNonPassingEnvelope = false
@@ -823,6 +862,7 @@ internal object RunReportWriter {
                 aggregateBudget,
             )
             val actualContext = ContextSerde.fromParsed(contextRoot)
+            if (index == 0) firstContextJson = capturedContext.text
             if (index == 0 && scope.replay != null) {
                 require(capturedContext.sha256 == scope.replay.sourceContextSha256) {
                     "replay attempt's first context does not match its bound source context digest"
@@ -834,6 +874,9 @@ internal object RunReportWriter {
             }
             contextDigests[contextRelative] = capturedContext.sha256
             if (nodeId == selectedNodeId) {
+                require(!observedNonPassingEnvelope) {
+                    "replay selected input contains a failed or skipped prefix node"
+                }
                 selectedContextJson = capturedContext.text
                 selectedContext = actualContext.toList()
             }
@@ -890,6 +933,7 @@ internal object RunReportWriter {
             envelopeSha256 = LinkedHashMap(envelopeDigests),
             selectedContextJson = selectedContextJson,
             selectedContext = selectedContext,
+            firstContextJson = firstContextJson,
         )
     }
 
