@@ -17,38 +17,77 @@ import java.io.File
  */
 internal object NodeDescribeLoader {
 
-    /** Describe one script file using the given resolved tool paths. */
+    /**
+     * Describe one script file using the given resolved tool paths.
+     *
+     * A describe that exits non-zero, times out, breaks the process contract or
+     * writes no output is retried up to [DESCRIBE_ATTEMPTS] times with an
+     * exponential backoff: a flaky interpreter start is an environment problem,
+     * not a red node (#195, REG-010). When every attempt fails the loader throws
+     * [NodeDescribeErroredException] — the `errored` outcome (#175: the run did
+     * not complete) — never a node `failed` verdict. Malformed describe JSON is
+     * deterministic and is not retried.
+     */
     fun describe(file: File, projectDir: File, tools: ToolPaths): ValidationNodeSpec {
         require(file.isFile) { "node script not found: ${file.path}" }
         val runtime = runtimeFor(file, projectDir)
-        val out = File.createTempFile("validation-describe-", ".json").apply { deleteOnExit() }
-        val argv = invocationFor(runtime, file, tools) + "--describe-out=${out.absolutePath}"
+        val argv = invocationFor(runtime, file, tools)
+        val failures = mutableListOf<String>()
+        for (attempt in 1..DESCRIBE_ATTEMPTS) {
+            when (val result = describeOnce(file, projectDir, argv)) {
+                is AttemptResult.Described -> return parseSpec(result.json, runtime, projectDir)
+                is AttemptResult.Failed -> failures += "attempt $attempt: ${result.reason}"
+            }
+            if (attempt < DESCRIBE_ATTEMPTS) {
+                Thread.sleep(DESCRIBE_BACKOFF_MILLIS shl (attempt - 1))
+            }
+        }
+        throw NodeDescribeErroredException(
+            "errored: describe for ${file.name} failed on all $DESCRIBE_ATTEMPTS attempts; " +
+                "the run did not complete, which is not a node failure " +
+                "(retry it or fix the environment). " +
+                failures.joinToString("; ") +
+                ". Run directly to debug: ${(argv + "--describe-out=<tmp>").joinToString(" ")}"
+        )
+    }
 
-        val managedCommand = PosixProcessGroupController.wrap(argv)
-        val process = ProcessBuilder(managedCommand.arguments)
-            .directory(projectDir)
-            .redirectErrorStream(true)
-            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-            .start()
-        val outcome = awaitWithTimeout(process, DESCRIBE_TIMEOUT_MILLIS, managedCommand)
-        val code = when (outcome) {
-            is ExecutionOutcome.Completed -> outcome.exitCode
-            is ExecutionOutcome.ProcessContractViolation -> error(
-                "describe process contract failed for ${file.name}: ${outcome.reason}"
-            )
-            ExecutionOutcome.TimedOut -> error(
-                "describe timed out for ${file.name} after ${DESCRIBE_TIMEOUT_MILLIS}ms"
-            )
+    private sealed interface AttemptResult {
+        data class Described(val json: String) : AttemptResult
+        data class Failed(val reason: String) : AttemptResult
+    }
+
+    private fun describeOnce(file: File, projectDir: File, baseArgv: List<String>): AttemptResult {
+        val out = File.createTempFile("validation-describe-", ".json").apply { deleteOnExit() }
+        try {
+            val argv = baseArgv + "--describe-out=${out.absolutePath}"
+            val managedCommand = PosixProcessGroupController.wrap(argv)
+            val process = try {
+                ProcessBuilder(managedCommand.arguments)
+                    .directory(projectDir)
+                    .redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .start()
+            } catch (e: java.io.IOException) {
+                return AttemptResult.Failed("could not start describe process: ${e.message}")
+            }
+            val outcome = awaitWithTimeout(process, DESCRIBE_TIMEOUT_MILLIS, managedCommand)
+            val code = when (outcome) {
+                is ExecutionOutcome.Completed -> outcome.exitCode
+                is ExecutionOutcome.ProcessContractViolation ->
+                    return AttemptResult.Failed("process contract failed: ${outcome.reason}")
+                ExecutionOutcome.TimedOut ->
+                    return AttemptResult.Failed("timed out after ${DESCRIBE_TIMEOUT_MILLIS}ms")
+            }
+            if (code != 0) return AttemptResult.Failed("exit=$code")
+            if (!out.isFile || out.length() == 0L) {
+                return AttemptResult.Failed(
+                    "no describe output (did the script call Node.run(args, spec, body)?)"
+                )
+            }
+            return AttemptResult.Described(out.readText())
+        } finally {
+            out.delete()
         }
-        if (code != 0) {
-            error("describe failed for ${file.name} (exit=$code). " +
-                    "Run directly to debug: ${argv.joinToString(" ")}")
-        }
-        if (!out.isFile || out.length() == 0L) {
-            error("describe produced no output for ${file.name}. " +
-                    "Did the script call Node.run(args, spec, body)?")
-        }
-        return parseSpec(out.readText(), runtime, projectDir)
     }
 
     /**
@@ -120,4 +159,16 @@ internal object NodeDescribeLoader {
     }
 
     private const val DESCRIBE_TIMEOUT_MILLIS = 2 * 60 * 1000L
+    private const val DESCRIBE_ATTEMPTS = 3
+    private const val DESCRIBE_BACKOFF_MILLIS = 250L
+}
+
+/**
+ * A describe that failed on every bounded retry. Its outcome is `errored` (the
+ * run did not complete: environment, interpreter start, timeout), distinct from
+ * a node that ran and went red (`failed`). Subclasses [IllegalStateException]
+ * so callers that caught the old `error(...)` keep working.
+ */
+class NodeDescribeErroredException(message: String) : IllegalStateException(message) {
+    val outcome: String get() = "errored"
 }
