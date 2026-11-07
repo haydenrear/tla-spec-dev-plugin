@@ -6,10 +6,6 @@
   },
   "provider_candidates": [
     {
-      "kind": "workspace-relative",
-      "path": "../skills/test-graph"
-    },
-    {
       "kind": "skill-root"
     }
   ],
