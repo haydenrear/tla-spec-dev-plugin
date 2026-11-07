@@ -32,6 +32,16 @@ flatten:
     is still stale afterwards. The report is printed either way, because
     it is the description of what happened.
 
+  4 `unresolved-ancestor` (BS-20, #202) — every attempted artifact was
+    produced (built or no-op, nothing failed) and is still stale ONLY
+    because a stale ancestor `build` has no producer for sits above it,
+    e.g. a unit store whose bytes moved under its install record. The CLI
+    says 1 for that, and a second unchanged build says 1 again forever.
+    The stale verdict is kept and printed; the run names the root
+    ancestor and the command that repairs it. `skt.artifacts` decides it
+    from the stale survey's `because` chain and falls back to 1 whenever
+    the evidence is anything less than complete.
+
 `freshness_after` is a re-derivation from disk, not an inference from an
 exit code, and it can legitimately read `unverifiable` after a successful
 rebuild for a backend that records no install fingerprint (#120). This
@@ -114,6 +124,26 @@ def render_text(result: artifacts_mod.BuildResult) -> str:
         lines.append(f"{result.failed} rebuild(s) failed")
     if not result.dry_run and result.still_stale:
         lines.append(f"{result.still_stale} of the selected artifact(s) are still stale")
+    if result.unresolved_ancestors:
+        lines.append("")
+        lines.append(
+            f"status: {artifacts_mod.STATUS_UNRESOLVED_ANCESTOR} (exit {result.exit_code}; "
+            f"the CLI said {result.cli_exit_code}) — every attempted artifact was produced, "
+            "and is still stale only because of an ancestor `skt build` cannot produce:"
+        )
+        remedies: dict[str, str] = {}
+        for blocked in result.unresolved_ancestors:
+            lines.append(f"  {blocked.id}  <-  {', '.join(blocked.roots)}")
+            for root, remedy in zip(blocked.roots, blocked.remedies):
+                remedies.setdefault(root, remedy)
+        lines.append("repair the ancestor, then build again:")
+        for root, remedy in remedies.items():
+            lines.append(f"  {root}")
+            lines.append(f"      {remedy}")
+        lines.append(
+            "  (a unit `sync` re-resolves the whole unit and may rerun its other CLI "
+            "installers; rebuilding these artifacts again will not change this verdict)"
+        )
     return "\n".join(lines)
 
 
@@ -148,7 +178,13 @@ def run(
             {
                 "home": result.home,
                 "dry_run": result.dry_run,
+                "status": result.status,
                 "exit_code": result.exit_code,
+                "cli_exit_code": result.cli_exit_code,
+                "unresolved_ancestors": [
+                    {"id": u.id, "roots": list(u.roots), "remedies": list(u.remedies)}
+                    for u in result.unresolved_ancestors
+                ],
                 "summary": {
                     "selected": result.selected,
                     "rebuilt": result.rebuilt,

@@ -1,0 +1,894 @@
+{"runId":"20261107-175426","status":"passed","traceId":"5869eed31889cce6726d024d0a1b7090","execution":{"mode":"full","graphName":"sktHooks","complete":true,"expectedNodeIds":["skt.wrapper-installed","skt.check-cached-costs-one-read","skt.hook-contract"],"observedNodeIds":["skt.check-cached-costs-one-read","skt.hook-contract","skt.wrapper-installed"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["skt.wrapper-installed","skt.check-cached-costs-one-read","skt.hook-contract"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
+  "nodeId": "skt.check-cached-costs-one-read",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:54:55.595381Z",
+  "endedAt": "2026-11-07T17:54:55.880787Z",
+  "assertions": [
+    {
+      "name": "3.11: probe exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: probe ran on the pinned interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: control \u2014 the audit hook records a real spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: control \u2014 the LIVE check path does spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: exits 1",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: reports cache_state expired",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: expired keeps stale content out of `notifications`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: expired preserves the stale content under `stale`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: expired text labels every stale line [stale]",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: fresh notifications are the only state that exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a home that does not exist is an error, not a fresh cache",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: probe exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: probe ran on the pinned interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: control \u2014 the audit hook records a real spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: control \u2014 the LIVE check path does spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: exits 1",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: reports cache_state expired",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: expired keeps stale content out of `notifications`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: expired preserves the stale content under `stale`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: expired text labels every stale line [stale]",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: fresh notifications are the only state that exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a home that does not exist is an error, not a fresh cache",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "cached-probe-3.11-log",
+      "path": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.11.log"
+    },
+    {
+      "type": "cached-probe-3.11-result",
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-check-cached/probe-3.11.json"
+    },
+    {
+      "type": "cached-probe-3.13-log",
+      "path": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.13.log"
+    },
+    {
+      "type": "cached-probe-3.13-result",
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-check-cached/probe-3.13.json"
+    }
+  ],
+  "processes": [
+    {
+      "label": "cached-probe-3.11",
+      "command": [
+        "/Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/support/cached_no_spawn_probe.py",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/skills/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-check-cached/3.11",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-check-cached/probe-3.11.json"
+      ],
+      "exitCode": 0,
+      "pid": 70826,
+      "log": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:55.596536Z",
+      "endedAt": "2026-11-07T17:54:55.754786Z"
+    },
+    {
+      "label": "cached-probe-3.13",
+      "command": [
+        "/Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-42b652096b0dfb8a/bin/python",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/support/cached_no_spawn_probe.py",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/skills/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-check-cached/3.13",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-check-cached/probe-3.13.json"
+      ],
+      "exitCode": 0,
+      "pid": 70834,
+      "log": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:55.756723Z",
+      "endedAt": "2026-11-07T17:54:55.879977Z"
+    }
+  ],
+  "metrics": {
+    "cacheStates": 7,
+    "durationMs": 285
+  },
+  "logs": [
+    "3.11: probe python 3.11.6 at /Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
+    "3.13: probe python 3.13.14 at /Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-42b652096b0dfb8a/bin/python"
+  ],
+  "published": {
+    "cacheStates": "corrupt,expired,expired-text,fresh-notify,fresh-quiet,missing,no-home"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:54.480488Z","executorEndedAt":"2026-11-07T17:55:00.898350Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.check-cached-costs-one-read.stdout.log","inputContextFile":"context/skt.check-cached-costs-one-read.input.json","traceId":"5869eed31889cce6726d024d0a1b7090"},{
+  "nodeId": "skt.hook-contract",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:55:02.109146Z",
+  "endedAt": "2026-11-07T17:55:09.262468Z",
+  "assertions": [
+    {
+      "name": "3.11: SessionStart exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: SessionStart puts the status report on stdout",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: one invocation appends one line",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the line carries the session id and the outcome",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a second invocation appends a second line, not a replacement",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the system PATH really has no skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: an unresolvable skt still exits zero and says why",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 1/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 2/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 3/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 4/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 5/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: five tool calls over one check result inject exactly once",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the injection is a PostToolUse additionalContext block",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: and appends exactly one post-tool line",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a new check result injects again",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a second session gets its own injection",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: an expired cache injects nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a cold home injects nothing and writes no cache",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: SessionStart exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: SessionStart puts the status report on stdout",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: one invocation appends one line",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the line carries the session id and the outcome",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a second invocation appends a second line, not a replacement",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the system PATH really has no skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: an unresolvable skt still exits zero and says why",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 1/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 2/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 3/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 4/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 5/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: five tool calls over one check result inject exactly once",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the injection is a PostToolUse additionalContext block",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: and appends exactly one post-tool line",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a new check result injects again",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a second session gets its own injection",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: an expired cache injects nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a cold home injects nothing and writes no cache",
+      "status": "passed"
+    },
+    {
+      "name": "hooks.json is valid JSON with both hook events",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [],
+  "processes": [],
+  "metrics": {
+    "hookInvocations": 24,
+    "durationMs": 7153
+  },
+  "logs": [],
+  "published": {
+    "hookInvocations": "24"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:55:00.961327Z","executorEndedAt":"2026-11-07T17:55:14.274208Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.hook-contract.stdout.log","inputContextFile":"context/skt.hook-contract.input.json","traceId":"5869eed31889cce6726d024d0a1b7090"},{
+  "nodeId": "skt.wrapper-installed",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:54:28.559615Z",
+  "endedAt": "2026-11-07T17:54:49.409448Z",
+  "assertions": [
+    {
+      "name": "install script is executable",
+      "status": "passed"
+    },
+    {
+      "name": "pyproject declares an interpreter floor",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: installer exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper written at $SKILL_MANAGER_BIN_DIR/skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper is executable",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper execs an absolute interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper resolves its unit from the home it lives in",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper names the unit path home-RELATIVE, not absolute",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: skt --help exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `status`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `check`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `sync`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `ticket`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `publish`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --version reports the packaged version 0.8.2",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the minimal PATH really has no python",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper answers with no python on PATH",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: installer exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper written at $SKILL_MANAGER_BIN_DIR/skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper is executable",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper execs an absolute interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper resolves its unit from the home it lives in",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper names the unit path home-RELATIVE, not absolute",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: skt --help exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `status`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `check`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `sync`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `ticket`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `publish`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --version reports the packaged version 0.8.2",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the minimal PATH really has no python",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper answers with no python on PATH",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "install-3.11-log",
+      "path": "node-logs/skt.wrapper-installed.install-skt-3.11.log"
+    },
+    {
+      "type": "install-3.13-log",
+      "path": "node-logs/skt.wrapper-installed.install-skt-3.13.log"
+    }
+  ],
+  "processes": [
+    {
+      "label": "install-skt-3.11",
+      "command": [
+        "bash",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/skill-scripts/install-skt.sh"
+      ],
+      "exitCode": 0,
+      "pid": 68832,
+      "log": "node-logs/skt.wrapper-installed.install-skt-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:39.591530Z",
+      "endedAt": "2026-11-07T17:54:40.962750Z"
+    },
+    {
+      "label": "skt-help-3.11",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 69132,
+      "log": "node-logs/skt.wrapper-installed.skt-help-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:40.963475Z",
+      "endedAt": "2026-11-07T17:54:41.031529Z"
+    },
+    {
+      "label": "skt-version-3.11",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 69156,
+      "log": "node-logs/skt.wrapper-installed.skt-version-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:41.032261Z",
+      "endedAt": "2026-11-07T17:54:41.094206Z"
+    },
+    {
+      "label": "skt-minimal-path-3.11",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 69182,
+      "log": "node-logs/skt.wrapper-installed.skt-minimal-path-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:41.095288Z",
+      "endedAt": "2026-11-07T17:54:41.167196Z"
+    },
+    {
+      "label": "install-skt-3.13",
+      "command": [
+        "bash",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/skill-scripts/install-skt.sh"
+      ],
+      "exitCode": 0,
+      "pid": 69950,
+      "log": "node-logs/skt.wrapper-installed.install-skt-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:47.897522Z",
+      "endedAt": "2026-11-07T17:54:49.152684Z"
+    },
+    {
+      "label": "skt-help-3.13",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 70182,
+      "log": "node-logs/skt.wrapper-installed.skt-help-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:49.153414Z",
+      "endedAt": "2026-11-07T17:54:49.234473Z"
+    },
+    {
+      "label": "skt-version-3.13",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 70194,
+      "log": "node-logs/skt.wrapper-installed.skt-version-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:49.235608Z",
+      "endedAt": "2026-11-07T17:54:49.351916Z"
+    },
+    {
+      "label": "skt-minimal-path-3.13",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 70207,
+      "log": "node-logs/skt.wrapper-installed.skt-minimal-path-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:54:49.353869Z",
+      "endedAt": "2026-11-07T17:54:49.409221Z"
+    }
+  ],
+  "metrics": {
+    "interpreters": 2,
+    "durationMs": 20849
+  },
+  "logs": [
+    "declared requires-python: '>=3.11'",
+    "python 3.11 -> /Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
+    "python 3.13 -> /Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-42b652096b0dfb8a/bin/python"
+  ],
+  "published": {
+    "wrappers": "{\"3.11\": \"/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.11/bin/cli/skt\", \"3.13\": \"/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/3.13/bin/cli/skt\"}",
+    "interpreters": "{\"3.11\": \"/Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11\", \"3.13\": \"/Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-42b652096b0dfb8a/bin/python\"}",
+    "versions": "3.11,3.13",
+    "probeHome": "/Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175426/fixtures/skt-wrapper/probe-home"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:27.303080Z","executorEndedAt":"2026-11-07T17:54:54.424378Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.wrapper-installed.stdout.log","inputContextFile":"context/skt.wrapper-installed.input.json","traceId":"5869eed31889cce6726d024d0a1b7090"}]}

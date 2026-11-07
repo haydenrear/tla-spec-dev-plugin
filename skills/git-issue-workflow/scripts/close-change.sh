@@ -132,8 +132,13 @@ cd "$ROOT"
 case "$TARGET" in
   */*|.|..) WT="$TARGET" ;;
   *)        WT="$(ticket_worktree_path "$ROOT" "$TARGET")"
+            # GIT FIRST (#183): the repo's own worktree list, by branch
+            # feature/<TICKET>, finds a worktree wherever it was created —
+            # `--path /Volumes/dev/wt-T` included. The directory search
+            # below remains for a caller standing in some other repo.
             if [ ! -d "$WT" ]; then
-              FOUND="$(ticket_worktree_candidates "$(worktree_parent_dir "$ROOT")" "$TARGET")"
+              FOUND="$(ticket_worktree_from_git "$ROOT" "$TARGET")"
+              [ -n "$FOUND" ] || FOUND="$(ticket_worktree_candidates "$(worktree_parent_dir "$ROOT")" "$TARGET")"
               N_FOUND="$(printf '%s\n' "$FOUND" | command grep -c . || true)"
               if [ "$N_FOUND" = 1 ]; then
                 WT="$(printf '%s\n' "$FOUND" | command sed -n 1p)"
@@ -211,6 +216,17 @@ if ! is_worktree_of_root; then
 fi
 
 STORE="$WT/.skill-manager"
+
+# #171: a target/ that links into another checkout means every binary built
+# here now sits in THAT checkout's target/, carrying this worktree's absolute
+# paths. Removing the worktree leaves them looking fresh and pointing nowhere.
+# Not a refusal — nothing here is lost — but the surviving checkout must hear it.
+SHARED_TARGET="$(foreign_target_link "$WT")"
+if [ -n "$SHARED_TARGET" ]; then
+  info "warning:   $WT/target links to $SHARED_TARGET — outputs built here live in that"
+  info "           checkout and will reference $WT after removal; rebuild there"
+  info "           (cargo: \`cargo clean -p <member>\` for each workspace member)"
+fi
 
 # Read BEFORE the removal, because after it there is no worktree to ask. The
 # branch outlives the worktree deliberately (the change may not have landed yet),

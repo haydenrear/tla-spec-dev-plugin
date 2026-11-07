@@ -134,6 +134,33 @@ _EXIT_NOT_A_HOME = 2
 _POLICY_EXITS = frozenset({5, 6})
 _EXIT_FROZEN = 9
 
+#: `skt build`'s own exit for BS-20 (#202): every artifact this run attempted
+#: was produced (built or no-op, nothing failed) and is STILL stale only
+#: because a stale ancestor that `build` has no producer for sits above it —
+#: a unit store whose bytes moved under its install record, typically. The
+#: CLI exits 1 for that, the same code it uses for a producer that failed,
+#: and a second unchanged build exits 1 again forever. The verdict is right
+#: and is kept (`still_stale` is untouched, `ok` stays False); what changes
+#: is that the run names the root ancestor and its remedy and exits with a
+#: code a caller can tell apart from "my rebuild failed". Distinct from the
+#: CLI's reserved 2, 5, 6 and 9.
+EXIT_UNRESOLVED_ANCESTOR = 4
+
+#: `BuildResult.status` values.
+STATUS_OK = "ok"
+STATUS_FAILED = "failed"
+STATUS_STALE = "stale"
+STATUS_UNRESOLVED_ANCESTOR = "unresolved-ancestor"
+
+#: The CLI's propagation sentence (`ArtifactFreshness.combine`, 0.28.2). It
+#: REPLACES the reason only when the artifact's own verdict was not stale,
+#: so a row whose reason starts with it was decided by an upstream alone.
+#: A locally moved input keeps its own sentence; an absent output appends
+#: "; and ...". Anything that does not match is left as plain stale — the
+#: classification fails closed, never open.
+_PROPAGATED_PREFIX = "it is built from "
+_ABSENCE_MARKER = "; and "
+
 
 # --------------------------------------------------------------- exceptions
 
@@ -369,6 +396,22 @@ class BuildStep:
 
 
 @dataclass(frozen=True)
+class UnresolvedAncestor:
+    """An attempted artifact that only a non-buildable ancestor keeps stale.
+
+    `roots` are the stale ancestors at the top of its `because` chain — the
+    ones stale on their OWN evidence, none of them a kind `build` produces.
+    `remedies` are the reasons `build` printed for those roots (they carry
+    the command that does repair them, e.g. `skill-manager sync <unit>`),
+    falling back to the survey's reason when the plan did not list a root.
+    """
+
+    id: str
+    roots: tuple[str, ...]
+    remedies: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class BuildResult:
     """The whole of `build --json`, plus the exit code the CLI returned.
 
@@ -388,9 +431,26 @@ class BuildResult:
     still_stale: int = 0
     steps: tuple[BuildStep, ...] = ()
     exit_code: int = 0
+    #: The CLI's own exit, kept beside `exit_code` so a reclassification
+    #: never hides what the CLI said.
+    cli_exit_code: int = 0
+    unresolved_ancestors: tuple[UnresolvedAncestor, ...] = ()
 
     def __iter__(self):
         return iter(self.steps)
+
+    @property
+    def status(self) -> str:
+        """One word for what this run was: ok, failed, stale, or
+        unresolved-ancestor. `stale` is the CLI's exit 1 that this module
+        could NOT attribute to a non-buildable ancestor."""
+        if self.failed:
+            return STATUS_FAILED
+        if self.exit_code == EXIT_UNRESOLVED_ANCESTOR:
+            return STATUS_UNRESOLVED_ANCESTOR
+        # still_stale under exit 0 is a not-buildable row the CLI left alone
+        # by design; it is reported, and it is not this run failing.
+        return STATUS_STALE if self.exit_code != 0 else STATUS_OK
 
     @property
     def ok(self) -> bool:
@@ -701,19 +761,90 @@ def build(
     proc = _run(home, argv, timeout)
     data = _decode(proc, argv, BUILD_SCHEMA)
     summary = data.get("summary") or {}
+    steps = tuple(_step(row) for row in data.get("steps") or [])
+    dry = bool(data.get("dry_run")) or dry_run
+    failed = int(summary.get("failed") or 0)
+    exit_code = proc.returncode
+    unresolved: tuple[UnresolvedAncestor, ...] = ()
+    if proc.returncode == 1 and failed == 0 and not dry:
+        unresolved = _unresolved_ancestors(home, steps)
+        if unresolved:
+            exit_code = EXIT_UNRESOLVED_ANCESTOR
     return BuildResult(
         home=data.get("home") or str(home),
         dry_run=bool(data.get("dry_run")),
         selected=int(summary.get("selected") or 0),
         rebuilt=int(summary.get("rebuilt") or 0),
         no_op=int(summary.get("no_op") or 0),
-        failed=int(summary.get("failed") or 0),
+        failed=failed,
         already_current=int(summary.get("already_current") or 0),
         not_buildable=int(summary.get("not_buildable") or 0),
         still_stale=int(summary.get("still_stale") or 0),
-        steps=tuple(_step(row) for row in data.get("steps") or []),
-        exit_code=proc.returncode,
+        steps=steps,
+        exit_code=exit_code,
+        cli_exit_code=proc.returncode,
+        unresolved_ancestors=unresolved,
     )
+
+
+def _unresolved_ancestors(home: Path, steps: tuple[BuildStep, ...]
+                          ) -> tuple[UnresolvedAncestor, ...]:
+    """BS-20: attribute every attempted-and-still-stale step to a root
+    ancestor `build` cannot produce, or return () and leave exit 1 alone.
+
+    All-or-nothing: one attempted step that is stale for any OTHER reason
+    (its own input moved, its output is absent, a buildable ancestor is
+    stale, the survey does not name the ancestor, the survey cannot be read)
+    means this run did fail at something it owns, and that must not be
+    hidden behind a softer status.
+
+    One extra bounded READ (`artifacts stale --json`) — the build document
+    carries no `because`, the stale survey does, and that edge is the whole
+    evidence. Taken only on the CLI's exit 1 with nothing failed.
+    """
+    attempted = [s for s in steps
+                 if s.outcome in ("built", "no-op") and s.freshness_after == "stale"]
+    if not attempted:
+        return ()
+    try:
+        survey = stale(home=home, timeout=READ_TIMEOUT_SECONDS)
+    except ArtifactError:
+        return ()
+    rows = {r.id: r for r in survey.stale}
+    plan_reason = {s.id: s.reason for s in steps if s.action == "not-buildable"}
+
+    def roots_of(artifact_id: str, seen: set[str]) -> set[str] | None:
+        row = rows.get(artifact_id)
+        if row is None or artifact_id in seen:
+            return None
+        if row.materialization != "materialized":
+            return None
+        if not row.because:
+            # Stale on its own evidence: a root. It must be something
+            # `build` has no producer for, or `skt build` IS the remedy.
+            return None if row.buildable else {artifact_id}
+        if not row.reason.startswith(_PROPAGATED_PREFIX) or _ABSENCE_MARKER in row.reason:
+            return None
+        found: set[str] = set()
+        for upstream in row.because:
+            sub = roots_of(upstream, seen | {artifact_id})
+            if sub is None:
+                return None
+            found |= sub
+        return found or None
+
+    out: list[UnresolvedAncestor] = []
+    for s in attempted:
+        row = rows.get(s.id)
+        if row is None or not row.because:
+            return ()
+        roots = roots_of(s.id, set())
+        if not roots:
+            return ()
+        ordered = tuple(sorted(roots))
+        remedies = tuple(plan_reason.get(r) or rows[r].reason for r in ordered)
+        out.append(UnresolvedAncestor(id=s.id, roots=ordered, remedies=remedies))
+    return tuple(out)
 
 
 def _step(row: dict) -> BuildStep:
