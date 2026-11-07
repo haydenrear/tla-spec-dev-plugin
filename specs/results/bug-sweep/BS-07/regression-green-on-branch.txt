@@ -1,5 +1,4 @@
-# GREEN: feature/192-tlc-parsing-casegen @ a59d0711
-# cmd: same
+# GREEN: feature/192-tlc-parsing-casegen @ 82651c85 (after merging origin/epic/bug-sweep @ 0bb9a950)
 =========================== short test summary info ============================
 PASSED tests/test_bs07_tlc_cfg_parsing_and_tlc_command.py::test_bs07_cfg_parser_reads_every_invariant_name[singular-one-per-line]
 PASSED tests/test_bs07_tlc_cfg_parsing_and_tlc_command.py::test_bs07_cfg_parser_reads_every_invariant_name[plural-on-keyword-line]
@@ -35,4 +34,4 @@ PASSED tests/test_bs07_tlc_cfg_parsing_and_tlc_command.py::test_bs07_tlc_command
 PASSED tests/test_generate_cases_from_tlc_dump.py::test_generate_cases_loads_a_dashed_ticket_projector_by_file_path
 PASSED tests/test_generate_cases_from_tlc_dump.py::test_generate_cases_loads_a_relative_ticket_projector_path
 PASSED tests/test_generate_cases_from_tlc_dump.py::test_generate_cases_dotted_module_form_still_works_and_bad_paths_fail_loudly
-34 passed, 42 deselected in 2.13s
+34 passed, 42 deselected in 50.90s

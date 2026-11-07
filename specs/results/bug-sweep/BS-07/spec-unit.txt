@@ -45,7 +45,7 @@ E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
 specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:92: AssertionError
 ____________ test_record_budgets_adapter_emits_defaults_and_prompt _____________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_record_budgets_adapter_em0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_record_budgets_adapter_em0')
 
     def test_record_budgets_adapter_emits_defaults_and_prompt(tmp_path: Path) -> None:
         adapters = load_adapters()
@@ -65,7 +65,7 @@ E       ModuleNotFoundError: No module named 'scripts'
 specs/current/tests/test_tla_spec_dev_budgets_adapter.py:24: ModuleNotFoundError
 __________________ test_scaffold_workflow_also_emits_budgets ___________________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_scaffold_workflow_also_em0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_scaffold_workflow_also_em0')
 
     def test_scaffold_workflow_also_emits_budgets(tmp_path: Path) -> None:
         adapters = load_adapters()
@@ -85,8 +85,8 @@ E       ModuleNotFoundError: No module named 'scripts'
 specs/current/tests/test_tla_spec_dev_budgets_adapter.py:24: ModuleNotFoundError
 ______________ test_missing_budgets_block_falls_back_with_warning ______________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_missing_budgets_block_fal0')
-capsys = <_pytest.capture.CaptureFixture object at 0x10af82660>
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_missing_budgets_block_fal0')
+capsys = <_pytest.capture.CaptureFixture object at 0x108b0ee40>
 
     def test_missing_budgets_block_falls_back_with_warning(tmp_path: Path, capsys) -> None:
         adapters = load_adapters()
@@ -106,7 +106,7 @@ E       ModuleNotFoundError: No module named 'scripts'
 specs/current/tests/test_tla_spec_dev_budgets_adapter.py:24: ModuleNotFoundError
 ________ test_close_records_delta_jointly_with_retention_and_refinement ________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_close_records_delta_joint0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_close_records_delta_joint0')
 
     def test_close_records_delta_jointly_with_retention_and_refinement(tmp_path: Path) -> None:
         adapters = load_adapters()
@@ -128,7 +128,7 @@ specs/current/production_adapters.py:652: in set_ticket_model
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_close_records_delta_joint0/project_specs/tickets/CLI-140/current/MC.cfg')
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_close_records_delta_joint0/project_specs/tickets/CLI-140/current/MC.cfg')
 mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
 
     def open(self, mode='r', buffering=-1, encoding=None,
@@ -141,12 +141,12 @@ mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
             encoding = io.text_encoding(encoding)
 >       return io.open(self, mode, buffering, encoding, errors, newline)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_close_records_delta_joint0/project_specs/tickets/CLI-140/current/MC.cfg'
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_close_records_delta_joint0/project_specs/tickets/CLI-140/current/MC.cfg'
 
 ../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
 _______________ test_unfilled_ledger_template_refuses_the_close ________________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_unfilled_ledger_template_0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_unfilled_ledger_template_0')
 
     def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
         """Silence is not an acceptable substitute for the record."""
@@ -169,7 +169,7 @@ specs/current/production_adapters.py:652: in set_ticket_model
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_unfilled_ledger_template_0/project_specs/tickets/CLI-141/current/MC.cfg')
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_unfilled_ledger_template_0/project_specs/tickets/CLI-141/current/MC.cfg')
 mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
 
     def open(self, mode='r', buffering=-1, encoding=None,
@@ -182,12 +182,12 @@ mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
             encoding = io.text_encoding(encoding)
 >       return io.open(self, mode, buffering, encoding, errors, newline)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_unfilled_ledger_template_0/project_specs/tickets/CLI-141/current/MC.cfg'
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_unfilled_ledger_template_0/project_specs/tickets/CLI-141/current/MC.cfg'
 
 ../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
 _____ test_decrease_with_degraded_validated_refactor_evidence_is_rejected ______
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_decrease_with_degraded_va0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_decrease_with_degraded_va0')
 
     def test_decrease_with_degraded_validated_refactor_evidence_is_rejected(tmp_path: Path) -> None:
         """The anti-gaming rule on the amended basis (CD-09): a reduction whose
@@ -211,7 +211,7 @@ specs/current/production_adapters.py:652: in set_ticket_model
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_decrease_with_degraded_va0/project_specs/tickets/CLI-142/current/MC.cfg')
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_decrease_with_degraded_va0/project_specs/tickets/CLI-142/current/MC.cfg')
 mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
 
     def open(self, mode='r', buffering=-1, encoding=None,
@@ -224,12 +224,12 @@ mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
             encoding = io.text_encoding(encoding)
 >       return io.open(self, mode, buffering, encoding, errors, newline)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_decrease_with_degraded_va0/project_specs/tickets/CLI-142/current/MC.cfg'
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_decrease_with_degraded_va0/project_specs/tickets/CLI-142/current/MC.cfg'
 
 ../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
 _______ test_validated_decrease_with_not_run_fuzzing_members_is_recorded _______
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_validated_decrease_with_n0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_validated_decrease_with_n0')
 
     def test_validated_decrease_with_not_run_fuzzing_members_is_recorded(tmp_path: Path) -> None:
         """CD-09, the amended licensing: TLC green before/after + behavior tests +
@@ -254,7 +254,7 @@ specs/current/production_adapters.py:652: in set_ticket_model
          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_validated_decrease_with_n0/project_specs/tickets/CLI-143/current/MC.cfg')
+self = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_validated_decrease_with_n0/project_specs/tickets/CLI-143/current/MC.cfg')
 mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
 
     def open(self, mode='r', buffering=-1, encoding=None,
@@ -267,12 +267,12 @@ mode = 'w', buffering = -1, encoding = 'utf-8', errors = None, newline = None
             encoding = io.text_encoding(encoding)
 >       return io.open(self, mode, buffering, encoding, errors, newline)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_validated_decrease_with_n0/project_specs/tickets/CLI-143/current/MC.cfg'
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_validated_decrease_with_n0/project_specs/tickets/CLI-143/current/MC.cfg'
 
 ../../.local/share/uv/python/cpython-3.13.14-macos-aarch64-none/lib/python3.13/pathlib/_local.py:537: FileNotFoundError
 _____________ test_open_ticket_adapter_drives_cli_ticket_workspace _____________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_open_ticket_adapter_drive0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_open_ticket_adapter_drive0')
 
     def test_open_ticket_adapter_drives_cli_ticket_workspace(tmp_path: Path) -> None:
         adapters = load_adapters()
@@ -284,7 +284,7 @@ E       assert False is True
 specs/current/tests/test_tla_spec_dev_ticket_adapter.py:18: AssertionError
 _____________ test_update_ticket_current_executes_case_end_to_end ______________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_update_ticket_current_exe0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_update_ticket_current_exe0')
 
     def test_update_ticket_current_executes_case_end_to_end(tmp_path: Path) -> None:
         pa = load_adapters()
@@ -300,7 +300,7 @@ specs/current/production_adapters.py:113: in run
     _mark_ticket_tree(target_repo, spec_root, ticket, self.ready_tree, self.ready_marker)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-target_repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-287/test_update_ticket_current_exe0/target-repo')
+target_repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-317/test_update_ticket_current_exe0/target-repo')
 spec_root = 'specs', ticket = 'cli_entrypoint', tree = 'current'
 marker = '\\* tla-spec-dev-adapter: CURRENT-READY'
 
@@ -339,4 +339,4 @@ FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_
 FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_validated_decrease_with_not_run_fuzzing_members_is_recorded
 FAILED specs/current/tests/test_tla_spec_dev_ticket_adapter.py::test_open_ticket_adapter_drives_cli_ticket_workspace
 FAILED specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py::test_update_ticket_current_executes_case_end_to_end
-11 failed, 43 passed in 21.20s
+11 failed, 43 passed in 32.37s
