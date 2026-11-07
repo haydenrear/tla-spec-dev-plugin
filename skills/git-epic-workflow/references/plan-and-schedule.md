@@ -555,6 +555,23 @@ Every scheduled issue maps to one spec ticket and retains the standard
 `git-issue` sections: Summary, References, Discovery notes, Worktree & branch,
 Spec workflow, and Regression & close-out.
 
+Do it in this order. Assignments carry `plan_commit`, so they come last:
+
+1. create the epic tracking issue and every ticket issue;
+2. write their URLs into `ticket_plan.yaml` (`epic_issue:` and each ticket's
+   issue);
+3. commit and push the plan;
+4. render each assignment against that commit, then validate it (§5).
+
+### The epic tracking issue
+
+Create one issue for the epic itself, titled for the epic and labelled as you
+label epics. Its body holds the goals table (§3a), the waves, the deferment and
+review policies (§4a, §4b), and a checklist linking every ticket issue; edit
+the checklist once the ticket issues exist. Record its URL as the plan's
+top-level `epic_issue:`. The epic PR closes it (`finalize.md` §5).
+`validate_epic_plan.py` warns, and never fails, while `epic_issue` is missing.
+
 ### New issues
 
 Use `git-issue` to create the work order, then add the assignment from
@@ -565,7 +582,7 @@ the no-op model result and its evidence; do not silently skip ticket closeout.
 After issue creation, write its URL back to `ticket_plan.yaml` and update the
 assignment with the final issue number, feature branch, and worktree path.
 Commit and push the canonical plan, then record that commit plus the current
-`schedule_revision` in every assignment.
+`schedule_revision` in every assignment (the order above).
 
 ### Existing issues
 
