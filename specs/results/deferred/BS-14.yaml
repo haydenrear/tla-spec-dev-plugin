@@ -1,0 +1,24 @@
+# BS-14 (#147 step 1) per-ticket backlog. Batch policy, budget 5. The epic agent
+# absorbs these into the epic backlog at wave close.
+ticket: BS-14
+base_sha: df48724c1ced68a3f6db17251e37e30aa041fd64
+findings:
+  - id: BS-14-DF-01
+    blocking: false
+    owner: test-graph (skills/test-graph/scripts/run.py)
+    summary: >-
+      The milestone lock is held by milestone.py only. A direct run.py call
+      (an agent, a ticket's own validation) on the same test_graph project is
+      not excluded by it, so two Gradle builds can still share one build dir.
+      Whether run.py should honour the same lock file is a test-graph decision,
+      outside this ticket's conflict keys.
+    evidence: skills/git-epic-workflow/scripts/milestone.py (MilestoneLock); skills/test-graph/scripts/run.py (no lock)
+  - id: BS-14-DF-02
+    blocking: false
+    owner: "#147 (later steps)"
+    summary: >-
+      No repository declares epic-workflow.toml yet; BS-14's real run used a
+      config under its evidence root. The consuming repos (this plugin,
+      commit-diff-context-parent) need their [milestone] table when the epic
+      owner adopts the runner.
+    evidence: specs/results/bug-sweep/BS-14/milestone.toml

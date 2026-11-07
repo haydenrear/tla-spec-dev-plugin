@@ -1,0 +1,49 @@
+===== run.py threeWays --continue-after-failure  -> exit 1
+last stdout line: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-sweeps/20261107-181745/outcome.json
+--- ledger.jsonl
+{"event":"scheduled","task":"threeWays","graph":true}
+{"event":"started","task":"threeWays","graph":true}
+{"event":"finished","task":"threeWays","graph":true,"outcome":"failed","skipMessage":null,"failure":"Execution failed for task ':threeWays'.","runDirs":["/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-reports/20261107-181913"],"seconds":26.611}
+--- outcome.json (abridged)
+{"status": "failed", "exit_code": 1, "gradle_exit_code": 1, "continue_after_failure": true, "load_avg_start": [83.71, 103.34, 88.04], "load_avg_end": [81.14, 97.12, 87.5], "duration_seconds": 106.533}
+{"graph": "threeWays", "status": "failed", "cause": "assertion", "reason": "node(s) fixture.red completed with a red assertion; the graph's summary.json says 'errored' because other nodes did not report a verdict", "duration_seconds": 26.611, "load_avg_start": [85.82, 99.64, 88.01], "load_avg_end": [81.14, 97.12, 87.5], "report_dir": "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-reports/20261107-181913"}
+  {"node": "fixture.red", "status": "failed", "cause": "assertion", "duration_seconds": 6.443, "timeout_bound_seconds": null, "spawn_exit_code": 0, "load_avg_start": [83.8, 98.76, 87.83], "load_avg_end": [82.3, 98.2, 87.7]}
+  {"node": "fixture.killed", "status": "errored", "cause": "signal", "duration_seconds": 1.539, "timeout_bound_seconds": null, "spawn_exit_code": 137, "load_avg_start": [82.3, 98.2, 87.7], "load_avg_end": [80.43, 97.55, 87.53]}
+  {"node": "fixture.slow", "status": "errored", "cause": "timeout", "duration_seconds": 3.046, "timeout_bound_seconds": 3.0, "spawn_exit_code": -1, "load_avg_start": [80.43, 97.55, 87.53], "load_avg_end": [80.43, 97.55, 87.53]}
+===== run.py threeWays  -> exit 1
+last stdout line: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-sweeps/20261107-181932/outcome.json
+--- ledger.jsonl
+{"event":"scheduled","task":"threeWays","graph":true}
+{"event":"started","task":"threeWays","graph":true}
+{"event":"finished","task":"threeWays","graph":true,"outcome":"failed","skipMessage":null,"failure":"Execution failed for task ':threeWays'.","runDirs":["/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-reports/20261107-181959"],"seconds":15.571}
+--- outcome.json (abridged)
+{"status": "failed", "exit_code": 1, "gradle_exit_code": 1, "continue_after_failure": false, "load_avg_start": [81.14, 97.12, 87.5], "load_avg_end": [79.53, 94.73, 87.06], "duration_seconds": 40.014}
+{"graph": "threeWays", "status": "failed", "cause": "assertion", "reason": "node(s) fixture.red completed with a red assertion; the graph's summary.json says 'errored' because other nodes did not report a verdict", "duration_seconds": 15.571, "load_avg_start": [79.9, 95.84, 87.26], "load_avg_end": [79.53, 94.73, 87.06], "report_dir": "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-reports/20261107-181959"}
+  {"node": "fixture.red", "status": "failed", "cause": "assertion", "duration_seconds": 5.781, "timeout_bound_seconds": null, "spawn_exit_code": 0, "load_avg_start": [79.11, 95.41, 87.16], "load_avg_end": [80.22, 95.37, 87.19]}
+  {"node": "fixture.killed", "status": "not_run", "cause": "skipped", "duration_seconds": null, "timeout_bound_seconds": null, "spawn_exit_code": -1, "load_avg_start": null, "load_avg_end": null}
+  {"node": "fixture.slow", "status": "not_run", "cause": "skipped", "duration_seconds": null, "timeout_bound_seconds": null, "spawn_exit_code": -1, "load_avg_start": null, "load_avg_end": null}
+===== run.py onlySlow  -> exit 3
+last stdout line: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-sweeps/20261107-182012/outcome.json
+--- ledger.jsonl
+{"event":"scheduled","task":"onlySlow","graph":true}
+{"event":"started","task":"onlySlow","graph":true}
+{"event":"finished","task":"onlySlow","graph":true,"outcome":"failed","skipMessage":null,"failure":"Execution failed for task ':onlySlow'.","runDirs":["/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-reports/20261107-182041"],"seconds":12.166}
+--- outcome.json (abridged)
+{"status": "errored", "exit_code": 3, "gradle_exit_code": 1, "continue_after_failure": false, "load_avg_start": [79.53, 94.73, 87.06], "load_avg_end": [86.49, 94.58, 87.3], "duration_seconds": 38.75}
+{"graph": "onlySlow", "status": "errored", "cause": "node_errored", "reason": "the graph's summary.json says 'errored': a node did not report a verdict (crashed, killed or timed out): Execution failed for task ':onlySlow'.", "duration_seconds": 12.166, "load_avg_start": [83.16, 94.21, 87.09], "load_avg_end": [86.49, 94.58, 87.3], "report_dir": "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-reports/20261107-182041"}
+  {"node": "fixture.slow", "status": "errored", "cause": "timeout", "duration_seconds": 3.045, "timeout_bound_seconds": 3.0, "spawn_exit_code": -1, "load_avg_start": [86.27, 94.67, 87.29], "load_avg_end": [86.27, 94.67, 87.29]}
+===== run.py describeErrored  -> exit 3
+last stdout line: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/build/validation-sweeps/20261107-182051/outcome.json
+--- ledger.jsonl
+{"event":"scheduled","task":"describeErrored","graph":true}
+{"event":"started","task":"describeErrored","graph":true}
+{"event":"finished","task":"describeErrored","graph":true,"outcome":"failed","skipMessage":null,"failure":"Execution failed for task ':describeErrored'.","runDirs":[],"seconds":3.33}
+--- outcome.json (abridged)
+{"status": "errored", "exit_code": 3, "gradle_exit_code": 1, "continue_after_failure": false, "load_avg_start": [86.49, 94.58, 87.3], "load_avg_end": [95.38, 95.94, 88.05], "duration_seconds": 26.201}
+{"graph": "describeErrored", "status": "errored", "cause": "no_run_dir", "reason": "the graph task threw before allocating a run directory, so no node ran (for example a node describe errored on every retry: NodeDescribeErroredException): Execution failed for task ':describeErrored'.", "duration_seconds": 3.33, "load_avg_start": [94.11, 95.71, 87.92], "load_avg_end": [95.38, 95.94, 88.05], "report_dir": null}
+--- gradle output (describe lines)
+> Task :describeErrored
+> Task :describeErrored FAILED
+ERRORED describeErrored (no_run_dir)
+Execution failed for task ':describeErrored'.
+> errored: describe for broken_describe.py failed on all 3 attempts; the run did not complete, which is not a node failure (retry it or fix the environment). attempt 1: exit=3; attempt 2: exit=3; attempt 3: exit=3. Run directly to debug: /opt/homebrew/bin/uv run /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpsoygd4tz/test_graph/nodes/broken_describe.py --describe-out=<tmp>
