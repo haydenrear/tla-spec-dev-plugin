@@ -14,7 +14,7 @@ E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
 specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:99: AssertionError
 _______________ test_unfilled_ledger_template_refuses_the_close ________________
 
-tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-352/test_unfilled_ledger_template_0')
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-387/test_unfilled_ledger_template_0')
 
     def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
         """Silence is not an acceptable substitute for the record."""
@@ -34,4 +34,4 @@ specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:54: Assertion
 =========================== short test summary info ============================
 FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
 FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
-2 failed, 52 passed in 30.88s
+2 failed, 52 passed in 19.36s
