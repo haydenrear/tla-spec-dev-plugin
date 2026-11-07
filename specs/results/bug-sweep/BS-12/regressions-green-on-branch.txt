@@ -1,0 +1,13 @@
+# branch: feature/141-close-carries-desired (working tree)
+PASSED tests/test_close_carries_desired.py::test_sf075_close_carries_the_delivered_model_into_desired
+PASSED tests/test_close_carries_desired.py::test_sf075_desired_intent_elsewhere_is_kept_and_merged
+PASSED tests/test_close_carries_desired.py::test_sf075_conflict_leaves_desired_and_never_blocks
+PASSED tests/test_close_carries_desired.py::test_sf075_opt_out_is_recorded
+PASSED tests/test_close_carries_desired.py::test_def516_open_seeds_current_when_the_plan_runs_it
+PASSED tests/test_close_carries_desired.py::test_def516_default_open_stays_desired_only
+PASSED tests/test_close_carries_desired.py::test_mutation_close_refuses_a_tree_with_mutation_paths
+PASSED tests/test_close_carries_desired.py::test_mutation_close_force_passes_and_is_recorded
+8 passed in 10.51s
+PASSED skills/git-epic-workflow/scripts/tests/test_validate_epic_plan.py::Issue141PlanTests::test_sf074_moved_closed_ordinal_refuses_and_force_passes
+PASSED skills/git-epic-workflow/scripts/tests/test_validate_epic_plan.py::Issue141PlanTests::test_sf076_per_ticket_member_successors_under_one_workflow
+2 passed, 88 deselected in 0.31s

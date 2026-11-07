@@ -1,0 +1,15 @@
+# BS-20 regression on origin/epic/bug-sweep @ 5748dcc6c584f5c8f6e2aa10160f0b90d2c59183 (no BS-20 source change)
+# cmd: uvx --with pyyaml --with jinja2 pytest skills/skt/tests/test_build_freshness.py -q
+skills/skt/tests/test_build_freshness.py:272: AttributeError
+=========================== short test summary info ============================
+FAILED skills/skt/tests/test_build_freshness.py::test_successful_build_behind_unbuildable_ancestor_is_a_distinct_status
+FAILED skills/skt/tests/test_build_freshness.py::test_a_second_unchanged_build_reports_the_same_distinct_status
+FAILED skills/skt/tests/test_build_freshness.py::test_a_genuinely_current_second_build_is_ok
+FAILED skills/skt/tests/test_build_freshness.py::test_a_locally_moved_input_stays_a_failure
+FAILED skills/skt/tests/test_build_freshness.py::test_an_absent_tree_stays_a_failure
+FAILED skills/skt/tests/test_build_freshness.py::test_a_failed_producer_stays_a_failure_and_skips_the_survey
+FAILED skills/skt/tests/test_build_freshness.py::test_a_buildable_stale_root_is_not_an_unresolved_ancestor
+FAILED skills/skt/tests/test_build_freshness.py::test_an_ancestor_the_survey_does_not_name_is_not_assumed
+FAILED skills/skt/tests/test_build_freshness.py::test_an_unreadable_survey_keeps_the_cli_exit
+FAILED skills/skt/tests/test_build_freshness.py::test_a_dry_run_is_never_reclassified
+10 failed in 2.53s
