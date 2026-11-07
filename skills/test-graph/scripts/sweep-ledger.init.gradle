@@ -10,10 +10,15 @@
 //
 // Events:
 //   {"event":"scheduled","task":..,"graph":bool}          once per root-project task in the task graph
+//   {"event":"started","task":..,"graph":bool}            when Gradle begins executing that task
 //   {"event":"finished","task":..,"graph":bool,"outcome":"passed|failed|skipped",
 //    "runDirs":[..],"seconds":..,"failure":..,"skipMessage":..}
-// A scheduled task with no "finished" event never ran (Gradle aborted, a
-// dependency failed, or the process was killed).
+// A scheduled task with no "started" event never ran (Gradle aborted, or a
+// dependency failed). A "started" with no "finished" means the run died
+// mid-task: the daemon disappeared, the process was killed, or it was
+// interrupted. run.py reports the second as ERRORED, not as "never started".
+// "outcome":"failed" says only that the task threw; run.py tells a red node
+// from an infrastructure failure by the graph's own summary.json in runDirs.
 import groovy.json.JsonOutput
 
 def ledgerPath = System.getenv('TEST_GRAPH_SWEEP_LEDGER')
@@ -53,6 +58,7 @@ gradle.taskGraph.whenReady { graph ->
 
 gradle.taskGraph.beforeTask { task ->
     if (!isRootTask(task)) return
+    write([event: 'started', task: task.name, graph: isGraphTask(task)])
     startedAt[task.path] = System.currentTimeMillis()
     beforeRuns[task.path] = childNames(reportRootOf(task))
 }
