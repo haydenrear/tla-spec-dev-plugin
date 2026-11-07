@@ -162,6 +162,25 @@ def _print_contract(contract) -> None:
         print(f"propagate  {contract.propagate}")
 
 
+def _record_baseline(worktree: str | Path) -> None:
+    """Declare the new worktree's integrity baseline (BS-19, #201).
+
+    Records that it has a Skill Manager home, so a home that later goes
+    missing is reported as `home_missing` by `list`, `sweep` and `close`
+    rather than read as "never had one". Best-effort: a worktree is never
+    rolled back because this note could not be written.
+    """
+    from . import ticket_integrity
+
+    try:
+        manifest = ticket_integrity.declare(worktree, worktree)
+    except Exception as exc:  # noqa: BLE001 - advisory record only
+        print(f"note: integrity baseline not recorded for {worktree}: {exc}", file=sys.stderr)
+        return
+    print(f"integrity  baseline {manifest['handle']} (home={'yes' if manifest['home'] else 'no'}); "
+          f"declare retained evidence: python3 {ticket_integrity.__file__} declare {worktree} <path>...")
+
+
 def _bootstrap_script() -> Path | None:
     """Resolve git-issue-workflow's bootstrap-home.sh, standalone OR contained.
 
@@ -433,6 +452,7 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
     if unshared:
         print(f"warning: {path}/target linked to {unshared}; replaced with a per-worktree directory")
     print(f"created epic worktree {path}")
+    _record_baseline(path)
     print(f"branch     {branch} (pinned base {commit_oid[:12]}; retention ref {ref_name})")
     launch = Path(path) / ".skill-manager" / "bin" / "launch" / "claude"
     if launch.is_file():
@@ -532,6 +552,7 @@ def run(
             contract = giw.wt_new(ticket_id, base)
             print(f"created ticket worktree for {ticket_id}:")
             _print_contract(contract)
+            _record_baseline(contract.worktree)
             print(
                 "\nA skill edit inside that worktree's home is in no git diff; "
                 "run `skt publish` there before closing, or the close gate will refuse."

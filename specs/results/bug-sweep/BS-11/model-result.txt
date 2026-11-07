@@ -1,0 +1,7 @@
+BS-11 (#185, #168) model result: NO-OP.
+specs/current and specs/desired are unchanged. The change is a tooling fix in the
+test-graph wrapper scripts (run.py writes outcome.json and normalises exit codes
+to 0/1/3, adds --continue-after-failure; sweep.py reads outcome.json); it changes
+no Internal.tla / External.tla action, variable or invariant. Per the epic
+model-ownership rule no open ticket / close ticket / close_tickets.py /
+--accept-new was run; the epic agent closes and promotes at wave merge.

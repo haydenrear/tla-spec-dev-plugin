@@ -176,15 +176,38 @@ class SweepInvocationTest(unittest.TestCase):
             _code, calls, _out = self._run_main(["--all", "--fail-fast"], root, [], rc=1)
             self.assertNotIn("--continue", calls[0][0])
 
-    def test_single_graph_invocation_is_unchanged(self) -> None:
+    def test_single_graph_runs_under_the_ledger_and_writes_outcome_json(self) -> None:
+        # #185: a single graph is no longer a bare `gradlew <graph>` whose exit
+        # code is the only outcome; it records the same ledger and outcome.json.
         with tempfile.TemporaryDirectory() as tmp:
             root = fixture_root(tmp)
-            code, calls, out = self._run_main(["smoke"], root, [], rc=0)
+            ledger = [scheduled("smoke"), {"event": "started", "task": "smoke", "graph": True},
+                      finished("smoke", "passed")]
+            code, calls, out = self._run_main(["smoke"], root, ledger, rc=0)
             self.assertEqual(0, code)
-            self.assertEqual(["--console=plain", "smoke"], calls[0][0])
-            self.assertEqual({}, calls[0][2])
-            self.assertFalse((root / "build" / "validation-sweeps").exists())
-            self.assertEqual("", out)
+            args = calls[0][0]
+            self.assertEqual("smoke", args[-1])
+            self.assertNotIn("--continue", args)
+            self.assertEqual(str(run.SWEEP_INIT_SCRIPT), args[args.index("--init-script") + 1])
+            self.assertNotIn(run.CONTINUE_AFTER_FAILURE_ENV, calls[0][2])
+            self.assertFalse(list((root / "build" / "validation-sweeps").glob("*/sweep.json")))
+            last = out.strip().splitlines()[-1]
+            outcome = json.loads(Path(last).read_text())
+            self.assertEqual(run.OUTCOME_FILE, Path(last).name)
+            self.assertEqual(("passed", 0), (outcome["status"], outcome["exit_code"]))
+
+    def test_continue_after_failure_sets_the_plan_executor_env(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = fixture_root(tmp)
+            _code, calls, _out = self._run_main(["smoke", "--continue-after-failure"], root, [], rc=1)
+            self.assertEqual("1", calls[0][2][run.CONTINUE_AFTER_FAILURE_ENV])
+
+    def test_help_documents_continue_after_failure(self) -> None:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit):
+            run.main(["--help"])
+        self.assertIn("--continue-after-failure", out.getvalue())
+        self.assertIn(run.CONTINUE_AFTER_FAILURE_ENV, out.getvalue())
 
     def test_resume_options_refuse_a_sweep(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

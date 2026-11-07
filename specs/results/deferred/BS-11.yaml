@@ -1,0 +1,42 @@
+# BS-11 (#185, #168) per-ticket backlog. Batch policy, budget 5. The epic agent
+# absorbs these into the epic backlog at wave close.
+ticket: BS-11
+base_sha: df48724c1ced68a3f6db17251e37e30aa041fd64
+findings:
+  - id: BS-11-DF-01
+    blocking: false
+    owner: test-graph SDK (project_sdk_sources/build-logic exec/PlanExecutor.kt)
+    summary: >-
+      The canonical envelope carries a node's timeout bound only when the node
+      timed out (inside failureMessage "node timed out after <bound>"). For every
+      other node outcome.json records timeout_bound_seconds = null. Stamping
+      spec.timeout (and retries) into every envelope would let outcome.json carry
+      the bound for all nodes, which #185 asks for. Outside this ticket's
+      conflict keys (run.py, sweep.py, workflows.md, scripts/tests/).
+    evidence: skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt (buildEnvelope / synthesized)
+  - id: BS-11-DF-02
+    blocking: false
+    owner: test-graph (sweep-ledger.init.gradle)
+    summary: >-
+      The ledger's "failure" is state.failure.message, i.e. Gradle's wrapper
+      "Execution failed for task ':g'.", not the root cause. outcome.json
+      therefore classifies a describe-errored graph by positive evidence (task
+      started, threw, allocated no run directory -> errored/no_run_dir) but
+      cannot quote the NodeDescribeErroredException message. Walking the cause
+      chain in the init script would put the real reason in outcome.json.
+      Outside this ticket's conflict keys.
+    evidence: skills/test-graph/scripts/sweep-ledger.init.gradle (afterTask failure field)
+  - id: BS-11-DF-03
+    blocking: false
+    owner: epic owner (BS-10-DF-01 premise)
+    summary: >-
+      BS-10-DF-01 says node describe runs at Gradle CONFIGURATION time, so a
+      describe-errored graph is never scheduled and reads not_run. It runs at
+      task EXECUTION time: RunTestGraphTask.run() calls GraphAssembler.plan()
+      (RunTestGraphTask.kt:178) before RunIds.allocate. Measured with the real
+      SDK in RealSdkFixtureTest.test_describe_errored_graph_is_errored_not_not_run:
+      the ledger has scheduled+started+finished(failed, runDirs=[]). On the base,
+      a sweep already classified it errored; the single-graph path exited 1 with
+      no record. BS-11 fixes the single-graph path (exit 3, outcome.json
+      errored/no_run_dir). Plan text should be corrected, nothing else.
+    evidence: specs/results/bug-sweep/BS-11/real-sdk-outcome-runs.txt (===== run.py describeErrored)

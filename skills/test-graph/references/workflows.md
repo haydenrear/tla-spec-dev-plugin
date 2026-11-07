@@ -130,6 +130,55 @@ responses, so read the status before reading code:
 `sweep.py --retry-failed-from` resumes a `FAILED` graph from its first failing
 node and restarts an `ERRORED` one.
 
+### Read `outcome.json`, not the log
+
+Every `run.py` invocation -- one graph, several, `--all`, or a resume -- writes
+`build/validation-sweeps/<id>/outcome.json` and prints its absolute path as the
+**last line of stdout**, so a caller reads the outcome rather than grepping
+logs or parsing `report.md`:
+
+```bash
+out=$(<skill>/scripts/run.py <graph> | tail -n 1)
+jq '.status, .exit_code' "$out"
+jq '.graphs[] | {graph, status, cause, nodes: [.nodes[] | {node, status, cause}]}' "$out"
+```
+
+Exit codes are the same for one graph or many: **0** passed, **1** a graph
+`FAILED` or did not run, **3** a graph `ERRORED` and none failed.
+
+Per graph and per node it records `status` (`passed | failed | errored |
+not_run`), a `cause`, `duration_seconds`, `timeout_bound_seconds`, the host
+`load_avg_start` / `load_avg_end` (1/5/15-minute) and the `report_dir`:
+
+| `cause` | status | Means |
+| --- | --- | --- |
+| `assertion` | `failed` | the node completed and an assertion was red; investigate the code |
+| `timeout` | `errored` | the node outlived its timeout bound (`timeout_bound_seconds`) and was force-killed; check `load_avg_*` before you suspect the code |
+| `signal` | `errored` | the node process was killed by a signal (exit > 128) |
+| `crash` | `errored` | the node exited without writing a verdict |
+| `runner_died` | `errored` | Gradle or the daemon died mid-graph (the node was in flight) |
+| `no_run_dir` | `errored` | the graph task threw before allocating a run directory, so no node ran -- e.g. a node describe that failed on every retry (`NodeDescribeErroredException`) |
+| `skipped` / `not_scheduled` | `not_run` | stopped after an earlier failure, or never scheduled |
+
+A graph with a red node is `FAILED` even when another node errored: a red
+assertion outranks an error. The SDK stamps a node's timeout bound only into a
+timed-out envelope, so `timeout_bound_seconds` is `null` for a node that did not
+time out.
+
+### Keep running nodes after a failure: `--continue-after-failure`
+
+A graph stops at its first red node and reports the rest `not_run`. For a graph
+of independent scenarios measured together ("N of M"), or a deliberately red
+baseline, run every node anyway:
+
+```bash
+<skill>/scripts/run.py <graph> --continue-after-failure
+```
+
+It sets `TESTGRAPH_CONTINUE_AFTER_FAILURE=1` for `PlanExecutor`. Every node
+still reports its own status in `outcome.json`, and the run still fails. It is
+**not** `--continue`, which keeps a sweep going across *graphs*.
+
 ## Add Nodes
 
 Run node generators from the user repo root or anywhere inside the scaffold.
