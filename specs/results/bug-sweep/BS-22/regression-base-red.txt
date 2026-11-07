@@ -1,0 +1,37 @@
+# base: origin/epic/bug-sweep df48724c1ced68a3f6db17251e37e30aa041fd64 sources + branch tests
+F.F                                                                      [100%]
+=================================== FAILURES ===================================
+_____ FinalizePrBodyContractTests.test_template_writes_one_closes_per_line _____
+
+self = <test_finalize_pr_body_contract.FinalizePrBodyContractTests testMethod=test_template_writes_one_closes_per_line>
+
+    def test_template_writes_one_closes_per_line(self) -> None:
+        blocks = re.findall(r"```text\n(.*?)```", pr_body_section(), re.S)
+        lines = [
+            line.strip()
+            for block in blocks
+            for line in block.splitlines()
+            if "closes" in line.lower()
+        ]
+>       self.assertGreaterEqual(len(lines), 2, "template shows no Closes lines")
+E       AssertionError: 0 not greater than or equal to 2 : template shows no Closes lines
+
+skills/git-epic-workflow/scripts/tests/test_finalize_pr_body_contract.py:33: AssertionError
+______ EpicIssueWarningTests.test_missing_epic_issue_warns_and_exits_zero ______
+
+self = <test_validate_epic_plan.EpicIssueWarningTests testMethod=test_missing_epic_issue_warns_and_exits_zero>
+
+    def test_missing_epic_issue_warns_and_exits_zero(self) -> None:
+        plan = valid_plan()
+        del plan["epic_issue"]
+        for args in ((), ("--strict",)):
+            code, stderr = self.run_cli(plan, *args)
+            self.assertEqual(code, 0, args)
+>           self.assertIn("WARNING: plan declares no epic_issue", stderr)
+E           AssertionError: 'WARNING: plan declares no epic_issue' not found in ''
+
+skills/git-epic-workflow/scripts/tests/test_validate_epic_plan.py:197: AssertionError
+=========================== short test summary info ============================
+FAILED skills/git-epic-workflow/scripts/tests/test_finalize_pr_body_contract.py::FinalizePrBodyContractTests::test_template_writes_one_closes_per_line
+FAILED skills/git-epic-workflow/scripts/tests/test_validate_epic_plan.py::EpicIssueWarningTests::test_missing_epic_issue_warns_and_exits_zero
+2 failed, 1 passed, 167 deselected in 0.26s

@@ -1,0 +1,29 @@
+# BS-10 (#195) per-ticket backlog. Batch policy, budget 5. The epic agent
+# absorbs these into specs/results/deferred_findings_final.yaml at wave close.
+ticket: BS-10
+base_sha: df48724c1ced68a3f6db17251e37e30aa041fd64
+findings:
+  - id: BS-10-DF-01
+    blocking: false
+    owner: BS-03 / BS-11 (skills/test-graph/scripts/run.py, sweep-ledger.init.gradle)
+    summary: >-
+      The Kotlin side now throws NodeDescribeErroredException ("errored: describe ...
+      not a node failure") after 3 bounded attempts. Describe runs at Gradle
+      CONFIGURATION time, so the build aborts before any task is scheduled; with
+      PR #176 (BS-03) run.py would classify that graph as not_run ("Gradle never
+      scheduled it (configuration failed or unknown task)"), not errored. To carry
+      the errored outcome into sweep.json and the exit code, run.py (or the ledger
+      init script) should recognise a configuration failure whose cause is
+      NodeDescribeErroredException / a message starting "errored:" as ERRORED.
+      Outside this ticket's conflict keys.
+    evidence: skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt
+  - id: BS-10-DF-02
+    blocking: false
+    owner: examples / test-graph SDK vendoring
+    summary: >-
+      The vendored build-logic under examples/distributed_history/test_graph/build-logic
+      is a stale snapshot of the skill's build-logic (no PosixProcessGroupController,
+      no describe timeout, no sideEffects/environmentRepository parsing). This ticket
+      ported only the retry/errored behaviour into it; the wider drift is a resync
+      job for whoever owns the example.
+    evidence: diff skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt
