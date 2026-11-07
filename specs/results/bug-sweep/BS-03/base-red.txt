@@ -1,0 +1,25 @@
+E       To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+E       Daemon will be stopped at the end of the build 
+E       > Task :deadRunner
+E       
+E       == test graph sweep 20261107-172307 ==
+E       Counted from this invocation's own task outcomes, not from build/validation-reports/.
+E       graphs_selected=1  graphs_executed=0  graphs_passed=0  graphs_failed=0  graphs_not_run=1
+E         NOT RUN  deadRunner  (scheduled, but Gradle never started it)
+E       sweep record: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp517egwb1/test_graph/build/validation-sweeps/20261107-172307/sweep.json
+
+skills/test-graph/scripts/tests/test_errored_vs_failed.py:265: AssertionError
+=========================== short test summary info ============================
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SummarizeErroredTest::test_node_that_never_reported_a_verdict_is_errored
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SummarizeErroredTest::test_old_ledger_without_started_events_still_reads
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SummarizeErroredTest::test_started_but_never_finished_is_errored_not_never_started
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SummarizeErroredTest::test_task_failure_without_a_report_is_errored
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::ExitCodeTest::test_a_failure_outranks_an_error
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::ExitCodeTest::test_errored_failed_and_green_have_distinct_exit_codes
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::ExitCodeTest::test_format_summary_labels_and_explains_errored
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::ExitCodeTest::test_killed_gradle_exit_code_does_not_mask_errored
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SweepPyTest::test_graph_status_needs_a_red_verdict_to_be_failed
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SweepPyTest::test_node_outcomes_split_failed_errored_skipped
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::SweepPyTest::test_retry_resumes_a_failed_graph_and_restarts_an_errored_one
+FAILED skills/test-graph/scripts/tests/test_errored_vs_failed.py::GradleFixtureTest::test_red_node_and_dead_runner_are_told_apart
+12 failed, 1 passed in 31.66s
