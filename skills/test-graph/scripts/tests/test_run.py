@@ -33,6 +33,14 @@ def finished(task: str, outcome: str, **extra) -> dict:
     return record
 
 
+def run_dir_with_verdict(parent: str | Path, status: str, name: str = "20990101-000001") -> str:
+    """A run directory whose summary.json carries the graph's own verdict."""
+    run_dir = Path(parent) / "build" / "validation-reports" / name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "summary.json").write_text(json.dumps({"status": status}))
+    return str(run_dir)
+
+
 def fixture_root(tmp: str) -> Path:
     root = Path(tmp)
     (root / "settings.gradle.kts").write_text('rootProject.name = "fixture"\n')
@@ -41,11 +49,17 @@ def fixture_root(tmp: str) -> Path:
 
 
 class SummarizeSweepTest(unittest.TestCase):
+    def tmp(self) -> str:
+        holder = tempfile.TemporaryDirectory()
+        self.addCleanup(holder.cleanup)
+        return holder.name
+
     def test_a_red_graph_does_not_hide_the_graphs_after_it(self) -> None:
+        red = run_dir_with_verdict(self.tmp(), "failed")
         records = [
             scheduled("doc-smoke"), scheduled("artifact-dag"), scheduled("smoke"),
             finished("doc-smoke", "passed"),
-            finished("artifact-dag", "failed", failure="node failed"),
+            finished("artifact-dag", "failed", failure="node failed", runDirs=[red]),
             finished("smoke", "passed"),
         ]
         summary = run.summarize_sweep(["doc-smoke", "artifact-dag", "smoke"], records, run_all=False)
@@ -59,7 +73,7 @@ class SummarizeSweepTest(unittest.TestCase):
     def test_scheduled_but_never_finished_and_skipped_are_not_run(self) -> None:
         records = [
             scheduled("a"), scheduled("b"), scheduled("c"), scheduled("validationRunAll", graph=False),
-            finished("a", "failed"),
+            finished("a", "failed", runDirs=[run_dir_with_verdict(self.tmp(), "failed")]),
             finished("b", "skipped", skipMessage="SKIPPED"),
         ]
         summary = run.summarize_sweep([], records, run_all=True)
@@ -123,10 +137,12 @@ class SweepInvocationTest(unittest.TestCase):
             (stale / "summary.json").write_text(json.dumps(
                 {"status": "passed", "execution": {"graphName": "smoke"}}))
             fresh = str(root / "build" / "validation-reports" / "20990101-000000")
+            red = run_dir_with_verdict(root, "failed")
             ledger = [
                 scheduled("doc-smoke"), scheduled("artifact-dag"), scheduled("smoke"),
                 finished("doc-smoke", "passed", runDirs=[fresh]),
-                finished("artifact-dag", "failed", failure="uninstall.prunes.the.subgraph failed"),
+                finished("artifact-dag", "failed", failure="uninstall.prunes.the.subgraph failed",
+                         runDirs=[red]),
             ]
             code, calls, out = self._run_main(["doc-smoke", "artifact-dag", "smoke"], root, ledger, rc=1)
 
