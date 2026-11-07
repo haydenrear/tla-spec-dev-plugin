@@ -1,0 +1,67 @@
+# BS-07's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-07
+issue: 192
+base_sha: 68922587
+findings:
+  - id: BS-07-DF-01
+    unit: spec-double-2 (scripts/tla_spec_dev.py, onboarding next-steps print)
+    blocking: false
+    observed: >-
+      tla_spec_dev.py:95/97 still prints `scripts/run_tlc.sh <spec_root>/program_model/...`
+      after `scaffold project`. That path is relative to the SKILL root and does not exist
+      in an onboarded project (the #143 SF-041 root). BS-07 fixed the same command in
+      onboard_program_model.py and scaffold_spec.py (now `tlc2 -metadir ... -config`);
+      tla_spec_dev.py is outside BS-07's conflict keys (BS-01/BS-12).
+    proposed: >-
+      Print `onboard_program_model.tlc_command(f"{spec_root}/program_model", "Internal")`
+      (and "External") instead of the hard-coded run_tlc.sh lines.
+  - id: BS-07-DF-02
+    unit: spec-double-2 (tla_spec_dev.py run spec-unit-tests / run_generated_case_adapters.py)
+    blocking: false
+    observed: >-
+      #166's second comment (MH-42): `run spec-unit-tests --ticket <ID>` hands the
+      ticket target's case-adapter pass the PROJECT corpus (specs/generated/spec-unit/<pkg>)
+      instead of specs/tickets/<ID>/generated/spec-unit/<pkg>. Same root as #166 (ticket
+      targets silently get project artifacts) but in files outside BS-07's keys; not fixed.
+    proposed: >-
+      Resolve the default --cases-dir relative to the ticket workspace when the target is a
+      ticket's desired/, and print the corpus path on the runner's EXECUTED line.
+  - id: BS-07-DF-03
+    unit: spec-double-compiler runtime.load_object (used by run_generated_case_adapters.py, effect_conformance.py)
+    blocking: false
+    observed: >-
+      BS-07 made generate_cases_from_tlc_dump.load_object accept `path/to/file.py:object`.
+      The runtime's own load_object (case_adapters.toml `adapter`/`output_projection`
+      references) is still module:object only, so a ticket's case_adapters.toml cannot
+      name its own dashed-path projector/adapter either.
+    proposed: >-
+      Share one resolver (file form + dotted form) between generate cases and the runtime.
+  - id: BS-07-DF-04
+    unit: specs/{current,desired_program_model,program_model}/spec_manifest.yaml (line citations)
+    blocking: false
+    observed: >-
+      On origin/epic/bug-sweep @ 02375b14, tests/test_source_citations.py fails for the three
+      spec_manifest.yaml files: 48 stale line citations into tla_spec_dev.py, spec_evolution.py
+      and run_generated_case_adapters.py (lines moved by earlier wave merges). Identical count
+      on this branch; none cite a file BS-07 changed. BS-07 did re-anchor the one citation its
+      own edit shifted (generate_cases_from_tlc_dump.py:1233).
+    proposed: >-
+      Run `python3 scripts/check_citations.py --fix` at wave close (epic agent owns the model files),
+      and hand-repair the ambiguous anchors it refuses to guess.
+  - id: BS-07-DF-05
+    unit: test_graph/sources/spec_workflow_failure_cleanup_probe.py (+ test-graph Executors.kt descendant check)
+    blocking: false
+    observed: >-
+      specWorkflow on this branch: 7 PASS, spec.workflow.failure_cleanup_probe ERRORED
+      ("node launcher exited with live descendants"), adapters_resolve skipped. Reproduced
+      on the full run (20261107-175029), one resume (20261107-175652) and one run-only
+      recheck (20261107-180244). spawnExitCode=0 every time. A process trace
+      (specs/results/bug-sweep/BS-07/probe-lingering-descendant-ps.txt) shows the nested
+      gradlew (-Dorg.gradle.daemon=false) forks a single-use Gradle daemon that is
+      reparented to pid 1 and outlives the probe's await_no_descendants window. Other ticket
+      agents' graph runs were live on the machine at the same time. BS-07 touches no
+      test_graph or test-graph file; every spec-workflow node it could affect passed.
+    proposed: >-
+      Have the probe run the nested build with `--no-daemon` semantics that cannot fork
+      (`-Dorg.gradle.jvmargs` matching the wrapper's so no single-use daemon is needed), or
+      reap that daemon by process group before returning; recheck on an idle machine.

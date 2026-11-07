@@ -982,14 +982,29 @@ def _plain(value: Any) -> Any:
 '''
 
 
+def tlc_command(model_dir: str, view: str) -> str:
+    """The TLC command an onboarded project runs, from its repository root.
+
+    BS-07 (#143 SF-041): this used to emit ``scripts/run_tlc.sh <tla> <cfg>``,
+    a path relative to the SKILL's root that does not exist in the project, so
+    each project wrote its own runner (``python3 scripts/run_project_tlc.py``)
+    whose preflight then refused the ``python3`` stock macOS puts on PATH.
+    ``tlc2`` is the launcher skill-manager installs onto PATH, it needs no
+    Python, and ``-metadir`` keeps TLC's states/ scratch out of the model dir.
+    """
+    return f'(cd {model_dir} && tlc2 -metadir "$(mktemp -d)" -config {view}.cfg {view}.tla)'
+
+
 def manifest(module: str, package: str, spec_root_text: str = "specs", full: bool = False) -> str:
+    internal_tlc = tlc_command(f"{spec_root_text}/program_model", "Internal")
+    external_tlc = tlc_command(f"{spec_root_text}/program_model", "External")
     if full:
         next_steps = f"""      - Replace the scaffolded Core/Internal/External semantics with this repository's real whole-program behavior.
       - Keep actions.yml in sync with Internal.tla and External.tla.
       - Implement the spec-unit adapters in adapters.py and map them in case_adapters.toml.
       - Implement the Test Graph adapters, projector, and assertion in adapters.py and map them in testgraph_bindings.yml.
-      - Run TLC on the internal view - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
-      - Run TLC on the external view - scripts/run_tlc.sh {spec_root_text}/program_model/External.tla {spec_root_text}/program_model/External.cfg
+      - Run TLC on the internal view - {internal_tlc}
+      - Run TLC on the external view - {external_tlc}
       - Budgets carry documented defaults; adjust one only when analyze complexity warns on it, and note why."""
         views = """views:
   internal:
@@ -1006,7 +1021,7 @@ def manifest(module: str, package: str, spec_root_text: str = "specs", full: boo
     adapter_mapping: testgraph_bindings.yml"""
     else:
         next_steps = f"""      - Replace the scaffolded Core/Internal semantics with this repository's real state, actions and invariants.
-      - Run TLC - scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
+      - Run TLC - {internal_tlc}
       - Budgets carry documented defaults; adjust one only when analyze complexity warns on it, and note why.
       - Optional later - tla-spec-dev scaffold project --full adds the External view, adapters and providers."""
         views = """views:
@@ -1190,6 +1205,7 @@ adapters, effect providers and Test Graph bindings. None of it is required.
 Add it when the project wants cases generated from the model and run against
 real adapters; `references/testgraph_adapters.md` describes that layer.
 """
+    internal_tlc = tlc_command(f"{spec_root_text}/program_model", "Internal")
     return f"""# Program Model
 
 Accepted whole-program TLA+ model for this repository. It is the semantic
@@ -1211,7 +1227,7 @@ boundary that matters for the ticket at hand, not every subsystem.
 ## Validate
 
 ```bash
-scripts/run_tlc.sh {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
+{internal_tlc}
 tla-spec-dev --spec-root {spec_root_text} analyze complexity {spec_root_text}/program_model/Internal.tla {spec_root_text}/program_model/Internal.cfg
 ```
 

@@ -921,11 +921,12 @@ view and its adapters, the public surface is never validated.
 `Desired*.tla` are active overlays for an open spec workflow. Promote them into
 the baseline and delete them at closeout.
 
-Validate both views:
+Validate both views from this directory (`tlc2` is the TLC launcher skill-manager
+installs onto PATH; `-metadir` keeps its states/ scratch out of this directory):
 
 ```bash
-scripts/run_tlc.sh Internal.tla Internal.cfg
-scripts/run_tlc.sh External.tla External.cfg
+tlc2 -metadir "$(mktemp -d)" -config Internal.cfg Internal.tla
+tlc2 -metadir "$(mktemp -d)" -config External.cfg External.tla
 ```
 """
 
