@@ -1,0 +1,87 @@
+# red run: origin/epic/bug-sweep d9c20ee46134025b1b941e41fd8aad5e1bf9b6c3 (git archive) + tests/test_close_missing_result.py from this branch
+FF...FF.F.F.                                                             [100%]
+=================================== FAILURES ===================================
+_______ test_explicit_missing_result_refuses_before_snapshot_or_removal ________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_explicit_missing_result_r0')
+
+
+tests/test_close_missing_result.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...specs/current: MC.cfg configures SPECIFICATION Spec, which Program.tla (with everything it EXTENDS) does not define\n')
+repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_explicit_missing_result_r0/repo')
+before = {'current': {'MC.cfg': '5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0...1b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0ea3fbdd8cb3369939a0df48d73ee0ac69900647a5c06357bac211'}}
+
+
+tests/test_close_missing_result.py:84: AssertionError
+_ test_wrong_caller_directory_with_repo_root_refuses_and_names_the_repo_candidate _
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_wrong_caller_directory_wi0')
+
+
+tests/test_close_missing_result.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User.../var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_wrong_caller_directory_wi0/repo/sp\n')
+repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_wrong_caller_directory_wi0/repo')
+before = {'current': {'MC.cfg': '5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0...1b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0ea3fbdd8cb3369939a0df48d73ee0ac69900647a5c06357bac211'}}
+
+
+tests/test_close_missing_result.py:84: AssertionError
+_ test_several_results_with_one_missing_refuses_and_names_only_the_missing_one _
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_several_results_with_one_0')
+
+
+tests/test_close_missing_result.py:172: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...specs/current: MC.cfg configures SPECIFICATION Spec, which Program.tla (with everything it EXTENDS) does not define\n')
+repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_several_results_with_one_0/repo')
+before = {'current': {'MC.cfg': '5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0...1b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0ea3fbdd8cb3369939a0df48d73ee0ac69900647a5c06357bac211'}}
+
+
+tests/test_close_missing_result.py:84: AssertionError
+_ test_symlink_is_followed_dangling_symlink_is_missing_foreign_path_is_accepted _
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_symlink_is_followed_dangl0')
+
+
+tests/test_close_missing_result.py:188: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...specs/current: MC.cfg configures SPECIFICATION Spec, which Program.tla (with everything it EXTENDS) does not define\n')
+repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_symlink_is_followed_dangl0/repo')
+before = {'current': {'MC.cfg': '5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0...1b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0ea3fbdd8cb3369939a0df48d73ee0ac69900647a5c06357bac211'}}
+
+
+tests/test_close_missing_result.py:84: AssertionError
+__________________ test_dry_run_refuses_a_missing_result_too ___________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_dry_run_refuses_a_missing0')
+
+
+tests/test_close_missing_result.py:217: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+result = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...61q00000gn/T/pytest-of-hayde/pytest-342/test_dry_run_refuses_a_missing0/repo/specs/desired_program_model\n', stderr='')
+repo = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_dry_run_refuses_a_missing0/repo')
+before = {'current': {'MC.cfg': '5bf5c523864e1276b5d53c0d1158be61b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0...1b2144a461b1d68d904b18fb4322bff87', 'Program.tla': '19ee1b257a0ea3fbdd8cb3369939a0df48d73ee0ac69900647a5c06357bac211'}}
+
+
+tests/test_close_missing_result.py:84: AssertionError
+__________ test_force_closes_and_records_the_missing_result_honestly ___________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-342/test_force_closes_and_records_0')
+
+
+tests/test_close_missing_result.py:240: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_close_missing_result.py::test_explicit_missing_result_refuses_before_snapshot_or_removal
+FAILED tests/test_close_missing_result.py::test_wrong_caller_directory_with_repo_root_refuses_and_names_the_repo_candidate
+FAILED tests/test_close_missing_result.py::test_several_results_with_one_missing_refuses_and_names_only_the_missing_one
+FAILED tests/test_close_missing_result.py::test_symlink_is_followed_dangling_symlink_is_missing_foreign_path_is_accepted
+FAILED tests/test_close_missing_result.py::test_dry_run_refuses_a_missing_result_too
+FAILED tests/test_close_missing_result.py::test_force_closes_and_records_the_missing_result_honestly
+6 failed, 6 passed in 3.91s

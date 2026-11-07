@@ -28,6 +28,10 @@ every graph's outcome is recorded whether it passed or failed; and a graph that
 failed can be resumed from its own failing node without re-running the ones
 before it.
 
+OUTCOME (issue #185). Each graph's run.py prints its outcome.json path as the
+last log line; the run directory and the passed/failed/errored status are read
+from it, and the log is grepped only when an older run.py wrote none.
+
 FAILED vs ERRORED (issue #175). A non-zero exit is not one thing. A graph is
 `failed` only when its own summary.json says a node completed with a red
 assertion; any other non-zero exit -- no report at all because the Gradle
@@ -102,17 +106,39 @@ def run_one(repo_root: Path, graph: str, log_dir: Path,
     with log.open("w") as fh:
         rc = subprocess.call(cmd, cwd=repo_root, stdout=fh, stderr=subprocess.STDOUT)
     text = log.read_text(errors="replace")
+    outcome_path, outcome = read_outcome(text)
     run_id = None
-    for line in text.splitlines():
-        if "validation-reports/" in line:
-            frag = line.split("validation-reports/", 1)[1]
-            run_id = frag.split()[0].split("/")[0].strip()
+    if outcome is not None:
+        # #185: run.py's last stdout line names outcome.json; read the run
+        # directory from it instead of grepping the log.
+        for g in outcome.get("graphs") or []:
+            if g.get("graph") == graph and g.get("report_dir"):
+                run_id = Path(g["report_dir"]).name
+    else:
+        for line in text.splitlines():
+            if "validation-reports/" in line:
+                frag = line.split("validation-reports/", 1)[1]
+                run_id = frag.split()[0].split("/")[0].strip()
     return {
         "graph": graph, "exit_code": rc, "passed": rc == 0,
         "run_id": run_id, "seconds": round(time.time() - started, 1),
         "log": str(log.relative_to(repo_root)),
+        "outcome": outcome_path,
+        "outcome_status": outcome.get("status") if outcome else None,
         "resumed_from": {"build": resume_build, "node": resume_node} if resume_node else None,
     }
+
+
+def read_outcome(log_text: str) -> tuple[str | None, dict | None]:
+    """run.py prints its outcome.json path as the last stdout line (#185)."""
+    lines = [line.strip() for line in log_text.splitlines() if line.strip()]
+    if not lines or not lines[-1].endswith("outcome.json"):
+        return None, None
+    try:
+        doc = json.loads(Path(lines[-1]).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return lines[-1], None
+    return lines[-1], doc if isinstance(doc, dict) else None
 
 
 def node_outcomes(repo_root: Path, run_id: str | None) -> tuple[list[str], list[str], list[str]]:
@@ -217,7 +243,9 @@ def main() -> int:
         r = run_one(repo_root, g, log_dir, rb, rn)
         r["failing_nodes"], r["errored_nodes"], r["skipped_nodes"] = node_outcomes(
             repo_root, r.get("run_id"))
-        r["status"] = graph_status(r["exit_code"], report_status(repo_root, r.get("run_id")))
+        r["status"] = r.get("outcome_status") if r.get("outcome_status") in (
+            "passed", "failed", "errored") else graph_status(
+            r["exit_code"], report_status(repo_root, r.get("run_id")))
         results.append(r)
         mark = {"passed": "PASS", "failed": "FAIL", "errored": "ERROR"}[r["status"]]
         if not r["passed"]:
