@@ -3,7 +3,7 @@
 This directory is the executable whole-program model of what the repository
 implements right now for the active ticket workflow.
 
-Active ticket: `SI-01` - Self-improvement substrate: one plugin, one loop
+Active ticket: `BS-01` - Bug sweep: close, ledger, test-graph and skt reliability
 
 Baseline:
 

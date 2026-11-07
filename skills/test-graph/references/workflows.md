@@ -308,9 +308,14 @@ uses its saved input context from the build directory:
 ```
 
 The node must have `rerun=true` in its script metadata. The source must be a
-closed full execution (never another replay), its full ordered node plan must
-exactly equal the current plan, and its saved `context/<node-id>.input.json`
-must equal the exact ordered current-plan prefix before that node. The
+closed full execution or a closed graph resume rooted in one (never a run-only
+attempt). At most 32 same-report-root ancestors are verified, with no cycles,
+exact closure/context/carrier pins and exact full-plan suffix scopes. Its root
+full ordered node plan must exactly equal the current plan, and its saved
+`context/<node-id>.input.json` must equal the exact ordered current-plan prefix
+before that node, containing only passed steps. A selected failed step itself
+may be retried; a skipped step after an earlier failure cannot credit that failure.
+Missing or changed ancestry fails closed; do not edit reports to make them full. The
 executor skips earlier plan steps, runs the selected node, continues through the
 remaining graph plan, and writes those selected-to-tail envelopes into a fresh
 sibling report directory. Resume first validates closure v2 against the exact
