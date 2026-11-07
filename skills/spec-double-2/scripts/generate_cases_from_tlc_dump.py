@@ -597,14 +597,63 @@ def py_repr(value: Any) -> str:
 
 
 def load_object(path: str) -> Any:
-    module_name, sep, object_name = path.partition(":")
-    if not sep:
-        raise ValueError(f"object path must be module:object, got {path!r}")
-    module = importlib.import_module(module_name)
+    """Resolve ``module:object`` or ``path/to/file.py:object``.
+
+    BS-07 (#166): a ticket workspace is ``specs/tickets/<ID>/desired`` and
+    ticket ids carry dashes (``MH-42``), so a ticket's OWN ``tlc_projection.py``
+    has no dotted module name. Naming ``specs.current.tlc_projection`` instead
+    silently generates the ticket corpus with the PROJECT projector. A module
+    half ending in ``.py`` is therefore loaded from that file, under a private
+    module name, so no other importable ``tlc_projection`` can shadow it.
+    """
+    module_name, sep, object_name = path.rpartition(":")
+    if not sep or not module_name or not object_name:
+        raise ValueError(
+            f"object path must be module:object or path/to/file.py:object, got {path!r}"
+        )
+    if module_name.endswith(".py"):
+        module = _load_module_file(Path(module_name))
+    else:
+        module = importlib.import_module(module_name)
     obj: Any = module
     for part in object_name.split("."):
         obj = getattr(obj, part)
     return obj
+
+
+def _load_module_file(file: Path) -> Any:
+    import hashlib
+    import importlib.util
+
+    file = file.resolve()
+    if not file.is_file():
+        raise ValueError(f"projector file not found: {file}")
+    digest = hashlib.sha256(str(file).encode("utf-8")).hexdigest()[:16]
+    name = f"_tla_spec_dev_projector_{file.stem}_{digest}"
+    if name in sys.modules:
+        return sys.modules[name]
+    spec = importlib.util.spec_from_file_location(name, file)
+    if spec is None or spec.loader is None:
+        raise ValueError(f"cannot load projector file {file}")
+    module = importlib.util.module_from_spec(spec)
+    # Registered before exec: a dataclass in the projector looks its own
+    # module up in sys.modules while the class body runs.
+    sys.modules[name] = module
+    # The file's own directory leads sys.path while it executes, so a sibling
+    # helper it imports resolves next to it rather than elsewhere.
+    parent = str(file.parent)
+    sys.path.insert(0, parent)
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        sys.modules.pop(name, None)
+        raise
+    finally:
+        try:
+            sys.path.remove(parent)
+        except ValueError:
+            pass
+    return module
 
 
 def labels_for_case(
@@ -3383,11 +3432,18 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--state-projector",
-        help="Optional module:function that projects raw TLC states before rendering cases.",
+        help=(
+            "Optional module:function, or path/to/file.py:function, that projects raw "
+            "TLC states before rendering cases. Use the file form for a ticket's own "
+            "projector: ticket ids carry dashes, so it has no dotted module name."
+        ),
     )
     parser.add_argument(
         "--output-projector",
-        help="Optional module:function that derives adapter expected output from a TLC transition.",
+        help=(
+            "Optional module:function, or path/to/file.py:function, that derives "
+            "adapter expected output from a TLC transition."
+        ),
     )
     parser.add_argument(
         "--dedupe",
