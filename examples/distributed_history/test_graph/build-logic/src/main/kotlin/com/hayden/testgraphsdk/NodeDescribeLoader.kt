@@ -14,28 +14,62 @@ import java.io.File
  */
 internal object NodeDescribeLoader {
 
-    /** Describe one script file using the given resolved tool paths. */
+    /**
+     * Describe one script file using the given resolved tool paths.
+     *
+     * Kept in step with the skill's build-logic (#195): a describe that exits
+     * non-zero, cannot start or writes no output is retried up to
+     * [DESCRIBE_ATTEMPTS] times with exponential backoff; when every attempt
+     * fails the loader throws [NodeDescribeErroredException] — the `errored`
+     * outcome (#175), never a node `failed` verdict. This vendored snapshot has
+     * no process-group timeout (it predates the skill's exec controller).
+     */
     fun describe(file: File, projectDir: File, tools: ToolPaths): ValidationNodeSpec {
         require(file.isFile) { "node script not found: ${file.path}" }
         val runtime = runtimeFor(file, projectDir)
-        val out = File.createTempFile("validation-describe-", ".json").apply { deleteOnExit() }
-        val argv = invocationFor(runtime, file, tools) + "--describe-out=${out.absolutePath}"
+        val argv = invocationFor(runtime, file, tools)
+        val failures = mutableListOf<String>()
+        for (attempt in 1..DESCRIBE_ATTEMPTS) {
+            val result = describeOnce(projectDir, argv)
+            if (result.json != null) return parseSpec(result.json, runtime)
+            failures += "attempt $attempt: ${result.reason}"
+            if (attempt < DESCRIBE_ATTEMPTS) {
+                Thread.sleep(DESCRIBE_BACKOFF_MILLIS shl (attempt - 1))
+            }
+        }
+        throw NodeDescribeErroredException(
+            "errored: describe for ${file.name} failed on all $DESCRIBE_ATTEMPTS attempts; " +
+                "the run did not complete, which is not a node failure " +
+                "(retry it or fix the environment). " +
+                failures.joinToString("; ") +
+                ". Run directly to debug: ${(argv + "--describe-out=<tmp>").joinToString(" ")}"
+        )
+    }
 
-        val process = ProcessBuilder(argv)
-            .directory(projectDir)
-            .redirectErrorStream(true)
-            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-            .start()
-        val code = process.waitFor()
-        if (code != 0) {
-            error("describe failed for ${file.name} (exit=$code). " +
-                    "Run directly to debug: ${argv.joinToString(" ")}")
+    private class AttemptResult(val json: String?, val reason: String?)
+
+    private fun describeOnce(projectDir: File, baseArgv: List<String>): AttemptResult {
+        val out = File.createTempFile("validation-describe-", ".json").apply { deleteOnExit() }
+        try {
+            val argv = baseArgv + "--describe-out=${out.absolutePath}"
+            val process = try {
+                ProcessBuilder(argv)
+                    .directory(projectDir)
+                    .redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .start()
+            } catch (e: java.io.IOException) {
+                return AttemptResult(null, "could not start describe process: ${e.message}")
+            }
+            val code = process.waitFor()
+            if (code != 0) return AttemptResult(null, "exit=$code")
+            if (!out.isFile || out.length() == 0L) {
+                return AttemptResult(null, "no describe output (did the script call Node.run(args, spec, body)?)")
+            }
+            return AttemptResult(out.readText(), null)
+        } finally {
+            out.delete()
         }
-        if (!out.isFile || out.length() == 0L) {
-            error("describe produced no output for ${file.name}. " +
-                    "Did the script call Node.run(args, spec, body)?")
-        }
-        return parseSpec(out.readText(), runtime)
     }
 
     /**
@@ -98,4 +132,15 @@ internal object NodeDescribeLoader {
             ),
         )
     }
+
+    private const val DESCRIBE_ATTEMPTS = 3
+    private const val DESCRIBE_BACKOFF_MILLIS = 250L
+}
+
+/**
+ * A describe that failed on every bounded retry: outcome `errored` (the run did
+ * not complete), distinct from a node that ran and went red (`failed`).
+ */
+class NodeDescribeErroredException(message: String) : IllegalStateException(message) {
+    val outcome: String get() = "errored"
 }
