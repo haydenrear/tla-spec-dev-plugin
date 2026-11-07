@@ -189,17 +189,24 @@ def test_a_narrative_that_quotes_the_template_sentinel_is_not_blanked(tmp_path: 
     assert written["entries"][-1]["narrative"] == narrative
 
 
-def test_an_unfilled_template_narrative_is_recorded_as_rejected_and_the_close_proceeds(
+def test_an_unfilled_template_narrative_refuses_the_close_unless_forced(
     tmp_path: Path, capsys
 ) -> None:
-    """The ledger is advisory: the rejection is recorded, the close is not refused."""
+    """#134 (BS-01): a rejected input refuses the close by name; --force records
+    the rejection and closes. It used to proceed with one warning line, so the
+    check had no teeth."""
     root = build_subject(tmp_path / "subject")
     ledger_input = root / "specs" / "results" / "complexity_ledger_input.yaml"
     document = yaml.safe_load(ledger_input.read_text(encoding="utf-8"))
     document["narrative"] = "TODO"
     ledger_input.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
 
-    close(root)
+    with pytest.raises(SystemExit) as refused:
+        close(root)
+    assert "complexity ledger input is rejected" in str(refused.value)
+    assert not entry_dir(root).exists()
+
+    close_ticket_workflow(root, Path("specs"), dry_run=False, summary="forced", force=True)
 
     assert "complexity ledger input rejected" in capsys.readouterr().err
     assert entry_dir(root).is_dir()
