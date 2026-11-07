@@ -29,6 +29,7 @@ try:
         live_receipt_manifests,
         print_commit_recommendation,
         refuse_or_warn,
+        resolve_workflow_path,
         select_model_files,
         validate_model_pair,
         validate_workflow_ticket_completion,
@@ -46,6 +47,7 @@ except ImportError:  # pragma: no cover - direct script execution
         live_receipt_manifests,
         print_commit_recommendation,
         refuse_or_warn,
+        resolve_workflow_path,
         select_model_files,
         validate_model_pair,
         validate_workflow_ticket_completion,
@@ -586,6 +588,54 @@ def validate_retirement_accept_new_authority(
     return errors
 
 
+RESULT_PATH_POLICY = (
+    "A relative --result is resolved against the CALLER's working directory "
+    "first; when that misses and the path does not start with the spec-root "
+    "directory name, it falls back to <repo-root>/<spec-root>/<path>. It is "
+    "never resolved against --repo-root alone. A symlink is followed (its "
+    "target is copied); a dangling one is missing. An absolute path outside "
+    "the repository is accepted and recorded by its absolute path."
+)
+
+
+def missing_result_problems(result_paths: list[Path], *, repo_root: Path, specs_dir: Path) -> list[str]:
+    """#203: every explicitly supplied `--result` that does not resolve to a file.
+
+    Resolution is exactly what the snapshot writer does (`resolve_workflow_path`),
+    so a path this passes is the path that gets copied. The problem names the
+    resolved path and, when the path does exist under the repo root or the spec
+    root, the absolute `--result` that would bind it.
+    """
+    problems: list[str] = []
+    for given in result_paths:
+        resolved = resolve_workflow_path(given, specs_dir)
+        if resolved.exists():
+            continue
+        problem = f"--result {given} resolves to {resolved}, which does not exist (caller directory: {Path.cwd()})"
+        if not given.is_absolute():
+            candidates = []
+            for base in (repo_root, specs_dir):
+                candidate = (base / given).resolve()
+                if candidate.exists() and candidate not in candidates:
+                    candidates.append(candidate)
+            if candidates:
+                problem += "; it does exist at " + " and ".join(
+                    f"{candidate} (pass --result {candidate})" for candidate in candidates
+                )
+        problems.append(problem)
+    return problems
+
+
+def missing_result_guidance() -> str:
+    return (
+        RESULT_PATH_POLICY
+        + "\n\nNothing was written: closed history, current/ and desired_program_model/ are untouched. "
+        "Correct the path (an absolute path is never ambiguous), run from the directory the relative path "
+        "was written against, or drop that --result. To close anyway with the result recorded honestly as "
+        "exists=false, rerun with --force or SKILL_GATES=off."
+    )
+
+
 def close_ticket_workflow(
     repo_root: Path,
     spec_root: Path,
@@ -608,6 +658,16 @@ def close_ticket_workflow(
     current_dir = resolved_spec_root / "current"
     desired_dir = resolved_spec_root / "desired_program_model"
     ticket_plan = desired_dir / "ticket_plan.yaml"
+
+    # #203: an explicit --result that cannot be found refuses BEFORE anything is
+    # promoted, snapshotted or removed (dry run included). Omitting --result is
+    # not this case. Forced, the close goes on and records exists=false.
+    refuse_or_warn(
+        missing_result_problems(result_paths or [], repo_root=repo_root, specs_dir=resolved_spec_root),
+        force=force,
+        header="cannot close ticket workflow: an explicitly supplied --result was not found:",
+        guidance=missing_result_guidance(),
+    )
 
     if not accept_new:
         current_errors = validate_equivalent(current_dir, desired_dir)
@@ -734,7 +794,11 @@ def main() -> int:
     parser.add_argument("--workflow-name", help="Override ticket_plan.yaml name/status.workflow for the history directory.")
     parser.add_argument("--history-entry", default="closed-snapshot", help="History entry name under the workflow directory.")
     parser.add_argument("--summary", default="", help="Human-readable summary for the closed workflow snapshot.")
-    parser.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
+    parser.add_argument("--result", action="append", type=Path, default=[],
+        help="TLC, generated-case, adapter, or test result path to snapshot. Optional; when given and not "
+        "found, the close refuses before writing anything (--force / SKILL_GATES=off records exists=false). "
+        + RESULT_PATH_POLICY.replace("%", "%%"),
+    )
     parser.add_argument(
         "--no-skill-feedback",
         action="store_true",
