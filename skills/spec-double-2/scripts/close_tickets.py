@@ -196,7 +196,13 @@ def workflow_promotion_guidance() -> str:
         "into program_model/, mark every ticket closed), then re-run this command.\n"
         "- Option B: re-run with --accept-new to accept desired_program_model/ as the new current/ and "
         "program_model/ automatically (their semantic files are overwritten from desired_program_model/ "
-        "before the snapshot); tickets must still be marked closed."
+        "before the snapshot); tickets must still be marked closed. It runs desired -> current: when "
+        "desired_program_model/ is the STALE side (it still holds the previous model), --accept-new "
+        "discards the delivered model.\n"
+        "- `close ticket` carries each delivered delta into desired_program_model/ three ways (#141 "
+        "SF-075; `desired_carry` in each ticket receipt names what followed, merged, or conflicted). "
+        "A desired file a receipt lists under desired_carry.conflicts, or a workflow whose tickets "
+        "closed before that, is reconciled by hand toward current/ and committed before this command."
     )
 
 
