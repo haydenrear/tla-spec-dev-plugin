@@ -86,13 +86,24 @@ CHANNELS = {
     "blind-judges", "census", "operator-doing-the-work",
     "operator-running-a-shipped-instrument", "operator-running-own-instrument",
     "the-suite", "independent-review",
+    # `bug_attribution.md` section 4.1 added three after CA-02 (#161). A
+    # vocabulary that lags the page flags the page's own tokens as drift.
+    "test-graph", "tlc", "cross-implementation",
 }
+#: `bug_attribution.md` section 3: an undecided channel is the honest answer to
+#: an absent input. It is not drift and is not reported as off-vocabulary.
+UNDECIDED = "UNDECIDED"
 
 
 def off_vocabulary_channels(rows: list[dict]) -> list[tuple[str, str]]:
-    """Rows whose `channel` is set but outside `CHANNELS`. Advisory, never a clause."""
+    """Rows whose `channel` is set but outside `CHANNELS`. Advisory, never a clause.
+
+    `UNDECIDED` is not off-vocabulary: it is section 3's answer, not a token
+    somebody misspelled (#161).
+    """
     return [(str(r.get("id", "?")), str(r["channel"])) for r in rows
-            if r.get("channel") and r["channel"] not in CHANNELS]
+            if r.get("channel") and r["channel"] not in CHANNELS
+            and r["channel"] != UNDECIDED]
 
 
 def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
@@ -109,10 +120,19 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
     A structural fault is reported SEPARATELY from a clause violation and always
     refuses: a clause verdict computed over silently-discarded input is not a
     verdict at all.
+
+    THE ROW LAYOUT IS READ, NOT ASSUMED (#162, #143 SF-010). A ledger may write
+    its list at column 0 (`- id:` / `  key:`, which is what PyYAML's
+    `safe_dump` emits) or nested (`  - id:` / `    key:`). The row-key indent
+    is taken from each `- id:` line. A fixed pattern read the column-0 layout
+    with no row start at all, counted its NESTED `surface:` sub-keys
+    (`production`, `tla`, ...) as row keys, and refused the whole ledger on
+    duplicates that were not there.
     """
     out: list[tuple[str, str, list[int]]] = []
     rid = "?"
     seen: dict[str, list[int]] = {}
+    key_indent: int | None = None
 
     def flush() -> None:
         for k, ns in seen.items():
@@ -120,11 +140,16 @@ def duplicate_keys(text: str) -> list[tuple[str, str, list[int]]]:
                 out.append((rid, k, ns))
 
     for n, line in enumerate(text.split("\n"), 1):
-        if re.match(r"^  - id: ", line):
+        # The first row fixes the list's indent; a deeper `- id:` is a nested
+        # list inside a row, not a new row.
+        if (m := re.match(r"^( *)- id:", line)) and (
+                key_indent is None or len(m.group(1)) + 2 == key_indent):
             flush()
-            rid, seen = line.split("id: ", 1)[1].strip(), {}
-        elif m := re.match(r"^    ([A-Za-z_][A-Za-z0-9_]*):", line):
-            seen.setdefault(m.group(1), []).append(n)
+            rid, seen = line.split("id:", 1)[1].strip(), {}
+            key_indent = len(m.group(1)) + 2
+        elif key_indent is not None and (m := re.match(r"^( *)([A-Za-z_][A-Za-z0-9_]*):", line)) \
+                and len(m.group(1)) == key_indent:
+            seen.setdefault(m.group(2), []).append(n)
     flush()
     return out
 
@@ -336,7 +361,7 @@ def main(argv: list[str] | None = None) -> int:
               f"in {ledger_path} are undisposed")
         if off := off_vocabulary_channels(rows):
             print(f"\nADVISORY (not a clause): {len(off)} row(s) carry a `channel` "
-                  f"outside the vocabulary in references/consumption.md:")
+                  f"outside the vocabulary in references/bug_attribution.md section 4.1:")
             for rid, ch in off:
                 print(f"           {rid}: {ch!r}")
         return worst

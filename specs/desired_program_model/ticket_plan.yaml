@@ -64,8 +64,7 @@ tickets:
     contribution: guard
     expected_effect: 'guard: graphs run the installed plugin; none newly red'
     local_signal: python3 test_graph/run-graphs.py --only cliWorkflow
-  - &id001
-    goal: GOAL-BS-EVALS
+  - goal: GOAL-BS-EVALS
     contribution: guard
     expected_effect: must not regress any eval case; measured only by BS-17
     local_signal: 'N/A: the full eval lane runs only in BS-17'
@@ -127,7 +126,10 @@ tickets:
     contribution: direct
     expected_effect: 1 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/175-errored-vs-failed
   worktree: /Users/hayde/IdeaProjects/tla-spec-dev-175-errored-vs-failed
   covers:
@@ -185,14 +187,15 @@ tickets:
     contribution: direct
     expected_effect: 8 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or complexity_ledger or ledger'
-  - &id002
-    goal: GOAL-BS-SUITE
+  - goal: GOAL-BS-SUITE
     contribution: guard
     expected_effect: no new failure in `pytest tests`
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
-  - *id001
-  - &id003
-    goal: GOAL-BS-MANUAL
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  - goal: GOAL-BS-MANUAL
     contribution: guard
     expected_effect: the fixed path must hold end to end in the owner's manual loop
     local_signal: 'N/A: exercised only in BS-18'
@@ -259,8 +262,14 @@ tickets:
     contribution: direct
     expected_effect: 6 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'disposition or improvement_ledger or attribution'
-  - *id002
-  - *id001
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/188-ledger-disposition
   worktree: ../tla-spec-dev-188-ledger-disposition
   covers:
@@ -319,7 +328,10 @@ tickets:
     contribution: direct
     expected_effect: 3 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'reference or workflow_doc or deferment'
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/189-workflow-references
   worktree: ../tla-spec-dev-189-workflow-references
   covers:
@@ -378,7 +390,10 @@ tickets:
     contribution: direct
     expected_effect: 'guard: sktSurface/sktHooks stay green'
     local_signal: python3 test_graph/run-graphs.py --only sktHooks
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/190-skt-sync
   worktree: ../tla-spec-dev-190-skt-sync
   covers:
@@ -443,8 +458,14 @@ tickets:
     contribution: direct
     expected_effect: 'guard: sktSurface (ticket round trip) stays green'
     local_signal: python3 test_graph/run-graphs.py --only sktSurface
-  - *id001
-  - *id003
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  - goal: GOAL-BS-MANUAL
+    contribution: guard
+    expected_effect: the fixed path must hold end to end in the owner's manual loop
+    local_signal: 'N/A: exercised only in BS-18'
   feature_branch: feature/191-skt-ticket-lifecycle
   worktree: ../tla-spec-dev-191-skt-ticket-lifecycle
   covers:
@@ -507,8 +528,14 @@ tickets:
     contribution: direct
     expected_effect: 4 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'tlc or cfg or generate_cases or complexity'
-  - *id002
-  - *id001
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/192-tlc-parsing-casegen
   worktree: ../tla-spec-dev-192-tlc-parsing-casegen
   covers:
@@ -574,7 +601,10 @@ tickets:
     contribution: guard
     expected_effect: 'guard: no graph newly red'
     local_signal: python3 test_graph/run-graphs.py --only cliWorkflow
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/195-describe-retry
   worktree: ../tla-spec-dev-195-describe-retry
   covers:
@@ -633,7 +663,10 @@ tickets:
     contribution: direct
     expected_effect: 'guard: sktSurface/sktHooks stay green'
     local_signal: python3 test_graph/run-graphs.py --only sktHooks
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/202-skt-build-freshness
   worktree: ../tla-spec-dev-202-skt-build-freshness
   covers:
@@ -689,7 +722,10 @@ tickets:
     contribution: direct
     expected_effect: 1 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/200-epic-issue-and-closes
   worktree: ../tla-spec-dev-200-epic-issue-and-closes
   covers:
@@ -748,7 +784,10 @@ tickets:
     contribution: direct
     expected_effect: 1 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -rf
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/193-red-suite
   worktree: ../tla-spec-dev-193-red-suite
   covers:
@@ -812,7 +851,10 @@ tickets:
     contribution: guard
     expected_effect: 'guard: no graph newly red'
     local_signal: python3 test_graph/run-graphs.py --only cliWorkflow
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/185-outcome-json
   worktree: ../tla-spec-dev-185-outcome-json
   covers:
@@ -873,8 +915,14 @@ tickets:
     contribution: direct
     expected_effect: 2 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or carry or open_ticket'
-  - *id002
-  - *id001
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/141-close-carries-desired
   worktree: ../tla-spec-dev-141-close-carries-desired
   covers:
@@ -938,7 +986,10 @@ tickets:
     contribution: direct
     expected_effect: 'guard: sktSurface stays green'
     local_signal: python3 test_graph/run-graphs.py --only sktSurface
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/201-resume-integrity
   worktree: ../tla-spec-dev-201-resume-integrity
   covers:
@@ -994,8 +1045,14 @@ tickets:
     contribution: direct
     expected_effect: 2 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q -k resume
-  - *id001
-  - *id003
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  - goal: GOAL-BS-MANUAL
+    contribution: guard
+    expected_effect: the fixed path must hold end to end in the owner's manual loop
+    local_signal: 'N/A: exercised only in BS-18'
   feature_branch: feature/186-resume-front-door
   worktree: ../tla-spec-dev-186-resume-front-door
   covers:
@@ -1051,7 +1108,10 @@ tickets:
     contribution: direct
     expected_effect: 1 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q -k milestone
-  - *id001
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/147-milestone-runner
   worktree: ../tla-spec-dev-147-milestone-runner
   covers:
@@ -1106,8 +1166,14 @@ tickets:
     contribution: direct
     expected_effect: 1 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'deferred or census or ledger'
-  - *id002
-  - *id001
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/148-epic-deferred-ledger
   worktree: ../tla-spec-dev-148-epic-deferred-ledger
   covers:
@@ -1164,8 +1230,14 @@ tickets:
     contribution: direct
     expected_effect: 1 in-scope issue(s) proven fixed (red on base, green on branch)
     local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -k 'close and result'
-  - *id002
-  - *id001
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
   feature_branch: feature/203-missing-result-guard
   worktree: ../tla-spec-dev-203-missing-result-guard
   covers:

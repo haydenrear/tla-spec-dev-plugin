@@ -113,3 +113,12 @@ description = "Generate and maintain Python spec doubles from constrained, annot
 # What replaces it: `tests/test_plugin_layout_resolution.py`, which asserts the
 # manifest names an in-bundle provider, plus prepare-bindings.py's own refusal.
 # Both run in this repository's ordinary suites; neither needs a home.
+#
+# 2026-11-04 — SUPERSEDED: the graphs no longer bind to the in-repo provider.
+# `test_graph/provider-bindings.json` now declares only the `skill-root`
+# candidate, and `test_graph/run-graphs.py` invokes the test-graph scripts from
+# THIS checkout's home (`.skill-manager/plugins/tla-spec-dev/skills/test-graph`),
+# so `build-logic`, `sdk` and `standard-nodes` link into the installed plugin,
+# not into `skills/test-graph`. An edit to the in-repo SDK reaches the graphs
+# after it merges and `skt sync tla-spec-dev` pulls it into the home.
+# `tests/test_plugin_layout_resolution.py` now asserts that shape.

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -213,14 +214,93 @@ def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
 # `scripts/kill_test.py` because the A/B evaluation instruments import them.
 
 
+def _stage_tlc_report(results_dir: Path, report: Path | None, result_paths: list[Path]) -> None:
+    """#143 SF-007/009: put the ticket's TLC report where the ledger reads it.
+
+    The close's complexity ledger probes `<ticket>/results/` for
+    `tlc-current.txt` (then `tlc.txt`, `tlc-baseline.txt`); nothing put a report
+    there, so `generated_states`/`distinct_states`/`depth` were null in 42 of 44
+    ledger entries and the self-loop red flag never ran. An explicit
+    `--tlc-report`, or else the first `--result` whose name starts with `tlc`,
+    is copied in as `tlc-current.txt`. With none, the metrics are recorded as
+    missing and the close says so.
+    """
+    from scripts.close_tickets import TLC_PROBE_NAMES
+
+    candidate = report or next(
+        (path for path in result_paths if path.name.lower().startswith("tlc") and path.is_file()),
+        None,
+    )
+    staged = results_dir / TLC_PROBE_NAMES[0]
+    if candidate is None:
+        if not any((results_dir / name).exists() for name in TLC_PROBE_NAMES):
+            print(
+                "WARNING: no TLC report for this close; the complexity ledger records "
+                "generated/distinct states and depth as missing. Pass --tlc-report <path>.",
+                file=sys.stderr,
+            )
+        return
+    if not candidate.is_file():
+        print(f"WARNING: --tlc-report {candidate} does not exist; TLC metrics recorded as missing.", file=sys.stderr)
+        return
+    results_dir.mkdir(parents=True, exist_ok=True)
+    if staged.exists() and staged.resolve() == candidate.resolve():
+        return
+    shutil.copyfile(candidate, staged)
+    print(f"complexity ledger TLC report: {candidate} -> {staged}")
+
+
 def run_close_ticket(args: argparse.Namespace) -> int:
-    from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
+    from scripts.close_tickets import complexity_ledger_input_problems, summary_or_missing
+    from scripts.spec_evolution import (
+        active_ticket_dir,
+        complexity_ledger_input_path,
+        create_ticket_history_entry,
+        find_ticket,
+        gates_forced,
+        load_ticket_plan,
+        print_commit_recommendation,
+        refuse_or_warn,
+        ticket_id,
+        workflow_name,
+    )
+
+    repo_root = Path(args.repo_root).resolve()
+    specs_dir = resolved_spec_root(repo_root, args.spec_root)
+    force = gates_forced(args.force)
+    plan = load_ticket_plan(specs_dir)
+    resolved_workflow = workflow_name(plan, args.workflow_name)
+    index, ticket = find_ticket(plan, args.ticket_name)
+    resolved_ticket = ticket_id(ticket, index)
+    active_dir = active_ticket_dir(specs_dir, resolved_ticket, args.ticket_root)
+    has_workdir = active_dir.exists()
+    if has_workdir:
+        # Ticket-local only: staging into specs/results/ would leave a report
+        # behind for the NEXT close to recycle -- the #172 failure again.
+        _stage_tlc_report(active_dir / "results", args.tlc_report, list(args.result))
+    model_dir = (
+        (active_dir / "current" if (active_dir / "current").exists() and not args.accept_new else active_dir / "desired")
+        if has_workdir
+        else specs_dir / "current"
+    )
+    refuse_or_warn(
+        complexity_ledger_input_problems(
+            specs_dir,
+            scope="ticket",
+            scope_id=resolved_ticket,
+            workflow=resolved_workflow,
+            model_dir=model_dir,
+            input_path=complexity_ledger_input_path(specs_dir, active_dir if has_workdir else None, "ticket"),
+        ),
+        force=force,
+        header="ERROR: cannot close ticket: complexity ledger input refused:",
+    )
 
     result = create_ticket_history_entry(
-        repo_root=Path(args.repo_root).resolve(),
+        repo_root=repo_root,
         spec_root=Path(args.spec_root),
         ticket_ref=args.ticket_name,
-        summary=args.summary,
+        summary=summary_or_missing(args.summary),
         result_paths=args.result,
         workflow=args.workflow_name,
         entry_name=args.entry_name,
@@ -228,6 +308,11 @@ def run_close_ticket(args: argparse.Namespace) -> int:
         ticket_root=args.ticket_root,
         promote_current=not args.no_promote_current,
         accept_new=args.accept_new,
+        # #187: the per-ticket feedback stub is written only on request. 61
+        # stubs closed `unreviewed` yielded zero findings; the workflow close
+        # keeps its retro (close_tickets.py) and lists any ticket entry left
+        # unreviewed.
+        emit_feedback=args.feedback,
         force=args.force,
     )
     print_commit_recommendation(result)
@@ -893,7 +978,17 @@ def build_parser() -> argparse.ArgumentParser:
     close_ticket.add_argument("ticket_name", help="Ticket id from desired_program_model/ticket_plan.yaml.")
     close_ticket.add_argument("--workflow-name", help="Override ticket_plan.yaml name/status.workflow for the history directory.")
     close_ticket.add_argument("--entry-name", help="Override the default ticket-NNN-id history entry name.")
-    close_ticket.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change.")
+    close_ticket.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change. Empty is recorded as 'missing'.")
+    close_ticket.add_argument(
+        "--feedback",
+        action="store_true",
+        help="Append this ticket's close-out entry to <spec-root>/results/skill_feedback.md. Off by default: write it only when you have feedback to record.",
+    )
+    close_ticket.add_argument(
+        "--tlc-report",
+        type=Path,
+        help="TLC output for the complexity ledger (copied to <ticket>/results/tlc-current.txt). Defaults to the first --result named tlc*.",
+    )
     close_ticket.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
     close_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
@@ -906,7 +1001,7 @@ def build_parser() -> argparse.ArgumentParser:
     close_ticket.add_argument(
         "--force",
         action="store_true",
-        help="Warn instead of refusing on status, receipt, and convergence gates; a divergent ticket is accepted as with --accept-new. SKILL_GATES=off means the same. Recorded in the receipt.",
+        help="Warn instead of refusing on status, receipt, convergence, and complexity-ledger gates; a divergent ticket is accepted as with --accept-new. SKILL_GATES=off means the same. Recorded in the receipt.",
     )
     close_ticket.set_defaults(
         func=run_close_ticket,

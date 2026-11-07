@@ -51,6 +51,7 @@ def valid_plan() -> dict:
     return {
         "name": "example-epic-workflow",
         "schedule_revision": 1,
+        "epic_issue": "https://github.com/example/repo/issues/1",
         "deferment_policy": {
             "mode": "batch",
             "blocking": "escalate",
@@ -173,6 +174,35 @@ def fully_retired_plan() -> dict:
     for index in range(len(plan["tickets"])):
         retire_ticket(plan, index)
     return plan
+
+
+class EpicIssueWarningTests(unittest.TestCase):
+    """#200: a plan without `epic_issue` warns but never fails."""
+
+    def run_cli(self, plan: dict, *args: str) -> tuple[int, str]:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ticket_plan.yaml"
+            path.write_text(yaml.safe_dump(plan, sort_keys=False), encoding="utf-8")
+            stderr = io.StringIO()
+            with redirect_stderr(stderr), redirect_stdout(io.StringIO()):
+                code = validator.main([str(path), *args])
+            return code, stderr.getvalue()
+
+    def test_missing_epic_issue_warns_and_exits_zero(self) -> None:
+        plan = valid_plan()
+        del plan["epic_issue"]
+        for args in ((), ("--strict",)):
+            code, stderr = self.run_cli(plan, *args)
+            self.assertEqual(code, 0, args)
+            self.assertIn("WARNING: plan declares no epic_issue", stderr)
+        report = validator.validate_plan(plan, strict=True)
+        self.assertEqual(report.errors, [])
+
+    def test_declared_epic_issue_is_silent(self) -> None:
+        code, stderr = self.run_cli(valid_plan(), "--strict")
+        self.assertEqual(code, 0)
+        self.assertNotIn("epic_issue", stderr)
+        self.assertEqual(stderr, "")
 
 
 class EpicPlanValidatorTests(unittest.TestCase):
