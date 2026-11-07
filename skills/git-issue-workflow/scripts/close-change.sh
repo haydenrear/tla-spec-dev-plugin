@@ -185,6 +185,15 @@ if [ ! -d "$WT" ]; then
 fi
 WT="$(cd "$WT" && pwd -P)"
 
+# #201: a worktree that lost its `.git` pointer cannot answer `git -C "$WT"`,
+# and the next line would die with "cannot resolve the main working tree" — true
+# and useless. Say what is missing and the one command that restores it; it
+# rewrites only the pointer, from the admin entry the main checkout still holds.
+if [ ! -e "$WT/.git" ]; then
+  die_fix 1 "git -C \"$ROOT\" worktree repair \"$WT\"" \
+    "pointer_missing: $WT has no .git pointer, so nothing about it can be checked or closed"
+fi
+
 # THE WORKTREE DECIDES WHICH REPO THIS IS, not $PWD. Re-derived here because the
 # resolution above may have landed on another repo's worktree entirely, and
 # because every remaining question — is it really a worktree, which project home
@@ -423,6 +432,35 @@ refuse() {
 EOF
   exit "$REFUSED_EXIT"
 }
+
+# ------------------------------------------------------ integrity recheck (#201)
+#
+# Measured NOW, from the live filesystem, by the same module `skt ticket list`
+# and `sweep` use: missing tracked source, a declared home that is gone, and
+# declared retained evidence that is missing, replaced, or still held (which
+# this removal would delete). An earlier receipt is never consulted. --force
+# walks past it through refuse(), the same as every other blocker here.
+INTEGRITY_PY="$SCRIPT_DIR/../../skt/src/skt/ticket_integrity.py"
+if [ -f "$INTEGRITY_PY" ]; then
+  irc=0
+  INTEGRITY="$("$PY" "$INTEGRITY_PY" check "$WT" --root "$ROOT" --record 2>&1)" || irc=$?
+  HELD="$(printf '%s\n' "$INTEGRITY" | command sed -n 's/^intact [^ ]* (\([0-9][0-9]*\) retained.*/\1/p' | command sed -n 1p)"
+  if [ "$irc" != 0 ]; then
+    printf '%s\n' "$INTEGRITY" | command sed 's/^/  /' >&2
+    REFUSE_FIX="$(printf '%s\n' "$INTEGRITY" | command sed -n 's/^fix: //p' | command sed -n 1p)"
+    refuse "integrity recheck: $WT is missing data it had (listed above) — recover it, or close with --force to discard what remains"
+    info "integrity: OVERRIDDEN — removing a worktree that was already missing data"
+  elif [ "${HELD:-0}" != 0 ]; then
+    REFUSE_FIX="$PY $INTEGRITY_PY check $WT --root $ROOT"
+    refuse "integrity recheck: $WT holds $HELD declared retained evidence file(s) that removal would delete — move them out first"
+    info "integrity: OVERRIDDEN — declared retained evidence is being deleted"
+  else
+    info "integrity: intact (measured now)"
+  fi
+  REFUSE_FIX=""
+else
+  info "integrity: not rechecked — skt's ticket_integrity.py is not beside this unit"
+fi
 
 gate_ran=0
 # Did the gate ESTABLISH that nothing would be lost? Distinct from "the script is

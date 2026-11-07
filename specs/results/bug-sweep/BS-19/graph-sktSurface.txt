@@ -1,0 +1,4 @@
+testGraph 'sktSurface' run=20261107-182109 steps=5 fullPlanSteps=5 traceId=3147f8bf78a39829cfa3daa619a471c0
+testGraph 'sktSurface' done. traceId=3147f8bf78a39829cfa3daa619a471c0 reports: /Users/hayde/IdeaProjects/tla-spec-dev-201-resume-integrity/test_graph/build/validation-reports/20261107-182109
+== verdicts (read from each run's own summary.json, not from exit codes) ==
+  PASSED    sktSurface                 runner_exit=0  /Users/hayde/IdeaProjects/tla-spec-dev-201-resume-integrity/test_graph/build/validation-reports/20261107-182109/summary.json

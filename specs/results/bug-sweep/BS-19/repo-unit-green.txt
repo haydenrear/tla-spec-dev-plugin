@@ -1,0 +1,7 @@
+# branch: feature/201-resume-integrity @ 430da7e763bd330a7d32cd91168c67a277ca02a3 (merged origin/epic/bug-sweep a4d2cde49782e89d7a462a1bd1543ebc6dc86b24)
+# cmd: (cd skills/skt) uvx --with pyyaml --with jinja2 pytest tests -q -k 'ticket or sweep or integrity or list'  -- includes tests/test_ticket_integrity.py (12)
+........................................................................ [ 49%]
+........................................................................ [ 98%]
+..                                                                       [100%]
+146 passed, 287 deselected in 226.77s (0:03:46)
+exit=0
