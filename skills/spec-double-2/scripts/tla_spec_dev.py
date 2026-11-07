@@ -426,6 +426,95 @@ def carry_delivered_into_desired(
     return record
 
 
+#: closure.yaml keys, in attribution order (#148).
+CLOSURE_KINDS = ("closed", "review_closed", "also")
+
+
+def _read_yaml_text(text: str) -> object:
+    """PyYAML when present; the CLI's stdlib parser otherwise (the installed CLI has no PyYAML)."""
+    try:
+        import yaml
+    except ImportError:
+        from scripts.extract_spec_manifest import parse_simple_yaml
+
+        return parse_simple_yaml(text)
+    return yaml.safe_load(text)
+
+
+def _write_yaml(path: Path, data: object) -> None:
+    """PyYAML when present; otherwise JSON, which is valid YAML every reader here accepts."""
+    import json
+
+    try:
+        import yaml
+    except ImportError:
+        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        return
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=100), encoding="utf-8")
+
+
+def mark_deferred_ledger(
+    repo_root: Path, specs_dir: Path, plan: dict, workflow: str, ticket: str,
+    closure_path: Path, closure_text: str | None,
+) -> dict[str, object]:
+    """Mark the epic ledger rows this ticket's closure.yaml closes (#148).
+
+    The closure (``closed`` / ``review_closed`` / ``also`` id lists) is kept at
+    ``<ledger dir>/closures/<ticket>.yaml`` whether or not a ledger exists, so
+    the closure census (git-epic-workflow ``scripts/census.py``) can still find
+    an open row whose fix is already merged. An id the ledger does not hold is
+    recorded, never refused: close never blocks on the ledger.
+    """
+    import datetime
+
+    record: dict[str, object] = {"performed": False, "marked": [], "unknown": []}
+    if closure_text is None:
+        record["skipped"] = f"no closure at {rel_to(repo_root, closure_path)}"
+        return record
+    closure = _read_yaml_text(closure_text) or {}
+    if not isinstance(closure, dict):
+        record["skipped"] = f"closure is not a mapping: {rel_to(repo_root, closure_path)}"
+        return record
+    policy = plan.get("deferment_policy") if isinstance(plan.get("deferment_policy"), dict) else {}
+    ledger_path = (
+        repo_root / policy["ledger"]
+        if isinstance(policy.get("ledger"), str) and policy["ledger"].strip()
+        else specs_dir / "results" / workflow / "deferred-ledger.yaml"
+    )
+    kept = {"ticket": ticket, **{kind: [str(i) for i in closure.get(kind) or []] for kind in CLOSURE_KINDS}}
+    kept_path = ledger_path.parent / "closures" / f"{ticket}.yaml"
+    kept_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_yaml(kept_path, kept)
+    record.update({"ledger": rel_to(repo_root, ledger_path), "closure": rel_to(repo_root, kept_path)})
+    ledger = _read_yaml_text(ledger_path.read_text(encoding="utf-8")) if ledger_path.is_file() else None
+    if not isinstance(ledger, dict):
+        record["skipped"] = "no ledger"
+        return record
+    rows = {str(row.get("id")): row for row in ledger.get("findings") or [] if isinstance(row, dict)}
+    today = datetime.date.today().isoformat()
+    for kind in CLOSURE_KINDS:
+        for fid in kept[kind]:
+            row = rows.get(fid)
+            if row is None:
+                record["unknown"].append(fid)  # type: ignore[union-attr]
+                continue
+            if row.get("closed_by"):
+                continue  # attributed already (an earlier kind, or an earlier close)
+            row.update({"disposition": "fixed", "closed_by": ticket, "closed_as": kind, "closed_on": today})
+            record["marked"].append({"id": fid, "as": kind})  # type: ignore[union-attr]
+    if record["marked"]:
+        _write_yaml(ledger_path, ledger)
+    record["performed"] = bool(record["marked"])
+    return record
+
+
+def rel_to(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def _amend_receipt(entry_dir: Path, **fields: object) -> None:
     import json
 
@@ -494,6 +583,11 @@ def run_close_ticket(args: argparse.Namespace) -> int:
         header="ERROR: cannot close ticket: complexity ledger input refused:",
     )
 
+    # Read before the history entry: the close archives the ticket tree (#148).
+    closure_path = args.closure if args.closure is not None else active_dir / "closure.yaml"
+    closure_path = closure_path if closure_path.is_absolute() else repo_root / closure_path
+    closure_text = closure_path.read_text(encoding="utf-8") if closure_path.is_file() else None
+
     carry_desired = not args.no_carry_desired
     current_before = _model_files(specs_dir / "current") if carry_desired else {}
     result = create_ticket_history_entry(
@@ -528,11 +622,28 @@ def run_close_ticket(args: argparse.Namespace) -> int:
             )
     else:
         desired_carry = {"performed": False, "skipped": "--no-carry-desired"}
+    deferred_ledger = mark_deferred_ledger(
+        repo_root, specs_dir, plan, resolved_workflow, resolved_ticket, closure_path, closure_text
+    )
+    for marked in deferred_ledger["marked"]:  # type: ignore[union-attr]
+        print(f"deferred ledger: {marked['id']} closed by {resolved_ticket} ({marked['as']})")
+    if deferred_ledger["unknown"]:
+        print(
+            f"WARNING: closure names id(s) the deferred ledger does not hold: "
+            f"{', '.join(deferred_ledger['unknown'])} (recorded in the receipt)",  # type: ignore[arg-type]
+            file=sys.stderr,
+        )
     receipt_fields: dict[str, object] = {
         "desired_carry": desired_carry,
+        "deferred_ledger": deferred_ledger,
         "forced_mutation_paths": forced_mutation_paths,
     }
+    extra_add = []
     if desired_carry.get("performed"):
+        extra_add.append(specs_dir / "desired_program_model")
+    if deferred_ledger.get("closure"):
+        extra_add.append((repo_root / str(deferred_ledger["ledger"])).parent)
+    if extra_add:
         import dataclasses
         import shlex
 
@@ -540,7 +651,7 @@ def run_close_ticket(args: argparse.Namespace) -> int:
 
         result = dataclasses.replace(
             result,
-            git_add_command=result.git_add_command + " " + shlex.quote(rel(specs_dir / "desired_program_model")),
+            git_add_command=" ".join([result.git_add_command, *(shlex.quote(rel(path)) for path in extra_add)]),
         )
         receipt_fields["commit_recommendation"] = {
             "message": result.recommendation,
@@ -1240,6 +1351,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-carry-desired",
         action="store_true",
         help="Do not carry the delta this close promoted into project current/ on into desired_program_model/ (three-way, recorded in the receipt as desired_carry).",
+    )
+    close_ticket.add_argument(
+        "--closure",
+        type=Path,
+        help=(
+            "closure.yaml listing the deferred-ledger ids this close fixes (closed / review_closed / also). "
+            "Default: <ticket dir>/closure.yaml when present. Marks the epic ledger rows and keeps the closure "
+            "beside the ledger for scripts/census.py; never blocks."
+        ),
     )
     close_ticket.set_defaults(
         func=run_close_ticket,
