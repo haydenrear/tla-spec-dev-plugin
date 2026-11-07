@@ -1,0 +1,55 @@
+# BS-02's inbox (#188). NOT the ledger -- the epic agent absorbs this at wave close.
+# Every row was observed by hand in /Users/hayde/IdeaProjects/tla-spec-dev-188-ledger-disposition
+# at base df48724c on 2026-11-07, and each sits outside BS-02's conflict keys.
+ticket: BS-02
+base_sha: df48724c1ced68a3f6db17251e37e30aa041fd64
+findings:
+  - id: BS-02-DF-01
+    severity: minor
+    channel: operator-doing-the-work
+    found_by: BS-02
+    summary: >-
+      references/consumption.md line 91 still spells the skill_change grammar without
+      UNDECIDED, and line 295 still says channel has a "nine-token" vocabulary. Both now
+      disagree with bug_attribution.md sections 2a and 4.1 (fixed in BS-02 for #164/#165).
+    surface:
+      production:
+        - skills/spec-double-2/references/consumption.md
+      tla: []
+      adapters: []
+      test_graph: []
+    disposition: open
+    skill_change: proposed(spec-double-2, "add `| UNDECIDED` to consumption.md:91; nine-token -> ten-token at :295")
+  - id: BS-02-DF-02
+    severity: minor
+    channel: operator-doing-the-work
+    found_by: BS-02
+    summary: >-
+      references/agent_roles.md line 99 reads skill_change with an awk pattern
+      `/^    skill_change:/`, the same fixed 4-space row-key indent #162 removed from
+      disposition.py. On a column-0 ledger (PyYAML safe_dump layout) it finds nothing.
+    surface:
+      production:
+        - skills/spec-double-2/references/agent_roles.md
+      tla: []
+      adapters: []
+      test_graph: []
+    disposition: open
+    skill_change: proposed(spec-double-2, "match `^ *skill_change:` or point the reader at improvement_ledger.py --ledger")
+  - id: BS-02-DF-03
+    severity: minor
+    channel: operator-doing-the-work
+    found_by: BS-02
+    summary: >-
+      improvement_ledger.unit_for() counts a finding as skill-anchored only when a surface
+      names skills/<unit>/ for a unit under THIS repository's skills/. A consumer repository
+      has no skills/, so D4 can never fire there. Named in #163 as UNDECIDED (resolve units
+      from the Skill Manager home instead?); deliberately not changed in BS-02.
+    surface:
+      production:
+        - skills/spec-double-2/scripts/improvement_ledger.py
+      tla: []
+      adapters: []
+      test_graph: []
+    disposition: open
+    skill_change: UNDECIDED
