@@ -1,0 +1,26 @@
+# BS-03's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-03
+issue: 175
+base_sha: 68922587
+findings:
+  - id: BS-03-DF-01
+    unit: skt
+    blocking: false
+    observed: >-
+      `command -v skt` resolves to the ROOT home's skt (~/.skill-manager/bin/cli/skt,
+      plugin 11 commits behind) while the SessionStart hook reports the project home
+      as this session's tier. Worked around by calling .skill-manager/bin/cli/skt.
+    proposed: >-
+      Put <project home>/bin/cli first on PATH in the SessionStart hook or launch
+      wrapper, or have `skt status` warn when the skt on PATH belongs to another home.
+  - id: BS-03-DF-02
+    unit: git-issue-workflow (epic-ticket close-out)
+    blocking: false
+    observed: >-
+      `skill-manager home close-out --home <wt>/.skill-manager --into <project home>`,
+      which the assignment requires before PR open, was refused by the session's
+      auto-mode classifier as a shared-resource write (same intermittency as SI-20's
+      `unexercised` row). No verdict recorded from this seat.
+    proposed: >-
+      Have close-out print that it is read-only in a form the sandbox can see, or let
+      the epic owner run it at wave merge instead of the ticket agent.

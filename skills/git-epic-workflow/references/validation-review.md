@@ -38,6 +38,17 @@ component or integration assertions where faults would otherwise first appear
 in the slow full graph. Shared setup that makes even a small change expensive
 is a candidate for improvement in the harness or architecture.
 
+## A changed contract reruns every instrument that asserts it
+
+A ticket's own graph list is not the blast radius of its change. When a
+ticket's desired actions or production conflict keys touch an action, its
+validation matrix includes every graph whose nodes bind that action, derived
+from `testgraph_bindings`, not from the list the ticket was dispatched with.
+When it changes how a downstream request is answered (a refusal, a restart or
+re-attach path, a provider route), it also reruns the repository's image/host
+episode, or the CI job that drives it, before the PR opens. An instrument still
+asserting the old contract is red whether or not anyone runs it.
+
 ## Short review: before each repair/rerun and at ticket handoff
 
 Use a few lines in the existing evidence record. Ask: **How can we accelerate

@@ -106,7 +106,8 @@ invalidating dispatched assignments.
 ## Backlog format
 
 `specs/desired_program_model/deferred_findings.yaml` is append-only. Agents add
-entries; only the epic owner edits `disposition`.
+entries; only the epic owner edits `disposition`, except the ticket-agent flip
+in step 6 below.
 
 ```yaml
 findings:
@@ -126,7 +127,8 @@ findings:
     why_out_of_scope: "<which conflict key or semantic boundary it crosses>"
     suggested_fix: "<one line, or 'unknown'>"
     blast_radius: "<other tickets/surfaces a fix would touch>"
-    disposition: pending             # pending | ticketed | wontfix | fixed-inline
+    disposition: pending             # pending | ticketed | wontfix | fixed-inline | fixed
+    fixed_at: null                   # commit that fixed it, when disposition is fixed
     disposition_ticket: null         # spec ticket ID once promoted
 ```
 
@@ -145,6 +147,12 @@ An entry with no reproduction is not a finding, it is a hunch — do not file it
    `current/`, and it is never evidence for a ticket close.
 5. Report deferred findings in the ticket PR body under a
    `## Deferred findings` heading, one line per ID.
+6. If your change fixes a finding filed by ANOTHER ticket, flip its row in the
+   same commit: `disposition: fixed`, `fixed_at`, and the test that now pins it.
+   Where `per_ticket_backlog` keeps you out of the cumulative file, put
+   `DEF-<n> fixed at <sha>, pinned by <test>` under `## Deferred findings` so the
+   epic agent flips it at wave close. A commit message naming the finding does
+   not update the backlog, and the planner reads the backlog, not the log.
 
 A deferred finding never justifies weakening a REQUIRED validation entry,
 loosening an invariant, marking a test skipped, or closing a ticket whose
@@ -184,11 +192,17 @@ it batched for finalization, or close it `wontfix` with a recorded reason.
 Recommend batching unless the finding blocks a planned ticket or grows more
 expensive the longer it sits.
 
+Before scheduling a finding as a fix, re-run its `reproduction` on the
+dispatch base and record the result in the assignment. A row is a claim about
+the code, and the code moves without it. A finding that no longer reproduces is
+not scheduled: find the commit that fixed it, flip the row to `fixed` with that
+`fixed_at`, and schedule only the residual, if any.
+
 Promoting a finding is an ordinary plan change: add the ticket, rerun
 `scripts/validate_epic_plan.py`, bump `schedule_revision`, re-render affected
 assignments. Never retrofit a deferred fix into a dispatched ticket's scope.
 
 **At finalization.** No pending findings may remain. Every entry ends as
-`ticketed` (and merged), `wontfix` (with a reason), or `fixed-inline`. Findings
+`ticketed` (and merged), `wontfix` (with a reason), `fixed-inline`, or `fixed` (with `fixed_at`). Findings
 carried past the epic become issues on the default branch, referenced from the
 epic PR body — deferring is a scheduling decision, not a way to lose defects.
