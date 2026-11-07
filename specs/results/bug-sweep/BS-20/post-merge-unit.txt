@@ -1,0 +1,8 @@
+# post-merge rerun @ 1d5d0626 (merged origin/epic/bug-sweep 02375b14)
+10 passed in 2.59s
+1 failed, 119 passed, 1 skipped, 286 deselected in 69.85s (0:01:09)
+# The single failure above was not captured (output piped to tail -1) and did not recur:
+# three consecutive reruns of the same subset @ 1d5d0626, each:
+120 passed, 1 skipped, 286 deselected
+120 passed, 1 skipped, 286 deselected
+120 passed, 1 skipped, 286 deselected

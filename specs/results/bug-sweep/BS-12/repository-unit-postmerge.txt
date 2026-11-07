@@ -1,0 +1,9 @@
+# post-merge rerun at 0caac509 (after merging bc926c4e)
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_the_close_archives_the_cumulative_ledger_where_a_reader_can_find_it
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_disposition_still_answers_after_the_workflow_it_reports_on_is_closed
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_a_narrative_that_quotes_the_template_sentinel_is_not_blanked
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_an_unfilled_template_narrative_refuses_the_close_unless_forced
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_a_transition_diff_that_quotes_the_template_sentinel_is_not_blanked
+6 failed, 176 passed, 1818 deselected in 151.59s (0:02:31)
+172 passed in 0.72s

@@ -1,0 +1,65 @@
+{
+  "home": "/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/fx-branch/ws/.skill-manager",
+  "dry_run": false,
+  "status": "unresolved-ancestor",
+  "exit_code": 4,
+  "cli_exit_code": 1,
+  "unresolved_ancestors": [
+    {
+      "id": "cli-shim:skill-script/fixtool",
+      "roots": [
+        "unit-store:fixa"
+      ],
+      "remedies": [
+        "a unit's store bytes come from its source, not from a local producer \u2014 `skill-manager sync fixa`"
+      ]
+    }
+  ],
+  "summary": {
+    "selected": 3,
+    "rebuilt": 0,
+    "no_op": 1,
+    "failed": 0,
+    "already_current": 0,
+    "not_buildable": 2,
+    "still_stale": 3
+  },
+  "steps": [
+    {
+      "id": "unit-store:fixa",
+      "kind": "unit-store",
+      "owner": "fixa",
+      "action": "not-buildable",
+      "producer": null,
+      "reason": "a unit's store bytes come from its source, not from a local producer \u2014 `skill-manager sync fixa`",
+      "freshness_before": "stale",
+      "freshness_after": "stale",
+      "outcome": "skipped",
+      "verifiable": true
+    },
+    {
+      "id": "provisioned-tree:cache/skill-script-fixa-fixtool",
+      "kind": "provisioned-tree",
+      "owner": "fixa",
+      "action": "not-buildable",
+      "producer": null,
+      "reason": "no install records that it wrote this tree; the owner shown for it was inferred from the shim that runs out of it, and an inference at the wrong granularity would mark a shared root rebuilt (ARTI-05 review). Build the artifact that runs out of it \u2014 its install is what rewrites this tree",
+      "freshness_before": "stale",
+      "freshness_after": "stale",
+      "outcome": "skipped",
+      "verifiable": true
+    },
+    {
+      "id": "cli-shim:skill-script/fixtool",
+      "kind": "cli-shim",
+      "owner": "fixa",
+      "action": "rebuild",
+      "producer": "skill-script:fixtool (declared by fixa)",
+      "reason": "stale \u2014 its declared inputs moved",
+      "freshness_before": "stale",
+      "freshness_after": "stale",
+      "outcome": "no-op",
+      "verifiable": true
+    }
+  ]
+}

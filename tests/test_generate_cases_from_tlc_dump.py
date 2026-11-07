@@ -913,3 +913,72 @@ def test_a_model_whose_cfg_names_nothing_resolvable_still_falls_back_to_next(
 
     definitions = parse_tla_definitions("Next == x' = x\n")
     assert resolve_next_relation("INVARIANT Inv\n", definitions) == "Next"
+
+
+# ---------------------------------------------------------------------------
+# BS-07 (#166): a ticket's OWN tlc_projection can be named. Ticket ids carry
+# dashes, so `specs.tickets.MH-42.desired.tlc_projection` is not a module
+# name; the file form `path/to/file.py:object` is.
+# ---------------------------------------------------------------------------
+
+
+def _ticket_projector(tmp_path: Path) -> Path:
+    desired = tmp_path / "specs" / "tickets" / "MH-42" / "desired"
+    desired.mkdir(parents=True)
+    (desired / "projection_helpers.py").write_text("KIND = 'ticket'\n", encoding="utf-8")
+    projector = desired / "tlc_projection.py"
+    projector.write_text(
+        "from dataclasses import dataclass\n"
+        "from projection_helpers import KIND\n\n"
+        "@dataclass\n"
+        "class Shape:\n"
+        "    kind: str\n\n"
+        "def project_adapter_output(before, action, after, params):\n"
+        "    return {'source': Shape(KIND).kind, 'action': action}\n\n"
+        "class Nested:\n"
+        "    @staticmethod\n"
+        "    def project_state(state):\n"
+        "        return {'source': KIND, **state}\n",
+        encoding="utf-8",
+    )
+    return projector
+
+
+def test_generate_cases_loads_a_dashed_ticket_projector_by_file_path(tmp_path: Path, monkeypatch) -> None:
+    from scripts.generate_cases_from_tlc_dump import load_object
+
+    projector = _ticket_projector(tmp_path)
+    # A decoy `tlc_projection` that IS importable: the file form must not
+    # resolve to it (the PYTHONPATH workaround in #166 would).
+    decoy = tmp_path / "decoy"
+    decoy.mkdir()
+    (decoy / "tlc_projection.py").write_text(
+        "def project_adapter_output(before, action, after, params):\n"
+        "    return {'source': 'project'}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(decoy))
+
+    output = load_object(f"{projector}:project_adapter_output")
+    assert output({}, "Act", {}, {}) == {"source": "ticket", "action": "Act"}
+    state = load_object(f"{projector}:Nested.project_state")
+    assert state({"x": 1}) == {"source": "ticket", "x": 1}
+
+
+def test_generate_cases_loads_a_relative_ticket_projector_path(tmp_path: Path, monkeypatch) -> None:
+    from scripts.generate_cases_from_tlc_dump import load_object
+
+    _ticket_projector(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    output = load_object("specs/tickets/MH-42/desired/tlc_projection.py:project_adapter_output")
+    assert output({}, "Act", {}, {})["source"] == "ticket"
+
+
+def test_generate_cases_dotted_module_form_still_works_and_bad_paths_fail_loudly(tmp_path: Path) -> None:
+    from scripts.generate_cases_from_tlc_dump import load_object
+
+    assert load_object("json:dumps") is json.dumps
+    with pytest.raises(ValueError, match="module:object"):
+        load_object("json")
+    with pytest.raises(ValueError, match="not found"):
+        load_object(f"{tmp_path}/MH-42/missing.py:fn")
