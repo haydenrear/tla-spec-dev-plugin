@@ -251,8 +251,16 @@ skill-manager home sync --from <worktree>/.skill-manager \
 - `--merge` three-way merges such a unit against its recorded per-file baseline.
   Conflicts are **reported, never resolved**; local work is kept either way and a
   conflicted unit writes nothing.
-- `--dry-run` computes and prints the whole report and writes nothing at all — no
-  records, no lock file. Use it to ask the question without answering it.
+- `--dry-run` computes and prints the whole report and writes no unit content —
+  no records, no staging, and it never *creates* a lock file. It still takes the
+  destination's home lock so a peer cannot reconcile underneath the report: when
+  `<to>/.materialization/.home.lock` already exists (any home a real sync has
+  run in), the dry run opens that file for writing to hold the OS lock. So it
+  needs write permission on that one file, even though it changes nothing; a
+  sandbox with read-only access to the parent home fails with `Operation not
+  permitted` on it (observed on CLI 0.28.2). Grant write on that lock path, or
+  run the dry run outside the sandbox. Use it to ask the question without
+  answering it.
 
 `home sync` is local to this machine and moves an edit exactly one tier. It does
 not reach any other project.
