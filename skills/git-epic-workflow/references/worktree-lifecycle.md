@@ -249,6 +249,22 @@ wave review when it is thin:
 df -k <repo-root>          # the only honest headroom number
 ```
 
+### Multi-day retention
+
+A worktree that stands for days is not guaranteed to stay whole. A consumer
+epic resumed onto worktrees missing tracked files, a linked `.git` pointer and
+held raw evidence, with Git's objects intact and every earlier receipt still
+saying "clean"; the cause was never established, so do not call it OS pruning.
+Keep long-lived worktrees on a persistent, private volume outside temporary or
+synced directories, and declare what must survive:
+`python3 <skt>/src/skt/ticket_integrity.py declare <worktree> <path>...` records
+each evidence file's sha256 (and whether the worktree has a home; `skt ticket
+new` records that baseline itself) in the repository's common git directory,
+where losing the worktree cannot take the record with it. Do not answer the
+risk by copying homes or auth elsewhere, or by archiving whole directories.
+On resume, `skt ticket list` re-measures against that manifest; its receipts
+are history and never stand in for today's check (`finalize.md` §6).
+
 ## 5. The end-of-epic sweep
 
 Run the sweep **after** the epic PR has merged and the default-branch merge is
