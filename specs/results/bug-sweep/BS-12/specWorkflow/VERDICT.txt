@@ -1,0 +1,6 @@
+specWorkflow run 20261107-180959 (post-merge tip of feature/141-close-carries-desired): errored.
+8 nodes: spec.cli.install, spec.workflow.repo/start/spec_units/complete/close/cleanup passed;
+spec.reference.adapters_resolve skipped; spec.workflow.failure_cleanup_probe errored
+("node timed out after 180s; executor force-killed the subprocess").
+That node is the known environmental red under concurrent agents (errors on the epic base too);
+not chased per the dispatch. spec.workflow.close (the path BS-12 changes) passed.

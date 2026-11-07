@@ -1,0 +1,104 @@
+# BS-12 (#141, #138 DEF-516 + mutation-close) per-ticket deferment inbox
+# (batch policy, budget 5). The epic agent absorbs these rows at wave close.
+findings:
+  - id: BS-12-DF-01
+    found_by: BS-12
+    found_at_commit: 0bb9a950
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/spec-double-2/scripts/tla_spec_dev.py (run spec-unit-tests)
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      #138 DEF-516, second half: `run spec-unit-tests --ticket <id>` runs
+      project specs/current first and stops on its failure, so a ticket's own
+      targets never run until close. BS-12 fixed the layout half (open seeds
+      current/ when the plan runs it) only.
+    reproduction: >-
+      spec_unit_target_dirs() returns [project_current, ticket_model] for
+      --ticket; run_spec_unit_tests returns on the first failing target.
+    why_out_of_scope: >-
+      The spec-unit run path is not the open/close-ticket path named in BS-12's
+      conflict keys.
+    suggested_fix: >-
+      With --ticket, run every target and report each, or run the ticket model
+      alone and say so.
+    blast_radius: Ticket agents reading a red spec-unit run that is not theirs.
+  - id: BS-12-DF-02
+    found_by: BS-12
+    found_at_commit: 0bb9a950
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/spec-double-2/scripts/close_tickets.py (workflow closed snapshot)
+        - skills/git-epic-workflow (closure census)
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      #141 "Census after close": once close_tickets.py removes
+      desired_program_model/, tools that read ticket_plan.yaml (the epic
+      closure census) cannot run; the closed snapshot's plan is not exposed as
+      the plan of record.
+    why_out_of_scope: >-
+      Not one of BS-12's named items (SF-074/075/076, DEF-516,
+      mutation-close); it needs a reader-side convention across skills.
+    suggested_fix: >-
+      Have the census (and validate_epic_plan.py's default path) fall back to
+      specs/.history/<workflow>/closed-snapshot/.../ticket_plan.yaml when the
+      live plan is absent, printing which it read.
+    blast_radius: Post-close epic audits.
+  - id: BS-12-DF-03
+    found_by: BS-12
+    found_at_commit: 0bb9a950
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/spec-double-2/references/typical_workflow.md
+        - skills/spec-double-2/references/workflows.md
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The references still say close promotes ticket desired/ into current/
+      and nothing more, and that current/ exists only with --with-current. They
+      do not mention `desired_carry` (close now carries the delivered delta
+      into desired_program_model/, `--no-carry-desired` opts out) or that open
+      seeds current/ when the plan entry runs it.
+    why_out_of_scope: Reference docs are outside BS-12's conflict keys.
+    suggested_fix: >-
+      One sentence each at typical_workflow.md:66 and :91 and workflows.md:125.
+    blast_radius: Agents reading the docs rather than the CLI help.
+  - id: BS-12-DF-04
+    found_by: BS-12
+    found_at_commit: 0bb9a950
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/git-epic-workflow/scripts/validate_epic_plan.py (_validate_goal_alignment)
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The git-epic-workflow#19 class #141 says SF-076 absorbs ("you cannot
+      retire one contributor to a goal that other tickets still serve") is
+      still diagnosed: "retirement disposition conflicts with active tickets".
+      It is advisory by default (non-Blocking), so it does not stop an epic;
+      BS-12 changed only the successor-identity rule.
+    why_out_of_scope: >-
+      Changing what a partial retirement means for a goal is a plan-semantics
+      decision for the epic owner, not a tooling fix.
+    suggested_fix: >-
+      Owner decision: keep the advisory, or accept a partial retirement when
+      the goal still has a live contributor and evaluator.
+    blast_radius: Advisory warning noise on partially retired goals.
