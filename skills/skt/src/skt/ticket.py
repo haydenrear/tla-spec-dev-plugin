@@ -192,6 +192,70 @@ def _bootstrap_script() -> Path | None:
     return None
 
 
+def _giw_lib(bootstrap: Path | None = None) -> Path | None:
+    """git-issue-workflow's lib.sh, by the rungs `scripts/wt` uses.
+
+    `$GIT_ISSUE_WORKFLOW_SCRIPTS`, then the sibling in a checkout of the
+    bundle (this file is `skills/skt/src/skt/ticket.py`, installed or not),
+    then beside the bootstrap script the home resolved.
+    """
+    candidates: list[Path] = []
+    env = os.environ.get("GIT_ISSUE_WORKFLOW_SCRIPTS")
+    if env:
+        candidates.append(Path(env) / "lib.sh")
+    candidates.append(Path(__file__).resolve().parents[3] / UNIT / "scripts" / "lib.sh")
+    if bootstrap is not None:
+        candidates.append(bootstrap.parent / "lib.sh")
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def provision(worktree: str | Path, bootstrap: Path | None = None) -> tuple[int, str, str, str]:
+    """Run lib.sh's `provision_worktree` on a worktree this module created.
+
+    ONE implementation for both creation routes (#184, #171): new-change.sh
+    calls the same function. Returns ``(rc, error, fix, unshared)``. A
+    missing lib.sh is only an error when a hook is declared — an undeclared
+    hook has nothing to run, and the target/ check is then the one thing lost.
+    """
+    import subprocess
+
+    lib = _giw_lib(bootstrap)
+    if lib is None:
+        manifest = Path(worktree) / "skill-project.toml"
+        declared = False
+        if manifest.is_file():
+            try:
+                declared = bool((tomllib.loads(manifest.read_text()).get("worktree") or {}).get("provision"))
+            except (OSError, tomllib.TOMLDecodeError):
+                declared = True
+        if declared:
+            return (1, f"{manifest} declares a [worktree] provision hook, but {UNIT}'s "
+                    "lib.sh (which runs it) could not be found", f"skt sync {UNIT}", "")
+        return (0, "", "", "")
+    # provision_worktree sends the hook's stdout and its own narration to
+    # stderr, so this child's stdout carries only the three fields below.
+    script = (
+        '. "$1" || exit 70\n'
+        'rc=0; provision_worktree "$2" || rc=$?\n'
+        'printf "PROVISION_ERROR=%s\\nPROVISION_FIX=%s\\nPROVISION_UNSHARED=%s\\n" '
+        '"$PROVISION_ERROR" "$PROVISION_FIX" "$PROVISION_UNSHARED"\n'
+        'exit $rc\n'
+    )
+    proc = subprocess.run(
+        ["bash", "-c", script, "provision", str(lib), str(worktree)],
+        stdout=subprocess.PIPE, text=True,
+    )
+    rc, report = proc.returncode, proc.stdout
+    fields = dict(line.split("=", 1) for line in report.splitlines() if "=" in line)
+    error = fields.get("PROVISION_ERROR", "")
+    if rc != 0 and not error:
+        error = f"provisioning {worktree} failed (exit {rc}) before naming a cause"
+    return (rc, error, fields.get("PROVISION_FIX", ""), fields.get("PROVISION_UNSHARED", ""))
+
+
 def dirty_ok() -> bool:
     """`WT_DIRTY_OK=1` or `SKILL_GATES=off`: a dirty parent tree is a note.
 
@@ -358,6 +422,16 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
             )
         )
         return 3
+    # The worktree and its home are sound; a failed hook is reported, not
+    # rolled back, exactly as new-change.sh does (exit 9, naming the hook).
+    prov_rc, prov_err, prov_fix, unshared = provision(path, bootstrap)
+    if prov_rc != 0:
+        print(f"error: {prov_err} — worktree {path} kept; re-run the hook there")
+        if prov_fix:
+            print(f"fix:   {prov_fix}")
+        return 9
+    if unshared:
+        print(f"warning: {path}/target linked to {unshared}; replaced with a per-worktree directory")
     print(f"created epic worktree {path}")
     print(f"branch     {branch} (pinned base {commit_oid[:12]}; retention ref {ref_name})")
     launch = Path(path) / ".skill-manager" / "bin" / "launch" / "claude"
