@@ -54,8 +54,19 @@ Usage:
     run.py --all                  # every registered graph, serial, keeps going past a red
     run.py --all --fail-fast      # stop at the first red graph (the old behaviour)
     run.py scenarios --continue-after-failure   # every node runs and reports its own status
+    run.py --resume build/validation-reports/<runId>          # from its first failed/errored node
+    run.py --resume <runId> --from-node login.smoke           # from a chosen node, downstream too
+    run.py --resume <runId> --only-node login.smoke           # that node only
+    run.py --resume <previous-resume>/outcome.json            # a resume of a resume runs the tail
     run.py smoke --resume-from-build build/validation-reports/<runId> --resume-from-node login.smoke
     run.py smoke --resume-from-build build/validation-reports/<runId> --run-only-node login.smoke
+
+``--resume <report>`` (issue #186) is the front door for resuming: it wraps the
+chained resume of #180, accepts a relative path, a bare runId, a file inside a
+report or an ``outcome.json``, reads the graph name from the report, and writes
+the same ``outcome.json`` as a fresh run (plus a ``resume`` block naming the
+source report, node and mode). Relative ``--resume-from-build`` paths resolve
+the same way (#138 SF-023).
 """
 from __future__ import annotations
 
@@ -614,6 +625,96 @@ def format_outcome_line(outcome: dict) -> str:
     return "\n".join(lines)
 
 
+REPORTS_SUBDIR = Path("build") / "validation-reports"
+_REPORT_FILES = ("summary.json", "report.md", "execution-scope.json")
+RESUMABLE_STATUSES = ("failed", "errored")
+
+
+class ReportPathError(ValueError):
+    """A ``--resume`` / ``--resume-from-build`` argument names no usable report."""
+
+
+def resolve_report_dir(spec: str, test_graph_root: Path) -> Path:
+    """Turn what a caller has in hand into an absolute report directory.
+
+    Accepted (issue #186, #138 SF-023): a report directory, absolute or
+    RELATIVE -- tried against the current directory, then the test-graph root,
+    then ``<root>/build/validation-reports/`` (so a bare ``<runId>`` works) --
+    a file inside one (``summary.json``, ``report.md``,
+    ``execution-scope.json``), or a single-graph ``outcome.json``, whose graph
+    ``report_dir`` is the run to resume. That last form is what makes chaining
+    a one-liner: the previous resume's last stdout line is the next one's
+    ``--resume`` argument.
+
+    The result is lexically normalized (``os.path.abspath``), never
+    symlink-resolved: the Gradle task stays the authority that the directory
+    is a real, direct child of the configured report root.
+    """
+    expanded = Path(os.path.expanduser(spec))
+    if expanded.is_absolute():
+        candidates = [expanded]
+    else:
+        candidates = [Path.cwd() / expanded, test_graph_root / expanded,
+                      test_graph_root / REPORTS_SUBDIR / expanded]
+    for candidate in candidates:
+        path = Path(os.path.abspath(candidate))
+        if path.is_dir():
+            return path
+        if path.is_file():
+            if path.name == OUTCOME_FILE:
+                return _report_dir_from_outcome(path)
+            if path.name in _REPORT_FILES:
+                return path.parent
+            raise ReportPathError(
+                f"{spec!r} is a file but not a report: pass a report directory, "
+                f"one of {', '.join(_REPORT_FILES)}, or an {OUTCOME_FILE}")
+    tried = "\n  ".join(str(Path(os.path.abspath(c))) for c in candidates)
+    raise ReportPathError(f"no report directory found for {spec!r}; tried:\n  {tried}")
+
+
+def _report_dir_from_outcome(path: Path) -> Path:
+    try:
+        outcome = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise ReportPathError(f"cannot read {path}: {exc}") from exc
+    dirs = [g.get("report_dir") for g in outcome.get("graphs") or [] if isinstance(g, dict)]
+    dirs = [d for d in dirs if d]
+    if len(dirs) != 1:
+        raise ReportPathError(
+            f"{path} records {len(dirs)} graph report directories; resume takes one "
+            "graph -- pass that graph's report directory instead")
+    report = Path(dirs[0])
+    if not report.is_dir():
+        raise ReportPathError(f"{path} points at {report}, which is not a directory")
+    return Path(os.path.abspath(report))
+
+
+def report_graph_name(report_dir: Path) -> str | None:
+    """The graph a report belongs to, from ``execution-scope.json`` or ``summary.json``."""
+    for name in ("execution-scope.json", "summary.json"):
+        try:
+            doc = json.loads((report_dir / name).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        graph = doc.get("graphName") or (doc.get("execution") or {}).get("graphName")
+        if isinstance(graph, str) and graph:
+            return graph
+    return None
+
+
+def first_resumable_node(report_dir: Path) -> str | None:
+    """The report's first FAILED or ERRORED node, in plan order.
+
+    In a resume report the plan order is the selected-to-tail scope, so a
+    resume of a resume picks the first red node of the TAIL, never a node an
+    earlier attempt already passed.
+    """
+    for row in collect_nodes(str(report_dir), None):
+        if row["status"] in RESUMABLE_STATUSES:
+            return row["node"]
+    return None
+
+
 def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
                    argv: list[str]) -> int:
     """Run one or more graphs under the ledger and always write outcome.json."""
@@ -626,10 +727,10 @@ def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
         gradle_args.append("--continue")
     gradle_args += ["validationRunAll"] if args.run_all else graphs
     if args.resume_from_build:
-        # Normalize traversal without following a symlink. The Gradle task is
-        # the authority that verifies this is a real direct report-root child.
-        resume_from_build = os.path.abspath(os.path.expanduser(args.resume_from_build))
-        gradle_args.append(f"--resume-from-build={resume_from_build}")
+        # main() already resolved this to an absolute, lexically normalized
+        # report directory (resolve_report_dir); the Gradle task is the
+        # authority that verifies it is a real direct report-root child.
+        gradle_args.append(f"--resume-from-build={args.resume_from_build}")
         if args.resume_from_node:
             gradle_args.append(f"--resume-from-node={args.resume_from_node}")
         if args.run_only_node:
@@ -664,6 +765,12 @@ def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
     outcome = build_outcome(
         summary, monitor, started=started, ended=ended, gradle_rc=rc, exit_code=exit_code,
         argv=argv, continue_after_failure=bool(args.continue_after_failure), record_dir=sweep_dir)
+    if args.resume_from_build:
+        outcome["resume"] = {
+            "source_report": args.resume_from_build,
+            "node": args.resume_from_node or args.run_only_node,
+            "mode": "run-only-node" if args.run_only_node else "resume-from-node",
+        }
     outcome_path = sweep_dir / OUTCOME_FILE
     outcome_path.write_text(json.dumps(outcome, indent=2) + "\n", encoding="utf-8")
     if not sweep:
@@ -678,7 +785,19 @@ def main(argv: list[str] | None = None) -> int:
         description=__doc__.splitlines()[0],
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Replay examples:\n"
+            "Resume (the front door):\n"
+            "  Resume from the report's first failed or errored node:\n"
+            "    run.py --resume build/validation-reports/<runId>\n"
+            "  Resume from a chosen node, or rerun one node only:\n"
+            "    run.py --resume <runId> --from-node login.smoke\n"
+            "    run.py --resume <runId> --only-node login.smoke\n"
+            "  Chain: a resume's last stdout line (its outcome.json) is a valid --resume:\n"
+            "    run.py --resume \"$(run.py --resume <runId> | tail -n 1)\"\n"
+            "  <report> may be absolute or relative (to the current directory, the\n"
+            "  test-graph root, or its build/validation-reports/), a bare runId, a\n"
+            "  file inside a report, or an outcome.json. <graph> is read from the\n"
+            "  report when omitted.\n\n"
+            "Replay examples (explicit form):\n"
             "  Continue a graph from a saved node context:\n"
             "    run.py smoke --resume-from-build build/validation-reports/<runId> "
             "--resume-from-node login.smoke\n"
@@ -723,11 +842,28 @@ def main(argv: list[str] | None = None) -> int:
              "reported as not run.",
     )
     parser.add_argument(
+        "--resume",
+        metavar="REPORT",
+        help="Resume a previous run (a fresh run's or a resume's report). With no "
+             "node selector, resumes from the report's first failed or errored "
+             "node. REPORT may be relative, a bare runId, a file inside the "
+             "report, or an outcome.json. <graph> is optional (read from the report).",
+    )
+    parser.add_argument(
+        "--from-node",
+        help="With --resume: resume from this node and continue downstream.",
+    )
+    parser.add_argument(
+        "--only-node",
+        help="With --resume: run only this node from its saved input context.",
+    )
+    parser.add_argument(
         "--resume-from-build",
         help="Existing build/validation-reports/<runId> directory whose saved "
              "context/<node-id>.input.json should seed resumed execution. "
              "Requires one <graph> and exactly one of --resume-from-node or "
-             "--run-only-node.",
+             "--run-only-node. A relative path is tried against the current "
+             "directory, then the test-graph root, then its build/validation-reports/.",
     )
     parser.add_argument(
         "--resume-from-node",
@@ -758,6 +894,46 @@ def main(argv: list[str] | None = None) -> int:
         if graph not in graphs:
             graphs.append(graph)
 
+    if args.resume is None and (args.from_node or args.only_node):
+        parser.error("--from-node and --only-node apply to --resume <report>")
+    if args.resume is not None:
+        if args.resume_from_build:
+            parser.error("pass either --resume or --resume-from-build, not both")
+        if args.run_all or len(graphs) > 1 or args.keep_going or args.fail_fast:
+            parser.error("--resume applies to one graph; drop --all/--continue/--fail-fast")
+        # --resume-from-node / --run-only-node are accepted as synonyms here.
+        from_node = args.from_node or args.resume_from_node
+        only_node = args.only_node or args.run_only_node
+        if from_node and only_node:
+            parser.error("pass at most one of --from-node or --only-node")
+        root = target_project_root(args.test_graph_root)
+        try:
+            report = resolve_report_dir(args.resume, root)
+        except ReportPathError as exc:
+            parser.error(str(exc))
+        recorded = report_graph_name(report)
+        if not graphs:
+            if recorded is None:
+                parser.error(f"{report} does not record its graph name; pass <graph>")
+            graphs = [recorded]
+        elif recorded is not None and recorded != graphs[0]:
+            parser.error(f"{report} is a report of graph {recorded!r}, not {graphs[0]!r}")
+        if not (from_node or only_node):
+            from_node = first_resumable_node(report)
+            if from_node is None:
+                parser.error(
+                    f"{report} has no failed or errored node to resume from; "
+                    "pass --from-node or --only-node to choose one")
+        selected = from_node or only_node
+        if not (report / "context" / f"{selected}.input.json").is_file():
+            parser.error(
+                f"{report} has no saved input context for {selected!r} "
+                f"(context/{selected}.input.json): the run never reached that node")
+        args.resume_from_build = str(report)
+        args.resume_from_node, args.run_only_node = from_node, only_node
+        print(f"resume {graphs[0]}: {'only ' + only_node if only_node else 'from ' + from_node} "
+              f"(report {report})", flush=True)
+
     if args.run_all and graphs:
         parser.error("cannot pass both <graph> and --all — pick one")
     if not args.run_all and not graphs:
@@ -772,7 +948,15 @@ def main(argv: list[str] | None = None) -> int:
             "or --run-only-node"
         )
     if not args.resume_from_build and replay_node_count:
-        parser.error("--resume-from-build is required with --resume-from-node or --run-only-node")
+        parser.error(
+            "--resume-from-build (or --resume <report>) is required with "
+            "--resume-from-node or --run-only-node")
+    if args.resume_from_build and args.resume is None:
+        try:
+            args.resume_from_build = str(resolve_report_dir(
+                args.resume_from_build, target_project_root(args.test_graph_root)))
+        except ReportPathError as exc:
+            parser.error(str(exc))
 
     argv_list = list(sys.argv[1:] if argv is None else argv)
     if args.run_all or len(graphs) > 1 or args.keep_going:

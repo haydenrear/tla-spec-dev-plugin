@@ -344,6 +344,35 @@ Gradle daemon while debugging:
 GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py <graph>
 ```
 
+### Resume: the front door
+
+`--resume <report>` is the one command for resuming a red run. It wraps the
+explicit commands below, and writes the same `outcome.json` as a fresh run (its
+path is still the last stdout line), with a `resume` block naming the source
+report, node and mode:
+
+```bash
+<skill>/scripts/run.py --resume build/validation-reports/<runId>               # first failed/errored node
+<skill>/scripts/run.py --resume <runId> --from-node <node-id>                  # chosen node, then downstream
+<skill>/scripts/run.py --resume <runId> --only-node <node-id>                  # that node only
+<skill>/scripts/run.py --resume "$(<skill>/scripts/run.py --resume <runId> | tail -n 1)"   # chain
+```
+
+- With no node selector it resumes from the report's **first `failed` or
+  `errored` node** in plan order. A resume report's plan is its tail, so a
+  resume of a resume runs only the tail, never a node an earlier attempt passed.
+- `<report>` may be absolute or **relative** — tried against the current
+  directory, then the test-graph root, then its `build/validation-reports/` —
+  a bare `<runId>`, a file inside a report (`summary.json`, `report.md`), or a
+  single-graph `outcome.json`. That last form is what chains: each resume's
+  last stdout line is the next one's `<report>`.
+- `<graph>` is optional; it is read from the report, and a mismatch is refused.
+- It refuses, before Gradle starts (exit 2), a report with nothing red and no
+  selector, and a node with no saved `context/<node-id>.input.json`.
+- `--resume-from-node` / `--run-only-node` are accepted as synonyms of
+  `--from-node` / `--only-node` here. The explicit `--resume-from-build` form
+  keeps working and resolves a relative path the same way.
+
 ### Resume a graph from a saved build
 
 When a previous run already reached the node you need to retry, resume the graph

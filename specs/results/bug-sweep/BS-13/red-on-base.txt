@@ -1,0 +1,296 @@
+# RED: origin/epic/bug-sweep @ da6ab2f7 skills/test-graph + BS-13's test_resume_front_door.py
+# cmd: uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests/test_resume_front_door.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.13.14, pytest-9.2.0, pluggy-1.7.0 -- /Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python
+rootdir: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/base
+collecting ... collected 10 items
+
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_an_outcome_json_chains_to_its_report FAILED [ 10%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_errored_node_is_resumable_when_nothing_failed FAILED [ 20%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_from_node_with_a_relative_path_and_a_bare_run_id FAILED [ 30%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_legacy_run_only_node_resolves_a_relative_path_against_the_test_graph_root FAILED [ 40%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_only_node_and_its_legacy_synonym FAILED [ 50%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_refusals_name_the_problem FAILED [ 60%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_resume_relative_report_picks_first_failed_node_and_infers_graph FAILED [ 70%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_a_resume_of_a_resume_runs_only_the_tail FAILED [ 80%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_from_node_with_a_relative_report_path FAILED [ 90%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_run_only_node_with_a_relative_report_path FAILED [100%]
+
+=================================== FAILURES ===================================
+________ ResumeFrontDoorTest.test_an_outcome_json_chains_to_its_report _________
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_an_outcome_json_chains_to_its_report>
+
+    def test_an_outcome_json_chains_to_its_report(self) -> None:
+        report = make_report(self.root, "20990101-000004", {"n.b": "passed", "n.c": "failed"})
+        outcome = self.tmp / "outcome.json"
+        outcome.write_text(json.dumps({"graphs": [{"graph": "chain", "report_dir": str(report)}]}))
+        code, calls, _out, err = self.main("--resume", str(outcome))
+>       self.assertEqual(0, code, err)
+E       AssertionError: 0 != 2 : usage: pytest [-h] [--all] [--continue | --fail-fast]
+E                     [--resume-from-build RESUME_FROM_BUILD]
+E                     [--resume-from-node RESUME_FROM_NODE]
+E                     [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]
+E                     [--test-graph-root TEST_GRAPH_ROOT]
+E                     [graph ...]
+E       pytest: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:136: AssertionError
+____ ResumeFrontDoorTest.test_errored_node_is_resumable_when_nothing_failed ____
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_errored_node_is_resumable_when_nothing_failed>
+
+    def test_errored_node_is_resumable_when_nothing_failed(self) -> None:
+        make_report(self.root, "20990101-000003", {"n.a": "passed", "n.b": "errored"})
+        _code, calls, _out, err = self.main("--resume", "20990101-000003")
+>       self.assertEqual("n.b", self.gradle_flag(calls[0], "resume-from-node"), err)
+                                                 ^^^^^^^^
+E       IndexError: list index out of range
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:129: IndexError
+__ ResumeFrontDoorTest.test_from_node_with_a_relative_path_and_a_bare_run_id ___
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_from_node_with_a_relative_path_and_a_bare_run_id>
+
+    def test_from_node_with_a_relative_path_and_a_bare_run_id(self) -> None:
+        report = make_report(self.root, "20990101-000002", {"n.a": "passed", "n.b": "failed"})
+        for spec in ("test_graph/build/validation-reports/20990101-000002", "20990101-000002"):
+            code, calls, _out, err = self.main("--resume", spec, "--from-node", "n.a")
+>           self.assertEqual(0, code, err)
+E           AssertionError: 0 != 2 : usage: pytest [-h] [--all] [--continue | --fail-fast]
+E                         [--resume-from-build RESUME_FROM_BUILD]
+E                         [--resume-from-node RESUME_FROM_NODE]
+E                         [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]
+E                         [--test-graph-root TEST_GRAPH_ROOT]
+E                         [graph ...]
+E           pytest: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:122: AssertionError
+_ ResumeFrontDoorTest.test_legacy_run_only_node_resolves_a_relative_path_against_the_test_graph_root _
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_legacy_run_only_node_resolves_a_relative_path_against_the_test_graph_root>
+
+    def test_legacy_run_only_node_resolves_a_relative_path_against_the_test_graph_root(self) -> None:
+        # #138 SF-023: cwd is the repository root, not test_graph/.
+        report = make_report(self.root, "20990101-000006", {"n.a": "passed"})
+        code, calls, _out, err = self.main(
+            "chain", "--resume-from-build", "build/validation-reports/20990101-000006",
+            "--run-only-node", "n.a")
+        self.assertEqual(0, code, err)
+>       self.assertEqual(str(report), self.gradle_flag(calls[0], "resume-from-build"))
+E       AssertionError: '/pri[54 chars]mpb7k12c0j/test_graph/build/validation-reports/20990101-000006' != '/pri[54 chars]mpb7k12c0j/build/validation-reports/20990101-000006'
+E       - /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpb7k12c0j/test_graph/build/validation-reports/20990101-000006
+E       ?                                                                      -----------
+E       + /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpb7k12c0j/build/validation-reports/20990101-000006
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:155: AssertionError
+__________ ResumeFrontDoorTest.test_only_node_and_its_legacy_synonym ___________
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_only_node_and_its_legacy_synonym>
+
+    def test_only_node_and_its_legacy_synonym(self) -> None:
+        make_report(self.root, "20990101-000005", {"n.a": "passed", "n.b": "failed"})
+        for flag in ("--only-node", "--run-only-node"):
+            code, calls, _out, err = self.main("--resume", "20990101-000005", flag, "n.a")
+>           self.assertEqual(0, code, err)
+E           AssertionError: 0 != 2 : usage: pytest [-h] [--all] [--continue | --fail-fast]
+E                         [--resume-from-build RESUME_FROM_BUILD]
+E                         [--resume-from-node RESUME_FROM_NODE]
+E                         [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]
+E                         [--test-graph-root TEST_GRAPH_ROOT]
+E                         [graph ...]
+E           pytest: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:144: AssertionError
+______________ ResumeFrontDoorTest.test_refusals_name_the_problem ______________
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_refusals_name_the_problem>
+
+    def test_refusals_name_the_problem(self) -> None:
+        make_report(self.root, "20990101-000007", {"n.a": "passed", "n.b": "passed"})
+        make_report(self.root, "20990101-000008", {"n.a": "passed", "n.b": "failed"},
+                    contexts=("n.a",))
+        cases = [
+            (("--resume", "20990101-000007"), "no failed or errored node"),
+            (("--resume", "nope"), "no report directory found"),
+            (("other", "--resume", "20990101-000008", "--from-node", "n.a"), "not 'other'"),
+            (("--resume", "20990101-000008"), "no saved input context for 'n.b'"),
+            (("--resume", "20990101-000008", "--from-node", "n.a", "--only-node", "n.a"), "at most one"),
+            (("chain", "--from-node", "n.a"), "apply to --resume"),
+        ]
+        for argv, needle in cases:
+            code, calls, _out, err = self.main(*argv)
+            self.assertEqual(2, code, argv)
+            self.assertEqual([], calls, argv)
+>           self.assertIn(needle, err, argv)
+E           AssertionError: 'no failed or errored node' not found in 'usage: pytest [-h] [--all] [--continue | --fail-fast]\n              [--resume-from-build RESUME_FROM_BUILD]\n              [--resume-from-node RESUME_FROM_NODE]\n              [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]\n              [--test-graph-root TEST_GRAPH_ROOT]\n              [graph ...]\npytest: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node\n' : ('--resume', '20990101-000007')
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:173: AssertionError
+_ ResumeFrontDoorTest.test_resume_relative_report_picks_first_failed_node_and_infers_graph _
+
+self = <test_resume_front_door.ResumeFrontDoorTest testMethod=test_resume_relative_report_picks_first_failed_node_and_infers_graph>
+
+    def test_resume_relative_report_picks_first_failed_node_and_infers_graph(self) -> None:
+        report = make_report(self.root, "20990101-000001",
+                             {"n.a": "passed", "n.b": "failed", "n.c": "absent"}, contexts=("n.a", "n.b"))
+        code, calls, out, err = self.main("--resume", "build/validation-reports/20990101-000001")
+>       self.assertEqual(0, code, err)
+E       AssertionError: 0 != 2 : usage: pytest [-h] [--all] [--continue | --fail-fast]
+E                     [--resume-from-build RESUME_FROM_BUILD]
+E                     [--resume-from-node RESUME_FROM_NODE]
+E                     [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]
+E                     [--test-graph-root TEST_GRAPH_ROOT]
+E                     [graph ...]
+E       pytest: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:108: AssertionError
+________ RealSdkResumeTest.test_a_resume_of_a_resume_runs_only_the_tail ________
+
+self = <test_resume_front_door.RealSdkResumeTest testMethod=test_a_resume_of_a_resume_runs_only_the_tail>
+
+    def test_a_resume_of_a_resume_runs_only_the_tail(self) -> None:
+        marker = self.root / "fail-fixture.c"
+        marker.touch()
+        try:
+            # Resume 1: no node named -> the first failed node, fixture.b.
+>           rc, second, executed, transcript = self.invoke("--resume", self.first_rel)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:285: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+skills/test-graph/scripts/tests/test_resume_front_door.py:273: in invoke
+    rc, outcome, transcript = self._invoke(*argv)
+                              ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'test_resume_front_door.RealSdkResumeTest'>
+argv = ('--resume', 'build/validation-reports/20261107-184500')
+
+    @classmethod
+    def _invoke(cls, *argv: str) -> tuple[int, dict, str]:
+        proc = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "run.py"), *argv, "--test-graph-root", "test_graph"],
+            cwd=cls.repo, capture_output=True, text=True, timeout=1500)
+        transcript = proc.stdout[-4000:] + proc.stderr[-4000:]
+        lines = proc.stdout.strip().splitlines()
+        last = Path(lines[-1]) if lines else Path("/nonexistent")
+        if last.name != "outcome.json" or not last.is_file():
+>           raise AssertionError("no outcome.json on the last stdout line\n" + transcript)
+E           AssertionError: no outcome.json on the last stdout line
+E           usage: run.py [-h] [--all] [--continue | --fail-fast]
+E                         [--resume-from-build RESUME_FROM_BUILD]
+E                         [--resume-from-node RESUME_FROM_NODE]
+E                         [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]
+E                         [--test-graph-root TEST_GRAPH_ROOT]
+E                         [graph ...]
+E           run.py: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:266: AssertionError
+_________ RealSdkResumeTest.test_from_node_with_a_relative_report_path _________
+
+self = <test_resume_front_door.RealSdkResumeTest testMethod=test_from_node_with_a_relative_report_path>
+
+    def test_from_node_with_a_relative_report_path(self) -> None:
+>       rc, outcome, executed, transcript = self.invoke(
+            "--resume", self.first_rel, "--from-node", "fixture.b")
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+skills/test-graph/scripts/tests/test_resume_front_door.py:273: in invoke
+    rc, outcome, transcript = self._invoke(*argv)
+                              ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'test_resume_front_door.RealSdkResumeTest'>
+argv = ('--resume', 'build/validation-reports/20261107-184500', '--from-node', 'fixture.b')
+
+    @classmethod
+    def _invoke(cls, *argv: str) -> tuple[int, dict, str]:
+        proc = subprocess.run(
+            [sys.executable, str(SCRIPTS_DIR / "run.py"), *argv, "--test-graph-root", "test_graph"],
+            cwd=cls.repo, capture_output=True, text=True, timeout=1500)
+        transcript = proc.stdout[-4000:] + proc.stderr[-4000:]
+        lines = proc.stdout.strip().splitlines()
+        last = Path(lines[-1]) if lines else Path("/nonexistent")
+        if last.name != "outcome.json" or not last.is_file():
+>           raise AssertionError("no outcome.json on the last stdout line\n" + transcript)
+E           AssertionError: no outcome.json on the last stdout line
+E           usage: run.py [-h] [--all] [--continue | --fail-fast]
+E                         [--resume-from-build RESUME_FROM_BUILD]
+E                         [--resume-from-node RESUME_FROM_NODE]
+E                         [--run-only-node RUN_ONLY_NODE] [--continue-after-failure]
+E                         [--test-graph-root TEST_GRAPH_ROOT]
+E                         [graph ...]
+E           run.py: error: ambiguous option: --resume could match --resume-from-build, --resume-from-node
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:266: AssertionError
+_______ RealSdkResumeTest.test_run_only_node_with_a_relative_report_path _______
+
+self = <test_resume_front_door.RealSdkResumeTest testMethod=test_run_only_node_with_a_relative_report_path>
+
+    def test_run_only_node_with_a_relative_report_path(self) -> None:
+        rc, outcome, executed, transcript = self.invoke(
+            "chain", "--resume-from-build", self.first_rel, "--run-only-node", "fixture.b")
+>       self.assertEqual(["fixture.b"], executed, transcript)
+E       AssertionError: Lists differ: ['fixture.b'] != []
+E       
+E       First list contains 1 additional elements.
+E       First extra element 0:
+E       'fixture.b'
+E       
+E       - ['fixture.b']
+E       + [] : To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+E       Daemon will be stopped at the end of the build 
+E       > Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+E       > Task :build-logic:compileKotlin UP-TO-DATE
+E       > Task :build-logic:compileJava NO-SOURCE
+E       > Task :build-logic:pluginDescriptors UP-TO-DATE
+E       > Task :build-logic:processResources UP-TO-DATE
+E       > Task :build-logic:classes UP-TO-DATE
+E       > Task :build-logic:jar UP-TO-DATE
+E       
+E       > Task :chain
+E       [toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+E       [toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+E       
+E       > Task :chain FAILED
+E       
+E       [Incubating] Problems report is available at: file:///private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp6xmj9ji4/test_graph/build/reports/problems/problems-report.html
+E       
+E       Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+E       
+E       You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+E       
+E       For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+E       5 actionable tasks: 1 executed, 4 up-to-date
+E       ERRORED chain (no_run_dir)
+E       /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp6xmj9ji4/test_graph/build/validation-sweeps/20261107-184519/outcome.json
+E       
+E       FAILURE: Build failed with an exception.
+E       
+E       * What went wrong:
+E       Execution failed for task ':chain'.
+E       > --resume-from-build must be a direct child of the configured report root: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp6xmj9ji4/test_graph/build/validation-reports
+E       
+E       * Try:
+E       > Run with --stacktrace option to get the stack trace.
+E       > Run with --info or --debug option to get more log output.
+E       > Run with --scan to get full insights.
+E       > Get more help at https://help.gradle.org.
+E       
+E       BUILD FAILED in 10s
+
+skills/test-graph/scripts/tests/test_resume_front_door.py:310: AssertionError
+=========================== short test summary info ============================
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_an_outcome_json_chains_to_its_report
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_errored_node_is_resumable_when_nothing_failed
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_from_node_with_a_relative_path_and_a_bare_run_id
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_legacy_run_only_node_resolves_a_relative_path_against_the_test_graph_root
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_only_node_and_its_legacy_synonym
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_refusals_name_the_problem
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_resume_relative_report_picks_first_failed_node_and_infers_graph
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_a_resume_of_a_resume_runs_only_the_tail
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_from_node_with_a_relative_report_path
+FAILED skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_run_only_node_with_a_relative_report_path
+======================== 10 failed in 70.59s (0:01:10) =========================
+exit=1
