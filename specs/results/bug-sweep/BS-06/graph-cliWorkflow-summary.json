@@ -1,8 +1,8 @@
-{"runId":"20261107-175443","status":"passed","traceId":"258041f6ca8e069db18f587de6a4316b","execution":{"mode":"full","graphName":"cliWorkflow","complete":true,"expectedNodeIds":["spec.cli.install","spec.cli.help"],"observedNodeIds":["spec.cli.help","spec.cli.install"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["spec.cli.install","spec.cli.help"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
+{"runId":"20261107-175933","status":"passed","traceId":"cbfa7d4325f59ae40888ee001b17ce29","execution":{"mode":"full","graphName":"cliWorkflow","complete":true,"expectedNodeIds":["spec.cli.install","spec.cli.help"],"observedNodeIds":["spec.cli.help","spec.cli.install"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["spec.cli.install","spec.cli.help"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
   "nodeId": "spec.cli.help",
   "status": "passed",
-  "startedAt": "2026-11-07T17:54:51.573216Z",
-  "endedAt": "2026-11-07T17:54:52.739096Z",
+  "startedAt": "2026-11-07T17:59:39.978719Z",
+  "endedAt": "2026-11-07T17:59:41.335935Z",
   "assertions": [
     {
       "name": "version succeeded",
@@ -166,181 +166,181 @@
     {
       "label": "version",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "--version"
       ],
       "exitCode": 0,
-      "pid": 70431,
+      "pid": 45041,
       "log": "node-logs/spec.cli.help.version.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:51.573616Z",
-      "endedAt": "2026-11-07T17:54:51.705440Z"
+      "startedAt": "2026-11-07T17:59:39.991842Z",
+      "endedAt": "2026-11-07T17:59:40.084974Z"
     },
     {
       "label": "root-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70440,
+      "pid": 45053,
       "log": "node-logs/spec.cli.help.root-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:51.705923Z",
-      "endedAt": "2026-11-07T17:54:51.787825Z"
+      "startedAt": "2026-11-07T17:59:40.085518Z",
+      "endedAt": "2026-11-07T17:59:40.194204Z"
     },
     {
       "label": "scaffold-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "scaffold",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70448,
+      "pid": 45073,
       "log": "node-logs/spec.cli.help.scaffold-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:51.788360Z",
-      "endedAt": "2026-11-07T17:54:51.872827Z"
+      "startedAt": "2026-11-07T17:59:40.194713Z",
+      "endedAt": "2026-11-07T17:59:40.308701Z"
     },
     {
       "label": "project-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "scaffold",
         "project",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70453,
+      "pid": 45084,
       "log": "node-logs/spec.cli.help.project-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:51.873343Z",
-      "endedAt": "2026-11-07T17:54:51.957254Z"
+      "startedAt": "2026-11-07T17:59:40.309170Z",
+      "endedAt": "2026-11-07T17:59:40.426340Z"
     },
     {
       "label": "workflow-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "scaffold",
         "workflow",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70464,
+      "pid": 45093,
       "log": "node-logs/spec.cli.help.workflow-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:51.958171Z",
-      "endedAt": "2026-11-07T17:54:52.058639Z"
+      "startedAt": "2026-11-07T17:59:40.426887Z",
+      "endedAt": "2026-11-07T17:59:40.531204Z"
     },
     {
       "label": "open-ticket-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "open",
         "ticket",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70470,
+      "pid": 45106,
       "log": "node-logs/spec.cli.help.open-ticket-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.059116Z",
-      "endedAt": "2026-11-07T17:54:52.138817Z"
+      "startedAt": "2026-11-07T17:59:40.531664Z",
+      "endedAt": "2026-11-07T17:59:40.630436Z"
     },
     {
       "label": "run-spec-units-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "run",
         "spec-unit-tests",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70478,
+      "pid": 45115,
       "log": "node-logs/spec.cli.help.run-spec-units-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.139273Z",
-      "endedAt": "2026-11-07T17:54:52.221270Z"
+      "startedAt": "2026-11-07T17:59:40.631278Z",
+      "endedAt": "2026-11-07T17:59:40.774329Z"
     },
     {
       "label": "close-ticket-help",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "close",
         "ticket",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 70484,
+      "pid": 45155,
       "log": "node-logs/spec.cli.help.close-ticket-help.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.221905Z",
-      "endedAt": "2026-11-07T17:54:52.321577Z"
+      "startedAt": "2026-11-07T17:59:40.774788Z",
+      "endedAt": "2026-11-07T17:59:40.877274Z"
     },
     {
       "label": "incomplete-scaffold",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "scaffold"
       ],
       "exitCode": 2,
-      "pid": 70491,
+      "pid": 45171,
       "log": "node-logs/spec.cli.help.incomplete-scaffold.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.322100Z",
-      "endedAt": "2026-11-07T17:54:52.428233Z"
+      "startedAt": "2026-11-07T17:59:40.877759Z",
+      "endedAt": "2026-11-07T17:59:41.008312Z"
     },
     {
       "label": "incomplete-open",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "open"
       ],
       "exitCode": 2,
-      "pid": 70496,
+      "pid": 45182,
       "log": "node-logs/spec.cli.help.incomplete-open.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.428999Z",
-      "endedAt": "2026-11-07T17:54:52.555232Z"
+      "startedAt": "2026-11-07T17:59:41.009058Z",
+      "endedAt": "2026-11-07T17:59:41.130742Z"
     },
     {
       "label": "incomplete-run",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "run"
       ],
       "exitCode": 2,
-      "pid": 70508,
+      "pid": 45188,
       "log": "node-logs/spec.cli.help.incomplete-run.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.555739Z",
-      "endedAt": "2026-11-07T17:54:52.648192Z"
+      "startedAt": "2026-11-07T17:59:41.131173Z",
+      "endedAt": "2026-11-07T17:59:41.230954Z"
     },
     {
       "label": "incomplete-close",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
         "close"
       ],
       "exitCode": 2,
-      "pid": 70517,
+      "pid": 45199,
       "log": "node-logs/spec.cli.help.incomplete-close.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:52.648605Z",
-      "endedAt": "2026-11-07T17:54:52.738753Z"
+      "startedAt": "2026-11-07T17:59:41.232263Z",
+      "endedAt": "2026-11-07T17:59:41.335304Z"
     }
   ],
   "metrics": {
-    "durationMs": 1165
+    "durationMs": 1357
   },
   "logs": [],
   "published": {}
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:50.596321Z","executorEndedAt":"2026-11-07T17:54:57.754612Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.help.stdout.log","inputContextFile":"context/spec.cli.help.input.json","traceId":"258041f6ca8e069db18f587de6a4316b"},{
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:59:39.366203Z","executorEndedAt":"2026-11-07T17:59:46.351493Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.help.stdout.log","inputContextFile":"context/spec.cli.help.input.json","traceId":"cbfa7d4325f59ae40888ee001b17ce29"},{
   "nodeId": "spec.cli.install",
   "status": "passed",
-  "startedAt": "2026-11-07T17:54:45.133581Z",
-  "endedAt": "2026-11-07T17:54:45.531586Z",
+  "startedAt": "2026-11-07T17:59:33.957212Z",
+  "endedAt": "2026-11-07T17:59:34.306580Z",
   "assertions": [
     {
       "name": "install script succeeded",
@@ -354,7 +354,7 @@
   "artifacts": [
     {
       "type": "tla-spec-dev",
-      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev"
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev"
     }
   ],
   "processes": [
@@ -365,19 +365,19 @@
         "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/skill-scripts/install-tla-spec-dev.sh"
       ],
       "exitCode": 0,
-      "pid": 69738,
+      "pid": 44529,
       "log": "node-logs/spec.cli.install.install-tla-spec-dev.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:45.134484Z",
-      "endedAt": "2026-11-07T17:54:45.531354Z"
+      "startedAt": "2026-11-07T17:59:33.957851Z",
+      "endedAt": "2026-11-07T17:59:34.306331Z"
     }
   ],
   "metrics": {
-    "durationMs": 398
+    "durationMs": 349
   },
   "logs": [],
   "published": {
-    "cliPath": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin/tla-spec-dev",
-    "binDir": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175443/tla-spec-dev-bin"
+    "cliPath": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin/tla-spec-dev",
+    "binDir": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175933/tla-spec-dev-bin"
   }
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:44.089503Z","executorEndedAt":"2026-11-07T17:54:50.550450Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.install.stdout.log","inputContextFile":"context/spec.cli.install.input.json","traceId":"258041f6ca8e069db18f587de6a4316b"}]}
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:59:33.515134Z","executorEndedAt":"2026-11-07T17:59:39.324546Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/spec.cli.install.stdout.log","inputContextFile":"context/spec.cli.install.input.json","traceId":"cbfa7d4325f59ae40888ee001b17ce29"}]}
