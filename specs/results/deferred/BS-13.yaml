@@ -1,0 +1,36 @@
+# BS-13's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-13
+issue: 186
+base_sha: da6ab2f7
+findings:
+  - id: BS-13-DF-01
+    unit: test-graph build-logic (RunTestGraphTask / PlanExecutor run-only log path; outside BS-13's conflict keys, which are run.py, workflows.md and scripts/tests/)
+    blocking: false
+    severity: low
+    observed: >-
+      #138 SF-023's third bullet ("--run-only-node writes its log into a
+      directory that does not exist; create it or fail loudly") is on the
+      Kotlin side, not run.py. BS-13 covers the first two bullets (requires
+      --resume-from-build; refuses a relative path). In BS-13's real-SDK
+      fixture the run-only replay succeeded and wrote its report, so the
+      missing-directory case was not reproduced here.
+    proposed: >-
+      Reproduce with commit-diff-context-parent's SF-023 graph; then
+      mkdirs() the node-log parent in the run-only path, or fail with the
+      path named. Tick SF-023 in #138 only after that.
+  - id: BS-13-DF-02
+    unit: test-graph build-logic (RunTestGraphTask.requireReplaySourceInReportRoot)
+    blocking: false
+    severity: low
+    observed: >-
+      The report-root membership check is lexical first
+      (`sourcePath.parent == rootPath`) before the canonical check. On macOS
+      an ABSOLUTE --resume-from-build spelled /var/... is refused when Gradle's
+      report root is /private/var/... (or vice versa), although both name the
+      same directory. run.py's relative resolution goes through getcwd() and
+      the resolved test-graph root, so the relative forms do not hit it; a
+      caller-supplied absolute path still can.
+    proposed: >-
+      Compare canonical paths after the lexical traversal check rejects `..`,
+      or have run.py canonicalize only the parent (never the leaf, so the
+      symlink refusal on the run directory itself still holds).
