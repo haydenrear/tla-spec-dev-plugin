@@ -28,6 +28,15 @@ every graph's outcome is recorded whether it passed or failed; and a graph that
 failed can be resumed from its own failing node without re-running the ones
 before it.
 
+FAILED vs ERRORED (issue #175). A non-zero exit is not one thing. A graph is
+`failed` only when its own summary.json says a node completed with a red
+assertion; any other non-zero exit -- no report at all because the Gradle
+process or daemon died, or a report saying a node never delivered a verdict --
+is `errored`. They need opposite responses (investigate the code vs retry / fix
+the environment), and `--retry-failed-from` treats them differently: a failed
+graph resumes from its first failing node, an errored graph RESTARTS, because
+the node it stopped at never failed and has nothing to resume from.
+
 WHAT IT DOES NOT DO: decide anything. It records. `graphs_executed` is a count
 of graphs whose task RAN, red or green -- `graphs_passed` is the separate
 question, and both are written to the report so neither can be inferred from
@@ -62,6 +71,27 @@ def registered_graphs(repo_root: Path, scope: str) -> list[str]:
     raise SystemExit("selector printed no selection line")
 
 
+REPORTS = Path("test_graph/build/validation-reports")
+
+
+def report_status(repo_root: Path, run_id: str | None) -> str | None:
+    """The graph's own verdict from its summary.json, or None if it wrote none."""
+    if not run_id:
+        return None
+    try:
+        status = json.loads((repo_root / REPORTS / run_id / "summary.json").read_text()).get("status")
+    except Exception:
+        return None
+    return status if isinstance(status, str) else None
+
+
+def graph_status(exit_code: int, verdict: str | None) -> str:
+    """passed | failed | errored -- `failed` needs the graph's own red verdict."""
+    if exit_code == 0:
+        return "passed"
+    return "failed" if verdict == "failed" else "errored"
+
+
 def run_one(repo_root: Path, graph: str, log_dir: Path,
             resume_build: str | None, resume_node: str | None) -> dict:
     cmd = [sys.executable, str(RUN_PY), graph]
@@ -85,8 +115,11 @@ def run_one(repo_root: Path, graph: str, log_dir: Path,
     }
 
 
-def node_outcomes(repo_root: Path, run_id: str | None) -> tuple[list[str], list[str]]:
-    """Split nodes that FAILED from nodes that never RAN.
+def node_outcomes(repo_root: Path, run_id: str | None) -> tuple[list[str], list[str], list[str]]:
+    """Split nodes that FAILED from nodes that ERRORED and nodes that never RAN.
+
+    `errored` (#175) is a node that never delivered a verdict -- it crashed, was
+    killed, or timed out. It is not a red assertion, and is not resumed from.
 
     Caught by its own selftest on 2026-08-24: the first version returned every
     node whose status was not "passed", which lumps `skipped` in with `failed`.
@@ -100,11 +133,11 @@ def node_outcomes(repo_root: Path, run_id: str | None) -> tuple[list[str], list[
     skipped node has no saved input context to resume from.
     """
     if not run_id:
-        return [], []
-    env = repo_root / "test_graph/build/validation-reports" / run_id / "envelope"
+        return [], [], []
+    env = repo_root / REPORTS / run_id / "envelope"
     if not env.is_dir():
-        return [], []
-    failed, skipped = [], []
+        return [], [], []
+    failed, errored, skipped = [], [], []
     for f in sorted(env.glob("*.json")):
         try:
             e = json.loads(f.read_text())
@@ -114,8 +147,37 @@ def node_outcomes(repo_root: Path, run_id: str | None) -> tuple[list[str], list[
         node = e.get("nodeId") or f.stem
         if status == "passed":
             continue
-        (skipped if status == "skipped" else failed).append(node)
-    return failed, skipped
+        if status == "skipped":
+            skipped.append(node)
+        elif status == "errored":
+            errored.append(node)
+        else:
+            failed.append(node)
+    return failed, errored, skipped
+
+
+def plan_retry(repo_root: Path, prev: dict) -> tuple[list[str], dict[str, tuple[str, str]]]:
+    """Graphs to re-run from a previous sweep.json, and which resume from a node.
+
+    Only a FAILED graph resumes, from its first failing node. An ERRORED graph
+    restarts: the node it stopped at never failed, so there is nothing to
+    resume from. Records written before #175 carry no ``status``; it is derived
+    the same way a fresh run derives it.
+    """
+    graphs: list[str] = []
+    resume_plan: dict[str, tuple[str, str]] = {}
+    for r in prev["results"]:
+        if r["passed"]:
+            continue
+        graphs.append(r["graph"])
+        status = r.get("status") or graph_status(
+            r.get("exit_code", 1), report_status(repo_root, r.get("run_id")))
+        if status != "failed":
+            continue
+        nodes, _, _ = node_outcomes(repo_root, r.get("run_id"))
+        if nodes and r.get("run_id"):
+            resume_plan[r["graph"]] = (f"{REPORTS}/{r['run_id']}", nodes[0])
+    return graphs, resume_plan
 
 
 def main() -> int:
@@ -125,7 +187,7 @@ def main() -> int:
     ap.add_argument("--out", default="results/epic-home-integrity-sync/sweep")
     ap.add_argument("--only", nargs="*", help="run just these graphs")
     ap.add_argument("--start-at", help="skip graphs before this one")
-    ap.add_argument("--retry-failed-from", help="a previous sweep.json; re-run only its failures, resuming each from its first failing node")
+    ap.add_argument("--retry-failed-from", help="a previous sweep.json; re-run its non-green graphs: a failed graph resumes from its first failing node, an errored graph restarts")
     args = ap.parse_args()
 
     repo_root = Path(subprocess.check_output(
@@ -138,16 +200,9 @@ def main() -> int:
     resume_plan: dict[str, tuple[str, str]] = {}
     if args.retry_failed_from:
         prev = json.loads((repo_root / args.retry_failed_from).read_text())
-        graphs = []
-        for r in prev["results"]:
-            if r["passed"]:
-                continue
-            graphs.append(r["graph"])
-            nodes, _ = node_outcomes(repo_root, r.get("run_id"))
-            if nodes and r.get("run_id"):
-                build = f"test_graph/build/validation-reports/{r['run_id']}"
-                resume_plan[r["graph"]] = (build, nodes[0])
-        print(f"retrying {len(graphs)} failed graph(s); {len(resume_plan)} resumable from a node")
+        graphs, resume_plan = plan_retry(repo_root, prev)
+        print(f"retrying {len(graphs)} non-green graph(s); {len(resume_plan)} resumable from a "
+              f"failing node, {len(graphs) - len(resume_plan)} restarted")
     else:
         graphs = args.only or registered_graphs(repo_root, args.scope)
         if args.start_at:
@@ -160,25 +215,38 @@ def main() -> int:
         note = f"  (resuming from {rn})" if rn else ""
         print(f"[{i}/{len(graphs)}] {g}{note} ...", flush=True)
         r = run_one(repo_root, g, log_dir, rb, rn)
-        r["failing_nodes"], r["skipped_nodes"] = node_outcomes(repo_root, r.get("run_id"))
+        r["failing_nodes"], r["errored_nodes"], r["skipped_nodes"] = node_outcomes(
+            repo_root, r.get("run_id"))
+        r["status"] = graph_status(r["exit_code"], report_status(repo_root, r.get("run_id")))
         results.append(r)
-        mark = "PASS" if r["passed"] else f"FAIL rc={r['exit_code']}"
+        mark = {"passed": "PASS", "failed": "FAIL", "errored": "ERROR"}[r["status"]]
+        if not r["passed"]:
+            mark += f" rc={r['exit_code']}"
         nodes = f"  failed: {', '.join(r['failing_nodes'])}" if r["failing_nodes"] else ""
+        nodes += f"  errored: {', '.join(r['errored_nodes'])}" if r["errored_nodes"] else ""
         skips = f"  (skipped downstream: {len(r['skipped_nodes'])})" if r["skipped_nodes"] else ""
         print(f"      {mark}  {r['seconds']}s  run={r['run_id']}{nodes}{skips}", flush=True)
         (out_dir / "sweep.json").write_text(json.dumps({
             "graphs_selected": len(graphs),
             "graphs_executed": len(results),
             "graphs_passed": sum(1 for x in results if x["passed"]),
+            "graphs_failed": sum(1 for x in results if x["status"] == "failed"),
+            "graphs_errored": sum(1 for x in results if x["status"] == "errored"),
             "results": results,
         }, indent=2) + "\n")
 
     ex, ps = len(results), sum(1 for r in results if r["passed"])
-    print(f"\ngraphs_executed={ex}  graphs_passed={ps}  graphs_failed={ex - ps}")
+    fl = sum(1 for r in results if r["status"] == "failed")
+    print(f"\ngraphs_executed={ex}  graphs_passed={ps}  graphs_failed={fl}  graphs_errored={ex - ps - fl}")
     for r in results:
         if not r["passed"]:
             sk = f"  [+{len(r['skipped_nodes'])} skipped downstream]" if r["skipped_nodes"] else ""
-            print(f"  FAILED {r['graph']}: {', '.join(r['failing_nodes']) or 'no node envelope'}{sk}")
+            nodes = r["failing_nodes"] if r["status"] == "failed" else r["errored_nodes"]
+            label = "FAILED " if r["status"] == "failed" else "ERRORED"
+            print(f"  {label} {r['graph']}: {', '.join(nodes) or 'no node envelope'}{sk}")
+    if ex - ps - fl:
+        print("  ERRORED = the run did not complete: retry it or fix the environment, "
+              "do not investigate the code.")
     print(f"\nwrote {out_dir / 'sweep.json'}")
     return 0
 

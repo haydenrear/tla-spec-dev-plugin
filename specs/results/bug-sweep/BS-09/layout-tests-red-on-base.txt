@@ -1,0 +1,79 @@
+# new tests/test_plugin_layout_resolution.py against origin/epic/bug-sweep (df48724c) provider-bindings.json + run-graphs.py
+...........FF                                                            [100%]
+=================================== FAILURES ===================================
+__________ test_test_graph_provider_binding_uses_the_installed_skill ___________
+
+    def test_test_graph_provider_binding_uses_the_installed_skill() -> None:
+        """``provider-bindings.json`` must bind to the INSTALLED test-graph skill.
+    
+        The graphs run against the test-graph skill contained in the tla-spec-dev
+        plugin installed in this checkout's Skill Manager home, not the in-repo
+        ``skills/test-graph`` source (owner decision, 2026-11-04). So the manifest
+        declares only the ``skill-root`` candidate: no ``workspace-relative`` path
+        back into the working tree, which would win first and silently re-vendor
+        the SDK. The runner front door (``test_graph/run-graphs.py``) supplies the
+        other half, by invoking the home's copy of the skill scripts.
+        """
+        manifest_path = ROOT / "test_graph" / "provider-bindings.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    
+        kinds = [candidate.get("kind") for candidate in manifest["provider_candidates"]]
+>       assert kinds == ["skill-root"], (
+            "provider-bindings.json must declare exactly one candidate, `skill-root`, "
+            f"so the SDK comes from the installed skill; got {manifest['provider_candidates']!r}"
+        )
+E       AssertionError: provider-bindings.json must declare exactly one candidate, `skill-root`, so the SDK comes from the installed skill; got [{'kind': 'workspace-relative', 'path': '../skills/test-graph'}, {'kind': 'skill-root'}]
+E       assert ['workspace-r... 'skill-root'] == ['skill-root']
+E         
+E         At index 0 diff: 'workspace-relative' != 'skill-root'
+E         Left contains one more item: 'skill-root'
+E         Use -v to get more diff
+
+tests/test_plugin_layout_resolution.py:175: AssertionError
+_________ test_run_graphs_front_door_never_resolves_the_in_repo_runner _________
+
+    def test_run_graphs_front_door_never_resolves_the_in_repo_runner() -> None:
+        """``run-graphs.py`` must look for the runner inside a home, never in ``skills/``.
+    
+        With only a ``skill-root`` candidate, the runner that executes decides the
+        provider; a fallback to ``skills/test-graph/scripts/run.py`` would bind the
+        graphs back to the working-tree copy with a green exit.
+        """
+        source = (ROOT / "test_graph" / "run-graphs.py").read_text(encoding="utf-8")
+        body = source[source.index("def skill_runner"):source.index("def prepare_bindings")]
+>       assert 'REPO_ROOT / "skills"' not in body, body
+E       AssertionError: def skill_runner() -> Path | None:
+E             """The test-graph skill's runner, preferring this repository's own copy.
+E         
+E             `skills/test-graph/` is a contained skill of this plugin after SI-02, so the
+E             checkout carries the runner that matches it. A Skill Manager home is the
+E             fallback for a checkout that does not.
+E             """
+E             candidates = [REPO_ROOT / "skills" / "test-graph" / "scripts" / "run.py"]
+E             home = os.environ.get("SKILL_MANAGER_HOME")
+E             if home:
+E                 candidates.append(Path(home) / "skills" / "test-graph" / "scripts" / "run.py")
+E             candidates.append(REPO_ROOT / ".skill-manager" / "skills" / "test-graph" / "scripts" / "run.py")
+E             for candidate in candidates:
+E                 if candidate.is_file():
+E                     return candidate
+E             return None
+E         
+E         
+E         
+E       assert 'REPO_ROOT / "skills"' not in 'def skill_r...n None\n\n\n'
+E         
+E         'REPO_ROOT / "skills"' is contained here:
+E           idates = [REPO_ROOT / "skills" / "test-graph" / "scripts" / "run.py"]
+E         ?           +++++++++  +++++++++++
+E               home = os.environ.get("SKILL_MANAGER_HOME")
+E               if home:
+E                   candidates.append(Path(home) / "skills" / "test-graph" / "scripts" / "run.py")...
+E         
+E         ...Full output truncated, use '-vv' to show
+
+tests/test_plugin_layout_resolution.py:190: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_plugin_layout_resolution.py::test_test_graph_provider_binding_uses_the_installed_skill
+FAILED tests/test_plugin_layout_resolution.py::test_run_graphs_front_door_never_resolves_the_in_repo_runner
+2 failed, 11 passed in 0.46s
