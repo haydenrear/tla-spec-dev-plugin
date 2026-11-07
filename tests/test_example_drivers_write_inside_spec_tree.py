@@ -437,8 +437,21 @@ def test_a_validation_run_does_not_generate_over_a_committed_corpus() -> None:
     )
     # Non-vacuity: the fixture this protects must still be committed, or there
     # is nothing here to protect and the assertion above proves nothing.
-    fixture = REPO_ROOT / "examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases"
-    assert any(_is_within(REPO_ROOT / rel, fixture.resolve()) for rel in tracked if rel), (
+    #
+    # BS-08: 76ef2758 deleted the corpus from examples/.../specs/generated and
+    # gitignored that directory; the fixture now lives under tests/fixtures/.
+    # The `tracked` list above is scoped to `examples`, so the non-vacuity check
+    # reads the fixture's own tracked files and also proves the run's output
+    # root does not contain them.
+    fixture = REPO_ROOT / "tests/fixtures/distributed_history_generated/testgraph/ecommerce_external_cases"
+    fixture_tracked = subprocess.run(
+        ["git", "ls-files", str(fixture.relative_to(REPO_ROOT))],
+        cwd=REPO_ROOT, capture_output=True, text=True, check=False,
+    ).stdout.splitlines()
+    assert fixture_tracked, (
         "the committed corpus this test protects is gone -- either it moved "
         "(update this path) or the protection is now vacuous"
+    )
+    assert not _is_within(fixture, root), (
+        f"the committed corpus {fixture} lives beneath the run's output root {root}"
     )

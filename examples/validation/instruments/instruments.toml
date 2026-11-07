@@ -125,6 +125,12 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
     from = "examples/distributed_history"
     to = "dh"
 
+    # BS-08: 76ef2758 deleted and gitignored dh/specs/generated; the corpus
+    # these slots read is committed as a test fixture now and staged into place.
+    [[instrument.failing.stage]]
+    from = "tests/fixtures/distributed_history_generated"
+    to = "dh/specs/generated"
+
     [[instrument.failing.mutate]]
     file = "dh/ecommerce_backend/domain.py"
     find = '                (order_id, account_id, json.dumps(items, sort_keys=True), "accepted"),'
@@ -143,6 +149,12 @@ any row of it is a re-runnable perturbation of the SUBJECT, not of the runner.
     [[instrument.passing.stage]]
     from = "examples/distributed_history"
     to = "dh"
+
+    # BS-08: 76ef2758 deleted and gitignored dh/specs/generated; the corpus
+    # these slots read is committed as a test fixture now and staged into place.
+    [[instrument.passing.stage]]
+    from = "tests/fixtures/distributed_history_generated"
+    to = "dh/specs/generated"
 
 [[instrument]]
 id = "effect-oracle"
@@ -212,6 +224,12 @@ classification = "demonstrated-can-fail"
     from = "examples/distributed_history"
     to = "dh"
 
+    # BS-08: 76ef2758 deleted and gitignored dh/specs/generated; the corpus
+    # these slots read is committed as a test fixture now and staged into place.
+    [[instrument.failing.stage]]
+    from = "tests/fixtures/distributed_history_generated"
+    to = "dh/specs/generated"
+
     [[instrument.failing.mutate]]
     file = "dh/specs/program_model/spec_manifest.yaml"
     find = "max_internal_cases_per_component: 200"
@@ -230,6 +248,12 @@ classification = "demonstrated-can-fail"
     [[instrument.passing.stage]]
     from = "examples/distributed_history"
     to = "dh"
+
+    # BS-08: 76ef2758 deleted and gitignored dh/specs/generated; the corpus
+    # these slots read is committed as a test fixture now and staged into place.
+    [[instrument.passing.stage]]
+    from = "tests/fixtures/distributed_history_generated"
+    to = "dh/specs/generated"
 
 [[instrument]]
 id = "tla-complexity-descriptor"

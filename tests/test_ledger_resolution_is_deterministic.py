@@ -95,8 +95,14 @@ def test_both_resolvers_agree_on_the_repositorys_ledger() -> None:
     They are separate implementations of the same rule, and a reader who
     consults one and cites the other must not get a different set of findings.
     """
+    # BS-08 (stale test, updated): this compared the ARCHIVE fallback of one
+    # tool against `_ledger_path()` of the other, which returns the LIVE
+    # ledger first. On `main` there is no live ledger so the two coincide; on
+    # every open epic branch the live inbox exists and they cannot. The
+    # property in this module's docstring is about the two FALLBACKS, so the
+    # fallback is what is compared.
     from_disposition = D.archived_ledgers(REPO_ROOT)[-1]
-    from_score_tools = _score_tools()._ledger_path()
+    from_score_tools = _score_tools()._newest_archived_ledger()
     assert from_score_tools is not None
     assert from_disposition.read_bytes() == from_score_tools.read_bytes(), (
         f"disposition reads {from_disposition}\n"

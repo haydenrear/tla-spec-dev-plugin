@@ -150,6 +150,11 @@ def stage(spec: dict[str, Any], tree: Path) -> None:
         if not source.exists():
             raise DemonstrationError(f"stage source does not exist: {entry['from']}")
         destination.parent.mkdir(parents=True, exist_ok=True)
+        # BS-08: entries apply in order and a later one REPLACES what an earlier
+        # one put at its destination (a fixture staged over an example's
+        # gitignored, possibly locally-generated, directory).
+        if destination.is_dir() and source.is_dir():
+            shutil.rmtree(destination)
         if source.is_dir():
             shutil.copytree(source, destination, ignore=shutil.ignore_patterns("__pycache__"))
         else:

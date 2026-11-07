@@ -3168,6 +3168,11 @@ def _ledger_path() -> pathlib.Path | None:
     live = REPO_ROOT / LEDGER_LIVE
     if live.exists():
         return live
+    return _newest_archived_ledger()
+
+
+def _newest_archived_ledger() -> pathlib.Path | None:
+    """The newest archived ledger copy under `specs/.history`, else `None`."""
     seen: dict[pathlib.Path, None] = {}
     for pattern in LEDGER_ARCHIVE_GLOBS:
         for path in REPO_ROOT.glob(pattern):
@@ -3218,10 +3223,20 @@ def _finding_ids() -> set[str] | None:
     the shape `CA-10-DF-11` filed: an instrument handed an absent input and
     returning a confident verdict over it.
     """
-    path = _ledger_path()
-    if path is None:
+    # BS-08: the LIVE ledger and the newest ARCHIVED one, unioned. While an
+    # epic is open, `desired_program_model/deferred_findings.yaml` is that
+    # epic's fresh inbox and carries none of the sealed ids; reading it ALONE
+    # turned every historical `filed_as` (CL-03-DF-04, PA-05-DF-0x, ...) into a
+    # VIOLATION on every epic branch -- 14 of them on bug-sweep -- although not
+    # one finding had gone anywhere. A filed id resolves if either copy has it.
+    paths = [p for p in (REPO_ROOT / LEDGER_LIVE, _newest_archived_ledger())
+             if p is not None and p.exists()]
+    if not paths:
         return None
-    return set(re.findall(r"^\s*-\s+id:\s*\"?([A-Za-z0-9_.-]+)\"?", path.read_text(), re.M))
+    ids: set[str] = set()
+    for path in paths:
+        ids |= set(re.findall(r"^\s*-\s+id:\s*\"?([A-Za-z0-9_.-]+)\"?", path.read_text(), re.M))
+    return ids
 
 
 def audit_rh1(ctx: dict) -> list[tuple[str, str]]:

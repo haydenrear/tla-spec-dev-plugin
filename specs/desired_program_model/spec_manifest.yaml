@@ -255,12 +255,12 @@ effects:
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
         # skills/spec-double-2/scripts/run_generated_case_adapters.py ...`, built at
-        # skills/spec-double-2/scripts/tla_spec_dev.py:395 (run_generated_case_adapters.py) and
-        # executed at skills/spec-double-2/scripts/tla_spec_dev.py:459 (subprocess.run) whenever a
+        # skills/spec-double-2/scripts/tla_spec_dev.py:837 (run_generated_case_adapters.py) and
+        # executed at skills/spec-double-2/scripts/tla_spec_dev.py:901 (subprocess.run) whenever a
         # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
         # the `uv run --with pytest -m pytest` child at
-        # skills/spec-double-2/scripts/tla_spec_dev.py:369 (--with) does -- so the
+        # skills/spec-double-2/scripts/tla_spec_dev.py:803 (--with) does -- so the
         # runner spawn gets its own port rather than a widened, dishonest
         # test_process target.
         runner_process:
@@ -268,14 +268,14 @@ effects:
           target: "*run_generated_case_adapters*"
         # CD-10 (audit run 3, gap R3-2): CloseTicket's shipped close path
         # performs destructive deletes, all under the spec tree: rmtree of TLC
-        # `states/` dirs (skills/spec-double-2/scripts/spec_evolution.py:237 (shutil.rmtree) via
-        # skills/spec-double-2/scripts/spec_evolution.py:1998 (remove_state_directories) at ticket
-        # close and skills/spec-double-2/scripts/spec_evolution.py:2155 (remove_state_directories)
+        # `states/` dirs (skills/spec-double-2/scripts/spec_evolution.py:312 (shutil.rmtree) via
+        # skills/spec-double-2/scripts/spec_evolution.py:2500 (remove_state_directories) at ticket
+        # close and skills/spec-double-2/scripts/spec_evolution.py:2660 (remove_state_directories)
         # at workflow close), rmtree of project `current/` before promotion
-        # (skills/spec-double-2/scripts/spec_evolution.py:1088 (shutil.rmtree) via
-        # skills/spec-double-2/scripts/spec_evolution.py:1283 (replace_tree), the GitHub #22
+        # (skills/spec-double-2/scripts/spec_evolution.py:1165 (shutil.rmtree) via
+        # skills/spec-double-2/scripts/spec_evolution.py:1735 (replace_tree), the GitHub #22
         # data-loss mechanism), and unlink of seeded paths the ticket dropped
-        # (skills/spec-double-2/scripts/spec_evolution.py:1254 (target.unlink)). filesystem.write
+        # (skills/spec-double-2/scripts/spec_evolution.py:1626 (target.unlink)). filesystem.write
         # on spec_tree never covered these -- the schema distinguishes
         # filesystem.delete precisely so a delete cannot hide under a write.
         spec_tree_delete:
@@ -312,17 +312,18 @@ effects:
         # MF-026 round 2, G-2 write half. With no --work-dir the runner writes
         # into tempfile.mkdtemp -- skills/spec-double-2/scripts/run_generated_case_adapters.py:2356 (mkdtemp)
         # (mkdtemp) -- placing the per-case program at
-        # skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 (program_path). No
+        # skills/spec-double-2/scripts/run_generated_case_adapters.py:1313 (write_case_program),
+        # a tombstone since CA-06 removed per-case programs (BS-08-DF-04). No
         # declared write port accepted that path.
         case_program_write:
           type: filesystem.write
           target: "**/programs/case-*"
         # CD-10 (audit run 3, gap R3-3b): CloseTicket spawns `git rev-parse
         # ...` for history-entry provenance
-        # (skills/spec-double-2/scripts/spec_evolution.py:216 (subprocess.run), via
-        # skills/spec-double-2/scripts/spec_evolution.py:2191 (git_metadata) at ticket close,
-        # skills/spec-double-2/scripts/spec_evolution.py:2306 (git_metadata) at workflow close, and
-        # skills/spec-double-2/scripts/spec_evolution.py:1930 (git_metadata) on ticket
+        # (skills/spec-double-2/scripts/spec_evolution.py:217 (subprocess.run), via
+        # skills/spec-double-2/scripts/spec_evolution.py:2605 (git_metadata) at ticket close,
+        # skills/spec-double-2/scripts/spec_evolution.py:2720 (git_metadata) at workflow close, and
+        # skills/spec-double-2/scripts/spec_evolution.py:2314 (git_metadata) on ticket
         # retirement -- THREE call sites, not the two this sentence claimed
         # before #318's review counted them). The
         # fail-open branch on git error is out-of-model; the spawn itself is
@@ -382,8 +383,8 @@ effects:
     # effect", and only the second is true. The CLI records no budgets:
     # budget_prompt only prints negotiation instructions
     # (skills/spec-double-2/scripts/budgets.py:74-94 (def budget_prompt), printed at
-    # skills/spec-double-2/scripts/tla_spec_dev.py:92 (budget_prompt) and
-    # skills/spec-double-2/scripts/tla_spec_dev.py:121 (budget_prompt)); the budgets block itself is
+    # skills/spec-double-2/scripts/tla_spec_dev.py:93 (budget_prompt) and
+    # skills/spec-double-2/scripts/tla_spec_dev.py:122 (budget_prompt)); the budgets block itself is
     # emitted at scaffold time under ScaffoldProject/ScaffoldWorkflow's
     # spec_tree, and recording user-negotiated values is an agent edit, not a
     # program effect.
