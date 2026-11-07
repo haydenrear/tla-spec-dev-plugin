@@ -71,13 +71,14 @@ deliberately left without a schema, because nobody has run a round with one.
 It is BLIND's twin and it belongs on this list the moment somebody does.
 
 **And a CATCH does not require something to have caught it.** The `channel` may
-be `reading` — a defect found by a person or an agent looking at the code, with
+be in the `reading` class (§4.1) — a defect found by a person or an agent looking at the code, with
 nothing red anywhere. Round 3 made the case concretely: a ticket agent hit ZERO
 regressions and found one MAJOR pre-existing defect by reading, and because
 every clause was scoped to *"a regression happened"*, the most valuable thing
 that seat produced had no clause to land in. It reached the matrix only because
 somebody read the transcript afterwards. **A defect found by reading is a CATCH
-whose channel is `reading` and whose `pinned_by` is usually empty** — and the
+whose channel is in the `reading` class (§4.1) and whose `pinned_by` is usually
+empty** — `reading` is a class, never a `channel:` value — and the
 empty pin is the interesting half, not a reason to leave it unrecorded.
 
 ### 2a. `skill_change` — the one field every kind carries
@@ -91,7 +92,7 @@ substrate and the record stops at having noticed.
 **So every record kind carries one more field, with one grammar:**
 
 ```
-skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>)
+skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>) | UNDECIDED
 ```
 
 | value | means |
@@ -100,6 +101,7 @@ skill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | dec
 | `proposed(<unit>, <ref>)` | the change is written down somewhere that is not this record |
 | `applied(<commit>)` | the substrate is different now, and here is the commit |
 | `declined(<reason>)` | somebody decided not to, and said why |
+| `UNDECIDED` | the row was looked at and nobody has answered yet — §3's answer to an absent input, counted on its own and never terminal |
 
 **An absent `skill_change` is not `none`.** §3 governs this and it is the whole
 reason the field is worth having: `none` is a claim somebody made, absent is
@@ -221,8 +223,14 @@ phase stays at epic finalization rather than recurring during every ticket.
 
 ### 4.1 The channel vocabulary, and its class
 
-**Nine tokens.** Seven are `CA-02`'s, unchanged and not relabelled. Two —
-`test-graph` and `tlc` — are added because the record could not name them.
+**Ten tokens.** Seven are `CA-02`'s, unchanged and not relabelled. Three —
+`test-graph`, `tlc` and `cross-implementation` — are added because the record
+could not name them. **`reading` is a CLASS, not a token**: a defect found by
+reading is filed under `census`, `independent-review` or `blind-judges` when a
+reader was looking for defects, and under `operator-doing-the-work` when it was
+noticed while doing something else. `UNDECIDED` (§3) is not a token either; it
+is the honest entry when nobody can say which token applies, and
+`scripts/disposition.py` does not report it as off-vocabulary.
 
 **The class is a lookup, not a judgement.** *"Was this caught by an automated
 instrument or by a hand?"* is answered by finding the token in this table. **No

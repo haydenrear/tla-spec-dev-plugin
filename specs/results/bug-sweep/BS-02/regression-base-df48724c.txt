@@ -1,0 +1,238 @@
+FFF.F.FFFFFFFFF                                                          [100%]
+=================================== FAILURES ===================================
+____ test_161_disposition_channels_accept_section_4_1_tokens_and_undecided _____
+
+    def test_161_disposition_channels_accept_section_4_1_tokens_and_undecided():
+        off = D.off_vocabulary_channels([{"id": r, "channel": c} for r, c, _ in ROWS])
+        # Before the fix: 6 rows (2 test-graph, tlc, cross-implementation, 2 UNDECIDED)
+        # plus the real one. After: exactly the real one.
+>       assert off == [("DEF-206", "reading")]
+E       AssertionError: assert [('DEF-200', ...ECIDED'), ...] == [('DEF-206', 'reading')]
+E         
+E         At index 0 diff: ('DEF-200', 'test-graph') != ('DEF-206', 'reading')
+E         Left contains 6 more items, first extra item: ('DEF-201', 'test-graph')
+E         Use -v to get more diff
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:87: AssertionError
+____________ test_161_disposition_advisory_prints_one_row_not_seven ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_161_disposition_advisory_0')
+
+    def test_161_disposition_advisory_prints_one_row_not_seven(tmp_path):
+        ledger = tmp_path / "ledger.yaml"
+        ledger.write_text(ledger_text("  "), encoding="utf-8")  # nested: isolates #161 from #162
+        done = run(DISPOSITION, "--ledger", str(ledger), "--all", cwd=tmp_path)
+        assert "0 of 7 findings" in done.stdout, done.stdout + done.stderr
+>       assert "ADVISORY (not a clause): 1 row(s)" in done.stdout, done.stdout
+E       AssertionError: DISPOSED DEF: 7 findings, all three clauses hold
+E         
+E         0 of 7 findings in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_161_disposition_advisory_0/ledger.yaml are undisposed
+E         
+E         ADVISORY (not a clause): 7 row(s) carry a `channel` outside the vocabulary in references/consumption.md:
+E                    DEF-200: 'test-graph'
+E                    DEF-201: 'test-graph'
+E                    DEF-202: 'tlc'
+E                    DEF-203: 'cross-implementation'
+E                    DEF-204: 'UNDECIDED'
+E                    DEF-205: 'UNDECIDED'
+E                    DEF-206: 'reading'
+E         
+E       assert 'ADVISORY (not a clause): 1 row(s)' in "DISPOSED DEF: 7 findings, all three clauses hold\n\n0 of 7 findings in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61...oss-implementation'\n           DEF-204: 'UNDECIDED'\n           DEF-205: 'UNDECIDED'\n           DEF-206: 'reading'\n"
+E        +  where "DISPOSED DEF: 7 findings, all three clauses hold\n\n0 of 7 findings in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61...oss-implementation'\n           DEF-204: 'UNDECIDED'\n           DEF-205: 'UNDECIDED'\n           DEF-206: 'reading'\n" = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...tation'\n           DEF-204: 'UNDECIDED'\n           DEF-205: 'UNDECIDED'\n           DEF-206: 'reading'\n", stderr='').stdout
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:95: AssertionError
+__ test_162_disposition_reads_both_layouts_with_no_false_duplicates[column-0] __
+
+indent = ''
+
+    @pytest.mark.parametrize("indent", ["", "  "], ids=["column-0", "nested"])
+    def test_162_disposition_reads_both_layouts_with_no_false_duplicates(indent):
+>       assert D.duplicate_keys(ledger_text(indent)) == []
+E       AssertionError: assert [('?', 'produ...61, 73, ...])] == []
+E         
+E         Left contains 4 more items, first extra item: ('?', 'production', [9, 21, 33, 45, 57, 69, ...])
+E         Use -v to get more diff
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:104: AssertionError
+______ test_162_disposition_names_a_planted_duplicate_precisely[column-0] ______
+
+indent = ''
+
+    @pytest.mark.parametrize("indent", ["", "  "], ids=["column-0", "nested"])
+    def test_162_disposition_names_a_planted_duplicate_precisely(indent):
+        dups = D.duplicate_keys(ledger_text(indent, planted_duplicate="DEF-203"))
+>       assert [(rid, key, len(ns)) for rid, key, ns in dups] == [("DEF-203", "found_by", 2)]
+E       AssertionError: assert [('?', 'produ...st_graph', 7)] == [('DEF-203', 'found_by', 2)]
+E         
+E         At index 0 diff: ('?', 'production', 7) != ('DEF-203', 'found_by', 2)
+E         Left contains 3 more items, first extra item: ('?', 'tla', 7)
+E         Use -v to get more diff
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:110: AssertionError
+_ test_162_column_0_ledger_loads_seven_rows_and_improvement_ledger_reads_them __
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_162_column_0_ledger_loads0')
+
+    def test_162_column_0_ledger_loads_seven_rows_and_improvement_ledger_reads_them(tmp_path):
+        ledger = tmp_path / "ledger.yaml"
+        ledger.write_text(ledger_text(""), encoding="utf-8")
+        rows, faults = D.read_rows(ledger)
+>       assert len(rows) == 7 and faults == []
+E       assert (0 == 7)
+E        +  where 0 = len([])
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:117: AssertionError
+_______ test_143_sf010_disposition_nested_surface_keys_are_not_row_keys ________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_143_sf010_disposition_nes0')
+
+    def test_143_sf010_disposition_nested_surface_keys_are_not_row_keys(tmp_path):
+        text = ledger_text("")
+        reported = {key for _, key, _ in D.duplicate_keys(text)}
+>       assert not reported & {"production", "tla", "adapters", "test_graph"}
+E       AssertionError: assert not ({'adapters', 'production', 'test_graph', 'tla'} & {'adapters', 'production', 'test_graph', 'tla'})
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:132: AssertionError
+______ test_163_improvement_ledger_default_reads_the_consumer_live_ledger ______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_de0')
+
+    def test_163_improvement_ledger_default_reads_the_consumer_live_ledger(tmp_path):
+        root = consumer_repo(tmp_path)
+        done = run(IMPROVEMENT_LEDGER, "--repo-root", str(root), cwd=root)
+        assert done.returncode == 0, done.stderr
+>       assert "improvement ledger -- 7 record(s) across 1 file(s)" in done.stdout, done.stdout
+E       AssertionError: improvement ledger -- 0 record(s) across 0 file(s)
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_de0/consumer/specs/results/skill_feedback.md: absent -- no skill-feedback findings read
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_de0/consumer/specs/results/deferred_findings_final.yaml: absent -- no backlog rows read
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_de0/consumer/specs/results/epic-close/deferred_findings_next.yaml: absent -- no backlog rows read
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_de0/consumer/examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md: absent -- no matrix bins read
+E         
+E         WARNINGS (advisory -- nothing here refuses)
+E           recorded-local, filed nowhere .......... 0
+E           no skill_change field at all ........... 0
+E           skill_change present but unparseable ... 0
+E           D4: skill-anchored, not applied/declined 0
+E         
+E         The rule: a finding anchored to a skill is consumed only by a change
+E         to that skill. `references/consumption.md` D4. This reader reports it;
+E         nothing in this repository refuses on it.
+E         
+E       assert 'improvement ledger -- 7 record(s) across 1 file(s)' in 'improvement ledger -- 0 record(s) across 0 file(s)\n  ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pyte...e\nto that skill. `references/consumption.md` D4. This reader reports it;\nnothing in this repository refuses on it.\n'
+E        +  where 'improvement ledger -- 0 record(s) across 0 file(s)\n  ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pyte...e\nto that skill. `references/consumption.md` D4. This reader reports it;\nnothing in this repository refuses on it.\n' = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...kill. `references/consumption.md` D4. This reader reports it;\nnothing in this repository refuses on it.\n', stderr='').stdout
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:156: AssertionError
+__ test_163_improvement_ledger_reads_an_explicit_ledger_outside_the_defaults ___
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_re0')
+
+    def test_163_improvement_ledger_reads_an_explicit_ledger_outside_the_defaults(tmp_path):
+        root = consumer_repo(tmp_path)
+        elsewhere = tmp_path / "elsewhere" / "findings.yaml"
+        elsewhere.parent.mkdir()
+        elsewhere.write_text(ledger_text("  "), encoding="utf-8")
+        done = run(IMPROVEMENT_LEDGER, "--repo-root", str(root), "--ledger", str(elsewhere), cwd=root)
+>       assert done.returncode == 0, done.stderr
+E       AssertionError: usage: improvement_ledger.py [-h] [--repo-root REPO_ROOT] [-v]
+E         improvement_ledger.py: error: unrecognized arguments: --ledger /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_re0/elsewhere/findings.yaml
+E         
+E       assert 2 == 0
+E        +  where 2 = CompletedProcess(args=['/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python', '/private/tmp/claude-501/-User...rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_163_improvement_ledger_re0/elsewhere/findings.yaml\n').returncode
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:165: AssertionError
+____ test_164_bug_attribution_token_count_matches_its_table_and_disposition ____
+
+    def test_164_bug_attribution_token_count_matches_its_table_and_disposition():
+        sec = section_4_1()
+        tokens = re.findall(r"^\| `([a-z-]+)` \| \*\*(?:automated|hand|reading)\*\* \|", sec, re.M)
+        assert len(tokens) == 10
+        words = {9: "Nine", 10: "Ten", 11: "Eleven"}
+>       assert f"**{words[len(tokens)]} tokens.**" in sec
+E       assert '**Ten tokens.**' in "The channel vocabulary, and its class\n\n**Nine tokens.** Seven are `CA-02`'s, unchanged and not relabelled. Two —\n`...nt` is **hand** — the probe does not. **A\nthrowaway probe that found a real bug is a hand catch wearing a script.**\n"
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:184: AssertionError
+____ test_164_bug_attribution_section_2_does_not_name_reading_as_a_channel _____
+
+    def test_164_bug_attribution_section_2_does_not_name_reading_as_a_channel():
+        text = BUG_ATTRIBUTION.read_text(encoding="utf-8")
+        flat = " ".join(text.split())
+>       assert "channel is `reading`" not in flat
+E       AssertionError: assert 'channel is `reading`' not in '# Bug Attri...ire subject.'
+E         
+E         'channel is `reading`' is contained here:
+E         ?           ^^^^^^^^^^                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ...
+E         
+E         ...Full output truncated, use '-vv' to show
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:193: AssertionError
+___________ test_165_improvement_ledger_parses_undecided_on_its_own ____________
+
+    def test_165_improvement_ledger_parses_undecided_on_its_own():
+        parsed = L.parse_skill_change("UNDECIDED")
+>       assert parsed.verb == "undecided"
+E       AssertionError: assert 'malformed' == 'undecided'
+E         
+E         - undecided
+E         + malformed
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:203: AssertionError
+_____ test_165_improvement_ledger_counts_undecided_apart_from_unparseable ______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_165_improvement_ledger_co0')
+
+    def test_165_improvement_ledger_counts_undecided_apart_from_unparseable(tmp_path):
+        root = consumer_repo(tmp_path)
+        done = run(IMPROVEMENT_LEDGER, "--repo-root", str(root), cwd=root)
+        out = done.stdout
+>       assert re.search(r"skill_change UNDECIDED \(asked, open\) \.+ 5$", out, re.M), out
+E       AssertionError: improvement ledger -- 0 record(s) across 0 file(s)
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_165_improvement_ledger_co0/consumer/specs/results/skill_feedback.md: absent -- no skill-feedback findings read
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_165_improvement_ledger_co0/consumer/specs/results/deferred_findings_final.yaml: absent -- no backlog rows read
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_165_improvement_ledger_co0/consumer/specs/results/epic-close/deferred_findings_next.yaml: absent -- no backlog rows read
+E           ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-233/test_165_improvement_ledger_co0/consumer/examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md: absent -- no matrix bins read
+E         
+E         WARNINGS (advisory -- nothing here refuses)
+E           recorded-local, filed nowhere .......... 0
+E           no skill_change field at all ........... 0
+E           skill_change present but unparseable ... 0
+E           D4: skill-anchored, not applied/declined 0
+E         
+E         The rule: a finding anchored to a skill is consumed only by a change
+E         to that skill. `references/consumption.md` D4. This reader reports it;
+E         nothing in this repository refuses on it.
+E         
+E       assert None
+E        +  where None = <function search at 0x108970900>('skill_change UNDECIDED \\(asked, open\\) \\.+ 5$', 'improvement ledger -- 0 record(s) across 0 file(s)\n  ! /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pyte...e\nto that skill. `references/consumption.md` D4. This reader reports it;\nnothing in this repository refuses on it.\n', re.MULTILINE)
+E        +    where <function search at 0x108970900> = re.search
+E        +    and   re.MULTILINE = re.M
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:212: AssertionError
+______________ test_165_bug_attribution_grammar_spells_undecided _______________
+
+    def test_165_bug_attribution_grammar_spells_undecided():
+        text = BUG_ATTRIBUTION.read_text(encoding="utf-8")
+>       assert re.search(r"^skill_change: none \|.*\| UNDECIDED$", text, re.M)
+E       assert None
+E        +  where None = <function search at 0x108970900>('^skill_change: none \\|.*\\| UNDECIDED$', "# Bug Attribution\n\n*What the record keeps about where defects come from, what caught them, and —\nthe part nothing ...it would delete the\nevidence that a channel exists and is not being recorded, which is this page's\nentire subject.\n", re.MULTILINE)
+E        +    where <function search at 0x108970900> = re.search
+E        +    and   re.MULTILINE = re.M
+
+tests/test_bs02_disposition_improvement_ledger_attribution.py:219: AssertionError
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_reads_both_layouts_with_no_false_duplicates[nested]
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_names_a_planted_duplicate_precisely[nested]
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_161_disposition_channels_accept_section_4_1_tokens_and_undecided
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_161_disposition_advisory_prints_one_row_not_seven
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_reads_both_layouts_with_no_false_duplicates[column-0]
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_names_a_planted_duplicate_precisely[column-0]
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_column_0_ledger_loads_seven_rows_and_improvement_ledger_reads_them
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_143_sf010_disposition_nested_surface_keys_are_not_row_keys
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_163_improvement_ledger_default_reads_the_consumer_live_ledger
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_163_improvement_ledger_reads_an_explicit_ledger_outside_the_defaults
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_164_bug_attribution_token_count_matches_its_table_and_disposition
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_164_bug_attribution_section_2_does_not_name_reading_as_a_channel
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_165_improvement_ledger_parses_undecided_on_its_own
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_165_improvement_ledger_counts_undecided_apart_from_unparseable
+FAILED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_165_bug_attribution_grammar_spells_undecided
+13 failed, 2 passed in 17.78s
