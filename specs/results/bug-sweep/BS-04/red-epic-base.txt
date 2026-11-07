@@ -1,0 +1,57 @@
+# red-epic-base: tests/test_workflow_reference_contracts.py; epic base origin/epic/bug-sweep=df48724c1ced68a3f6db17251e37e30aa041fd64; red run = branch test file against base docs (skills/ reverted to df48724c1ced68a3f6db17251e37e30aa041fd64)
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+______ test_goal_signal_red_control_must_apply_to_measured_node_revision _______
+
+    def test_goal_signal_red_control_must_apply_to_measured_node_revision() -> None:
+        """#169: a committed RED control is checked against the node revision measured."""
+>       sec = _section(GOAL_SIGNAL, "### A control is only as current as the node revision it ran on")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_workflow_reference_contracts.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/Users/hayde/IdeaProjects/tla-spec-dev-189-workflow-references/skills/git-issue-workflow/references/goal-signal.md')
+heading = '### A control is only as current as the node revision it ran on'
+
+    def _section(path: Path, heading: str) -> str:
+        text = path.read_text()
+>       start = text.index(heading)
+                ^^^^^^^^^^^^^^^^^^^
+E       ValueError: substring not found
+
+tests/test_workflow_reference_contracts.py:25: ValueError
+___ test_validation_review_contract_change_reruns_every_asserting_instrument ___
+
+    def test_validation_review_contract_change_reruns_every_asserting_instrument() -> None:
+        """#170: a contract change pulls in every graph binding the action, and the host episode."""
+>       sec = _section(VALIDATION_REVIEW, "## A changed contract reruns every instrument that asserts it")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_workflow_reference_contracts.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/Users/hayde/IdeaProjects/tla-spec-dev-189-workflow-references/skills/git-epic-workflow/references/validation-review.md')
+heading = '## A changed contract reruns every instrument that asserts it'
+
+    def _section(path: Path, heading: str) -> str:
+        text = path.read_text()
+>       start = text.index(heading)
+                ^^^^^^^^^^^^^^^^^^^
+E       ValueError: substring not found
+
+tests/test_workflow_reference_contracts.py:25: ValueError
+___ test_deferment_fixed_findings_are_flipped_and_reproduced_before_dispatch ___
+
+    def test_deferment_fixed_findings_are_flipped_and_reproduced_before_dispatch() -> None:
+        """#167: a fixed finding is flipped, and dispatch re-runs a finding's reproduction."""
+        agent = _section(DEFERMENT, "## Ticket-agent behavior")
+>       assert "6. If your change fixes a finding filed by ANOTHER ticket" in agent
+E       AssertionError: assert '6. If your change fixes a finding filed by ANOTHER ticket' in '## Ticket-agent behavior 1. Classify the finding. In scope → fix it as ordinary ticket work. 2. Out of scope and bloc...IRED validation entry, loosening an invariant, marking a test skipped, or closing a ticket whose equality gate fails. '
+
+tests/test_workflow_reference_contracts.py:60: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_workflow_reference_contracts.py::test_goal_signal_red_control_must_apply_to_measured_node_revision
+FAILED tests/test_workflow_reference_contracts.py::test_validation_review_contract_change_reruns_every_asserting_instrument
+FAILED tests/test_workflow_reference_contracts.py::test_deferment_fixed_findings_are_flipped_and_reproduced_before_dispatch
+3 failed in 0.02s
