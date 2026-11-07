@@ -21,8 +21,8 @@ particular run happened to work on the machine it ran on:
    must also name the plugin rung for that same skill. Two-rung resolution is the
    fix; a file carrying only rung one is the defect, whatever it resolves to
    today on a home that still has the retired standalone copy installed.
-2. The Test Graph provider binding must name a provider inside this bundle, not
-   one inside a Skill Manager home.
+2. The Test Graph provider binding must bind to the test-graph skill installed
+   in the Skill Manager home (``skill-root`` only), not the in-repo source.
 
 Both read tracked files only. Neither needs a home, a network, or an install, and
 neither refuses: they are pytest assertions, so a violation is a reported failure
@@ -157,57 +157,35 @@ def test_no_executable_carries_a_standalone_only_rung(skill: str) -> None:
     )
 
 
-def test_test_graph_provider_binding_names_an_in_bundle_provider() -> None:
-    """``provider-bindings.json`` must resolve to a provider inside this repo.
+def test_test_graph_provider_binding_uses_the_installed_skill() -> None:
+    """``provider-bindings.json`` must bind to the INSTALLED test-graph skill.
 
-    The manifest is TRACKED (only the three directories it generates are
-    gitignored), so this is a committed statement about where the Gradle SDK
-    comes from, and it is checked here rather than by `project resolve`: the
-    `[[vendored]]` block that used to make this claim was deleted by SI-11
-    because `from_unit` has no spelling for a contained skill (see
-    skill-project.toml).
-
-    The stale value named ``../.skill-manager/skills/test-graph`` — inside the
-    checkout's own gitignored home, at the retired standalone copy. That is not
-    an inert path: the candidate list is tried in order and the first COMPLETE
-    provider wins, so on a home carrying the old standalone install it won, and
-    the three graphs ran their entire build against a copy of the SDK that the
-    bundle no longer versions.
+    The graphs run against the test-graph skill contained in the tla-spec-dev
+    plugin installed in this checkout's Skill Manager home, not the in-repo
+    ``skills/test-graph`` source (owner decision, 2026-11-04). So the manifest
+    declares only the ``skill-root`` candidate: no ``workspace-relative`` path
+    back into the working tree, which would win first and silently re-vendor
+    the SDK. The runner front door (``test_graph/run-graphs.py``) supplies the
+    other half, by invoking the home's copy of the skill scripts.
     """
     manifest_path = ROOT / "test_graph" / "provider-bindings.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    test_graph_root = manifest_path.parent
 
-    workspace = [
-        candidate
-        for candidate in manifest["provider_candidates"]
-        if candidate.get("kind") == "workspace-relative"
-    ]
-    assert workspace, (
-        "provider-bindings.json declares no workspace-relative provider, so the "
-        "only candidate left is `skill-root` — whichever copy of the test-graph "
-        "scripts happens to be executing. Name the in-bundle provider explicitly."
+    kinds = [candidate.get("kind") for candidate in manifest["provider_candidates"]]
+    assert kinds == ["skill-root"], (
+        "provider-bindings.json must declare exactly one candidate, `skill-root`, "
+        f"so the SDK comes from the installed skill; got {manifest['provider_candidates']!r}"
     )
 
-    for candidate in workspace:
-        resolved = (test_graph_root / candidate["path"]).resolve()
-        assert ROOT in resolved.parents or resolved == ROOT, (
-            f"provider-bindings.json names a provider outside this repository:\n"
-            f"  declared: {candidate['path']}\n"
-            f"  resolves: {resolved}\n"
-            "The provider must be the bundle's own skills/test-graph, not a copy "
-            "inside a Skill Manager home."
-        )
-        assert ".skill-manager" not in resolved.parts, (
-            f"provider-bindings.json names a provider inside a Skill Manager home:\n"
-            f"  declared: {candidate['path']}\n"
-            f"  resolves: {resolved}\n"
-            "SI-02 retired the standalone test-graph install; a binding that "
-            "points into a home reads the retired copy wherever one still exists, "
-            "and silently falls through to `skill-root` wherever one does not."
-        )
-        for relative in manifest["bindings"].values():
-            assert (resolved / relative).is_dir(), (
-                f"declared provider {resolved} does not carry {relative}, so this "
-                "candidate can never be selected and the manifest is decorative."
-            )
+
+def test_run_graphs_front_door_never_resolves_the_in_repo_runner() -> None:
+    """``run-graphs.py`` must look for the runner inside a home, never in ``skills/``.
+
+    With only a ``skill-root`` candidate, the runner that executes decides the
+    provider; a fallback to ``skills/test-graph/scripts/run.py`` would bind the
+    graphs back to the working-tree copy with a green exit.
+    """
+    source = (ROOT / "test_graph" / "run-graphs.py").read_text(encoding="utf-8")
+    body = source[source.index("def skill_runner"):source.index("def prepare_bindings")]
+    assert 'REPO_ROOT / "skills"' not in body, body
+    assert '"plugins"' in body and '"tla-spec-dev"' in body, body
