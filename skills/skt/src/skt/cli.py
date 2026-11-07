@@ -65,9 +65,17 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--json", action="store_true")
 
     sync = sub.add_parser(
-        "sync", help="pull a unit to its latest pushed source (SKT-4)"
+        "sync",
+        help="bring a unit to the revision this home tracks: the skill-project.toml "
+        "pin in a project/worktree home, the trunk at root (SKT-4, #181)",
     )
     sync.add_argument("unit", nargs="?")
+    sync.add_argument(
+        "--trunk",
+        action="store_true",
+        help="pull the unit's trunk even past a skill-project.toml pin, and name "
+        "the pin/lock files that invalidates",
+    )
 
     ticket = sub.add_parser(
         "ticket",
@@ -325,7 +333,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "check":
         return _import_sibling("check").run(as_json=args.json, cached=args.cached, ttl=args.ttl)
     if args.command == "sync":
-        return _import_sibling("sync").run(args.unit)
+        return _import_sibling("sync").run(args.unit, trunk=args.trunk)
     if args.command == "ticket":
         return _import_sibling("ticket").run(
             args.verb,
