@@ -36,3 +36,32 @@ findings:
       name its own dashed-path projector/adapter either.
     proposed: >-
       Share one resolver (file form + dotted form) between generate cases and the runtime.
+  - id: BS-07-DF-04
+    unit: specs/{current,desired_program_model,program_model}/spec_manifest.yaml (line citations)
+    blocking: false
+    observed: >-
+      On origin/epic/bug-sweep @ 02375b14, tests/test_source_citations.py fails for the three
+      spec_manifest.yaml files: 48 stale line citations into tla_spec_dev.py, spec_evolution.py
+      and run_generated_case_adapters.py (lines moved by earlier wave merges). Identical count
+      on this branch; none cite a file BS-07 changed. BS-07 did re-anchor the one citation its
+      own edit shifted (generate_cases_from_tlc_dump.py:1233).
+    proposed: >-
+      Run `python3 scripts/check_citations.py --fix` at wave close (epic agent owns the model files),
+      and hand-repair the ambiguous anchors it refuses to guess.
+  - id: BS-07-DF-05
+    unit: test_graph/sources/spec_workflow_failure_cleanup_probe.py (+ test-graph Executors.kt descendant check)
+    blocking: false
+    observed: >-
+      specWorkflow on this branch: 7 PASS, spec.workflow.failure_cleanup_probe ERRORED
+      ("node launcher exited with live descendants"), adapters_resolve skipped. Reproduced
+      on the full run (20261107-175029), one resume (20261107-175652) and one run-only
+      recheck (20261107-180244). spawnExitCode=0 every time. A process trace
+      (specs/results/bug-sweep/BS-07/probe-lingering-descendant-ps.txt) shows the nested
+      gradlew (-Dorg.gradle.daemon=false) forks a single-use Gradle daemon that is
+      reparented to pid 1 and outlives the probe's await_no_descendants window. Other ticket
+      agents' graph runs were live on the machine at the same time. BS-07 touches no
+      test_graph or test-graph file; every spec-workflow node it could affect passed.
+    proposed: >-
+      Have the probe run the nested build with `--no-daemon` semantics that cannot fork
+      (`-Dorg.gradle.jvmargs` matching the wrapper's so no single-use daemon is needed), or
+      reap that daemon by process group before returning; recheck on an idle machine.

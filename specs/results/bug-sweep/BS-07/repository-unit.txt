@@ -1,4 +1,133 @@
-........................................................................ [ 36%]
-........................................................................ [ 72%]
-........................................................                 [100%]
-200 passed, 1736 deselected in 11.74s
+........................................................................ [ 25%]
+........................................................................ [ 51%]
+........................................................................ [ 76%]
+..FFF.............................................................       [100%]
+=================================== FAILURES ===================================
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/tla-spec-dev-192-tlc-parsing-casegen/specs/current/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more.
+    
+        When this fails, `python3 scripts/check_citations.py --fix` repairs every
+        citation whose anchor is unambiguous. What it leaves is the real question:
+        an anchor that appears on several lines, or none, where a repair would have
+        to guess which line was meant.
+        """
+        problems = problems_in(path)
+>       assert problems == [], (
+            "stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):\n  "
+            + "\n  ".join(f"{p.where}: {p.message}" for p in problems)
+        )
+E       AssertionError: stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):
+E           specs/current/spec_manifest.yaml:261: skills/spec-double-2/scripts/tla_spec_dev.py:395 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at skills/spec-double-2/scripts/tla_spec_dev.py:493
+E           specs/current/spec_manifest.yaml:262: skills/spec-double-2/scripts/tla_spec_dev.py:459 does not contain the anchor 'subprocess.run' -- the anchor is at skills/spec-double-2/scripts/tla_spec_dev.py:557
+E           specs/current/spec_manifest.yaml:266: skills/spec-double-2/scripts/tla_spec_dev.py:369 does not contain the anchor '--with', and that anchor appears on 5 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:274: skills/spec-double-2/scripts/spec_evolution.py:237 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:275: skills/spec-double-2/scripts/spec_evolution.py:1998 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:276: skills/spec-double-2/scripts/spec_evolution.py:2155 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:278: skills/spec-double-2/scripts/spec_evolution.py:1088 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:279: skills/spec-double-2/scripts/spec_evolution.py:1283 does not contain the anchor 'replace_tree', and that anchor appears on 2 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:281: skills/spec-double-2/scripts/spec_evolution.py:1254 does not contain the anchor 'target.unlink' -- the anchor is at skills/spec-double-2/scripts/spec_evolution.py:1626
+E           specs/current/spec_manifest.yaml:318: skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path', and that anchor appears on 0 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:325: skills/spec-double-2/scripts/spec_evolution.py:216 does not contain the anchor 'subprocess.run', and that anchor appears on 6 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:326: skills/spec-double-2/scripts/spec_evolution.py:2191 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:327: skills/spec-double-2/scripts/spec_evolution.py:2306 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:328: skills/spec-double-2/scripts/spec_evolution.py:1930 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:388: skills/spec-double-2/scripts/tla_spec_dev.py:92 does not contain the anchor 'budget_prompt', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/current/spec_manifest.yaml:389: skills/spec-double-2/scripts/tla_spec_dev.py:121 does not contain the anchor 'budget_prompt', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E       assert [Problem(wher...nt=None), ...] == []
+E         
+E         Left contains 16 more items, first extra item: Problem(where='specs/current/spec_manifest.yaml:261', message="skills/spec-double-2/scripts/tla_spec_dev.py:395 does n..., span=(15046, 15127), replacement='skills/spec-double-2/scripts/tla_spec_dev.py:493 (run_generated_case_adapters.py)')
+E         Use -v to get more diff
+
+tests/test_source_citations.py:85: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/tla-spec-dev-192-tlc-parsing-casegen/specs/desired_program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more.
+    
+        When this fails, `python3 scripts/check_citations.py --fix` repairs every
+        citation whose anchor is unambiguous. What it leaves is the real question:
+        an anchor that appears on several lines, or none, where a repair would have
+        to guess which line was meant.
+        """
+        problems = problems_in(path)
+>       assert problems == [], (
+            "stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):\n  "
+            + "\n  ".join(f"{p.where}: {p.message}" for p in problems)
+        )
+E       AssertionError: stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):
+E           specs/desired_program_model/spec_manifest.yaml:258: skills/spec-double-2/scripts/tla_spec_dev.py:395 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at skills/spec-double-2/scripts/tla_spec_dev.py:493
+E           specs/desired_program_model/spec_manifest.yaml:259: skills/spec-double-2/scripts/tla_spec_dev.py:459 does not contain the anchor 'subprocess.run' -- the anchor is at skills/spec-double-2/scripts/tla_spec_dev.py:557
+E           specs/desired_program_model/spec_manifest.yaml:263: skills/spec-double-2/scripts/tla_spec_dev.py:369 does not contain the anchor '--with', and that anchor appears on 5 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:271: skills/spec-double-2/scripts/spec_evolution.py:237 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:272: skills/spec-double-2/scripts/spec_evolution.py:1998 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:273: skills/spec-double-2/scripts/spec_evolution.py:2155 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:275: skills/spec-double-2/scripts/spec_evolution.py:1088 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:276: skills/spec-double-2/scripts/spec_evolution.py:1283 does not contain the anchor 'replace_tree', and that anchor appears on 2 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:278: skills/spec-double-2/scripts/spec_evolution.py:1254 does not contain the anchor 'target.unlink' -- the anchor is at skills/spec-double-2/scripts/spec_evolution.py:1626
+E           specs/desired_program_model/spec_manifest.yaml:315: skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path', and that anchor appears on 0 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:322: skills/spec-double-2/scripts/spec_evolution.py:216 does not contain the anchor 'subprocess.run', and that anchor appears on 6 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:323: skills/spec-double-2/scripts/spec_evolution.py:2191 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:324: skills/spec-double-2/scripts/spec_evolution.py:2306 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:325: skills/spec-double-2/scripts/spec_evolution.py:1930 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:385: skills/spec-double-2/scripts/tla_spec_dev.py:92 does not contain the anchor 'budget_prompt', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/desired_program_model/spec_manifest.yaml:386: skills/spec-double-2/scripts/tla_spec_dev.py:121 does not contain the anchor 'budget_prompt', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E       assert [Problem(wher...nt=None), ...] == []
+E         
+E         Left contains 16 more items, first extra item: Problem(where='specs/desired_program_model/spec_manifest.yaml:258', message="skills/spec-double-2/scripts/tla_spec_dev..., span=(14847, 14928), replacement='skills/spec-double-2/scripts/tla_spec_dev.py:493 (run_generated_case_adapters.py)')
+E         Use -v to get more diff
+
+tests/test_source_citations.py:85: AssertionError
+_ test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml] _
+
+path = PosixPath('/Users/hayde/IdeaProjects/tla-spec-dev-192-tlc-parsing-casegen/specs/program_model/spec_manifest.yaml')
+
+    @pytest.mark.parametrize("path", scoped_files(), ids=lambda p: str(p.relative_to(REPO_ROOT)))
+    def test_every_line_citation_resolves_to_the_line_it_cites(path: Path) -> None:
+        """The check that would have caught N-3, and did catch eight more.
+    
+        When this fails, `python3 scripts/check_citations.py --fix` repairs every
+        citation whose anchor is unambiguous. What it leaves is the real question:
+        an anchor that appears on several lines, or none, where a repair would have
+        to guess which line was meant.
+        """
+        problems = problems_in(path)
+>       assert problems == [], (
+            "stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):\n  "
+            + "\n  ".join(f"{p.where}: {p.message}" for p in problems)
+        )
+E       AssertionError: stale or uncheckable citations (try `python3 scripts/check_citations.py --fix`):
+E           specs/program_model/spec_manifest.yaml:261: skills/spec-double-2/scripts/tla_spec_dev.py:395 does not contain the anchor 'run_generated_case_adapters.py' -- the anchor is at skills/spec-double-2/scripts/tla_spec_dev.py:493
+E           specs/program_model/spec_manifest.yaml:262: skills/spec-double-2/scripts/tla_spec_dev.py:459 does not contain the anchor 'subprocess.run' -- the anchor is at skills/spec-double-2/scripts/tla_spec_dev.py:557
+E           specs/program_model/spec_manifest.yaml:266: skills/spec-double-2/scripts/tla_spec_dev.py:369 does not contain the anchor '--with', and that anchor appears on 5 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:274: skills/spec-double-2/scripts/spec_evolution.py:237 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:275: skills/spec-double-2/scripts/spec_evolution.py:1998 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:276: skills/spec-double-2/scripts/spec_evolution.py:2155 does not contain the anchor 'remove_state_directories', and that anchor appears on 3 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:278: skills/spec-double-2/scripts/spec_evolution.py:1088 does not contain the anchor 'shutil.rmtree', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:279: skills/spec-double-2/scripts/spec_evolution.py:1283 does not contain the anchor 'replace_tree', and that anchor appears on 2 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:281: skills/spec-double-2/scripts/spec_evolution.py:1254 does not contain the anchor 'target.unlink' -- the anchor is at skills/spec-double-2/scripts/spec_evolution.py:1626
+E           specs/program_model/spec_manifest.yaml:318: skills/spec-double-2/scripts/run_generated_case_adapters.py:1353 does not contain the anchor 'program_path', and that anchor appears on 0 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:325: skills/spec-double-2/scripts/spec_evolution.py:216 does not contain the anchor 'subprocess.run', and that anchor appears on 6 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:326: skills/spec-double-2/scripts/spec_evolution.py:2191 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:327: skills/spec-double-2/scripts/spec_evolution.py:2306 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:328: skills/spec-double-2/scripts/spec_evolution.py:1930 does not contain the anchor 'git_metadata', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:388: skills/spec-double-2/scripts/tla_spec_dev.py:92 does not contain the anchor 'budget_prompt', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E           specs/program_model/spec_manifest.yaml:389: skills/spec-double-2/scripts/tla_spec_dev.py:121 does not contain the anchor 'budget_prompt', and that anchor appears on 4 lines -- a repair would have to guess which was meant
+E       assert [Problem(wher...nt=None), ...] == []
+E         
+E         Left contains 16 more items, first extra item: Problem(where='specs/program_model/spec_manifest.yaml:261', message="skills/spec-double-2/scripts/tla_spec_dev.py:395 ..., span=(15030, 15111), replacement='skills/spec-double-2/scripts/tla_spec_dev.py:493 (run_generated_case_adapters.py)')
+E         Use -v to get more diff
+
+tests/test_source_citations.py:85: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/current/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/desired_program_model/spec_manifest.yaml]
+FAILED tests/test_source_citations.py::test_every_line_citation_resolves_to_the_line_it_cites[specs/program_model/spec_manifest.yaml]
+3 failed, 279 passed, 1702 deselected in 16.10s
