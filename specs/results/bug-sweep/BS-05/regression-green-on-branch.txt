@@ -1,4 +1,14 @@
-# branch: feature/190-skt-sync @ c90e6179125d54d847498ca8ae49c6905f349bea
+# branch after merge @ 0eb943f042664575046b324361c474dea1f99914
+error: skt sync: the underlying command failed (exit 7)
+PASSED tests/test_sync.py::test_sync_success_verifies_against_remote_tip
+PASSED tests/test_sync.py::test_sync_detects_silent_noop
+PASSED tests/test_sync.py::test_sync_unknown_unit
+PASSED tests/test_sync.py::test_sync_propagates_cli_failure
+PASSED tests/test_sync.py::test_sync_then_check_does_not_claim_the_unit_is_ahead
+PASSED tests/test_sync.py::test_root_tier_falls_back_to_path_cli_and_says_so
+PASSED tests/test_sync.py::test_home_pin_wins_over_path_and_is_named
+PASSED tests/test_sync.py::test_root_tier_refuses_another_homes_pin_on_path
+PASSED tests/test_sync.py::test_root_tier_with_no_cli_anywhere_names_both_remedies
 PASSED tests/test_sync.py::test_project_home_without_a_pin_syncs_through_the_path_cli_and_names_it
 PASSED tests/test_sync.py::test_project_home_without_a_pin_prefers_the_root_homes_pinned_build
 PASSED tests/test_sync.py::test_project_home_with_no_cli_anywhere_still_refuses_and_names_the_remedy
@@ -7,4 +17,4 @@ PASSED tests/test_sync.py::test_project_home_sync_restores_a_drifted_unit_to_the
 PASSED tests/test_sync.py::test_trunk_flag_moves_to_the_trunk_and_names_the_invalidated_pins
 PASSED tests/test_sync.py::test_trunk_flag_is_wired_into_the_cli
 PASSED tests/test_sync.py::test_projects_md_dry_run_names_the_destination_lock_requirement
-8 passed, 9 deselected in 9.35s
+17 passed in 22.38s

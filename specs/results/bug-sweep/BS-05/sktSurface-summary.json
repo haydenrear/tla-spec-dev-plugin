@@ -1,8 +1,8 @@
-{"runId":"20261107-175319","status":"passed","traceId":"62c687d36940fe471cd3313eb7d0fa50","execution":{"mode":"full","graphName":"sktSurface","complete":true,"expectedNodeIds":["skt.wrapper-installed","skt.status-tiers","skt.check-cached-costs-one-read","skt.hook-contract","skt.ticket-roundtrip"],"observedNodeIds":["skt.check-cached-costs-one-read","skt.hook-contract","skt.status-tiers","skt.ticket-roundtrip","skt.wrapper-installed"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["skt.wrapper-installed","skt.status-tiers","skt.check-cached-costs-one-read","skt.hook-contract","skt.ticket-roundtrip"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
+{"runId":"20261107-175656","status":"passed","traceId":"01807b4da3ac3f803fa87e32aefd4273","execution":{"mode":"full","graphName":"sktSurface","complete":true,"expectedNodeIds":["skt.wrapper-installed","skt.status-tiers","skt.check-cached-costs-one-read","skt.hook-contract","skt.ticket-roundtrip"],"observedNodeIds":["skt.check-cached-costs-one-read","skt.hook-contract","skt.status-tiers","skt.ticket-roundtrip","skt.wrapper-installed"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["skt.wrapper-installed","skt.status-tiers","skt.check-cached-costs-one-read","skt.hook-contract","skt.ticket-roundtrip"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
   "nodeId": "skt.check-cached-costs-one-read",
   "status": "passed",
-  "startedAt": "2026-11-07T17:54:03.723445Z",
-  "endedAt": "2026-11-07T17:54:04.072103Z",
+  "startedAt": "2026-11-07T17:57:40.973522Z",
+  "endedAt": "2026-11-07T17:57:41.218720Z",
   "assertions": [
     {
       "name": "3.11: probe exits zero",
@@ -396,7 +396,7 @@
     },
     {
       "type": "cached-probe-3.11-result",
-      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-check-cached/probe-3.11.json"
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-check-cached/probe-3.11.json"
     },
     {
       "type": "cached-probe-3.13-log",
@@ -404,7 +404,7 @@
     },
     {
       "type": "cached-probe-3.13-result",
-      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-check-cached/probe-3.13.json"
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-check-cached/probe-3.13.json"
     }
   ],
   "processes": [
@@ -414,15 +414,15 @@
         "/Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
         "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/support/cached_no_spawn_probe.py",
         "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/skills/skt",
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-check-cached/3.11",
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-check-cached/probe-3.11.json"
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-check-cached/3.11",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-check-cached/probe-3.11.json"
       ],
       "exitCode": 0,
-      "pid": 62330,
+      "pid": 105,
       "log": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.11.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:03.723968Z",
-      "endedAt": "2026-11-07T17:54:03.957611Z"
+      "startedAt": "2026-11-07T17:57:40.975924Z",
+      "endedAt": "2026-11-07T17:57:41.105722Z"
     },
     {
       "label": "cached-probe-3.13",
@@ -430,20 +430,20 @@
         "/Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-bd4fa6f67464837d/bin/python",
         "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/support/cached_no_spawn_probe.py",
         "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/skills/skt",
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-check-cached/3.13",
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-check-cached/probe-3.13.json"
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-check-cached/3.13",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-check-cached/probe-3.13.json"
       ],
       "exitCode": 0,
-      "pid": 62347,
+      "pid": 118,
       "log": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.13.log",
       "error": null,
-      "startedAt": "2026-11-07T17:54:03.958490Z",
-      "endedAt": "2026-11-07T17:54:04.071612Z"
+      "startedAt": "2026-11-07T17:57:41.106435Z",
+      "endedAt": "2026-11-07T17:57:41.218303Z"
     }
   ],
   "metrics": {
     "cacheStates": 7,
-    "durationMs": 348
+    "durationMs": 245
   },
   "logs": [
     "3.11: probe python 3.11.6 at /Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
@@ -452,11 +452,11 @@
   "published": {
     "cacheStates": "corrupt,expired,expired-text,fresh-notify,fresh-quiet,missing,no-home"
   }
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:02.607444Z","executorEndedAt":"2026-11-07T17:54:09.086429Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.check-cached-costs-one-read.stdout.log","inputContextFile":"context/skt.check-cached-costs-one-read.input.json","traceId":"62c687d36940fe471cd3313eb7d0fa50"},{
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:57:40.416180Z","executorEndedAt":"2026-11-07T17:57:46.234281Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.check-cached-costs-one-read.stdout.log","inputContextFile":"context/skt.check-cached-costs-one-read.input.json","traceId":"01807b4da3ac3f803fa87e32aefd4273"},{
   "nodeId": "skt.hook-contract",
   "status": "passed",
-  "startedAt": "2026-11-07T17:54:10.175802Z",
-  "endedAt": "2026-11-07T17:54:20.906626Z",
+  "startedAt": "2026-11-07T17:57:46.814832Z",
+  "endedAt": "2026-11-07T17:57:52.951233Z",
   "assertions": [
     {
       "name": "3.11: SessionStart exits zero",
@@ -619,17 +619,17 @@
   "processes": [],
   "metrics": {
     "hookInvocations": 24,
-    "durationMs": 10730
+    "durationMs": 6136
   },
   "logs": [],
   "published": {
     "hookInvocations": "24"
   }
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:09.121303Z","executorEndedAt":"2026-11-07T17:54:25.935459Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.hook-contract.stdout.log","inputContextFile":"context/skt.hook-contract.input.json","traceId":"62c687d36940fe471cd3313eb7d0fa50"},{
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:57:46.285483Z","executorEndedAt":"2026-11-07T17:57:57.964711Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.hook-contract.stdout.log","inputContextFile":"context/skt.hook-contract.input.json","traceId":"01807b4da3ac3f803fa87e32aefd4273"},{
   "nodeId": "skt.status-tiers",
   "status": "passed",
-  "startedAt": "2026-11-07T17:53:40.457605Z",
-  "endedAt": "2026-11-07T17:53:57.559428Z",
+  "startedAt": "2026-11-07T17:57:18.085479Z",
+  "endedAt": "2026-11-07T17:57:35.366911Z",
   "assertions": [
     {
       "name": "3.11/root: status exits zero",
@@ -1036,17 +1036,17 @@
   "processes": [],
   "metrics": {
     "tierChecks": 6,
-    "durationMs": 17101
+    "durationMs": 17281
   },
   "logs": [],
   "published": {
     "tiersChecked": "3.11/root,3.11/project,3.11/worktree,3.13/root,3.13/project,3.13/worktree"
   }
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:53:39.378313Z","executorEndedAt":"2026-11-07T17:54:02.574161Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.status-tiers.stdout.log","inputContextFile":"context/skt.status-tiers.input.json","traceId":"62c687d36940fe471cd3313eb7d0fa50"},{
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:57:17.461568Z","executorEndedAt":"2026-11-07T17:57:40.381083Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.status-tiers.stdout.log","inputContextFile":"context/skt.status-tiers.input.json","traceId":"01807b4da3ac3f803fa87e32aefd4273"},{
   "nodeId": "skt.ticket-roundtrip",
   "status": "passed",
-  "startedAt": "2026-11-07T17:54:27.372982Z",
-  "endedAt": "2026-11-07T17:54:42.438470Z",
+  "startedAt": "2026-11-07T17:57:58.347591Z",
+  "endedAt": "2026-11-07T17:58:07.126773Z",
   "assertions": [
     {
       "name": "git-issue-workflow resolved to a local install, not an upstream clone",
@@ -1259,28 +1259,28 @@
     "giwResolvedLocally": 1,
     "placementArms": 2,
     "refusalCases": 2,
-    "durationMs": 15065
+    "durationMs": 8779
   },
   "logs": [
-    "fixture root, OUTSIDE the repository on purpose: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3",
+    "fixture root, OUTSIDE the repository on purpose: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf",
     "git-issue-workflow from installed:/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow",
-    "standalone: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3/standalone/subject-repo-TG-STAN', 'branch': 'feature/TG-STAN (standalone repo subject-repo)', 'launch': \"none \u2014 this worktree has no home; an agent here uses the operator's GLOBAL home\", 'close': 'skt ticket close \u2014 or: /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-STAN'}",
-    "standalone: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3/standalone/subject-repo-TG-STAN",
+    "standalone: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf/standalone/subject-repo-TG-STAN', 'branch': 'feature/TG-STAN (standalone repo subject-repo)', 'launch': \"none \u2014 this worktree has no home; an agent here uses the operator's GLOBAL home\", 'close': 'skt ticket close \u2014 or: /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-STAN'}",
+    "standalone: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf/standalone/subject-repo-TG-STAN",
     "standalone: worktree exists: True",
-    "constituent: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3/constituent/subject-repo-TG-CONS', 'branch': 'feature/TG-CONS (constituent repo subject-repo)', 'launch': \"none \u2014 this worktree has no home; an agent here uses the operator's GLOBAL home\", 'close': 'skt ticket close \u2014 or: /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-CONS'}",
-    "constituent: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3/constituent/subject-repo-TG-CONS",
+    "constituent: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf/constituent/subject-repo-TG-CONS', 'branch': 'feature/TG-CONS (constituent repo subject-repo)', 'launch': \"none \u2014 this worktree has no home; an agent here uses the operator's GLOBAL home\", 'close': 'skt ticket close \u2014 or: /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-CONS'}",
+    "constituent: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf/constituent/subject-repo-TG-CONS",
     "constituent: worktree exists: True",
-    "refusal [not a git repository at all] rc=1: error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-w2amn7zv\nfix:   /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt new TG-REFUSED --verbose",
-    "refusal [a git repository with no project home] rc=3: error: no Skill Manager home could be created for this worktree (usually: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3/standalone/subject-repo has no project home yet)\nfix:   /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-ia88von3/standalone/subject-repo\nlog:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-Q75"
+    "refusal [not a git repository at all] rc=1: error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-zln3naxa\nfix:   /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt new TG-REFUSED --verbose",
+    "refusal [a git repository with no project home] rc=3: error: no Skill Manager home could be created for this worktree (usually: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf/standalone/subject-repo has no project home yet)\nfix:   /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-5rsaqavf/standalone/subject-repo\nlog:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/wt-Bsg"
   ],
   "published": {
     "giwSource": "installed:/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow"
   }
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:54:25.997431Z","executorEndedAt":"2026-11-07T17:54:47.457192Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.ticket-roundtrip.stdout.log","inputContextFile":"context/skt.ticket-roundtrip.input.json","traceId":"62c687d36940fe471cd3313eb7d0fa50"},{
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:57:57.994068Z","executorEndedAt":"2026-11-07T17:58:12.139108Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.ticket-roundtrip.stdout.log","inputContextFile":"context/skt.ticket-roundtrip.input.json","traceId":"01807b4da3ac3f803fa87e32aefd4273"},{
   "nodeId": "skt.wrapper-installed",
   "status": "passed",
-  "startedAt": "2026-11-07T17:53:20.846201Z",
-  "endedAt": "2026-11-07T17:53:34.315394Z",
+  "startedAt": "2026-11-07T17:56:57.110683Z",
+  "endedAt": "2026-11-07T17:57:12.405877Z",
   "assertions": [
     {
       "name": "install script is executable",
@@ -1429,50 +1429,50 @@
         "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/skill-scripts/install-skt.sh"
       ],
       "exitCode": 0,
-      "pid": 56688,
+      "pid": 94178,
       "log": "node-logs/skt.wrapper-installed.install-skt-3.11.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:26.701598Z",
-      "endedAt": "2026-11-07T17:53:28.330008Z"
+      "startedAt": "2026-11-07T17:57:04.127462Z",
+      "endedAt": "2026-11-07T17:57:05.764335Z"
     },
     {
       "label": "skt-help-3.11",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/bin/cli/skt",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 57022,
+      "pid": 94356,
       "log": "node-logs/skt.wrapper-installed.skt-help-3.11.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:28.330720Z",
-      "endedAt": "2026-11-07T17:53:28.448320Z"
+      "startedAt": "2026-11-07T17:57:05.764939Z",
+      "endedAt": "2026-11-07T17:57:05.881075Z"
     },
     {
       "label": "skt-version-3.11",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/bin/cli/skt",
         "--version"
       ],
       "exitCode": 0,
-      "pid": 57029,
+      "pid": 94375,
       "log": "node-logs/skt.wrapper-installed.skt-version-3.11.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:28.455125Z",
-      "endedAt": "2026-11-07T17:53:28.590984Z"
+      "startedAt": "2026-11-07T17:57:05.881699Z",
+      "endedAt": "2026-11-07T17:57:05.947695Z"
     },
     {
       "label": "skt-minimal-path-3.11",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/bin/cli/skt",
         "--version"
       ],
       "exitCode": 0,
-      "pid": 57042,
+      "pid": 94392,
       "log": "node-logs/skt.wrapper-installed.skt-minimal-path-3.11.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:28.592286Z",
-      "endedAt": "2026-11-07T17:53:28.655986Z"
+      "startedAt": "2026-11-07T17:57:05.948838Z",
+      "endedAt": "2026-11-07T17:57:06.003539Z"
     },
     {
       "label": "install-skt-3.13",
@@ -1481,55 +1481,55 @@
         "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/skill-scripts/install-skt.sh"
       ],
       "exitCode": 0,
-      "pid": 57396,
+      "pid": 95014,
       "log": "node-logs/skt.wrapper-installed.install-skt-3.13.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:32.638196Z",
-      "endedAt": "2026-11-07T17:53:34.161105Z"
+      "startedAt": "2026-11-07T17:57:10.679509Z",
+      "endedAt": "2026-11-07T17:57:12.185981Z"
     },
     {
       "label": "skt-help-3.13",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.13/bin/cli/skt",
         "--help"
       ],
       "exitCode": 0,
-      "pid": 57553,
+      "pid": 95476,
       "log": "node-logs/skt.wrapper-installed.skt-help-3.13.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:34.161847Z",
-      "endedAt": "2026-11-07T17:53:34.214365Z"
+      "startedAt": "2026-11-07T17:57:12.186770Z",
+      "endedAt": "2026-11-07T17:57:12.249019Z"
     },
     {
       "label": "skt-version-3.13",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.13/bin/cli/skt",
         "--version"
       ],
       "exitCode": 0,
-      "pid": 57561,
+      "pid": 95488,
       "log": "node-logs/skt.wrapper-installed.skt-version-3.13.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:34.215227Z",
-      "endedAt": "2026-11-07T17:53:34.269175Z"
+      "startedAt": "2026-11-07T17:57:12.250337Z",
+      "endedAt": "2026-11-07T17:57:12.360130Z"
     },
     {
       "label": "skt-minimal-path-3.13",
       "command": [
-        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.13/bin/cli/skt",
         "--version"
       ],
       "exitCode": 0,
-      "pid": 57572,
+      "pid": 95501,
       "log": "node-logs/skt.wrapper-installed.skt-minimal-path-3.13.log",
       "error": null,
-      "startedAt": "2026-11-07T17:53:34.270342Z",
-      "endedAt": "2026-11-07T17:53:34.315159Z"
+      "startedAt": "2026-11-07T17:57:12.361254Z",
+      "endedAt": "2026-11-07T17:57:12.405644Z"
     }
   ],
   "metrics": {
     "interpreters": 2,
-    "durationMs": 13469
+    "durationMs": 15295
   },
   "logs": [
     "declared requires-python: '>=3.11'",
@@ -1537,9 +1537,9 @@
     "python 3.13 -> /Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-bd4fa6f67464837d/bin/python"
   ],
   "published": {
-    "wrappers": "{\"3.11\": \"/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.11/bin/cli/skt\", \"3.13\": \"/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/3.13/bin/cli/skt\"}",
+    "wrappers": "{\"3.11\": \"/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.11/bin/cli/skt\", \"3.13\": \"/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/3.13/bin/cli/skt\"}",
     "interpreters": "{\"3.11\": \"/Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11\", \"3.13\": \"/Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-bd4fa6f67464837d/bin/python\"}",
     "versions": "3.11,3.13",
-    "probeHome": "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175319/fixtures/skt-wrapper/probe-home"
+    "probeHome": "/Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/test_graph/build/validation-reports/20261107-175656/fixtures/skt-wrapper/probe-home"
   }
-,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:53:20.030904Z","executorEndedAt":"2026-11-07T17:53:39.325698Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.wrapper-installed.stdout.log","inputContextFile":"context/skt.wrapper-installed.input.json","traceId":"62c687d36940fe471cd3313eb7d0fa50"}]}
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:56:56.639528Z","executorEndedAt":"2026-11-07T17:57:17.417969Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.wrapper-installed.stdout.log","inputContextFile":"context/skt.wrapper-installed.input.json","traceId":"01807b4da3ac3f803fa87e32aefd4273"}]}
