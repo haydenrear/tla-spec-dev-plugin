@@ -1,0 +1,279 @@
+{
+  "schema": "test-graph.outcome.v1",
+  "status": "errored",
+  "exit_code": 3,
+  "gradle_exit_code": 1,
+  "exit_codes": {
+    "0": "passed",
+    "1": "failed or not run",
+    "3": "errored"
+  },
+  "command": [
+    "run.py",
+    "specWorkflow",
+    "--test-graph-root",
+    "test_graph"
+  ],
+  "mode": "graphs",
+  "continue_after_failure": false,
+  "started_at": "2026-11-07T18:32:02.133912Z",
+  "ended_at": "2026-11-07T18:35:54.759478Z",
+  "duration_seconds": 232.626,
+  "load_avg_start": [
+    53.72,
+    55.42,
+    68.75
+  ],
+  "load_avg_end": [
+    33.86,
+    46.06,
+    61.59
+  ],
+  "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-sweeps/20261107-183202",
+  "selection_known": true,
+  "graphs_passed": 0,
+  "graphs_failed": 0,
+  "graphs_errored": 1,
+  "graphs_not_run": 0,
+  "nodes_passed": 7,
+  "nodes_failed": 0,
+  "nodes_errored": 1,
+  "nodes_not_run": 1,
+  "graphs": [
+    {
+      "graph": "specWorkflow",
+      "status": "errored",
+      "cause": "node_errored",
+      "reason": "the graph's summary.json says 'errored': a node did not report a verdict (crashed, killed or timed out): Execution failed for task ':specWorkflow'.",
+      "report_status": "errored",
+      "started_at": "2026-11-07T18:32:47.720733Z",
+      "ended_at": "2026-11-07T18:35:54.077056Z",
+      "duration_seconds": 186.558,
+      "timeout_bound_seconds": null,
+      "load_avg_start": [
+        48.59,
+        53.8,
+        67.46
+      ],
+      "load_avg_end": [
+        33.86,
+        46.06,
+        61.59
+      ],
+      "report_dirs": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313"
+      ],
+      "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+      "nodes": [
+        {
+          "node": "spec.cli.install",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:33:14.223132Z",
+          "ended_at": "2026-11-07T18:33:20.782701Z",
+          "duration_seconds": 6.56,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            43.73,
+            52.22,
+            66.49
+          ],
+          "load_avg_end": [
+            42.87,
+            51.9,
+            66.3
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.cli.install.json"
+        },
+        {
+          "node": "spec.workflow.repo",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:33:20.833009Z",
+          "ended_at": "2026-11-07T18:33:27.113151Z",
+          "duration_seconds": 6.28,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            42.87,
+            51.9,
+            66.3
+          ],
+          "load_avg_end": [
+            40.8,
+            51.32,
+            66.01
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.repo.json"
+        },
+        {
+          "node": "spec.workflow.start",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:33:27.152307Z",
+          "ended_at": "2026-11-07T18:33:34.402692Z",
+          "duration_seconds": 7.25,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            40.8,
+            51.32,
+            66.01
+          ],
+          "load_avg_end": [
+            39.81,
+            50.76,
+            65.64
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.start.json"
+        },
+        {
+          "node": "spec.workflow.complete",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:33:34.446874Z",
+          "ended_at": "2026-11-07T18:33:41.115698Z",
+          "duration_seconds": 6.669,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            39.81,
+            50.76,
+            65.64
+          ],
+          "load_avg_end": [
+            39.98,
+            50.62,
+            65.5
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.complete.json"
+        },
+        {
+          "node": "spec.workflow.spec_units",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:33:41.142610Z",
+          "ended_at": "2026-11-07T18:33:48.494791Z",
+          "duration_seconds": 7.352,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            39.98,
+            50.62,
+            65.5
+          ],
+          "load_avg_end": [
+            43.53,
+            51.01,
+            65.47
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.spec_units.json"
+        },
+        {
+          "node": "spec.workflow.close",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:33:48.524527Z",
+          "ended_at": "2026-11-07T18:33:55.227168Z",
+          "duration_seconds": 6.703,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            43.53,
+            51.01,
+            65.47
+          ],
+          "load_avg_end": [
+            42.29,
+            50.63,
+            65.25
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.close.json"
+        },
+        {
+          "node": "spec.workflow.failure_cleanup_probe",
+          "status": "errored",
+          "cause": "crash",
+          "reason": "node launcher exited with live descendants: 5083",
+          "started_at": "2026-11-07T18:33:55.274609Z",
+          "ended_at": "2026-11-07T18:35:42.633482Z",
+          "duration_seconds": 107.359,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            42.29,
+            50.63,
+            65.25
+          ],
+          "load_avg_end": [
+            37.35,
+            47.14,
+            62.15
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.failure_cleanup_probe.json"
+        },
+        {
+          "node": "spec.workflow.cleanup",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:35:42.681282Z",
+          "ended_at": "2026-11-07T18:35:48.701050Z",
+          "duration_seconds": 6.02,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            37.35,
+            47.14,
+            62.15
+          ],
+          "load_avg_end": [
+            35.24,
+            46.54,
+            61.85
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.workflow.cleanup.json"
+        },
+        {
+          "node": "spec.reference.adapters_resolve",
+          "status": "not_run",
+          "cause": "skipped",
+          "reason": "node skipped after earlier graph failure",
+          "started_at": null,
+          "ended_at": null,
+          "duration_seconds": null,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": null,
+          "load_avg_end": null,
+          "spawn_exit_code": -1,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-203-missing-result-guard/test_graph/build/validation-reports/20261107-183313/envelope/spec.reference.adapters_resolve.json"
+        }
+      ]
+    }
+  ]
+}
