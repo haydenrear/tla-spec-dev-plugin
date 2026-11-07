@@ -203,6 +203,6 @@ Promoting a finding is an ordinary plan change: add the ticket, rerun
 assignments. Never retrofit a deferred fix into a dispatched ticket's scope.
 
 **At finalization.** No pending findings may remain. Every entry ends as
-`ticketed` (and merged), `wontfix` (with a reason), or `fixed-inline`. Findings
+`ticketed` (and merged), `wontfix` (with a reason), `fixed-inline`, or `fixed` (with `fixed_at`). Findings
 carried past the epic become issues on the default branch, referenced from the
 epic PR body — deferring is a scheduling decision, not a way to lose defects.
