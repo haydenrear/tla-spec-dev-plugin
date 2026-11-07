@@ -3364,7 +3364,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     java spawn at scripts/generate_cases_from_tlc_dump.py:130
     (subprocess.run), the metadir delete at
     scripts/generate_cases_from_tlc_dump.py:154 (shutil.rmtree), the package
-    writes at scripts/generate_cases_from_tlc_dump.py:1184 (path.write_text)
+    writes at scripts/generate_cases_from_tlc_dump.py:1233 (path.write_text)
     or the parameter-recovery audit write. Nothing generated a case for it,
     nothing adapted it, nothing mutated it, and all four oracles reported green
     over surface the model did not contain.

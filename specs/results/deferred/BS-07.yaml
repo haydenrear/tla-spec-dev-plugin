@@ -1,0 +1,38 @@
+# BS-07's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-07
+issue: 192
+base_sha: 68922587
+findings:
+  - id: BS-07-DF-01
+    unit: spec-double-2 (scripts/tla_spec_dev.py, onboarding next-steps print)
+    blocking: false
+    observed: >-
+      tla_spec_dev.py:95/97 still prints `scripts/run_tlc.sh <spec_root>/program_model/...`
+      after `scaffold project`. That path is relative to the SKILL root and does not exist
+      in an onboarded project (the #143 SF-041 root). BS-07 fixed the same command in
+      onboard_program_model.py and scaffold_spec.py (now `tlc2 -metadir ... -config`);
+      tla_spec_dev.py is outside BS-07's conflict keys (BS-01/BS-12).
+    proposed: >-
+      Print `onboard_program_model.tlc_command(f"{spec_root}/program_model", "Internal")`
+      (and "External") instead of the hard-coded run_tlc.sh lines.
+  - id: BS-07-DF-02
+    unit: spec-double-2 (tla_spec_dev.py run spec-unit-tests / run_generated_case_adapters.py)
+    blocking: false
+    observed: >-
+      #166's second comment (MH-42): `run spec-unit-tests --ticket <ID>` hands the
+      ticket target's case-adapter pass the PROJECT corpus (specs/generated/spec-unit/<pkg>)
+      instead of specs/tickets/<ID>/generated/spec-unit/<pkg>. Same root as #166 (ticket
+      targets silently get project artifacts) but in files outside BS-07's keys; not fixed.
+    proposed: >-
+      Resolve the default --cases-dir relative to the ticket workspace when the target is a
+      ticket's desired/, and print the corpus path on the runner's EXECUTED line.
+  - id: BS-07-DF-03
+    unit: spec-double-compiler runtime.load_object (used by run_generated_case_adapters.py, effect_conformance.py)
+    blocking: false
+    observed: >-
+      BS-07 made generate_cases_from_tlc_dump.load_object accept `path/to/file.py:object`.
+      The runtime's own load_object (case_adapters.toml `adapter`/`output_projection`
+      references) is still module:object only, so a ticket's case_adapters.toml cannot
+      name its own dashed-path projector/adapter either.
+    proposed: >-
+      Share one resolver (file form + dotted form) between generate cases and the runtime.
