@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-193-red-suite/.skill-manager holds nothing that removing it would destroy

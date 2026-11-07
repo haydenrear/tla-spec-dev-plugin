@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-141-close-carries-desired/.skill-manager holds nothing that removing it would destroy

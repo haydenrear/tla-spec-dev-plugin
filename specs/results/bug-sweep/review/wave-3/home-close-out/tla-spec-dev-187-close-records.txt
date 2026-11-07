@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-187-close-records/.skill-manager holds nothing that removing it would destroy
