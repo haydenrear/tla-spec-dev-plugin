@@ -1,8 +1,14 @@
 # BS-01 model result: no-op
 
-`specs/current`, `specs/desired_program_model` and `specs/program_model` are
-unchanged by this ticket (`git diff origin/epic/bug-sweep -- specs/current
-specs/desired_program_model specs/program_model` is empty).
+No TLA+ module, config or manifest changed: `git diff origin/epic/bug-sweep --
+'specs/*/*.tla' 'specs/*/*.cfg' 'specs/*/*.yaml'` is empty. One spec-unit
+adapter argument did change. `production_adapters.py`'s skill-feedback
+conformance close now passes `--feedback`, because #187 makes the per-ticket
+entry opt-in. It was applied identically to current/, desired_program_model/
+and program_model/, which were byte-identical before and still are. Without it,
+two MF-017 adapter tests would be new spec-unit failures. With it, the failure
+set equals the base's 11 (`spec-unit-branch.txt` against
+`../baseline/spec-unit-failures.txt`).
 
 Why: every change is close-record bookkeeping in `close_tickets.py` and the
 `close ticket` path of `tla_spec_dev.py`. That covers which files a close
