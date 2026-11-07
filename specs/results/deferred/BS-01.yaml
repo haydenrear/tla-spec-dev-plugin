@@ -1,0 +1,129 @@
+# BS-01 (#187) per-ticket deferment inbox (batch policy, budget 5).
+# The epic agent absorbs these rows into the ledger at wave close.
+findings:
+  - id: BS-01-DF-01
+    found_by: BS-01
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: major
+    blocking: escalate
+    surface:
+      production:
+        - skills/spec-double-2/scripts/extract_spec_manifest.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The epic's own `specs/desired_program_model/ticket_plan.yaml` uses YAML
+      anchors/aliases (`- &id002` / `- *id001` under `goals:`), and
+      `extract_spec_manifest.load_manifest` cannot parse them ("unexpected
+      indentation at: 'goal: GOAL-BS-EVALS'"). Every close path loads the plan
+      through it, so `close ticket` and `close_tickets.py` on THIS repository
+      refuse at the plan read. It is why all of
+      tests/test_workflow_close_keeps_the_ledger.py (5 tests),
+      test_ticket_retirement::test_repository_canonical_delivered_plan... and
+      the ledger-resolution tests are red on the epic base.
+    reproduction: >-
+      python3 -c "import sys; sys.path.insert(0,'skills/spec-double-2');
+      from scripts.extract_spec_manifest import load_manifest;
+      load_manifest(__import__('pathlib').Path('specs/desired_program_model/ticket_plan.yaml'))"
+    evidence:
+      - specs/results/bug-sweep/BS-01/repository-unit-base.txt
+    why_out_of_scope: >-
+      extract_spec_manifest.py is outside BS-01's conflict keys, and the red
+      tests are on the BS-08 known-red list.
+    suggested_fix: >-
+      Either render the plan without anchors (the epic agent's file), or teach
+      load_manifest anchors/aliases (or use PyYAML when present). Escalated:
+      the epic's own wave-close and finalize run these close paths.
+    blast_radius: Every close of the bug-sweep workflow in this repository.
+  - id: BS-01-DF-02
+    found_by: BS-01
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production:
+        - skills/spec-double-2/scripts/spec_evolution.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      #172 and #143 SF-007/009, the halves that live in spec_evolution.py. (a) Under
+      --force, a foreign or rejected ledger input is still recorded as this
+      close's evidence; #172 asks that it be recorded as `not_run`.
+      (b) Workflow close has no TLC-report path. `record_complexity_ledger`
+      takes a `tlc_report` that neither caller passes. BS-01 stages a ticket's
+      report into `<ticket>/results/tlc-current.txt` from `close ticket
+      --tlc-report`. It does not stage one at workflow scope, because a file
+      left in specs/results/ would be recycled by the next close.
+    reproduction: >-
+      close_tickets.py --force with specs/results/complexity_ledger_input.yaml
+      carrying `workflow: other`; the ledger entry still embeds its refinement.
+    evidence:
+      - tests/test_close_records.py::test_172_force_records_a_foreign_input_with_a_warning
+    why_out_of_scope: spec_evolution.py is BS-07's conflict key.
+    suggested_fix: >-
+      Add `tlc_report` and `foreign_input` parameters to
+      create_ticket_history_entry / create_workflow_closed_snapshot. Have
+      close_tickets.py pass them, and record `verdict: not_run` for a foreign input.
+    blast_radius: Ledger entries of forced closes, and workflow-scope TLC metrics.
+  - id: BS-01-DF-03
+    found_by: BS-01
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production:
+        - skills/spec-double-2/scripts/spec_evolution.py
+        - skills/spec-double-2/scripts/skill_feedback.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      #173's second half. The summary is still written verbatim into three files
+      (manifest.json, summary.md, skill_feedback.md). BS-01 adds the --dry-run
+      preview so it can be corrected before the write. "Write once; the other
+      two reference it" is a change to write_summary / emit_skill_feedback.
+    reproduction: close_tickets.py --summary X; grep X in all three files.
+    evidence:
+      - tests/test_close_records.py::test_173_dry_run_previews_the_rendered_summary
+    why_out_of_scope: spec_evolution.py is BS-07's; skill_feedback.py is outside BS-01's keys.
+    suggested_fix: >-
+      Keep the text in summary.md, and have manifest.json carry `summary_path`
+      and skill_feedback.md a link.
+    blast_radius: Hand edits at close time; low.
+  - id: BS-01-DF-04
+    found_by: BS-01
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production:
+        - skills/spec-double-2/scripts/complexity_ledger.py
+        - skills/spec-double-2/references/workflows.md
+        - skills/spec-double-2/references/spec_evolution.md
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      Two items. (a) #134's second half: when a delta is computed against the
+      last accepted entry, it does not name the rejected entries it skipped
+      (complexity_ledger.previous_entry / compute_delta). (b) Instructions: the
+      references do not yet say that a ledger input carries
+      `workflow: <name>`, or that `close ticket` takes `--feedback` and
+      `--tlc-report`. Without the `workflow:` key the #172 check cannot tell a
+      foreign input from a local one. It refuses only an input that NAMES
+      another workflow.
+    reproduction: >-
+      grep -n "workflow:" skills/spec-double-2/references/workflows.md around
+      the complexity_ledger_input.yaml paragraph.
+    evidence:
+      - skills/spec-double-2/scripts/close_tickets.py (complexity_ledger_input_problems)
+    why_out_of_scope: Neither file is in BS-01's conflict keys.
+    suggested_fix: >-
+      Add `workflow:` to the scaffolded ledger template and to the references'
+      ledger-input paragraph. Add `skipped_rejected: [...]` to the delta.
+    blast_radius: >-
+      An input without a `workflow:` key is still accepted from a stale epic,
+      so #172 is closed only for inputs that name their workflow.
