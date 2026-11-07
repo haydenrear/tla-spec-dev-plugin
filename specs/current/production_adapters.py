@@ -1872,27 +1872,19 @@ class ComplexityLedgerCloseOutAdapter:
         validated_input.write_text(NOT_RUN_FUZZING_LEDGER, encoding="utf-8")
         set_ticket_model(target_repo, spec_root, validated_ticket, SHRUNK_FIXTURE_MODEL)
         validated = close(validated_ticket)
-        # BS-08: since 2498832d ("stop the complexity ledger from blocking
-        # them") and the owner's close-never-blocks rule (2026-09-26), a
-        # rejected ledger input no longer refuses the close: the close proceeds
-        # and the ledger entry is recorded with verdict "rejected" and its
-        # reasons in `errors`. The gate is therefore observed in the ENTRY.
-        entries_by_scope: dict[str, dict[str, object]] = {}
+        validated_entry: dict[str, object] = {}
         if ledger_file.is_file():
-            for candidate in json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", []):
-                entries_by_scope[str(candidate.get("scope_id"))] = candidate
-        validated_entry = entries_by_scope.get(validated_ticket, {})
-        unfilled_entry = entries_by_scope.get(unfilled_ticket, {})
-        degraded_entry = entries_by_scope.get(degraded_ticket, {})
-        unfilled_errors = " ".join(str(e) for e in unfilled_entry.get("errors") or [])
-        degraded_errors = " ".join(str(e) for e in degraded_entry.get("errors") or [])
+            entries = json.loads(ledger_file.read_text(encoding="utf-8")).get("entries", [])
+            for candidate in entries:
+                if candidate.get("scope_id") == validated_ticket:
+                    validated_entry = candidate
 
         return {
             "accepted": all(record.returncode == 0 for record in setup)
             and good.returncode == 0
             and template_scaffolded
-            and unfilled_entry.get("verdict") == "rejected"
-            and degraded_entry.get("verdict") == "rejected"
+            and unfilled.returncode != 0
+            and degraded.returncode != 0
             and validated.returncode == 0,
             # 1. recorded, jointly
             "close_recorded": good.returncode == 0,
@@ -1904,20 +1896,17 @@ class ComplexityLedgerCloseOutAdapter:
                 manifest.get("complexity_delta") is not None
                 and manifest.get("retention_evidence") is not None
             ),
-            # 2. the template is checked, and an unfilled one is recorded as
-            # rejected (never silently recorded); the close itself proceeds.
+            # 2. the template is a gate, not a suggestion
             "template_scaffolded_with_sentinels": template_scaffolded,
-            "unfilled_close_proceeds": unfilled.returncode == 0,
-            "unfilled_close_warns_rejected": "ledger input rejected" in unfilled.stderr,
-            "unfilled_ledger_verdict": unfilled_entry.get("verdict"),
+            "unfilled_template_refuses_close": unfilled.returncode != 0,
             "unfilled_names_refinement_and_narrative": (
-                "refinement" in unfilled_errors and "narrative" in unfilled_errors
+                "refinement" in unfilled.stdout + unfilled.stderr
+                and "narrative" in unfilled.stdout + unfilled.stderr
             ),
-            # 3. anti-gaming on the amended basis (CD-09): recorded as rejected
-            "degraded_close_proceeds": degraded.returncode == 0,
-            "degraded_ledger_verdict": degraded_entry.get("verdict"),
-            "degraded_message_says_rejected": "REJECTED" in degraded_errors,
-            "degraded_message_names_the_basis": "validated-refactor" in degraded_errors,
+            # 3. anti-gaming on the amended basis (CD-09)
+            "degraded_decrease_rejected": degraded.returncode != 0,
+            "degraded_message_says_rejected": "REJECTED" in degraded.stdout + degraded.stderr,
+            "degraded_message_names_the_basis": "validated-refactor" in degraded.stdout + degraded.stderr,
             # 4. the amended licensing (CD-09)
             "validated_decrease_recorded": validated.returncode == 0,
             "validated_delta_direction": (

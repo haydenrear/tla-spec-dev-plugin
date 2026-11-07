@@ -47,35 +47,25 @@ def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
         tmp_path, spec_root="project_specs", ticket_id="CLI-141"
     )
 
-    # BS-08 (stale test, updated): this used to assert the close EXITED
-    # non-zero. Since 2498832d the ledger no longer blocks a close, and the
-    # owner's 2026-09-26 rule is that a close always completes with gaps marked.
-    # The gate survives as data: the entry is recorded "rejected", with the
-    # reasons, and the close warns. Silence is still what is refused.
     assert result["template_scaffolded_with_sentinels"] is True
-    assert result["unfilled_ledger_verdict"] == "rejected", (
-        "an unfilled ledger template must be recorded as rejected, not pass silently"
+    assert result["unfilled_template_refuses_close"] is True, (
+        "an unfilled ledger template must fail the close, not pass it silently"
     )
-    assert result["unfilled_close_warns_rejected"] is True
-    assert result["unfilled_close_proceeds"] is True
     assert result["unfilled_names_refinement_and_narrative"] is True
 
 
 def test_decrease_with_degraded_validated_refactor_evidence_is_rejected(tmp_path: Path) -> None:
     """The anti-gaming rule on the amended basis (CD-09): a reduction whose
-    descriptor comparison is stale is recorded as REJECTED, never as an
-    improvement. BS-08: the close itself proceeds (2498832d; owner rule
-    2026-09-26, close never blocks), so the verdict is read from the entry."""
+    descriptor comparison is stale cannot close."""
     adapters = load_adapters()
     result = adapters.ComplexityLedgerCloseOutAdapter().apply(
         tmp_path, spec_root="project_specs", ticket_id="CLI-142"
     )
 
-    assert result["degraded_ledger_verdict"] == "rejected", (
+    assert result["degraded_decrease_rejected"] is True, (
         "a complexity reduction with degraded validated-refactor evidence must "
-        "be recorded as rejected at close, not recorded as an improvement"
+        "be rejected at close, not recorded as an improvement"
     )
-    assert result["degraded_close_proceeds"] is True
     assert result["degraded_message_says_rejected"] is True
     assert result["degraded_message_names_the_basis"] is True
 

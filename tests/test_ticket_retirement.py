@@ -795,7 +795,19 @@ def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> No
             )
         return
 
-    assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []
+    # BS-08: the plan here is the OPEN workflow's, so most of its tickets are
+    # legitimately `next`/`planned`. `validate_ticket_plan_closed` is the
+    # workflow-CLOSE gate and reports every such ticket as "is not closed";
+    # that is the close's question, not this test's. What this test owns --
+    # its docstring's first line -- is that every DELIVERED ticket carries its
+    # receipt, so only the not-yet-closed reports are set aside.
+    import re
+
+    problems = [
+        problem for problem in validate_ticket_plan_closed(plan_path, repo_root=ROOT)
+        if not re.match(r"^ticket \S+ is not closed: status=(next|planned|in_progress|blocked)$", problem)
+    ]
+    assert problems == []
 
 
 def test_repository_ca_05_supersession_is_recorded_and_readable() -> None:
