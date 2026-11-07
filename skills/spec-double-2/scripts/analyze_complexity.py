@@ -1883,37 +1883,39 @@ def parse_cfg_invariants(cfg_text: str) -> list[str]:
     skipped); NOT harmless for a caller that treats an unresolvable invariant
     name as a finding, which is how it manufactured a model-pair mismatch on
     the shipped example. Recognise the keyword instead.
+
+    BS-07 (#155, #159): TLC's config reader is TOKEN-based, not line-based --
+    ``INVARIANTS A B C``, ``INVARIANT A B`` and a block whose continuation
+    lines carry several names each are all legal, and TLC checks every name.
+    The line-based reader this replaces appended the whole remainder of the
+    keyword line as ONE name (``'TypeOK Bounded'``, which the model-pair check
+    then reported as an undefined invariant and the close-time complexity
+    ledger skipped on) and dropped a continuation line holding more than one
+    name. Every reader of a cfg's invariants goes through this function
+    (`spec_evolution.validate_model_pair` included), so there is one parser.
     """
-    text = strip_comments(cfg_text)
     names: list[str] = []
     in_block = False
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line:
-            continue
-        first = line.split(None, 1)[0]
-        if first.upper() in ("INVARIANT", "INVARIANTS"):
+    for token in strip_comments(cfg_text).split():
+        if token in ("INVARIANT", "INVARIANTS"):
             in_block = True
-            rest = line[len(first) :].strip()
-            if rest:
-                names.append(rest)
             continue
-        if first in CFG_SECTION_KEYWORDS:
+        if token in CFG_SECTION_KEYWORDS:
             # Any other section keyword ENDS the invariant block, whether or
-            # not it carries a value on the same line. Case-SENSITIVE: TLC's
-            # keywords are uppercase, and an invariant legitimately named
-            # `Alias` or `View` must not be swallowed by this branch.
-            in_block = False
-            continue
-        if re.match(r"^[A-Z]+\b", line) and not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", line):
+            # not it carries a value. Case-SENSITIVE: TLC's keywords are
+            # uppercase, and an invariant legitimately named `Alias` or
+            # `View` must not be swallowed by this branch.
             in_block = False
             continue
         if in_block:
-            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", line):
-                names.append(line)
+            if _CFG_IDENTIFIER.fullmatch(token):
+                names.append(token)
             else:
                 in_block = False
     return names
+
+
+_CFG_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
 # --------------------------------------------------------------------------

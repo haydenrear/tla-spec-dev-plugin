@@ -968,7 +968,7 @@ class SkillFeedbackCloseOutAdapter:
             fill_complexity_ledger(target_repo, spec_root, ticket)
             return run_cli(
                 root, target_repo, "--spec-root", spec_root,
-                "close", "ticket", ticket, "--summary", "closed from skill-feedback adapter",
+                "close", "ticket", ticket, "--summary", "closed from skill-feedback adapter", "--feedback",
             )
 
         first = close(ticket_id)

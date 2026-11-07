@@ -18,24 +18,36 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from . import complexity_ledger
+    from .skill_feedback import parse_close_out_entries, skill_feedback_path
     from .spec_evolution import (
         TICKET_CLOSED_STATUSES,
+        ModelSelectionError,
+        complexity_ledger_input_path,
         create_workflow_closed_snapshot,
         gates_forced,
         live_receipt_manifests,
         print_commit_recommendation,
         refuse_or_warn,
+        select_model_files,
+        validate_model_pair,
         validate_workflow_ticket_completion,
         workflow_name as resolve_workflow_name,
     )
 except ImportError:  # pragma: no cover - direct script execution
+    import complexity_ledger
+    from skill_feedback import parse_close_out_entries, skill_feedback_path
     from spec_evolution import (
         TICKET_CLOSED_STATUSES,
+        ModelSelectionError,
+        complexity_ledger_input_path,
         create_workflow_closed_snapshot,
         gates_forced,
         live_receipt_manifests,
         print_commit_recommendation,
         refuse_or_warn,
+        select_model_files,
+        validate_model_pair,
         validate_workflow_ticket_completion,
         workflow_name as resolve_workflow_name,
     )
@@ -54,11 +66,25 @@ SEMANTIC_SUFFIXES = {".tla", ".cfg", ".yaml", ".yml"}
 #: "the source no longer has", and `--accept-new` would have copied the backlog
 #: into the promoted program model as though it were part of the specification.
 #: It is bookkeeping about the work, not a statement about the program.
+#:
+#: `attribution.yaml` is the same kind of record (#177): `references/
+#: bug_attribution.md` has epics keep it beside the findings ledger, and the
+#: close refused a converged workflow with "semantic file exists only in
+#: desired_program_model: attribution.yaml" until it was moved out by hand.
+#:
+#: BACKLOG_FILES are the subset appended to WHILE the epic runs, after any one
+#: ticket closed. They are excluded from the exact-snapshot comparison too (#72):
+#: a finding filed after the terminal ticket's close is not a change to the
+#: desired program.
+BACKLOG_FILES = {
+    "deferred_findings.yaml",
+    "attribution.yaml",
+}
 PLANNING_FILES = {
     "README.md",
     "ticket_plan.yaml",
     "desired_state.yaml",
-    "deferred_findings.yaml",
+    *BACKLOG_FILES,
 }
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 
@@ -170,8 +196,148 @@ def workflow_promotion_guidance() -> str:
         "into program_model/, mark every ticket closed), then re-run this command.\n"
         "- Option B: re-run with --accept-new to accept desired_program_model/ as the new current/ and "
         "program_model/ automatically (their semantic files are overwritten from desired_program_model/ "
-        "before the snapshot); tickets must still be marked closed."
+        "before the snapshot); tickets must still be marked closed. It runs desired -> current: when "
+        "desired_program_model/ is the STALE side (it still holds the previous model), --accept-new "
+        "discards the delivered model.\n"
+        "- `close ticket` carries each delivered delta into desired_program_model/ three ways (#141 "
+        "SF-075; `desired_carry` in each ticket receipt names what followed, merged, or conflicted). "
+        "A desired file a receipt lists under desired_carry.conflicts, or a workflow whose tickets "
+        "closed before that, is reconciled by hand toward current/ and committed before this command."
     )
+
+
+# ---------------------------------------------------------------------------
+# Close records (#187): what a close writes must be about THIS close.
+# ---------------------------------------------------------------------------
+
+#: Written in place of an empty `--summary` (#143 SF-045). A close never blocks
+#: on a missing summary; it records the gap so the entry is never silently empty.
+MISSING_SUMMARY = "missing: no --summary was given at close"
+
+#: The conventional TLC evidence names the ledger probes beside its input.
+TLC_PROBE_NAMES = ("tlc-current.txt", "tlc.txt", "tlc-baseline.txt")
+
+
+def summary_or_missing(summary: str | None) -> str:
+    """The summary to record: the given text, or an explicit `missing` marker."""
+    text = (summary or "").strip()
+    if text:
+        return text
+    print(
+        "WARNING: no --summary given; the close records "
+        f"'{MISSING_SUMMARY}' in manifest.json, summary.md and skill_feedback.md.",
+        file=sys.stderr,
+    )
+    return MISSING_SUMMARY
+
+
+def print_summary_preview(summary: str, targets: list[str]) -> None:
+    """#173: show the rendered summary before it is written to several files."""
+    print("summary preview (written verbatim to: " + ", ".join(targets) + "):")
+    for line in summary.splitlines() or [""]:
+        print(f"  | {line}")
+
+
+def complexity_ledger_input_problems(
+    specs_dir: Path,
+    *,
+    scope: str,
+    scope_id: str,
+    workflow: str,
+    model_dir: Path,
+    input_path: Path,
+) -> list[str]:
+    """Why this close must not record `input_path` as its complexity evidence.
+
+    Two refusals, both by name, both forceable (`--force` / SKILL_GATES=off):
+
+    - #172: the input names a different workflow in its `workflow:` key. An
+      input left behind by an earlier epic was copied into every later close's
+      ledger entry and closed-snapshot `refinement_record` as though it
+      described that epic.
+    - #134: the ledger would REJECT the input. The close used to proceed with a
+      one-line warning, so a ticket could finish without ever supplying it.
+
+    An ABSENT or unreadable input is not a problem here: the close never blocks
+    on it, and records the measurement as skipped (missing).
+    """
+    if not input_path.exists():
+        return []
+    try:
+        ledger_input = complexity_ledger.load_input(input_path)
+    except Exception:  # unreadable: the close records a skipped measurement
+        return []
+    problems: list[str] = []
+    named = str(ledger_input.get("workflow", "") or "").strip()
+    if named and named != workflow:
+        problems.append(
+            f"complexity ledger input was written for workflow '{named}', not "
+            f"'{workflow}': {input_path}. Rewrite it for this {scope} (set "
+            f"`workflow: {workflow}`) or delete it; --force records it anyway."
+        )
+        return problems
+    try:
+        selection = select_model_files(model_dir)
+    except ModelSelectionError:
+        return problems
+    if selection is None or validate_model_pair(selection):
+        return problems
+    tlc_report = next(
+        (input_path.parent / name for name in TLC_PROBE_NAMES if (input_path.parent / name).exists()),
+        None,
+    )
+    try:
+        metrics = complexity_ledger.collect_metrics(
+            selection.tla, selection.cfg, selection.manifest, tlc_report
+        )
+        ledger = complexity_ledger.load_ledger(complexity_ledger.ledger_path(specs_dir))
+        verdict = complexity_ledger.evaluate(
+            scope=scope,
+            scope_id=scope_id,
+            workflow=workflow,
+            metrics=metrics,
+            ledger_input=ledger_input,
+            previous=complexity_ledger.previous_entry(ledger),
+            input_dir=input_path.parent,
+        )
+    except Exception:  # the close's own measurement reports what it cannot read
+        return problems
+    if verdict.rejected:
+        first = " ".join(str(verdict.errors[0]).split()) if verdict.errors else ""
+        problems.append(
+            f"complexity ledger input is rejected ({len(verdict.errors)} issue(s); "
+            f"first: {first[:120]}): {input_path}. Fill it in, or --force to "
+            "record the rejection and close anyway."
+        )
+    return problems
+
+
+def unreviewed_ticket_feedback(specs_dir: Path, workflow: str) -> list[str]:
+    """#174: this workflow's ticket close-out entries still `unreviewed`."""
+    path = skill_feedback_path(specs_dir)
+    if not path.exists():
+        return []
+    return [
+        entry.fields.get("close_id", entry.heading)
+        for entry in parse_close_out_entries(path.read_text(encoding="utf-8"))
+        if entry.fields.get("close_scope") == "ticket"
+        and entry.fields.get("workflow") == workflow
+        and entry.declared_status in ("", "unreviewed")
+    ]
+
+
+def print_unreviewed_ticket_feedback(specs_dir: Path, workflow: str) -> list[str]:
+    unreviewed = unreviewed_ticket_feedback(specs_dir, workflow)
+    if unreviewed:
+        print(
+            f"WARNING: {len(unreviewed)} ticket skill-feedback entr"
+            f"{'y is' if len(unreviewed) == 1 else 'ies are'} still unreviewed in "
+            f"{skill_feedback_path(specs_dir)} for workflow {workflow}: "
+            + ", ".join(unreviewed)
+            + ". Triage them here: set each feedback_status to none-found or items-recorded.",
+            file=sys.stderr,
+        )
+    return unreviewed
 
 
 def reroot_module_prefixes(text: str, dst_name: str) -> tuple[str, int]:
@@ -219,6 +385,17 @@ def promote_semantic_files(src: Path, dst: Path) -> list[str]:
         destination = dst / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         source = src_files[relative]
+        if (
+            Path(relative).name == "spec_manifest.yaml"
+            and destination.exists()
+            and _semantic_file_matches(source, destination)
+        ):
+            # #177: the manifests differ only in `status:`/`notes:`, which
+            # convergence ignores. The destination's header is the accepted-model
+            # record the epic agent wrote at promotion; copying the source over
+            # it would replace that record with the ticket-workflow header.
+            promoted.append(f"kept {relative} (semantically equal; status/notes preserved)")
+            continue
         if Path(relative).name in REROOTED_NAMES:
             rerooted, moved = reroot_module_prefixes(
                 source.read_text(encoding="utf-8"), dst.name
@@ -283,6 +460,7 @@ def _exact_snapshot_files(root: Path) -> dict[Path, Path]:
         for path in sorted(root.rglob("*"))
         if path.is_file()
         and not any(part in IGNORED_EXACT_SNAPSHOT_NAMES for part in path.relative_to(root).parts)
+        and path.relative_to(root).as_posix() not in BACKLOG_FILES
     }
 
 
@@ -432,19 +610,48 @@ def close_ticket_workflow(
     ticket_plan = desired_dir / "ticket_plan.yaml"
 
     if not accept_new:
-        errors = validate_equivalent(current_dir, desired_dir)
-        errors.extend(
-            validate_ticket_plan_closed(ticket_plan, repo_root=repo_root, workflow=workflow_name)
-        )
-        errors.extend(validate_equivalent(desired_dir, program_dir, label="program_model"))
+        current_errors = validate_equivalent(current_dir, desired_dir)
+        program_errors = validate_equivalent(desired_dir, program_dir, label="program_model")
+        convergence_errors = current_errors + program_errors
+        errors = [
+            *current_errors,
+            *validate_ticket_plan_closed(ticket_plan, repo_root=repo_root, workflow=workflow_name),
+            *program_errors,
+        ]
         refuse_or_warn(
             errors,
             force=force,
             header="cannot close ticket workflow:",
             guidance=workflow_promotion_guidance(),
         )
-        # A forced close over a divergent tree accepts desired as the outcome.
-        accept_new = bool(errors)
+        # A forced close over a DIVERGENT tree accepts desired as the outcome.
+        # #177: only divergence takes that overwrite. A forced close over a
+        # converged tree (forced past a receipt or ordinal gate) must leave
+        # program_model/ exactly as it is.
+        accept_new = bool(convergence_errors)
+
+    plan = _load_yaml(ticket_plan)
+    resolved_workflow = resolve_workflow_name(plan, workflow_name) if plan else (workflow_name or "")
+    summary = summary_or_missing(summary)
+    if resolved_workflow:
+        refuse_or_warn(
+            complexity_ledger_input_problems(
+                resolved_spec_root,
+                scope="workflow",
+                scope_id=resolved_workflow,
+                workflow=resolved_workflow,
+                model_dir=desired_dir if accept_new else current_dir,
+                input_path=complexity_ledger_input_path(resolved_spec_root, None, "workflow"),
+            ),
+            force=force,
+            header="cannot close ticket workflow: complexity ledger input refused:",
+        )
+        print_unreviewed_ticket_feedback(resolved_spec_root, resolved_workflow)
+    if dry_run:
+        targets = ["closed-snapshot/manifest.json", "closed-snapshot/summary.md"]
+        if emit_feedback:
+            targets.append("results/skill_feedback.md")
+        print_summary_preview(summary, targets)
 
     if accept_new:
         if not desired_dir.exists():

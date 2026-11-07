@@ -1,0 +1,19 @@
+...............                                                          [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_161_disposition_channels_accept_section_4_1_tokens_and_undecided
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_161_disposition_advisory_prints_one_row_not_seven
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_reads_both_layouts_with_no_false_duplicates[column-0]
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_reads_both_layouts_with_no_false_duplicates[nested]
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_names_a_planted_duplicate_precisely[column-0]
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_disposition_names_a_planted_duplicate_precisely[nested]
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_162_column_0_ledger_loads_seven_rows_and_improvement_ledger_reads_them
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_143_sf010_disposition_nested_surface_keys_are_not_row_keys
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_163_improvement_ledger_default_reads_the_consumer_live_ledger
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_163_improvement_ledger_reads_an_explicit_ledger_outside_the_defaults
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_164_bug_attribution_token_count_matches_its_table_and_disposition
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_164_bug_attribution_section_2_does_not_name_reading_as_a_channel
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_165_improvement_ledger_parses_undecided_on_its_own
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_165_improvement_ledger_counts_undecided_apart_from_unparseable
+PASSED tests/test_bs02_disposition_improvement_ledger_attribution.py::test_165_bug_attribution_grammar_spells_undecided
+15 passed in 0.87s

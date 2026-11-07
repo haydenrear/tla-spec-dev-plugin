@@ -17,6 +17,7 @@ all four -- and this script is its reader.
                 | proposed(<unit>, <diff or issue>)
                 | applied(<commit>)
                 | declined(<reason>)
+                | UNDECIDED
 
 WHY THIS WRAPS `disposition.py` RATHER THAN REPLACING IT
 --------------------------------------------------------
@@ -81,6 +82,11 @@ SKILL_FEEDBACK = "specs/results/skill_feedback.md"
 BACKLOGS = (
     "specs/results/deferred_findings_final.yaml",
     "specs/results/epic-close/deferred_findings_next.yaml",
+    # The path `disposition.py` reads, i.e. every CONSUMER repository's live
+    # ledger (#163). Without it this reader reports "0 records" in any
+    # repository but this one -- an advisory instrument that is silent
+    # everywhere it is used. `--ledger` replaces this whole list.
+    D.LEDGER,
 )
 MATRIX = "examples/validation/agent_rounds/SELF-IMPROVEMENT-MATRIX.md"
 
@@ -118,6 +124,10 @@ ARITY = {"none": 0, "proposed": 2, "applied": 1, "declined": 1}
 #: The two that say the loop actually closed.
 TERMINAL_VERBS = ("applied", "declined")
 
+#: Section 3's answer to an absent input, spelled the way the page spells it.
+#: Recorded but not a verb of the call grammar, and never terminal.
+UNDECIDED = "UNDECIDED"
+
 _CALL = re.compile(r"^(?P<verb>[a-z][a-z-]*)\s*(?:\((?P<args>.*)\))?$", re.S)
 
 
@@ -138,7 +148,7 @@ class SkillChange:
 
     @property
     def recorded(self) -> bool:
-        return self.verb in VERBS
+        return self.verb in VERBS or self.verb == "undecided"
 
     @property
     def terminal(self) -> bool:
@@ -152,6 +162,8 @@ class SkillChange:
     def __str__(self) -> str:
         if self.verb == "absent":
             return "(absent)"
+        if self.verb == "undecided":
+            return self.raw or UNDECIDED
         if not self.args:
             return self.verb
         return f"{self.verb}({', '.join(self.args)})"
@@ -171,6 +183,11 @@ def parse_skill_change(value: str | None) -> SkillChange:
     raw = str(value or "").strip().strip("`").strip()
     if raw.lower() in ABSENT_SPELLINGS:
         return SkillChange("absent")
+    # `bug_attribution.md` section 3 (#165): UNDECIDED is the recorded answer
+    # "asked, not yet answered". It is neither `none` (a claim) nor absent
+    # (never asked) nor malformed, and it is counted on its own line.
+    if raw == UNDECIDED or raw.startswith(UNDECIDED + "("):
+        return SkillChange("undecided", raw=raw)
     match = _CALL.match(raw)
     if not match:
         return SkillChange("malformed", raw=raw)
@@ -462,7 +479,8 @@ def report(records: list[Record], problems: list[str], verbose: bool) -> None:
 
     # -- the warnings. One line each, and every one of them is advisory. --
     stuck = [r for r in records if r.stuck]
-    missing = [r for r in records if not r.skill_change.recorded and r.skill_change.verb != "malformed"]
+    undecided = [r for r in records if r.skill_change.verb == "undecided"]
+    missing = [r for r in records if r.skill_change.verb == "absent"]
     malformed = [r for r in records if r.skill_change.verb == "malformed"]
     # D4: a skill-anchored finding is consumed only by a change to that skill.
     d4 = [r for r in records if r.skill_anchored and not r.skill_change.terminal]
@@ -470,6 +488,7 @@ def report(records: list[Record], problems: list[str], verbose: bool) -> None:
     print(f"\nWARNINGS (advisory -- nothing here refuses)")
     print(f"  recorded-local, filed nowhere .......... {len(stuck)}")
     print(f"  no skill_change field at all ........... {len(missing)}")
+    print(f"  skill_change UNDECIDED (asked, open) ... {len(undecided)}")
     print(f"  skill_change present but unparseable ... {len(malformed)}")
     print(f"  D4: skill-anchored, not applied/declined {len(d4)}")
 
@@ -520,6 +539,9 @@ def main(argv: list[str] | None = None) -> None:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--repo-root", default=None,
                         help="repository root (default: the tree the record is in)")
+    parser.add_argument("--ledger", action="append", default=None, metavar="PATH",
+                        help="backlog file to read, relative to --repo-root or absolute "
+                             "(repeatable); replaces the default BACKLOGS")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="list every warned record instead of the first eight")
     args = parser.parse_args(argv)
@@ -533,7 +555,7 @@ def main(argv: list[str] | None = None) -> None:
         lambda: read_skill_feedback(root / SKILL_FEEDBACK, known, problems),
         problems,
     )
-    for backlog in BACKLOGS:
+    for backlog in (args.ledger or BACKLOGS):
         records += _guarded(
             backlog,
             lambda b=backlog: read_backlog(root / b, known, problems),

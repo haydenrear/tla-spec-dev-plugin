@@ -51,6 +51,7 @@ def valid_plan() -> dict:
     return {
         "name": "example-epic-workflow",
         "schedule_revision": 1,
+        "epic_issue": "https://github.com/example/repo/issues/1",
         "deferment_policy": {
             "mode": "batch",
             "blocking": "escalate",
@@ -173,6 +174,35 @@ def fully_retired_plan() -> dict:
     for index in range(len(plan["tickets"])):
         retire_ticket(plan, index)
     return plan
+
+
+class EpicIssueWarningTests(unittest.TestCase):
+    """#200: a plan without `epic_issue` warns but never fails."""
+
+    def run_cli(self, plan: dict, *args: str) -> tuple[int, str]:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "ticket_plan.yaml"
+            path.write_text(yaml.safe_dump(plan, sort_keys=False), encoding="utf-8")
+            stderr = io.StringIO()
+            with redirect_stderr(stderr), redirect_stdout(io.StringIO()):
+                code = validator.main([str(path), *args])
+            return code, stderr.getvalue()
+
+    def test_missing_epic_issue_warns_and_exits_zero(self) -> None:
+        plan = valid_plan()
+        del plan["epic_issue"]
+        for args in ((), ("--strict",)):
+            code, stderr = self.run_cli(plan, *args)
+            self.assertEqual(code, 0, args)
+            self.assertIn("WARNING: plan declares no epic_issue", stderr)
+        report = validator.validate_plan(plan, strict=True)
+        self.assertEqual(report.errors, [])
+
+    def test_declared_epic_issue_is_silent(self) -> None:
+        code, stderr = self.run_cli(valid_plan(), "--strict")
+        self.assertEqual(code, 0)
+        self.assertNotIn("epic_issue", stderr)
+        self.assertEqual(stderr, "")
 
 
 class EpicPlanValidatorTests(unittest.TestCase):
@@ -946,6 +976,66 @@ class WaveArtifactBlockTests(unittest.TestCase):
             )
         self.assertEqual(code, 0)
         self.assertIn("does not show", err.getvalue())
+
+
+class Issue141PlanTests(unittest.TestCase):
+    """#141: SF-074 (a moved closed ordinal) and SF-076 (member successors)."""
+
+    def _repo_with_receipt(self, directory: str, ticket_id: str, index: int) -> Path:
+        root = Path(directory)
+        entry = root / "specs" / ".history" / "example-epic-workflow" / f"ticket-{index:03d}-{ticket_id}"
+        entry.mkdir(parents=True)
+        (entry / "manifest.json").write_text(
+            '{"kind": "ticket", "ticket_id": "%s", "ticket_index": %d}' % (ticket_id, index),
+            encoding="utf-8",
+        )
+        return root
+
+    def test_sf074_moved_closed_ordinal_refuses_and_force_passes(self) -> None:
+        plan = valid_plan()
+        plan["tickets"][0]["status"] = "done"
+        with tempfile.TemporaryDirectory() as directory:
+            root = self._repo_with_receipt(directory, "EPIC-1", 0)
+            self.assertEqual(validator.validate_plan(plan, repo_root=root).errors, [])
+            # A generator inserts a ticket ahead of the closed one.
+            inserted = copy.deepcopy(plan["tickets"][1])
+            inserted["id"] = "EPIC-0"
+            inserted["promotion_order"] = 5
+            inserted["promotion_predecessor"] = None
+            inserted["conflict_keys"]["production"] = ["src/zero.py"]
+            plan["tickets"][1]["promotion_predecessor"] = "EPIC-1"
+            plan["tickets"].insert(0, inserted)
+            report = validator.validate_plan(plan, repo_root=root)
+            joined = "\n".join(report.errors)
+            self.assertIn("plan moved a closed ticket's ordinal", joined)
+            self.assertIn("ticket_index 0", joined)
+            path = root / "specs" / "desired_program_model" / "ticket_plan.yaml"
+            path.parent.mkdir(parents=True)
+            path.write_text(yaml.safe_dump(plan, sort_keys=False), encoding="utf-8")
+            with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()):
+                self.assertEqual(validator.main([str(path)]), 1)
+            stderr = io.StringIO()
+            with redirect_stderr(stderr), redirect_stdout(io.StringIO()):
+                self.assertEqual(validator.main([str(path), "--force"]), 0)
+            self.assertIn("FORCED", stderr.getvalue())
+            with unittest.mock.patch.dict(os.environ, {"SKILL_GATES": "off"}):
+                with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()):
+                    self.assertEqual(validator.main([str(path)]), 0)
+
+    def test_sf076_per_ticket_member_successors_under_one_workflow(self) -> None:
+        plan = fully_retired_plan()
+        for index, issue in enumerate(("#451", "#455", "#462")):
+            retirement = plan["tickets"][index]["retirement"]
+            retirement["successor_issue"] = issue
+            retirement["affected_goals"][0]["successor_issue"] = issue
+        report = validator.validate_plan(strict=True, plan=plan)
+        self.assertNotIn("one successor", "\n".join(report.errors))
+
+        # Two different successor WORKFLOWS still disagree.
+        plan["tickets"][0]["retirement"]["successor_workflow"] = "other-workflow"
+        plan["tickets"][0]["retirement"]["affected_goals"][0]["successor_workflow"] = "other-workflow"
+        report = validator.validate_plan(strict=True, plan=plan)
+        self.assertIn("must name one successor workflow", "\n".join(report.errors))
 
 
 if __name__ == "__main__":

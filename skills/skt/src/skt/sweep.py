@@ -41,6 +41,16 @@ normal outcome that keeps the pass going:
                    retiring its worktree is how it gets forgotten.
   not contained    commits not in the epic/target branch: the ticket did
                    not land, whatever its branch says.
+  integrity        :mod:`skt.ticket_integrity`, measured from the live
+                   filesystem: a missing `.git` pointer, missing tracked
+                   source, a missing declared home, missing or replaced
+                   declared evidence — and intact declared evidence, which
+                   removal would delete. `SKILL_GATES=off` turns these into
+                   warnings (the owner's force path); nothing here passes
+                   `--force` to git, so git's own refusals still hold. A
+                   final `git worktree prune` is skipped while any worktree
+                   has lost its pointer: prune would delete the admin entry
+                   `git worktree repair` restores it from.
 
 and one more that is not a property of the repository at all: the
 worktree's Skill Manager home. `git worktree remove` deletes
@@ -109,6 +119,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import context as ctx_mod
+from . import ticket_integrity as integ
 from .publish import _cli, _cli_env
 
 #: Budget for one read (`status`, `rev-list`, a reflog walk). Generous for
@@ -616,6 +627,25 @@ class Status:
     #: a question with no meaning — and the branch ref outlives the
     #: worktree either way — so it is reported and not enforced.
     remotes: bool = True
+    #: The live integrity recheck (BS-19, #201). None only for a worktree
+    #: that was excluded before it was measured.
+    integrity: integ.Integrity | None = None
+    #: SKILL_GATES=off: integrity findings are reported as warnings and the
+    #: pass may continue past them. Removal is still `git worktree remove`
+    #: without --force, so git's own refusals still hold.
+    integrity_forced: bool = False
+
+    def _integrity_reasons(self) -> list[str]:
+        if self.integrity is None:
+            return []
+        out = list(self.integrity.summary_lines())
+        if self.integrity.retained:
+            out.append(
+                f"integrity: holds {len(self.integrity.retained)} declared retained evidence "
+                "file(s) that removing this worktree would delete — move them out and "
+                "re-declare, or SKILL_GATES=off to discard them deliberately"
+            )
+        return out
 
     @property
     def blockers(self) -> tuple[str, ...]:
@@ -644,6 +674,8 @@ class Status:
         # read as "nothing here".
         for probe in self.unmeasured:
             out.append(f"could not determine {probe} — refusing to guess")
+        if not self.integrity_forced:
+            out += self._integrity_reasons()
         return tuple(out)
 
     @property
@@ -660,6 +692,8 @@ class Status:
                 f"{self.unpushed or 0} commit(s) exist only in this clone, and its "
                 "branch ref outlives the worktree"
             )
+        if self.integrity_forced:
+            out += [f"FORCED (SKILL_GATES=off) past {r}" for r in self._integrity_reasons()]
         return tuple(out)
 
     @property
@@ -704,15 +738,34 @@ def inspect(wt: Worktree, *, root: Path, target: str | None) -> Status:
     """
     unmeasured: list[str] = []
     dirty: tuple[str, ...] = ()
+    # FIRST, and from the live filesystem: the integrity recheck. A receipt
+    # from yesterday is history, never an answer to "is it whole now?".
+    integrity = integ.check(root, wt.path)
     if not wt.missing:
-        porcelain = _out("status", "--porcelain", cwd=wt.path)
+        # With its `.git` pointer gone, `git -C <wt>` cannot find the repo and
+        # may climb into an ENCLOSING one; ask through the admin entry instead.
+        status_args: list[str] = []
+        if integrity.pointer_missing:
+            common = integ.common_dir(root)
+            admin = integ.admin_dir(common, wt.path) if common else None
+            if admin is not None:
+                status_args = ["--git-dir", str(admin), "--work-tree", str(wt.path)]
+        porcelain = None
+        if status_args or not integrity.pointer_missing:
+            # NOT `_out`: it strips, and the leading space of ` D path` is
+            # the whole difference between "deleted from disk" and "staged".
+            proc = _git(*status_args, "status", "--porcelain", cwd=wt.path)
+            porcelain = proc.stdout if proc is not None and proc.returncode == 0 else None
         if porcelain is None:
             unmeasured.append("the working tree state")
         elif porcelain:
+            # ` D` (deleted from disk, still in the index) is a missing tracked
+            # file: the integrity recheck reports it as `source_missing`, apart
+            # from real uncommitted work. A staged `git rm` (`D `) stays here.
             dirty = tuple(
                 line.strip()
                 for line in porcelain.splitlines()
-                if line.strip() and not _is_home_path(line)
+                if line.strip() and not _is_home_path(line) and not line.startswith(" D ")
             )
 
     stashes, measured = _stash_entries(root, wt.branch)
@@ -775,7 +828,26 @@ def inspect(wt: Worktree, *, root: Path, target: str | None) -> Status:
         prunable=wt.prunable,
         unmeasured=tuple(unmeasured),
         remotes=remotes,
+        integrity=integrity,
+        integrity_forced=gates_off(),
     )
+
+
+def gates_off() -> bool:
+    """The owner's force path: gates warn, and SKILL_GATES=off walks past them."""
+    return os.environ.get("SKILL_GATES") == "off"
+
+
+def _pointerless(trees: list[Worktree]) -> list[Worktree]:
+    """Linked worktrees whose directory stands but whose `.git` is gone.
+
+    `git worktree prune` calls these prunable and deletes their admin entry —
+    the index and HEAD that `git worktree repair` needs to restore them.
+    """
+    return [
+        t for t in trees
+        if not t.primary and not t.bare and t.path.is_dir() and not (t.path / ".git").exists()
+    ]
 
 
 def _is_home_path(porcelain_line: str) -> bool:
@@ -1193,6 +1265,8 @@ class Step:
     reasons: tuple[str, ...] = ()
     notes: tuple[str, ...] = ()
     fix: str = ""
+    #: What the integrity recheck found missing BEFORE this pass touched it.
+    integrity_kinds: tuple[str, ...] = ()
 
 
 @dataclass
@@ -1209,6 +1283,11 @@ class SweepResult:
     #: summary after an abandonment is not silently short.
     not_reached: int = 0
     exit_code: int = EXIT_OK
+
+    @property
+    def prior_missing(self) -> list[Step]:
+        """Steps whose worktree was ALREADY missing data when the pass reached it."""
+        return [s for s in self.steps if s.integrity_kinds]
 
     @property
     def free_delta(self) -> int | None:
@@ -1260,6 +1339,8 @@ def sweep(
                     action="planned" if status.clean else "skipped",
                     reasons=status.blockers,
                     notes=status.warnings + _prunable_note(candidate.worktree),
+                    fix=_integrity_fix(status),
+                    integrity_kinds=_kinds(status),
                 )
             )
         return result
@@ -1306,9 +1387,14 @@ def sweep(
         # The plan above is minutes old by now.
         status = inspect(wt, root=plan.root, target=plan.target)
         candidate.status = status
+        if status.integrity is not None:
+            # History only: appended, never read back to decide anything.
+            integ.record_receipt(plan.root, status.integrity)
         step.notes = status.warnings + _prunable_note(wt)
+        step.integrity_kinds = _kinds(status)
         if not status.clean:
             step.reasons = status.blockers
+            step.fix = _integrity_fix(status)
             result.steps.append(step)
             continue
         verdict = close_out(cli, wt.home, plan.destination)
@@ -1353,14 +1439,35 @@ def sweep(
         step.notes += (kept,)
         result.steps.append(step)
 
-    pruned = _run(["git", "worktree", "prune"], cwd=plan.root, timeout=READ_TIMEOUT_SECONDS)
-    result.pruned = pruned is not None and pruned.returncode == 0
-    if not result.pruned:
-        result.prune_error = _tail(pruned) if pruned is not None else "git did not return"
+    # NOT when a worktree has lost its `.git` pointer: prune would delete the
+    # admin entry that is the only way back (#201). Never forced past.
+    pointerless = _pointerless(list_worktrees(plan.root))
+    if pointerless:
+        result.prune_error = (
+            "skipped — " + ", ".join(str(t.path) for t in pointerless[:MAX_REASON_ITEMS])
+            + " lost its .git pointer, and prune would delete the admin entry that "
+            "`git worktree repair` restores it from"
+        )
+    else:
+        pruned = _run(["git", "worktree", "prune"], cwd=plan.root, timeout=READ_TIMEOUT_SECONDS)
+        result.pruned = pruned is not None and pruned.returncode == 0
+        if not result.pruned:
+            result.prune_error = _tail(pruned) if pruned is not None else "git did not return"
     result.free_after = _free_bytes(plan.root)
     if result.exit_code == EXIT_OK and result.count("failed"):
         result.exit_code = EXIT_FAILED
     return result
+
+
+def _kinds(status: Status) -> tuple[str, ...]:
+    return tuple(status.integrity.kinds()) if status.integrity is not None else ()
+
+
+def _integrity_fix(status: Status) -> str:
+    """The supported recovery commands — never reset, clean or --force."""
+    if status.integrity is None:
+        return ""
+    return "\n         ".join(status.integrity.fixes())
 
 
 def _prunable_note(wt: Worktree) -> tuple[str, ...]:
@@ -1423,6 +1530,22 @@ def render_list(plan: Plan) -> str:
         if candidate.excluded is not None:
             lines.append(f"      excluded  {candidate.excluded}")
             continue
+        if status.integrity is not None:
+            integ_state = status.integrity
+            if integ_state.intact:
+                held = (f", {len(integ_state.retained)} retained evidence file(s) held"
+                        if integ_state.retained else "")
+                lines.append(
+                    f"      integrity  intact {integ_state.handle} (measured now"
+                    f"{'' if integ_state.manifest else ', no manifest declared'}{held})"
+                )
+            else:
+                lines.append(
+                    f"      integrity  {integ_state.handle}: {', '.join(integ_state.kinds()) or 'unmeasured'}"
+                    " — measured now; an earlier receipt does not answer this"
+                )
+            for fix in integ_state.fixes():
+                lines.append(f"      recover {fix}")
         if status.clean:
             lines.append("      clean   no blocker — this worktree may be retired")
         for blocker in status.blockers:
@@ -1496,6 +1619,12 @@ def render_sweep(result: SweepResult) -> str:
         f"{result.count('removed')} removed, {result.count('skipped')} skipped for safety, "
         f"{result.count('failed')} failed, {result.count('excluded')} excluded"
     )
+    if result.prior_missing:
+        lines.append(
+            f"{len(result.prior_missing)} worktree(s) were ALREADY missing data before this "
+            "pass reached them (integrity findings above) — that is not something this "
+            "sweep removed"
+        )
     if not result.pruned:
         lines.append(f"git worktree prune did not run cleanly: {result.prune_error}")
     lines.append(
@@ -1537,6 +1666,8 @@ def _status_json(status: Status) -> dict:
         "remotes": status.remotes,
         "blockers": list(status.blockers),
         "warnings": list(status.warnings),
+        "integrity": status.integrity.to_json() if status.integrity is not None else None,
+        "integrity_forced": status.integrity_forced,
     }
 
 
@@ -1589,6 +1720,7 @@ def sweep_json(result: SweepResult) -> dict:
             "failed": result.count("failed"),
             "excluded": result.count("excluded"),
         },
+        "missing_before_sweep": len(result.prior_missing),
         "pruned": result.pruned,
         "free_bytes_before": result.free_before,
         "free_bytes_after": result.free_after,
@@ -1606,6 +1738,7 @@ def sweep_json(result: SweepResult) -> dict:
                 "reasons": list(s.reasons),
                 "notes": list(s.notes),
                 "fix": s.fix or None,
+                "missing_before_sweep": list(s.integrity_kinds),
             }
             for s in result.steps
         ],
