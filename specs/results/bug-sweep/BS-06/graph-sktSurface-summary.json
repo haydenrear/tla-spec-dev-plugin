@@ -1,0 +1,1545 @@
+{"runId":"20261107-175213","status":"passed","traceId":"f94a2f65f5c5dd3e2f36faef8e94433f","execution":{"mode":"full","graphName":"sktSurface","complete":true,"expectedNodeIds":["skt.wrapper-installed","skt.status-tiers","skt.check-cached-costs-one-read","skt.hook-contract","skt.ticket-roundtrip"],"observedNodeIds":["skt.check-cached-costs-one-read","skt.hook-contract","skt.status-tiers","skt.ticket-roundtrip","skt.wrapper-installed"],"missingNodeIds":[],"invalidEnvelopeFiles":[],"duplicateNodeIds":[],"unexpectedNodeIds":[],"unknownStatusNodeIds":[],"missingTraceNodeIds":[],"invalidTraceNodeIds":[],"mismatchedTraceNodeIds":[],"observedContextNodeIds":["skt.wrapper-installed","skt.status-tiers","skt.check-cached-costs-one-read","skt.hook-contract","skt.ticket-roundtrip"],"missingContextNodeIds":[],"invalidContextFiles":[],"unexpectedContextNodeIds":[],"contextProvenanceViolationNodeIds":[],"replaySourceContextMismatchNodeIds":[],"contextFileCountExceeded":false,"aggregateContextBytesExceeded":false,"envelopeFileCountExceeded":false,"aggregateEnvelopeBytesExceeded":false,"aggregateJsonStructureExceeded":false,"unknownExecutionScope":false},"nodes":[{
+  "nodeId": "skt.check-cached-costs-one-read",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:53:10.102880Z",
+  "endedAt": "2026-11-07T17:53:10.408250Z",
+  "assertions": [
+    {
+      "name": "3.11: probe exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: probe ran on the pinned interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: control \u2014 the audit hook records a real spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: control \u2014 the LIVE check path does spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: exits 1",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/no-home: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/missing: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/corrupt: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: reports cache_state expired",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/expired-text: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-quiet: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/fresh-notify: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: expired keeps stale content out of `notifications`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: expired preserves the stale content under `stale`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: expired text labels every stale line [stale]",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: fresh notifications are the only state that exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a home that does not exist is an error, not a fresh cache",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: probe exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: probe ran on the pinned interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: control \u2014 the audit hook records a real spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: control \u2014 the LIVE check path does spawn",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: exits 1",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/no-home: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/missing: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: reports cache_state missing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/corrupt: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: reports cache_state expired",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/expired-text: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: exits 0",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-quiet: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: reports cache_state fresh",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: spawns nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: reads the state file exactly 1 time(s)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: opens no other file",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/fresh-notify: writes nothing back",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: expired keeps stale content out of `notifications`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: expired preserves the stale content under `stale`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: expired text labels every stale line [stale]",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: fresh notifications are the only state that exits 10",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a home that does not exist is an error, not a fresh cache",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "cached-probe-3.11-log",
+      "path": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.11.log"
+    },
+    {
+      "type": "cached-probe-3.11-result",
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-check-cached/probe-3.11.json"
+    },
+    {
+      "type": "cached-probe-3.13-log",
+      "path": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.13.log"
+    },
+    {
+      "type": "cached-probe-3.13-result",
+      "path": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-check-cached/probe-3.13.json"
+    }
+  ],
+  "processes": [
+    {
+      "label": "cached-probe-3.11",
+      "command": [
+        "/Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/support/cached_no_spawn_probe.py",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/skills/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-check-cached/3.11",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-check-cached/probe-3.11.json"
+      ],
+      "exitCode": 0,
+      "pid": 54441,
+      "log": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:53:10.103652Z",
+      "endedAt": "2026-11-07T17:53:10.267959Z"
+    },
+    {
+      "label": "cached-probe-3.13",
+      "command": [
+        "/Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-a50496addade7e21/bin/python",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/support/cached_no_spawn_probe.py",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/skills/skt",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-check-cached/3.13",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-check-cached/probe-3.13.json"
+      ],
+      "exitCode": 0,
+      "pid": 54471,
+      "log": "node-logs/skt.check-cached-costs-one-read.cached-probe-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:53:10.269465Z",
+      "endedAt": "2026-11-07T17:53:10.407793Z"
+    }
+  ],
+  "metrics": {
+    "cacheStates": 7,
+    "durationMs": 305
+  },
+  "logs": [
+    "3.11: probe python 3.11.6 at /Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
+    "3.13: probe python 3.13.14 at /Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-a50496addade7e21/bin/python"
+  ],
+  "published": {
+    "cacheStates": "corrupt,expired,expired-text,fresh-notify,fresh-quiet,missing,no-home"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:53:09.114297Z","executorEndedAt":"2026-11-07T17:53:15.422595Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.check-cached-costs-one-read.stdout.log","inputContextFile":"context/skt.check-cached-costs-one-read.input.json","traceId":"f94a2f65f5c5dd3e2f36faef8e94433f"},{
+  "nodeId": "skt.hook-contract",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:53:16.529165Z",
+  "endedAt": "2026-11-07T17:53:27.700416Z",
+  "assertions": [
+    {
+      "name": "3.11: SessionStart exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: SessionStart puts the status report on stdout",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: one invocation appends one line",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the line carries the session id and the outcome",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a second invocation appends a second line, not a replacement",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the system PATH really has no skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: an unresolvable skt still exits zero and says why",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 1/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 2/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 3/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 4/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: PostToolUse exits zero (tool call 5/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: five tool calls over one check result inject exactly once",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the injection is a PostToolUse additionalContext block",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: and appends exactly one post-tool line",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a new check result injects again",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a second session gets its own injection",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: an expired cache injects nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a cold home injects nothing and writes no cache",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: SessionStart exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: SessionStart puts the status report on stdout",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: one invocation appends one line",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the line carries the session id and the outcome",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a second invocation appends a second line, not a replacement",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the system PATH really has no skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: an unresolvable skt still exits zero and says why",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 1/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 2/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 3/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 4/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: PostToolUse exits zero (tool call 5/5)",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: five tool calls over one check result inject exactly once",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the injection is a PostToolUse additionalContext block",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: and appends exactly one post-tool line",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a new check result injects again",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a second session gets its own injection",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: an expired cache injects nothing",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a cold home injects nothing and writes no cache",
+      "status": "passed"
+    },
+    {
+      "name": "hooks.json is valid JSON with both hook events",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [],
+  "processes": [],
+  "metrics": {
+    "hookInvocations": 24,
+    "durationMs": 11171
+  },
+  "logs": [],
+  "published": {
+    "hookInvocations": "24"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:53:15.462932Z","executorEndedAt":"2026-11-07T17:53:32.724118Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.hook-contract.stdout.log","inputContextFile":"context/skt.hook-contract.input.json","traceId":"f94a2f65f5c5dd3e2f36faef8e94433f"},{
+  "nodeId": "skt.status-tiers",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:52:47.372256Z",
+  "endedAt": "2026-11-07T17:53:04.023652Z",
+  "assertions": [
+    {
+      "name": "3.11/root: status exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: reports tier root",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: reports the home it will write",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: all four installed records are read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: alpha is change-managed and loaded",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: beta has no git provenance, so it is not change-managed",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: gamma's recorded errors survive to the report",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: an unreadable record is reported, not dropped",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: plugins are listed",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: policy is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: an unacknowledged drift record is pending",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: cli tools come from cli-lock.toml",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: text names the tier",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/root: text names the drift remedy",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: status exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: reports tier project",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: reports the home it will write",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: all four installed records are read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: alpha is change-managed and loaded",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: beta has no git provenance, so it is not change-managed",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: gamma's recorded errors survive to the report",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: an unreadable record is reported, not dropped",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: plugins are listed",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: policy is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: an unacknowledged drift record is pending",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: cli tools come from cli-lock.toml",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: text names the tier",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/project: text names the drift remedy",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: status exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: reports tier worktree",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: reports the home it will write",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: all four installed records are read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: alpha is change-managed and loaded",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: beta has no git provenance, so it is not change-managed",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: gamma's recorded errors survive to the report",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: an unreadable record is reported, not dropped",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: plugins are listed",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: policy is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: an unacknowledged drift record is pending",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: cli tools come from cli-lock.toml",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: text names the tier",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/worktree: text names the drift remedy",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: feature/ARTI-19 yields ticket ARTI-19",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: an epic branch that exists but is not checked out is 'available'",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the ticket plan is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a fresh worktree is in sync with its parent",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: integration.toml at the root makes the checkout 'integration'",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a checkout under one is 'constituent'",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: a checkout under neither is 'standalone'",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: no home found exits non-zero and says so",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: status exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: reports tier root",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: reports the home it will write",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: all four installed records are read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: alpha is change-managed and loaded",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: beta has no git provenance, so it is not change-managed",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: gamma's recorded errors survive to the report",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: an unreadable record is reported, not dropped",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: plugins are listed",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: policy is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: an unacknowledged drift record is pending",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: cli tools come from cli-lock.toml",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: text names the tier",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/root: text names the drift remedy",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: status exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: reports tier project",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: reports the home it will write",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: all four installed records are read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: alpha is change-managed and loaded",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: beta has no git provenance, so it is not change-managed",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: gamma's recorded errors survive to the report",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: an unreadable record is reported, not dropped",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: plugins are listed",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: policy is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: an unacknowledged drift record is pending",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: cli tools come from cli-lock.toml",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: text names the tier",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/project: text names the drift remedy",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: status exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: reports tier worktree",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: reports the home it will write",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: all four installed records are read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: alpha is change-managed and loaded",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: beta has no git provenance, so it is not change-managed",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: gamma's recorded errors survive to the report",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: an unreadable record is reported, not dropped",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: plugins are listed",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: policy is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: an unacknowledged drift record is pending",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: cli tools come from cli-lock.toml",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: text names the tier",
+      "status": "passed"
+    },
+    {
+      "name": "3.13/worktree: text names the drift remedy",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: feature/ARTI-19 yields ticket ARTI-19",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: an epic branch that exists but is not checked out is 'available'",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the ticket plan is read",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a fresh worktree is in sync with its parent",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: integration.toml at the root makes the checkout 'integration'",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a checkout under one is 'constituent'",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: a checkout under neither is 'standalone'",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: no home found exits non-zero and says so",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [],
+  "processes": [],
+  "metrics": {
+    "tierChecks": 6,
+    "durationMs": 16651
+  },
+  "logs": [],
+  "published": {
+    "tiersChecked": "3.11/root,3.11/project,3.11/worktree,3.13/root,3.13/project,3.13/worktree"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:52:46.099493Z","executorEndedAt":"2026-11-07T17:53:09.046822Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.status-tiers.stdout.log","inputContextFile":"context/skt.status-tiers.input.json","traceId":"f94a2f65f5c5dd3e2f36faef8e94433f"},{
+  "nodeId": "skt.ticket-roundtrip",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:53:33.900161Z",
+  "endedAt": "2026-11-07T17:53:48.552394Z",
+  "assertions": [
+    {
+      "name": "git-issue-workflow resolved to a local install, not an upstream clone",
+      "status": "passed"
+    },
+    {
+      "name": "git-issue-workflow supplies the shared lifecycle helpers",
+      "status": "passed"
+    },
+    {
+      "name": "and the scripts `wt` delegates to",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/standalone: ticket new exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: new prints the worktree and branch keys",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: new says which classification decided the location",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: the worktree skt created is inside THIS NODE'S fixture tree",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: nothing was created beside the repository under test",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: new names its own close command",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: new warns that home-side skill edits are in no git diff",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: the worktree directory exists",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: it is a LINKED worktree, not a copy",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: git knows about it",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: the branch feature/TG-STAN exists",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: info answers about the same worktree",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: info reports the worktree's base against its parent",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/standalone: ticket close exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: close removes the worktree directory",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: git no longer lists it",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: close KEEPS the branch \u2014 the work is not what is being torn down",
+      "status": "passed"
+    },
+    {
+      "name": "standalone: close says the branch was kept",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/constituent: ticket new exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: new prints the worktree and branch keys",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: new says which classification decided the location",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: the worktree skt created is inside THIS NODE'S fixture tree",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: nothing was created beside the repository under test",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: new names its own close command",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: new warns that home-side skill edits are in no git diff",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: the worktree directory exists",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: it is a LINKED worktree, not a copy",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: git knows about it",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: the branch feature/TG-CONS exists",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: info answers about the same worktree",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: info reports the worktree's base against its parent",
+      "status": "passed"
+    },
+    {
+      "name": "3.11/constituent: ticket close exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: close removes the worktree directory",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: git no longer lists it",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: close KEEPS the branch \u2014 the work is not what is being torn down",
+      "status": "passed"
+    },
+    {
+      "name": "constituent: close says the branch was kept",
+      "status": "passed"
+    },
+    {
+      "name": "both placement classifications were driven",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [not a git repository at all]: exits non-zero",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [not a git repository at all]: names 'not inside a git repository'",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [not a git repository at all]: prints a remedy",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [not a git repository at all]: the remedy it names EXISTS and runs -- wt",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [not a git repository at all]: creates no worktree",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [a git repository with no project home]: exits non-zero",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [a git repository with no project home]: names 'no Skill Manager home could be created'",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [a git repository with no project home]: prints a remedy",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [a git repository with no project home]: the remedy it names EXISTS and runs -- bootstrap-home.sh",
+      "status": "passed"
+    },
+    {
+      "name": "refusal [a git repository with no project home]: creates no worktree",
+      "status": "passed"
+    },
+    {
+      "name": "no ticket worktree was created outside the fixture tree",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [],
+  "processes": [],
+  "metrics": {
+    "giwResolvedLocally": 1,
+    "placementArms": 2,
+    "refusalCases": 2,
+    "durationMs": 14652
+  },
+  "logs": [
+    "fixture root, OUTSIDE the repository on purpose: /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx",
+    "git-issue-workflow from installed:/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow",
+    "standalone: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx/standalone/subject-repo-TG-STAN', 'branch': 'feature/TG-STAN (standalone repo subject-repo)', 'launch': \"none \u2014 this worktree has no home; an agent here uses the operator's GLOBAL home\", 'close': 'skt ticket close \u2014 or: /Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-STAN'}",
+    "standalone: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx/standalone/subject-repo-TG-STAN",
+    "standalone: worktree exists: True",
+    "constituent: ticket new contract: {'worktree': '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx/constituent/subject-repo-TG-CONS', 'branch': 'feature/TG-CONS (constituent repo subject-repo)', 'launch': \"none \u2014 this worktree has no home; an agent here uses the operator's GLOBAL home\", 'close': 'skt ticket close \u2014 or: /Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt close TG-CONS'}",
+    "constituent: expected worktree: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx/constituent/subject-repo-TG-CONS",
+    "constituent: worktree exists: True",
+    "refusal [not a git repository at all] rc=1: error: not inside a git repository: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-nohome-m9lwjyiu\nfix:   /Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/skt/scripts/wt new TG-REFUSED --verbose",
+    "refusal [a git repository with no project home] rc=3: error: no Skill Manager home could be created for this worktree (usually: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx/standalone/subject-repo has no project home yet)\nfix:   /Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/plugins/tla-spec-dev/skills/git-issue-workflow/scripts/bootstrap-home.sh --root /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/skt-ticket-roundtrip-a5scscjx/standalone/subject-repo\nlog:   /var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q0000"
+  ],
+  "published": {
+    "giwSource": "installed:/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/.skill-manager/plugins/tla-spec-dev/skills/git-issue-workflow"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:53:32.755661Z","executorEndedAt":"2026-11-07T17:53:53.565707Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.ticket-roundtrip.stdout.log","inputContextFile":"context/skt.ticket-roundtrip.input.json","traceId":"f94a2f65f5c5dd3e2f36faef8e94433f"},{
+  "nodeId": "skt.wrapper-installed",
+  "status": "passed",
+  "startedAt": "2026-11-07T17:52:15.703041Z",
+  "endedAt": "2026-11-07T17:52:41.037920Z",
+  "assertions": [
+    {
+      "name": "install script is executable",
+      "status": "passed"
+    },
+    {
+      "name": "pyproject declares an interpreter floor",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: installer exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper written at $SKILL_MANAGER_BIN_DIR/skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper is executable",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper execs an absolute interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper resolves its unit from the home it lives in",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper names the unit path home-RELATIVE, not absolute",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: skt --help exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `status`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `check`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `sync`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `ticket`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --help lists `publish`",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: --version reports the packaged version 0.8.2",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: the minimal PATH really has no python",
+      "status": "passed"
+    },
+    {
+      "name": "3.11: wrapper answers with no python on PATH",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: installer exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper written at $SKILL_MANAGER_BIN_DIR/skt",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper is executable",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper execs an absolute interpreter",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper resolves its unit from the home it lives in",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper names the unit path home-RELATIVE, not absolute",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: skt --help exits zero",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `status`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `check`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `sync`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `ticket`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --help lists `publish`",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: --version reports the packaged version 0.8.2",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: the minimal PATH really has no python",
+      "status": "passed"
+    },
+    {
+      "name": "3.13: wrapper answers with no python on PATH",
+      "status": "passed"
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "install-3.11-log",
+      "path": "node-logs/skt.wrapper-installed.install-skt-3.11.log"
+    },
+    {
+      "type": "install-3.13-log",
+      "path": "node-logs/skt.wrapper-installed.install-skt-3.13.log"
+    }
+  ],
+  "processes": [
+    {
+      "label": "install-skt-3.11",
+      "command": [
+        "bash",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/skill-scripts/install-skt.sh"
+      ],
+      "exitCode": 0,
+      "pid": 47823,
+      "log": "node-logs/skt.wrapper-installed.install-skt-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:27.422800Z",
+      "endedAt": "2026-11-07T17:52:29.256175Z"
+    },
+    {
+      "label": "skt-help-3.11",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 48206,
+      "log": "node-logs/skt.wrapper-installed.skt-help-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:29.257196Z",
+      "endedAt": "2026-11-07T17:52:29.335535Z"
+    },
+    {
+      "label": "skt-version-3.11",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 48218,
+      "log": "node-logs/skt.wrapper-installed.skt-version-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:29.336218Z",
+      "endedAt": "2026-11-07T17:52:29.439720Z"
+    },
+    {
+      "label": "skt-minimal-path-3.11",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 48230,
+      "log": "node-logs/skt.wrapper-installed.skt-minimal-path-3.11.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:29.440961Z",
+      "endedAt": "2026-11-07T17:52:29.496661Z"
+    },
+    {
+      "label": "install-skt-3.13",
+      "command": [
+        "bash",
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/skill-scripts/install-skt.sh"
+      ],
+      "exitCode": 0,
+      "pid": 49760,
+      "log": "node-logs/skt.wrapper-installed.install-skt-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:39.415597Z",
+      "endedAt": "2026-11-07T17:52:40.853455Z"
+    },
+    {
+      "label": "skt-help-3.13",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "--help"
+      ],
+      "exitCode": 0,
+      "pid": 50016,
+      "log": "node-logs/skt.wrapper-installed.skt-help-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:40.854169Z",
+      "endedAt": "2026-11-07T17:52:40.921117Z"
+    },
+    {
+      "label": "skt-version-3.13",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 50025,
+      "log": "node-logs/skt.wrapper-installed.skt-version-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:40.921736Z",
+      "endedAt": "2026-11-07T17:52:40.978348Z"
+    },
+    {
+      "label": "skt-minimal-path-3.13",
+      "command": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.13/bin/cli/skt",
+        "--version"
+      ],
+      "exitCode": 0,
+      "pid": 50035,
+      "log": "node-logs/skt.wrapper-installed.skt-minimal-path-3.13.log",
+      "error": null,
+      "startedAt": "2026-11-07T17:52:40.979707Z",
+      "endedAt": "2026-11-07T17:52:41.037685Z"
+    }
+  ],
+  "metrics": {
+    "interpreters": 2,
+    "durationMs": 25334
+  },
+  "logs": [
+    "declared requires-python: '>=3.11'",
+    "python 3.11 -> /Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11",
+    "python 3.13 -> /Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-a50496addade7e21/bin/python"
+  ],
+  "published": {
+    "wrappers": "{\"3.11\": \"/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.11/bin/cli/skt\", \"3.13\": \"/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/3.13/bin/cli/skt\"}",
+    "interpreters": "{\"3.11\": \"/Users/hayde/.local/share/uv/python/cpython-3.11-macos-aarch64-none/bin/python3.11\", \"3.13\": \"/Users/hayde/.cache/uv/environments-v2/skt-wrapper-installed-a50496addade7e21/bin/python\"}",
+    "versions": "3.11,3.13",
+    "probeHome": "/Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/test_graph/build/validation-reports/20261107-175213/fixtures/skt-wrapper/probe-home"
+  }
+,"envelopeVersion":1,"executorStartedAt":"2026-11-07T17:52:14.487972Z","executorEndedAt":"2026-11-07T17:52:46.055102Z","spawnExitCode":0,"capturedStdoutLog":"node-logs/skt.wrapper-installed.stdout.log","inputContextFile":"context/skt.wrapper-installed.input.json","traceId":"f94a2f65f5c5dd3e2f36faef8e94433f"}]}
