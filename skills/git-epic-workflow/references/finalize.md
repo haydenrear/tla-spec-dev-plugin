@@ -403,8 +403,14 @@ tip and the close commit changed workflow artifacts only. Its body includes:
 - the guardrail overrides and implicit decisions from §2b that the user had not
   already accepted, with their disposition, and the machinery recommendations
   that were published, filed, or dropped;
-- issue-closing references for delivered child issues and explicit not-planned
-  or carried dispositions for retired child issues;
+- one `Closes #N` per line for the epic issue and each delivered child issue
+  (GitHub closes only the first of `Closes #1, #2`), and explicit not-planned
+  or carried dispositions for retired child issues:
+
+  ```text
+  Closes #199
+  Closes #200
+  ```
 - the worktree sweep from §6 — how many were removed, how much space that
   reclaimed, and anything retained with its reason.
 

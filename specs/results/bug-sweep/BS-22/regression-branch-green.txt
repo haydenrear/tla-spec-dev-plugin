@@ -1,0 +1,11 @@
+# branch: feature/200-epic-issue-and-closes
+============================= test session starts ==============================
+platform darwin -- Python 3.13.14, pytest-9.2.0, pluggy-1.7.0
+rootdir: /Users/hayde/IdeaProjects/tla-spec-dev-200-epic-issue-and-closes
+collected 170 items / 167 deselected / 3 selected
+
+skills/git-epic-workflow/scripts/tests/test_finalize_pr_body_contract.py . [ 33%]
+                                                                         [ 33%]
+skills/git-epic-workflow/scripts/tests/test_validate_epic_plan.py ..     [100%]
+
+====================== 3 passed, 167 deselected in 0.16s =======================
