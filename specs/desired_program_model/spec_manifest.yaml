@@ -255,12 +255,12 @@ effects:
         # CD-10 (audit run 3, gap R3-3a): RunSpecUnitTests' shipped dispatch
         # spawns the generated-case runner (`python
         # skills/spec-double-2/scripts/run_generated_case_adapters.py ...`, built at
-        # skills/spec-double-2/scripts/tla_spec_dev.py:726 (run_generated_case_adapters.py) and
-        # executed at skills/spec-double-2/scripts/tla_spec_dev.py:790 (subprocess.run) whenever a
+        # skills/spec-double-2/scripts/tla_spec_dev.py:837 (run_generated_case_adapters.py) and
+        # executed at skills/spec-double-2/scripts/tla_spec_dev.py:901 (subprocess.run) whenever a
         # target carries a generated case package.
         # That command line does not match test_process's `*pytest*` -- only
         # the `uv run --with pytest -m pytest` child at
-        # skills/spec-double-2/scripts/tla_spec_dev.py:692 (--with) does -- so the
+        # skills/spec-double-2/scripts/tla_spec_dev.py:803 (--with) does -- so the
         # runner spawn gets its own port rather than a widened, dishonest
         # test_process target.
         runner_process:
