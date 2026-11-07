@@ -316,7 +316,7 @@ For each row in the ledger:
 Then finish the sweep:
 
 ```bash
-git -C <repo-root> worktree prune          # drop stale administrative entries
+git -C <repo-root> worktree prune          # stale entries; NOT while `skt ticket list` shows pointer_missing
 git -C <repo-root> worktree list           # expect the primary checkout alone
 git -C <repo-root> branch --merged epic/<slug>
 df -h <repo-root>
