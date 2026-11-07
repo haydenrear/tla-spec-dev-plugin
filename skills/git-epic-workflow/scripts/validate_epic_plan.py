@@ -1230,6 +1230,22 @@ def _validate_deferment_policy(plan: object, errors: list[str]) -> None:
         errors.append("deferment_policy.backlog must be a non-empty path string")
 
 
+def _validate_epic_issue(plan: object, warnings: list[str]) -> None:
+    """Warn, never fail, while the plan names no epic tracking issue.
+
+    Appended to `warnings`, so no flag turns it into a refusal: a plan written
+    before this field existed is still schedulable.
+    """
+    if not isinstance(plan, dict):
+        return
+    value = plan.get("epic_issue")
+    if not isinstance(value, str) or not value.strip():
+        warnings.append(
+            "plan declares no epic_issue; create the epic tracking issue and "
+            "record its URL (see references/plan-and-schedule.md section 6)"
+        )
+
+
 def _validate_review_policy(
     plan: object, errors: list[str], warnings: list[str]
 ) -> None:
@@ -1462,6 +1478,7 @@ def validate_plan(
     warnings: list[str] = []
     schedule_revision = _schedule_revision(plan, errors)
     _validate_deferment_policy(plan, errors)
+    _validate_epic_issue(plan, warnings)
     _validate_review_policy(plan, errors, warnings)
     goals = _parse_goals(plan, errors, warnings)
     tickets = _parse_tickets(plan, errors)

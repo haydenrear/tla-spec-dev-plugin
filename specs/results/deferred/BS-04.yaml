@@ -1,0 +1,20 @@
+findings:
+  - id: BS-04-D1
+    found_by: "BS-04"
+    found_at_commit: "df48724c1ced68a3f6db17251e37e30aa041fd64"
+    schedule_revision: 1
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["skills/git-epic-workflow/references/plan-and-schedule.md"]
+    summary: "plan-and-schedule.md dispatch step does not point at deferment.md's new 're-run reproduction before scheduling a finding' rule (#167 proposed the text there)"
+    reproduction: "grep -n 'reproduction' skills/git-epic-workflow/references/plan-and-schedule.md -> no dispatch-time re-run instruction; expected a one-line pointer to deferment.md § Owner triage"
+    evidence: ["specs/results/bug-sweep/BS-04/green-branch.txt"]
+    why_out_of_scope: "plan-and-schedule.md is outside BS-04's workflow conflict keys; the rule landed in deferment.md § Owner triage instead"
+    suggested_fix: "add one sentence in plan-and-schedule.md §3 before 'Before dispatch, apply validation-review.md': 'Re-run each backlog finding's reproduction first; see deferment.md § Owner triage.'"
+    blast_radius: "plan-and-schedule.md only"
+    disposition: pending
+    disposition_ticket: null
