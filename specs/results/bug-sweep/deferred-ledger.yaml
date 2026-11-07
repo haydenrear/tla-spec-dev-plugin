@@ -1,0 +1,775 @@
+version: 1
+epic: bug-sweep
+findings:
+- found_by: BS-03
+  id: BS-03-DF-01
+  unit: skt
+  blocking: false
+  observed: '`command -v skt` resolves to the ROOT home''s skt (~/.skill-manager/bin/cli/skt, plugin 11
+    commits behind) while the SessionStart hook reports the project home as this session''s tier. Worked
+    around by calling .skill-manager/bin/cli/skt.'
+  proposed: Put <project home>/bin/cli first on PATH in the SessionStart hook or launch wrapper, or have
+    `skt status` warn when the skt on PATH belongs to another home.
+- found_by: BS-03
+  id: BS-03-DF-02
+  unit: git-issue-workflow (epic-ticket close-out)
+  blocking: false
+  observed: '`skill-manager home close-out --home <wt>/.skill-manager --into <project home>`, which the
+    assignment requires before PR open, was refused by the session''s auto-mode classifier as a shared-resource
+    write (same intermittency as SI-20''s `unexercised` row). No verdict recorded from this seat.'
+  proposed: Have close-out print that it is read-only in a form the sandbox can see, or let the epic owner
+    run it at wave merge instead of the ticket agent.
+- found_by: BS-01
+  id: BS-01-DF-01
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: major
+  blocking: escalate
+  surface:
+    production:
+    - skills/spec-double-2/scripts/extract_spec_manifest.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'The epic''s own `specs/desired_program_model/ticket_plan.yaml` uses YAML anchors/aliases (`-
+    &id002` / `- *id001` under `goals:`), and `extract_spec_manifest.load_manifest` cannot parse them
+    ("unexpected indentation at: ''goal: GOAL-BS-EVALS''"). Every close path loads the plan through it,
+    so `close ticket` and `close_tickets.py` on THIS repository refuse at the plan read. It is why all
+    of tests/test_workflow_close_keeps_the_ledger.py (5 tests), test_ticket_retirement::test_repository_canonical_delivered_plan...
+    and the ledger-resolution tests are red on the epic base.'
+  reproduction: python3 -c "import sys; sys.path.insert(0,'skills/spec-double-2'); from scripts.extract_spec_manifest
+    import load_manifest; load_manifest(__import__('pathlib').Path('specs/desired_program_model/ticket_plan.yaml'))"
+  evidence:
+  - specs/results/bug-sweep/BS-01/repository-unit-base.txt
+  why_out_of_scope: extract_spec_manifest.py is outside BS-01's conflict keys, and the red tests are on
+    the BS-08 known-red list.
+  suggested_fix: 'Either render the plan without anchors (the epic agent''s file), or teach load_manifest
+    anchors/aliases (or use PyYAML when present). Escalated: the epic''s own wave-close and finalize run
+    these close paths.'
+  blast_radius: Every close of the bug-sweep workflow in this repository.
+- found_by: BS-01
+  id: BS-01-DF-02
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - skills/spec-double-2/scripts/spec_evolution.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '#172 and #143 SF-007/009, the halves that live in spec_evolution.py. (a) Under --force, a
+    foreign or rejected ledger input is still recorded as this close''s evidence; #172 asks that it be
+    recorded as `not_run`. (b) Workflow close has no TLC-report path. `record_complexity_ledger` takes
+    a `tlc_report` that neither caller passes. BS-01 stages a ticket''s report into `<ticket>/results/tlc-current.txt`
+    from `close ticket --tlc-report`. It does not stage one at workflow scope, because a file left in
+    specs/results/ would be recycled by the next close.'
+  reproduction: 'close_tickets.py --force with specs/results/complexity_ledger_input.yaml carrying `workflow:
+    other`; the ledger entry still embeds its refinement.'
+  evidence:
+  - tests/test_close_records.py::test_172_force_records_a_foreign_input_with_a_warning
+  why_out_of_scope: spec_evolution.py is BS-07's conflict key.
+  suggested_fix: 'Add `tlc_report` and `foreign_input` parameters to create_ticket_history_entry / create_workflow_closed_snapshot.
+    Have close_tickets.py pass them, and record `verdict: not_run` for a foreign input.'
+  blast_radius: Ledger entries of forced closes, and workflow-scope TLC metrics.
+- found_by: BS-01
+  id: BS-01-DF-03
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - skills/spec-double-2/scripts/spec_evolution.py
+    - skills/spec-double-2/scripts/skill_feedback.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '#173''s second half. The summary is still written verbatim into three files (manifest.json,
+    summary.md, skill_feedback.md). BS-01 adds the --dry-run preview so it can be corrected before the
+    write. "Write once; the other two reference it" is a change to write_summary / emit_skill_feedback.'
+  reproduction: close_tickets.py --summary X; grep X in all three files.
+  evidence:
+  - tests/test_close_records.py::test_173_dry_run_previews_the_rendered_summary
+  why_out_of_scope: spec_evolution.py is BS-07's; skill_feedback.py is outside BS-01's keys.
+  suggested_fix: Keep the text in summary.md, and have manifest.json carry `summary_path` and skill_feedback.md
+    a link.
+  blast_radius: Hand edits at close time; low.
+- found_by: BS-01
+  id: BS-01-DF-04
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production:
+    - skills/spec-double-2/scripts/complexity_ledger.py
+    - skills/spec-double-2/references/workflows.md
+    - skills/spec-double-2/references/spec_evolution.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'Two items. (a) #134''s second half: when a delta is computed against the last accepted entry,
+    it does not name the rejected entries it skipped (complexity_ledger.previous_entry / compute_delta).
+    (b) Instructions: the references do not yet say that a ledger input carries `workflow: <name>`, or
+    that `close ticket` takes `--feedback` and `--tlc-report`. Without the `workflow:` key the #172 check
+    cannot tell a foreign input from a local one. It refuses only an input that NAMES another workflow.'
+  reproduction: grep -n "workflow:" skills/spec-double-2/references/workflows.md around the complexity_ledger_input.yaml
+    paragraph.
+  evidence:
+  - skills/spec-double-2/scripts/close_tickets.py (complexity_ledger_input_problems)
+  why_out_of_scope: Neither file is in BS-01's conflict keys.
+  suggested_fix: 'Add `workflow:` to the scaffolded ledger template and to the references'' ledger-input
+    paragraph. Add `skipped_rejected: [...]` to the delta.'
+  blast_radius: 'An input without a `workflow:` key is still accepted from a stale epic, so #172 is closed
+    only for inputs that name their workflow.'
+- found_by: BS-02
+  id: BS-02-DF-01
+  severity: minor
+  channel: operator-doing-the-work
+  summary: 'references/consumption.md line 91 still spells the skill_change grammar without UNDECIDED,
+    and line 295 still says channel has a "nine-token" vocabulary. Both now disagree with bug_attribution.md
+    sections 2a and 4.1 (fixed in BS-02 for #164/#165).'
+  surface:
+    production:
+    - skills/spec-double-2/references/consumption.md
+    tla: []
+    adapters: []
+    test_graph: []
+  disposition: open
+  skill_change: proposed(spec-double-2, "add `| UNDECIDED` to consumption.md:91; nine-token -> ten-token
+    at :295")
+- found_by: BS-02
+  id: BS-02-DF-02
+  severity: minor
+  channel: operator-doing-the-work
+  summary: 'references/agent_roles.md line 99 reads skill_change with an awk pattern `/^    skill_change:/`,
+    the same fixed 4-space row-key indent #162 removed from disposition.py. On a column-0 ledger (PyYAML
+    safe_dump layout) it finds nothing.'
+  surface:
+    production:
+    - skills/spec-double-2/references/agent_roles.md
+    tla: []
+    adapters: []
+    test_graph: []
+  disposition: open
+  skill_change: proposed(spec-double-2, "match `^ *skill_change:` or point the reader at improvement_ledger.py
+    --ledger")
+- found_by: BS-02
+  id: BS-02-DF-03
+  severity: minor
+  channel: operator-doing-the-work
+  summary: 'improvement_ledger.unit_for() counts a finding as skill-anchored only when a surface names
+    skills/<unit>/ for a unit under THIS repository''s skills/. A consumer repository has no skills/,
+    so D4 can never fire there. Named in #163 as UNDECIDED (resolve units from the Skill Manager home
+    instead?); deliberately not changed in BS-02.'
+  surface:
+    production:
+    - skills/spec-double-2/scripts/improvement_ledger.py
+    tla: []
+    adapters: []
+    test_graph: []
+  disposition: open
+  skill_change: UNDECIDED
+- found_by: BS-04
+  id: BS-04-D1
+  found_at_commit: df48724c1ced68a3f6db17251e37e30aa041fd64
+  schedule_revision: 1
+  severity: minor
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - skills/git-epic-workflow/references/plan-and-schedule.md
+  summary: plan-and-schedule.md dispatch step does not point at deferment.md's new 're-run reproduction
+    before scheduling a finding' rule (#167 proposed the text there)
+  reproduction: grep -n 'reproduction' skills/git-epic-workflow/references/plan-and-schedule.md -> no
+    dispatch-time re-run instruction; expected a one-line pointer to deferment.md § Owner triage
+  evidence:
+  - specs/results/bug-sweep/BS-04/green-branch.txt
+  why_out_of_scope: plan-and-schedule.md is outside BS-04's workflow conflict keys; the rule landed in
+    deferment.md § Owner triage instead
+  suggested_fix: 'add one sentence in plan-and-schedule.md §3 before ''Before dispatch, apply validation-review.md'':
+    ''Re-run each backlog finding''s reproduction first; see deferment.md § Owner triage.'''
+  blast_radius: plan-and-schedule.md only
+  disposition: pending
+  disposition_ticket: null
+- found_by: BS-05
+  id: BS-05-DF-01
+  unit: skt (SKILL.md)
+  blocking: false
+  observed: 'skills/skt/SKILL.md still describes `skt sync <unit>` as "pull a unit to its latest pushed
+    source" and maps it to `skill-manager sync <unit> --git-latest` (lines 37, 81). After #181 a project/worktree
+    home holds a pinned unit at its skill-project.toml pin (via `project resolve`) and the trunk needs
+    `--trunk`; after #182 a pinless non-root home uses the tier-above CLI with --home. SKILL.md is outside
+    BS-05''s conflict keys.'
+  proposed: 'Line 37: `skt sync <unit> [--trunk]  # to the pin (project/worktree) or trunk (root)`. Line
+    81 row: `skill-manager project resolve` when pinned below root, else `skill-manager sync <unit> --git-latest
+    [--home=<home>]`.'
+- found_by: BS-05
+  id: BS-05-DF-02
+  unit: skill-manager (CLI)
+  blocking: false
+  observed: The CLI has no verb that syncs ONE unit to a given revision. `sync --lock` re-syncs bumped
+    units to their recorded ref, not the lock's resolved_sha, and `sync --from` needs a hand-made clone.
+    So skt restores a pin through `project resolve`, which reconciles the whole project. Whether resolve
+    moves an already-installed drifted unit back to its revision was not exercised against the real CLI
+    here (fixture CLI only); skt verifies the result and exits 11 if it did not.
+  proposed: '`skill-manager sync <unit> --revision <sha>` (or have `sync --lock` honour resolved_sha),
+    then point skt''s pin path at it.'
+- found_by: BS-05
+  id: BS-05-DF-03
+  unit: git-issue-workflow (epic-ticket close-out)
+  blocking: false
+  observed: '`skill-manager home close-out` is denied to ticket agents by the permission classifier, as
+    recorded by BS-03-DF-02. Not attempted from this seat.'
+  proposed: Same as BS-03-DF-02 — the epic owner runs close-out at wave merge.
+- found_by: BS-06
+  id: BS-06-DF-01
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/skt/src/skt/sweep.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '#171''s second proposed half is not done: `skt ticket sweep` does not warn or invalidate the
+    surviving checkout''s build outputs after removing a worktree whose target/ was a symlink into it.
+    BS-06 prevents the shared link at `ticket new` (both routes) and warns at `close-change.sh`, but sweep
+    runs its own gate and `git worktree remove` rather than close-change.sh, so a link created by hand
+    mid-life and then swept is reported nowhere.'
+  reproduction: Create a worktree, `ln -s <main>/target <wt>/target` by hand, then `skt ticket sweep -y`;
+    sweep's output names no shared target/.
+  evidence:
+  - skills/skt/tests/test_ticket_lifecycle.py
+  why_out_of_scope: skills/skt/src/skt/sweep.py is outside BS-06's conflict keys (skt/scripts/wt, the
+    three git-issue-workflow scripts, skt/ticket*.py).
+  suggested_fix: In sweep, call lib.sh's `foreign_target_link` (ABI 3) on each worktree before removal
+    and surface it in the sweep summary with the rebuild command for the surviving checkout.
+  blast_radius: Repositories that hand-link target/ into the main checkout and retire worktrees by sweep.
+- found_by: BS-06
+  id: BS-06-DF-02
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/git-issue-workflow/references/worktrees.md
+    - skills/git-issue-workflow/references/epic-ticket.md
+    - skills/skt/SKILL.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: The `[worktree] provision` hook (#184) and exit 9 are documented only in code comments and
+    in `new-change.sh`. worktrees.md's exit-code table (3, 7, 1, 79) and the skt/epic-ticket references
+    do not mention the hook, its WT_ROOT/WT_MAIN environment, or that `close` now resolves through `git
+    worktree list` before the directory search (epic-ticket.md §2 still says close resolves "by searching
+    for <parent>/*-<ticket>").
+  reproduction: grep -n "provision" skills/git-issue-workflow/references/worktrees.md
+  evidence: []
+  why_out_of_scope: Reference docs are outside BS-06's conflict keys.
+  suggested_fix: Add exit 9 and the `[worktree] provision` declaration to worktrees.md's exit-code section;
+    update epic-ticket.md §2's close-resolution sentence.
+  blast_radius: Agents reading the references rather than the scripts.
+- found_by: BS-07
+  id: BS-07-DF-01
+  unit: spec-double-2 (scripts/tla_spec_dev.py, onboarding next-steps print)
+  blocking: false
+  observed: 'tla_spec_dev.py:95/97 still prints `scripts/run_tlc.sh <spec_root>/program_model/...` after
+    `scaffold project`. That path is relative to the SKILL root and does not exist in an onboarded project
+    (the #143 SF-041 root). BS-07 fixed the same command in onboard_program_model.py and scaffold_spec.py
+    (now `tlc2 -metadir ... -config`); tla_spec_dev.py is outside BS-07''s conflict keys (BS-01/BS-12).'
+  proposed: Print `onboard_program_model.tlc_command(f"{spec_root}/program_model", "Internal")` (and "External")
+    instead of the hard-coded run_tlc.sh lines.
+- found_by: BS-07
+  id: BS-07-DF-02
+  unit: spec-double-2 (tla_spec_dev.py run spec-unit-tests / run_generated_case_adapters.py)
+  blocking: false
+  observed: '#166''s second comment (MH-42): `run spec-unit-tests --ticket <ID>` hands the ticket target''s
+    case-adapter pass the PROJECT corpus (specs/generated/spec-unit/<pkg>) instead of specs/tickets/<ID>/generated/spec-unit/<pkg>.
+    Same root as #166 (ticket targets silently get project artifacts) but in files outside BS-07''s keys;
+    not fixed.'
+  proposed: Resolve the default --cases-dir relative to the ticket workspace when the target is a ticket's
+    desired/, and print the corpus path on the runner's EXECUTED line.
+- found_by: BS-07
+  id: BS-07-DF-03
+  unit: spec-double-compiler runtime.load_object (used by run_generated_case_adapters.py, effect_conformance.py)
+  blocking: false
+  observed: BS-07 made generate_cases_from_tlc_dump.load_object accept `path/to/file.py:object`. The runtime's
+    own load_object (case_adapters.toml `adapter`/`output_projection` references) is still module:object
+    only, so a ticket's case_adapters.toml cannot name its own dashed-path projector/adapter either.
+  proposed: Share one resolver (file form + dotted form) between generate cases and the runtime.
+- found_by: BS-07
+  id: BS-07-DF-04
+  unit: specs/{current,desired_program_model,program_model}/spec_manifest.yaml (line citations)
+  blocking: false
+  observed: 'On origin/epic/bug-sweep @ 02375b14, tests/test_source_citations.py fails for the three spec_manifest.yaml
+    files: 48 stale line citations into tla_spec_dev.py, spec_evolution.py and run_generated_case_adapters.py
+    (lines moved by earlier wave merges). Identical count on this branch; none cite a file BS-07 changed.
+    BS-07 did re-anchor the one citation its own edit shifted (generate_cases_from_tlc_dump.py:1233).'
+  proposed: Run `python3 scripts/check_citations.py --fix` at wave close (epic agent owns the model files),
+    and hand-repair the ambiguous anchors it refuses to guess.
+- found_by: BS-07
+  id: BS-07-DF-05
+  unit: test_graph/sources/spec_workflow_failure_cleanup_probe.py (+ test-graph Executors.kt descendant
+    check)
+  blocking: false
+  observed: 'specWorkflow on this branch: 7 PASS, spec.workflow.failure_cleanup_probe ERRORED ("node launcher
+    exited with live descendants"), adapters_resolve skipped. Reproduced on the full run (20261107-175029),
+    one resume (20261107-175652) and one run-only recheck (20261107-180244). spawnExitCode=0 every time.
+    A process trace (specs/results/bug-sweep/BS-07/probe-lingering-descendant-ps.txt) shows the nested
+    gradlew (-Dorg.gradle.daemon=false) forks a single-use Gradle daemon that is reparented to pid 1 and
+    outlives the probe''s await_no_descendants window. Other ticket agents'' graph runs were live on the
+    machine at the same time. BS-07 touches no test_graph or test-graph file; every spec-workflow node
+    it could affect passed.'
+  proposed: Have the probe run the nested build with `--no-daemon` semantics that cannot fork (`-Dorg.gradle.jvmargs`
+    matching the wrapper's so no single-use daemon is needed), or reap that daemon by process group before
+    returning; recheck on an idle machine.
+- found_by: BS-10
+  id: BS-10-DF-01
+  blocking: false
+  owner: BS-03 / BS-11 (skills/test-graph/scripts/run.py, sweep-ledger.init.gradle)
+  summary: 'The Kotlin side now throws NodeDescribeErroredException ("errored: describe ... not a node
+    failure") after 3 bounded attempts. Describe runs at Gradle CONFIGURATION time, so the build aborts
+    before any task is scheduled; with PR #176 (BS-03) run.py would classify that graph as not_run ("Gradle
+    never scheduled it (configuration failed or unknown task)"), not errored. To carry the errored outcome
+    into sweep.json and the exit code, run.py (or the ledger init script) should recognise a configuration
+    failure whose cause is NodeDescribeErroredException / a message starting "errored:" as ERRORED. Outside
+    this ticket''s conflict keys.'
+  evidence: skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt
+- found_by: BS-10
+  id: BS-10-DF-02
+  blocking: false
+  owner: examples / test-graph SDK vendoring
+  summary: The vendored build-logic under examples/distributed_history/test_graph/build-logic is a stale
+    snapshot of the skill's build-logic (no PosixProcessGroupController, no describe timeout, no sideEffects/environmentRepository
+    parsing). This ticket ported only the retry/errored behaviour into it; the wider drift is a resync
+    job for whoever owns the example.
+  evidence: diff skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt
+    examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt
+- found_by: BS-20
+  id: BS-20-DF-01
+  unit: skill-manager (upstream CLI, 0.28.2; outside this repository)
+  blocking: false
+  severity: medium
+  observed: '`skill-manager build` exits 1 for an attempted artifact that is still stale ONLY because
+    a stale ancestor it has no producer for (unit-store:<u>) sits above it — the same exit it uses for
+    a failed producer — and a second unchanged build exits 1 again. BuildCommand.java:299-303 sets exit=1
+    for any attempted step whose freshness_after is stale, and BuildReport.StepView carries no `because`,
+    so a consumer cannot tell the cases apart without a second `artifacts stale` read. The attempted shim''s
+    step reason also says "its declared inputs moved" when its own fingerprint matches (the plan-time
+    reason is reused). Reproduced in a one-unit fixture home with the real 0.28.2 pin: specs/results/bug-sweep/BS-20/real-fixture-*.txt.'
+  proposed: 'In skill-manager: add `because` (and a typed `blocked_by_unbuildable` flag) to BuildReport.StepView,
+    give the blocked case its own exit code or summary counter, and stop reusing the plan reason for a
+    step whose local verdict is current. skt then reads the field instead of re-deriving it from the propagation
+    sentence ("it is built from ...").'
+- found_by: BS-20
+  id: BS-20-DF-02
+  unit: skill-manager (upstream CLI, 0.28.2; outside this repository)
+  blocking: false
+  severity: medium
+  observed: The only remedy for a stale unit-store row is `skill-manager sync <unit>`, which re-resolves
+    the whole unit and reruns/rechecks its CLI installers; the issue reports that in a real home this
+    fans out to unrelated installed CLIs. In the isolated fixture (one unit, one CLI) `sync fixa` did
+    re-record the unit and the home went 6 stale -> 0 stale. There is no narrower verb that re-records
+    only the unit-store row after a reviewed pin is reconciled into the home (home close-out / reconcile
+    moves the store bytes without updating installed/<u>.json's gitHash).
+  proposed: Have home reconciliation (close-out --into / home sync) update the install record it is moving
+    bytes under, or add a scoped `skill-manager rebind --record-only <unit>` that re-stamps installed/<u>.json
+    from the store without touching CLI deps.
+- found_by: BS-20
+  id: BS-20-DF-03
+  unit: skill-manager (upstream CLI, 0.28.2)
+  blocking: false
+  severity: low
+  observed: '`build` reports provisioned-tree:cache/skill-script-<u>-<tool> as not-buildable with "no
+    install records that it wrote this tree; the owner shown for it was inferred from the shim", although
+    `artifacts list` shows that same tree carrying recorded backend=skill-script and the install fingerprint.
+    The sentence contradicts the ledger.'
+  proposed: 'Word the not-buildable reason for a recorded skill-script tree as "rebuilt with its shim:
+    skt build <shim>" instead of "no install record".'
+- found_by: BS-08
+  id: BS-08-DF-01
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production: []
+    tla: []
+    adapters:
+    - specs/current/case_adapters.toml
+    - specs/current/production_adapters.py
+    test_graph: []
+  summary: '5a8527bf/2e7ba795 (2026-09-24) added three @command actions to TlaSpecDevCli.tla -- SktStatus,
+    SktCheck, SktTicketSweep -- with no case_adapters.toml binding and no adapter class. specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::
+    test_every_model_action_is_bound stays RED on purpose (the G5 desync check). BS-08 updated only the
+    action COUNT (15 -> 18, stale) and left this check reporting the real gap.'
+  reproduction: uvx --with pyyaml --with jinja2 pytest specs/current/tests/test_tla_spec_dev_binding_reconciliation.py
+    -q
+  evidence:
+  - specs/results/bug-sweep/BS-08/spec-unit-branch.txt
+  why_out_of_scope: Writing three skt adapters is model/adapter authoring for the skt surface (owned by
+    the epic agent as model owner; skt behaviour belongs to BS-05/BS-06/BS-20). BS-08's spec-unit scope
+    is the tests, and binding labels with no adapter would be a stub that games the check.
+  suggested_fix: Add SktStatusAdapter/SktCheckAdapter/SktTicketSweepAdapter that drive `skt status|check|ticket
+    sweep --dry-run` in a throwaway repo and project skt_answer, then bind them; or remove the @command
+    tags if the skt actions are meant to be model-only (and say so in the test).
+  blast_radius: One spec-unit test; no shipped behaviour.
+- found_by: BS-08
+  id: BS-08-DF-02
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  blocking: escalate
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'tests/test_architecture_tags.py::test_the_same_tag_control_holds is DELIBERATELY RED (RM-06-DF-01):
+    its docstring says "DO NOT MAKE IT GREEN" and that it goes green only "when the axis can distinguish
+    treatment from architecture, or when the epic decides it cannot and says so". Nine same-tag pairs
+    separate (8 on D2, 1 on D5). Making it green is an owner decision, not a ticket fix, so BS-08 left
+    it red and unmodified. GOAL-BS-SUITE cannot reach 0 without that decision.'
+  reproduction: uvx --with pyyaml --with jinja2 pytest tests/test_architecture_tags.py::test_the_same_tag_control_holds
+    -q
+  evidence:
+  - specs/results/bug-sweep/BS-08/repository-unit-branch.txt
+  why_out_of_scope: Both available repairs (scope the control to D3; drop revision pairs) were explicitly
+    rejected in the test as converting a measurement into a tautology. The remaining move is the epic
+    owner's.
+  suggested_fix: 'Owner decides: (a) keep it red and record it in GOAL-BS-SUITE as the one sanctioned
+    red; or (b) mark it `pytest.mark.xfail(strict=True, reason="RM-06-DF-01 ...")`, which keeps the control''s
+    result asserted (an XPASS fails the suite) while taking it out of the failed count.'
+  blast_radius: The suite's failed count; no shipped behaviour.
+- found_by: BS-08
+  id: BS-08-DF-03
+  found_at_commit: a94f0a82
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/spec-double-2/scripts/close_tickets.py
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'After BS-01 (#208) restored the close refusal for a rejected ledger input, the refusal prints
+    only the FIRST issue, cut at 120 characters (close_tickets.py `first: {first[:120]}`). An unfilled
+    template has two issues (no refinement record, no narrative); the second is never shown and is recorded
+    nowhere, because a refused close writes no ledger entry. specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::
+    test_unfilled_ledger_template_refuses_the_close asserts both are named and is RED on the merged epic
+    branch (it was red on the base for a different, BS-08-fixed reason: the ticket tree had no current/).'
+  reproduction: uvx --with pyyaml --with jinja2 pytest specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py
+    -q
+  evidence:
+  - specs/results/bug-sweep/BS-08/spec-unit-branch.txt
+  why_out_of_scope: close_tickets.py and the close paths belong to BS-01.
+  suggested_fix: Print every verdict error (one per line) in the refusal instead of the first 120 characters
+    of the first one.
+  blast_radius: The refusal message of `close ticket` on a rejected ledger.
+- found_by: BS-08
+  id: BS-08-DF-04
+  found_at_commit: df48724c
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production: []
+    tla: []
+    adapters:
+    - specs/current/spec_manifest.yaml
+    test_graph: []
+  summary: The manifest's `case_program_write` (filesystem.write `**/programs/case-*`) and `case_program_process`
+    ports describe per-case generated programs that CA-06 (83245518) removed; the citation they carried
+    (run_generated_case_adapters.py `program_path`) matched zero lines. BS-08 repointed the citation at
+    the CA-06 tombstone comment so the citation test is honest, and left the ports themselves alone (model
+    content).
+  reproduction: grep -n "programs/case-" specs/current/spec_manifest.yaml; grep -n "write_case_program"
+    skills/spec-double-2/scripts/run_generated_case_adapters.py
+  evidence: []
+  why_out_of_scope: Port declarations are model content owned by the epic agent.
+  suggested_fix: Remove the two dead ports, or show a path that still writes there.
+  blast_radius: Effect-port declarations only.
+- found_by: BS-11
+  id: BS-11-DF-01
+  blocking: false
+  owner: test-graph SDK (project_sdk_sources/build-logic exec/PlanExecutor.kt)
+  summary: 'The canonical envelope carries a node''s timeout bound only when the node timed out (inside
+    failureMessage "node timed out after <bound>"). For every other node outcome.json records timeout_bound_seconds
+    = null. Stamping spec.timeout (and retries) into every envelope would let outcome.json carry the bound
+    for all nodes, which #185 asks for. Outside this ticket''s conflict keys (run.py, sweep.py, workflows.md,
+    scripts/tests/).'
+  evidence: skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt
+    (buildEnvelope / synthesized)
+- found_by: BS-11
+  id: BS-11-DF-02
+  blocking: false
+  owner: test-graph (sweep-ledger.init.gradle)
+  summary: The ledger's "failure" is state.failure.message, i.e. Gradle's wrapper "Execution failed for
+    task ':g'.", not the root cause. outcome.json therefore classifies a describe-errored graph by positive
+    evidence (task started, threw, allocated no run directory -> errored/no_run_dir) but cannot quote
+    the NodeDescribeErroredException message. Walking the cause chain in the init script would put the
+    real reason in outcome.json. Outside this ticket's conflict keys.
+  evidence: skills/test-graph/scripts/sweep-ledger.init.gradle (afterTask failure field)
+- found_by: BS-11
+  id: BS-11-DF-03
+  blocking: false
+  owner: epic owner (BS-10-DF-01 premise)
+  summary: 'BS-10-DF-01 says node describe runs at Gradle CONFIGURATION time, so a describe-errored graph
+    is never scheduled and reads not_run. It runs at task EXECUTION time: RunTestGraphTask.run() calls
+    GraphAssembler.plan() (RunTestGraphTask.kt:178) before RunIds.allocate. Measured with the real SDK
+    in RealSdkFixtureTest.test_describe_errored_graph_is_errored_not_not_run: the ledger has scheduled+started+finished(failed,
+    runDirs=[]). On the base, a sweep already classified it errored; the single-graph path exited 1 with
+    no record. BS-11 fixes the single-graph path (exit 3, outcome.json errored/no_run_dir). Plan text
+    should be corrected, nothing else.'
+  evidence: specs/results/bug-sweep/BS-11/real-sdk-outcome-runs.txt (===== run.py describeErrored)
+- found_by: BS-12
+  id: BS-12-DF-01
+  found_at_commit: 0bb9a950
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/spec-double-2/scripts/tla_spec_dev.py (run spec-unit-tests)
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '#138 DEF-516, second half: `run spec-unit-tests --ticket <id>` runs project specs/current
+    first and stops on its failure, so a ticket''s own targets never run until close. BS-12 fixed the
+    layout half (open seeds current/ when the plan runs it) only.'
+  reproduction: spec_unit_target_dirs() returns [project_current, ticket_model] for --ticket; run_spec_unit_tests
+    returns on the first failing target.
+  why_out_of_scope: The spec-unit run path is not the open/close-ticket path named in BS-12's conflict
+    keys.
+  suggested_fix: With --ticket, run every target and report each, or run the ticket model alone and say
+    so.
+  blast_radius: Ticket agents reading a red spec-unit run that is not theirs.
+- found_by: BS-12
+  id: BS-12-DF-02
+  found_at_commit: 0bb9a950
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/spec-double-2/scripts/close_tickets.py (workflow closed snapshot)
+    - skills/git-epic-workflow (closure census)
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: '#141 "Census after close": once close_tickets.py removes desired_program_model/, tools that
+    read ticket_plan.yaml (the epic closure census) cannot run; the closed snapshot''s plan is not exposed
+    as the plan of record.'
+  why_out_of_scope: Not one of BS-12's named items (SF-074/075/076, DEF-516, mutation-close); it needs
+    a reader-side convention across skills.
+  suggested_fix: Have the census (and validate_epic_plan.py's default path) fall back to specs/.history/<workflow>/closed-snapshot/.../ticket_plan.yaml
+    when the live plan is absent, printing which it read.
+  blast_radius: Post-close epic audits.
+- found_by: BS-12
+  id: BS-12-DF-03
+  found_at_commit: 0bb9a950
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/spec-double-2/references/typical_workflow.md
+    - skills/spec-double-2/references/workflows.md
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: The references still say close promotes ticket desired/ into current/ and nothing more, and
+    that current/ exists only with --with-current. They do not mention `desired_carry` (close now carries
+    the delivered delta into desired_program_model/, `--no-carry-desired` opts out) or that open seeds
+    current/ when the plan entry runs it.
+  why_out_of_scope: Reference docs are outside BS-12's conflict keys.
+  suggested_fix: One sentence each at typical_workflow.md:66 and :91 and workflows.md:125.
+  blast_radius: Agents reading the docs rather than the CLI help.
+- found_by: BS-12
+  id: BS-12-DF-04
+  found_at_commit: 0bb9a950
+  schedule_revision: 1
+  severity: minor
+  blocking: none
+  surface:
+    production:
+    - skills/git-epic-workflow/scripts/validate_epic_plan.py (_validate_goal_alignment)
+    tla: []
+    adapters: []
+    test_graph: []
+  summary: 'The git-epic-workflow#19 class #141 says SF-076 absorbs ("you cannot retire one contributor
+    to a goal that other tickets still serve") is still diagnosed: "retirement disposition conflicts with
+    active tickets". It is advisory by default (non-Blocking), so it does not stop an epic; BS-12 changed
+    only the successor-identity rule.'
+  why_out_of_scope: Changing what a partial retirement means for a goal is a plan-semantics decision for
+    the epic owner, not a tooling fix.
+  suggested_fix: 'Owner decision: keep the advisory, or accept a partial retirement when the goal still
+    has a live contributor and evaluator.'
+  blast_radius: Advisory warning noise on partially retired goals.
+- found_by: BS-19
+  id: BS-19-DF-01
+  unit: skt (skills/skt/src/skt/cli.py; outside BS-19's conflict keys)
+  blocking: false
+  severity: low
+  observed: '`skt ticket --force` is help-texted and refused as "close only", so the sweep''s force path
+    for an integrity refusal is `SKILL_GATES=off` (the owner''s gate override), not a flag. `skt ticket
+    sweep --help` does not mention it; only the refusal text and finalize.md §6 do.'
+  proposed: In cli.py, mention SKILL_GATES=off in the --yes help for sweep, or accept --force on sweep
+    as an alias that sets it (then drop "sweep" from test_ticket_publish.py::test_close_options_refused_on_other_verbs).
+- found_by: BS-19
+  id: BS-19-DF-02
+  unit: git-issue-workflow (scripts/close-change.sh removal; outside the "integrity recheck only" key)
+  blocking: false
+  severity: medium
+  observed: close-change.sh removes with `git worktree remove --force`, which deletes every ignored file
+    in the worktree. BS-19's recheck now refuses when DECLARED retained evidence is present, but undeclared
+    ignored raw data still goes without a word. The sweep removes without --force and so keeps git's own
+    refusal over untracked files (not ignored ones).
+  proposed: Before the removal, list ignored files outside .skill-manager/ and target/ (`git -C <wt> ls-files
+    --others --ignored --exclude-standard --directory`) and print their count as a DISCARDED line, so
+    the loss is at least on the record.
+- found_by: BS-19
+  id: BS-19-DF-03
+  unit: git-issue-workflow (scripts/close-change.sh, pointer check)
+  blocking: false
+  severity: low
+  observed: For a worktree with no .git pointer, close-change.sh names `git -C "$ROOT" worktree repair
+    "$WT"` with ROOT derived from $PWD. Closing another repository's worktree by path from an unrelated
+    checkout would name the wrong ROOT; repair from the wrong repo is a no-op error, not damage.
+  proposed: Derive ROOT for that message from the admin entry whose gitdir names "$WT/.git" (ticket_integrity.admin_dir
+    does this) rather than from $PWD.
+- found_by: BS-13
+  id: BS-13-DF-01
+  unit: test-graph build-logic (RunTestGraphTask / PlanExecutor run-only log path; outside BS-13's conflict
+    keys, which are run.py, workflows.md and scripts/tests/)
+  blocking: false
+  severity: low
+  observed: '#138 SF-023''s third bullet ("--run-only-node writes its log into a directory that does not
+    exist; create it or fail loudly") is on the Kotlin side, not run.py. BS-13 covers the first two bullets
+    (requires --resume-from-build; refuses a relative path). In BS-13''s real-SDK fixture the run-only
+    replay succeeded and wrote its report, so the missing-directory case was not reproduced here.'
+  proposed: 'Reproduce with commit-diff-context-parent''s SF-023 graph; then mkdirs() the node-log parent
+    in the run-only path, or fail with the path named. Tick SF-023 in #138 only after that.'
+- found_by: BS-13
+  id: BS-13-DF-02
+  unit: test-graph build-logic (RunTestGraphTask.requireReplaySourceInReportRoot)
+  blocking: false
+  severity: low
+  observed: The report-root membership check is lexical first (`sourcePath.parent == rootPath`) before
+    the canonical check. On macOS an ABSOLUTE --resume-from-build spelled /var/... is refused when Gradle's
+    report root is /private/var/... (or vice versa), although both name the same directory. run.py's relative
+    resolution goes through getcwd() and the resolved test-graph root, so the relative forms do not hit
+    it; a caller-supplied absolute path still can.
+  proposed: Compare canonical paths after the lexical traversal check rejects `..`, or have run.py canonicalize
+    only the parent (never the leaf, so the symlink refusal on the run directory itself still holds).
+- found_by: BS-14
+  id: BS-14-DF-01
+  blocking: false
+  owner: test-graph (skills/test-graph/scripts/run.py)
+  summary: The milestone lock is held by milestone.py only. A direct run.py call (an agent, a ticket's
+    own validation) on the same test_graph project is not excluded by it, so two Gradle builds can still
+    share one build dir. Whether run.py should honour the same lock file is a test-graph decision, outside
+    this ticket's conflict keys.
+  evidence: skills/git-epic-workflow/scripts/milestone.py (MilestoneLock); skills/test-graph/scripts/run.py
+    (no lock)
+- found_by: BS-14
+  id: BS-14-DF-02
+  blocking: false
+  owner: '#147 (later steps)'
+  summary: No repository declares epic-workflow.toml yet; BS-14's real run used a config under its evidence
+    root. The consuming repos (this plugin, commit-diff-context-parent) need their [milestone] table when
+    the epic owner adopts the runner.
+  evidence: specs/results/bug-sweep/BS-14/milestone.toml
+- found_by: BS-15
+  id: BS-15-DF-01
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: 'bug-sweep has no deferred ledger yet: census.py exits 2 (NO LEDGER) on the epic branch. A
+    scratch init+absorb takes 32 per-ticket rows and passes, so the epic agent can adopt it at wave close
+    with ''census.py init && census.py absorb''.'
+  reproduction: uv run --with pyyaml python3 skills/git-epic-workflow/scripts/census.py  -> exit 2; specs/results/bug-sweep/BS-15/census-on-bug-sweep-backlogs.txt
+  surface:
+    production:
+    - specs/results/bug-sweep/deferred-ledger.yaml
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: Creating the epic's ledger is epic-owner workflow data; BS-15 ships the tooling only.
+  disposition: pending
+- found_by: BS-15
+  id: BS-15-DF-02
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: 'BS-12-DF-02, other half: validate_epic_plan.py''s default plan path still has no closed-snapshot
+    fallback after workflow close. census.py now falls back (prints which plan it read); validate_epic_plan.py
+    does not.'
+  reproduction: 'After close_tickets.py removes specs/desired_program_model/, run skills/git-epic-workflow/scripts/validate_epic_plan.py
+    with no args: it reads the missing live plan.'
+  surface:
+    production:
+    - skills/git-epic-workflow/scripts/validate_epic_plan.py
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: validate_epic_plan.py is not in BS-15's conflict keys.
+  disposition: pending
+- found_by: BS-15
+  id: BS-15-DF-03
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: git-epic-workflow SKILL.md lists validate_assignment.py and validate_epic_plan.py but not the
+    new scripts/census.py; only references/deferment.md documents it.
+  reproduction: grep -n census skills/git-epic-workflow/SKILL.md  -> no match
+  surface:
+    production:
+    - skills/git-epic-workflow/SKILL.md
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: SKILL.md is not in BS-15's conflict keys (deferment.md ledger section only).
+  disposition: pending
+- found_by: BS-15
+  id: BS-15-DF-04
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: close_tickets.py (workflow close) does not mark ledger rows or keep closures; only the per-ticket
+    close ticket path does. A closure.yaml handled only at workflow close is invisible to the census.
+  reproduction: grep -n closure skills/spec-double-2/scripts/close_tickets.py -> no match
+  surface:
+    production:
+    - skills/spec-double-2/scripts/close_tickets.py
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: BS-21 owns close_tickets.py this wave; the assignment forbids editing it.
+  disposition: pending
+- found_by: BS-21
+  id: BS-21-DF-01
+  unit: spec-double-2 (scripts/spec_evolution.py create_ticket_closed_snapshot; outside BS-21's conflict
+    key, which is close_tickets.py only)
+  blocking: false
+  severity: medium
+  observed: '`tla-spec-dev close ticket --result <missing>` goes through the same snapshot_results / add_copied_path
+    path and still records exists=false and closes. #203 names only the workflow close; the ticket close
+    has the identical hole (the ticket receipt is immutable too).'
+  proposed: Reuse close_tickets.missing_result_problems (or move it into spec_evolution) and call it with
+    refuse_or_warn at the top of the ticket close, before any promotion or receipt write. Same --force
+    / SKILL_GATES=off path recording exists=false.
+- found_by: BS-21
+  id: BS-21-DF-02
+  unit: spec-double-2 (scripts/spec_evolution.py snapshot_results)
+  blocking: false
+  severity: low
+  observed: 'snapshot_results copies each result to `results/<basename>`. Two different results sharing
+    a basename (e.g. two `report.json` from different nodes) collide: a file silently overwrites the first
+    copy while both manifest records claim a snapshot at the same path; a directory raises from copytree
+    after history was partly written.'
+  proposed: Refuse duplicate destination names up front (alongside the missing-result guard), or disambiguate
+    with an index prefix and record it.

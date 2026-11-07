@@ -640,6 +640,8 @@ remote epic branch. An open or green PR is not a satisfied dependency.
 
 Whenever you recommend the next ticket — at dispatch and on every resume — read
 the deferred-findings backlog and present pending entries in the same report.
+Before promoting a finding to a ticket, rerun its reproduction on the dispatch
+base (`references/deferment.md` § Owner triage): another ticket may have fixed it.
 From the first wave boundary onward that report is a section of the wave review
 artifact rather than a separate message (`references/human-review.md` §3.5); the
 table and the three outcomes are the same either way:
