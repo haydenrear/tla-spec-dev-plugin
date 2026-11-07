@@ -1,0 +1,9 @@
+# local_signal: uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'build or artifact'
+........................................................................ [ 68%]
+.................................                                        [100%]
+105 passed, 302 deselected in 53.13s
+
+# repository_unit: uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'build or artifact or stale'
+........................................................................ [ 59%]
+...............................s.................                        [100%]
+120 passed, 1 skipped, 286 deselected in 63.26s (0:01:03)

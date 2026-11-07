@@ -1,0 +1,4 @@
+# BS-20 regression on feature/202-skt-build-freshness (uncommitted tip over 5748dcc6c584f5c8f6e2aa10160f0b90d2c59183)
+# cmd: uvx --with pyyaml --with jinja2 pytest skills/skt/tests/test_build_freshness.py -q
+..........                                                               [100%]
+10 passed in 4.40s
