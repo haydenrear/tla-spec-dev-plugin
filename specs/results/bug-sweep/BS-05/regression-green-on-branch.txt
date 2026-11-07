@@ -1,0 +1,10 @@
+# branch: feature/190-skt-sync @ c90e6179125d54d847498ca8ae49c6905f349bea
+PASSED tests/test_sync.py::test_project_home_without_a_pin_syncs_through_the_path_cli_and_names_it
+PASSED tests/test_sync.py::test_project_home_without_a_pin_prefers_the_root_homes_pinned_build
+PASSED tests/test_sync.py::test_project_home_with_no_cli_anywhere_still_refuses_and_names_the_remedy
+PASSED tests/test_sync.py::test_project_home_sync_stays_at_the_pin_not_the_trunk
+PASSED tests/test_sync.py::test_project_home_sync_restores_a_drifted_unit_to_the_pin
+PASSED tests/test_sync.py::test_trunk_flag_moves_to_the_trunk_and_names_the_invalidated_pins
+PASSED tests/test_sync.py::test_trunk_flag_is_wired_into_the_cli
+PASSED tests/test_sync.py::test_projects_md_dry_run_names_the_destination_lock_requirement
+8 passed, 9 deselected in 9.35s
