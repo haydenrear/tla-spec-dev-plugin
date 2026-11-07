@@ -1,0 +1,20 @@
+specWorkflow run 20261107-184602 on 857f3ed4 (after merging origin/epic/bug-sweep abfcbc3c)
+**Execution error**: `java.lang.RuntimeException` — node spec.workflow.failure_cleanup_probe errored: node launcher exited with live descendants: 26945
+
+**Nodes**: 9 (passed=7, failed=0, errored=1, skipped=1)
+
+ Node | Status 
+---|---
+ `spec.cli.install` | **PASS** 
+ `spec.reference.adapters_resolve` | _skipped_ 
+ `spec.workflow.cleanup` | **PASS** 
+ `spec.workflow.close` | **PASS** 
+ `spec.workflow.complete` | **PASS** 
+ `spec.workflow.failure_cleanup_probe` | **ERROR** 
+ `spec.workflow.repo` | **PASS** 
+ `spec.workflow.spec_units` | **PASS** 
+ `spec.workflow.start` | **PASS** 
+
+
+Earlier run 20261107-183817 (pre-fix): spec.workflow.close FAILED -- ModuleNotFoundError: yaml from an eager import in mark_deferred_ledger (installed CLI has no PyYAML). Fixed in cb172932 (stdlib parser fallback + test_close_marks_the_ledger_where_pyyaml_is_absent). A resume (20261107-184314) could not run: the fixture repo had been cleaned up, so the graph was rerun from the start.
+failure_cleanup_probe ERROR: known environmental issue on the epic base too (live descendants / timeout under concurrent agents); not investigated per assignment.
