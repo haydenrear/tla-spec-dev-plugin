@@ -326,6 +326,19 @@ That input carries a `coverage_audit` block, which is recorded and printed but
 (since 2026-08-04) refuses nothing — `pass` is still the only value meaning
 "the surface was walked and no in-scope gap was found".
 
+`--result` is optional. An explicitly supplied `--result` that cannot be found
+refuses the close (dry run included) **before** anything is promoted,
+snapshotted or removed, printing the resolved path and, when the file exists
+under the repo root or spec root, the absolute `--result` that would bind it
+(#203). `--force` / `SKILL_GATES=off` closes anyway and records the result as
+`exists: false`; nothing ever records `exists: true` for a file it did not copy.
+A relative `--result` is resolved against the **caller's** working directory
+first, then — only when the path does not start with the spec-root directory
+name — against `<repo-root>/<spec-root>`; it is never resolved against
+`--repo-root` alone, so pass an absolute path when calling from another
+checkout. A symlink is followed and its target copied; a dangling symlink is
+missing; an absolute path outside the repository is accepted as given.
+
 If `current`, `desired_program_model`, and `program_model` have not been
 hand-reconciled but `desired_program_model` is the intended accepted state, pass
 `--accept-new` to promote its semantic files into `current` and `program_model`
