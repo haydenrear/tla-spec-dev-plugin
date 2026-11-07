@@ -1,0 +1,51 @@
+{
+  "schema_version": "tla-testgraph.trace.v1",
+  "source": {
+    "case": "external_submit_add_cart_item",
+    "module": "examples.distributed_history.specs.program_model.External"
+  },
+  "steps": [
+    {
+      "action": "SubmitAddCartItem",
+      "controllability": "e2e_direct",
+      "index": 1,
+      "layer": "external",
+      "params": {
+        "account": "acct-1",
+        "sku": "sku-1"
+      },
+      "post": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {},
+        "outbox": [],
+        "projections": {}
+      },
+      "pre": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {},
+        "orders": {},
+        "outbox": [],
+        "projections": {}
+      },
+      "raw": {
+        "labels": [
+          "SubmitAddCartItem",
+          "ecommerce_external"
+        ],
+        "source_node": "e1",
+        "target_node": "e2"
+      }
+    }
+  ],
+  "trace_id": "external_submit_add_cart_item",
+  "view": "external"
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": "tla-testgraph.trace.v1",
+  "trace_count": 4,
+  "traces": [
+    "external_submit_create_account.json",
+    "external_submit_add_cart_item.json",
+    "external_submit_checkout.json",
+    "external_run_fulfillment_worker.json"
+  ],
+  "view": "external"
+}

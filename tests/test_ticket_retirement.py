@@ -695,6 +695,41 @@ def test_a_receipt_cannot_supersede_itself(tmp_path: Path) -> None:
     )
 
 
+def _closed_snapshots_oldest_first() -> list[Path]:
+    """Closed snapshots ordered by the close time each one RECORDS.
+
+    BS-08: this used to sort by directory mtime. A checkout sets every mtime to
+    checkout time, so "newest" was whichever directory git happened to write
+    last, and the test passed or failed on the order of a `git checkout`. Each
+    close manifest carries `created_at_utc`; that is the close's own clock and
+    does not move when files are touched. The workflow name breaks ties so the
+    order is total.
+    """
+    snapshots = []
+    for directory in (ROOT / "specs" / ".history").glob("*/closed-snapshot"):
+        manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+        created = manifest.get("created_at_utc")
+        assert created, f"{directory} records no created_at_utc, so its close cannot be ordered"
+        snapshots.append((str(created), directory.parent.name, directory))
+    return [directory for _, _, directory in sorted(snapshots)]
+
+
+def test_closed_snapshot_order_ignores_mtime() -> None:
+    """BS-08 regression: touching snapshots must not change which one is newest."""
+    import os
+
+    before = _closed_snapshots_oldest_first()
+    assert len(before) >= 2, "need two closes to order; specs/.history is append-only"
+    original = {d: d.stat().st_mtime for d in before}
+    try:
+        # Make the OLDEST close the most recently modified directory.
+        os.utime(before[0], (original[before[0]] + 10_000_000, original[before[0]] + 10_000_000))
+        assert _closed_snapshots_oldest_first() == before
+    finally:
+        for directory, mtime in original.items():
+            os.utime(directory, (mtime, mtime))
+
+
 def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
     """Every delivered ticket of the OPEN workflow has one close receipt.
 
@@ -724,10 +759,7 @@ def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> No
         # there: check the NEWEST snapshot's OWN plan against the receipts
         # beside it. That goes red if a plan is deleted to dodge the check, and
         # red if a workflow closes with a ticket missing its receipt.
-        snapshots = sorted(
-            (ROOT / "specs" / ".history").glob("*/closed-snapshot"),
-            key=lambda d: d.stat().st_mtime,
-        )
+        snapshots = _closed_snapshots_oldest_first()
         assert snapshots, (
             "no ticket plan and no closed-snapshot either: the plan is absent "
             "only because a workflow closed and took it with it, so with no "
@@ -740,12 +772,27 @@ def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> No
             f"{newest.parent.name} closed without archiving the plan it consumed, "
             "so nothing can be checked against its receipts"
         )
-        assert validate_ticket_plan_closed(
+        problems = validate_ticket_plan_closed(
             archived,
             repo_root=ROOT,
             workflow=newest.parent.name,
             specs_dir=ROOT / "specs",
-        ) == []
+        )
+        if problems:
+            # Close never blocks (owner rule, 2026-09-26): a close may complete
+            # with its gaps MARKED. Missing receipts are accepted only when the
+            # snapshot's own manifest says validation was not claimed AND
+            # records who authorised the close -- the gap is stated as data,
+            # never silent. Anything else is the deleted-plan / missing-receipt
+            # defect this test exists for.
+            manifest = json.loads((newest / "manifest.json").read_text(encoding="utf-8"))
+            validation = manifest.get("validation") or {}
+            authorised = manifest.get("owner_authorisation") or {}
+            assert validation.get("claimed") is False and str(validation.get("note", "")).strip() \
+                and str(authorised.get("note", "")).strip(), (
+                f"{newest.parent.name} closed with {len(problems)} receipt problem(s) "
+                f"and does not mark them as unclaimed, owner-authorised gaps: {problems[:3]}"
+            )
         return
 
     assert validate_ticket_plan_closed(plan_path, repo_root=ROOT) == []

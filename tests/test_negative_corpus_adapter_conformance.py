@@ -89,7 +89,11 @@ try:
 finally:
     sys.path.pop(0)
 
-COMMITTED_CORPUS = EXAMPLE / "specs" / "generated" / VIEW_OUTPUT_DIRS["internal"]
+# BS-08: the committed example corpus moved here from
+# examples/distributed_history/specs/generated/, which 76ef2758 ("removed
+# generated", 2026-09-14) deleted and gitignored. Restored byte-for-byte from
+# 76ef2758^ as a TEST fixture, outside any directory a generator writes.
+COMMITTED_CORPUS = ROOT / "tests" / "fixtures" / "distributed_history_generated" / VIEW_OUTPUT_DIRS["internal"]
 FIXTURE_MODEL = ROOT / "examples" / "validation" / "ab" / "model"
 
 # `Internal.tla:8-14` -- `InternalInit`, and the state one `CreateAccount`
@@ -203,8 +207,8 @@ def test_the_negative_corpus_names_its_arguments_as_the_committed_corpus_does() 
     """`CA-06-DF-02`: two corpora over one model must agree on one contract.
 
     Neither side of this comparison is written here. The left is what the
-    generator emits; the right is the corpus checked in under
-    ``specs/generated/``, which every adapter in ``case_adapters.toml`` was
+    generator emits; the right is the corpus checked in for the example (under
+    ``tests/fixtures/distributed_history_generated/`` since BS-08), which every adapter in ``case_adapters.toml`` was
     written against.
     """
     cases, _ = _negative_corpus()

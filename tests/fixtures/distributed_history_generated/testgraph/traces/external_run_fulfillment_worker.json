@@ -1,0 +1,77 @@
+{
+  "schema_version": "tla-testgraph.trace.v1",
+  "source": {
+    "case": "external_run_fulfillment_worker",
+    "module": "examples.distributed_history.specs.program_model.External"
+  },
+  "steps": [
+    {
+      "action": "RunFulfillmentWorker",
+      "controllability": "e2e_direct",
+      "index": 1,
+      "layer": "external",
+      "params": {
+        "limit": 100
+      },
+      "post": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {
+          "order-1": {
+            "account": "acct-1",
+            "items": [
+              "sku-1"
+            ],
+            "status": "accepted"
+          }
+        },
+        "outbox": [],
+        "projections": {
+          "order-1": "ready_to_ship"
+        }
+      },
+      "pre": {
+        "accounts": [
+          "acct-1"
+        ],
+        "carts": {
+          "acct-1": [
+            "sku-1"
+          ]
+        },
+        "orders": {
+          "order-1": {
+            "account": "acct-1",
+            "items": [
+              "sku-1"
+            ],
+            "status": "accepted"
+          }
+        },
+        "outbox": [
+          {
+            "event": "OrderAccepted",
+            "order_id": "order-1"
+          }
+        ],
+        "projections": {}
+      },
+      "raw": {
+        "labels": [
+          "RunFulfillmentWorker",
+          "ecommerce_external"
+        ],
+        "source_node": "e3",
+        "target_node": "e4"
+      }
+    }
+  ],
+  "trace_id": "external_run_fulfillment_worker",
+  "view": "external"
+}

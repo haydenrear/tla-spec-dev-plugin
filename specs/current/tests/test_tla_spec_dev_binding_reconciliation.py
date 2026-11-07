@@ -77,9 +77,16 @@ def test_the_model_has_the_expected_command_actions() -> None:
     test tracks the model's action set by construction, so an action removed
     from the model must leave it, and the removal is recorded here rather than
     absorbed silently.
+
+    5a8527bf/2e7ba795 (2026-09-24) MODELLED the skt surface: SktStatus,
+    SktCheck and SktTicketSweep, taking the count 15 -> 18. BS-08 updated the
+    count deliberately and asserts the three by name. Their missing
+    case_adapters.toml bindings stay RED in test_every_model_action_is_bound
+    (deferred, specs/results/deferred/BS-08.yaml) rather than being absorbed.
     """
     actions = model_actions()
-    assert len(actions) == 15, sorted(actions)
+    assert len(actions) == 18, sorted(actions)
+    assert {"SktStatus", "SktCheck", "SktTicketSweep"} <= actions
     assert "AnalyzeArchitecture" not in actions
     assert "RunKillTest" not in actions
     assert "GenerateCases" in actions

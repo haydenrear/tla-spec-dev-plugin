@@ -1,0 +1,74 @@
+# BS-08 (#193) per-ticket deferment inbox (batch policy, budget 5).
+# The epic agent absorbs these rows into the ledger at wave close.
+findings:
+  - id: BS-08-DF-01
+    found_by: BS-08
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - specs/current/case_adapters.toml
+        - specs/current/production_adapters.py
+      test_graph: []
+    summary: >-
+      5a8527bf/2e7ba795 (2026-09-24) added three @command actions to
+      TlaSpecDevCli.tla -- SktStatus, SktCheck, SktTicketSweep -- with no
+      case_adapters.toml binding and no adapter class.
+      specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::
+      test_every_model_action_is_bound stays RED on purpose (the G5 desync
+      check). BS-08 updated only the action COUNT (15 -> 18, stale) and left
+      this check reporting the real gap.
+    reproduction: >-
+      uvx --with pyyaml --with jinja2 pytest
+      specs/current/tests/test_tla_spec_dev_binding_reconciliation.py -q
+    evidence:
+      - specs/results/bug-sweep/BS-08/spec-unit-branch.txt
+    why_out_of_scope: >-
+      Writing three skt adapters is model/adapter authoring for the skt
+      surface (owned by the epic agent as model owner; skt behaviour belongs
+      to BS-05/BS-06/BS-20). BS-08's spec-unit scope is the tests, and
+      binding labels with no adapter would be a stub that games the check.
+    suggested_fix: >-
+      Add SktStatusAdapter/SktCheckAdapter/SktTicketSweepAdapter that drive
+      `skt status|check|ticket sweep --dry-run` in a throwaway repo and
+      project skt_answer, then bind them; or remove the @command tags if the
+      skt actions are meant to be model-only (and say so in the test).
+    blast_radius: One spec-unit test; no shipped behaviour.
+  - id: BS-08-DF-02
+    found_by: BS-08
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: escalate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      tests/test_architecture_tags.py::test_the_same_tag_control_holds is
+      DELIBERATELY RED (RM-06-DF-01): its docstring says "DO NOT MAKE IT
+      GREEN" and that it goes green only "when the axis can distinguish
+      treatment from architecture, or when the epic decides it cannot and
+      says so". Nine same-tag pairs separate (8 on D2, 1 on D5). Making it
+      green is an owner decision, not a ticket fix, so BS-08 left it red and
+      unmodified. GOAL-BS-SUITE cannot reach 0 without that decision.
+    reproduction: >-
+      uvx --with pyyaml --with jinja2 pytest
+      tests/test_architecture_tags.py::test_the_same_tag_control_holds -q
+    evidence:
+      - specs/results/bug-sweep/BS-08/repository-unit-branch.txt
+    why_out_of_scope: >-
+      Both available repairs (scope the control to D3; drop revision pairs)
+      were explicitly rejected in the test as converting a measurement into
+      a tautology. The remaining move is the epic owner's.
+    suggested_fix: >-
+      Owner decides: (a) keep it red and record it in GOAL-BS-SUITE as the one
+      sanctioned red; or (b) mark it `pytest.mark.xfail(strict=True,
+      reason="RM-06-DF-01 ...")`, which keeps the control's result asserted
+      (an XPASS fails the suite) while taking it out of the failed count.
+    blast_radius: The suite's failed count; no shipped behaviour.
