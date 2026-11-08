@@ -12,7 +12,7 @@ re-measure rather than trust the page against a newer CLI:
 ```bash
 skill-manager --version                       # what these verdicts are about
 skill-manager show <contained-skill>          # "unit not found" is fact 1
-skill-manager publish <a-unit-dir> --dry-run  # the import validator (install --dry-run does NOT validate)
+skill-manager unit validate <a-unit-dir>      # the import validator (install --dry-run does NOT validate)
 ```
 
 ## The one sentence
@@ -65,7 +65,7 @@ skill-imports:
   - unit: unit-authoring
     path: SKILL.md
 
-$ skill-manager publish . --dry-run
+$ skill-manager unit validate .
 markdown skill-import violations (1) — fix these references:
 ✗   - importer-demo (skill): SKILL.md
 ✗     skill-imports[0] references missing unit `unit-authoring`; install it or fix the `unit` value
@@ -88,7 +88,7 @@ A wrong path inside a real unit is caught just as explicitly
 (`references missing path 'references/nope.md' in unit 'skt'`), so there is no
 silent-success failure mode here.
 
-**When it bites:** install, publish and sync validate every markdown file under
+**When it bites:** install, sync and `unit validate` check every markdown file under
 the unit root being operated on. An already-installed importer keeps working
 until someone syncs *it*; then that sync fails until the frontmatter is fixed.
 So the cost lands on the importing unit's next release, possibly weeks later and
@@ -130,7 +130,7 @@ the plugin repo's coord instead.
 ## The known bug: a bundle cannot import its own siblings before it is installed
 
 Two contained skills of the same bundle, one importing the other. Both spellings
-fail `publish --dry-run`:
+fail `unit validate`:
 
 ```console
 $ # alpha imports beta by bare name
@@ -147,14 +147,14 @@ name cannot resolve to itself.
 
 And the validators disagree with each other: **`skill-manager install
 file://<that same bundle> --yes` succeeds**, self-import and all. So the bundle
-installs, works, and then answers `publish --dry-run` with a violation.
+installs, works, and then answers `unit validate` with a violation.
 
 What to do about it:
 
 - **Use the self-referential form** (`unit: <plugin>`, `path:
   skills/<sibling>/…`). It is the one that is correct once installed, it is what
   `install` accepts, and it is what a future fix will make valid everywhere.
-- **Expect `publish --dry-run` to complain** on a bundle that is not currently
+- **Expect `unit validate` to complain** on a bundle that is not currently
   installed, and do not "fix" it by deleting the import — that loses a real
   semantic edge to satisfy a validator with a scoping bug.
 - **Or keep intra-bundle edges in prose** (`see skills/beta/SKILL.md`, relative
@@ -162,11 +162,12 @@ What to do about it:
   another tool needs to walk. `skt`'s own contained skills do exactly this: they
   cross-reference each other in prose and declare no sibling `skill-imports`.
 
-`install --dry-run` does not run this validation at all (only `publish
---dry-run`, and the real `install`/`sync`), so a dry-run install is not evidence
-that a bundle's imports are sound. And `publish --dry-run` **prints the
-violations while exiting 0** — read its output; do not gate CI on its exit
-code.
+`install --dry-run` does not run this validation at all (only `unit
+validate`, and the real `install`/`sync`), so a dry-run install is not evidence
+that a bundle's imports are sound. `unit validate` exits non-zero on a
+violation. The `publish --dry-run` it replaces (skill-manager 0.28.2 and
+earlier) **prints the violations while exiting 0** — on those versions read its
+output; do not gate CI on its exit code.
 
 ## Summary table
 
@@ -174,8 +175,8 @@ code.
 |---|---|---|
 | bundled skill → outside unit (`skill_references`) | works, unioned into the plugin's plan | — |
 | bundled skill → outside unit (`skill-imports`) | works | — |
-| outside unit → bundled skill (`skill-imports`) | **fails validation** on publish/sync | `unit: <plugin>`, `path: skills/<skill>/…` |
+| outside unit → bundled skill (`skill-imports`) | **fails validation** on validate/sync | `unit: <plugin>`, `path: skills/<skill>/…` |
 | outside unit → bundled skill (git coord reference) | installs a duplicate standalone copy | point at the plugin repo's coord |
 | any script → bundled skill by store path | **breaks at source time** | add a `plugins/*/skills/` rung; `unit_dir` |
-| bundled skill → sibling in the same bundle | `publish --dry-run` fails; `install` accepts | self-referential form, or prose |
+| bundled skill → sibling in the same bundle | `unit validate` fails; `install` accepts | self-referential form, or prose |
 | agent invoking the skill | `<plugin>:<skill>` | update prose and docs |

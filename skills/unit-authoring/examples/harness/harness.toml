@@ -9,8 +9,7 @@ units = []
 docs = []
 
 # Example composition refs. Use git coords (github:owner/repo, git+…, file:…).
-# Never skill:/plugin:/harness: name coords — no registry is configured here,
-# so they cannot resolve. Find repos with `gh repo list <owner>`; the repo
+# Never skill:/plugin:/harness: name coords — only git coords resolve. Find repos with `gh repo list <owner>`; the repo
 # name is usually not the installed skill/plugin name.
 # units = [
 #   "github:owner/reviewer-skill",

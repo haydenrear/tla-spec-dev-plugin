@@ -12,4 +12,4 @@ skill-imports: []
 # example-plugin-skill
 
 This contained skill ships and uninstalls through `example-plugin`.
-It is not separately addressable as a top-level registry unit.
+It is not separately addressable as a top-level unit.

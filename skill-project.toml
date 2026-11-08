@@ -17,7 +17,7 @@
 #   export SKILL_MANAGER_HOME="$PWD/.skill-manager"
 #   skill-manager project resolve --skip-gateway
 #
-# Coords are git-only (no registry is configured) and they name the REPO, not
+# Coords are git-only (github:/git+/file:) and they name the REPO, not
 # the installed unit — see skill-publisher's references/coords-and-distribution.md.
 # The table key is the installed unit name, which is what `[[vendored]]`
 # `from_unit` and `.skill-manager/skills/<name>` both use.
