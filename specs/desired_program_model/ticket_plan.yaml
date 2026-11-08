@@ -40,7 +40,7 @@ tickets:
   title: Repo test_graph uses the installed test-graph
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/194
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -101,7 +101,7 @@ tickets:
   title: 'test-graph: errored vs failed (PR #176)'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/175
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-11
@@ -163,7 +163,7 @@ tickets:
   title: 'close: stop writing close records nobody reads'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/187
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-12
@@ -239,7 +239,7 @@ tickets:
   title: Ledger and disposition tools read consumer ledgers
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/188
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-15
@@ -306,7 +306,7 @@ tickets:
   title: 'Workflow references: RED controls, contract reruns, fixed findings'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/189
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -364,7 +364,7 @@ tickets:
   title: 'skt sync: pin, CLI from the tier above, dry-run lock docs'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/190
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -428,7 +428,7 @@ tickets:
   title: 'skt ticket new/close: provision hook, outside paths, no shared target/'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/191
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-19
@@ -503,7 +503,7 @@ tickets:
   title: TLC config parsing and case generation
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/192
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -575,7 +575,7 @@ tickets:
   title: 'test-graph: retry node describe; errored on persistent describe failure'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/195
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -637,7 +637,7 @@ tickets:
   title: 'skt build: successful CLI artifacts vs unbuildable ancestors'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/202
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -698,7 +698,7 @@ tickets:
   title: 'git-epic-workflow: epic tracking issue, plan order, one Closes per line'
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/200
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-12
@@ -757,7 +757,7 @@ tickets:
   title: Red suite to zero
   status: next
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/193
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -821,7 +821,7 @@ tickets:
   title: 'test-graph: outcome.json per run + keep going'
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/185
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-03
   blocks:
@@ -888,7 +888,7 @@ tickets:
   title: close carries the delivered model into desired; ordinal check
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/141
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-01
   - BS-22
@@ -958,7 +958,7 @@ tickets:
   title: Resume/retirement recheck worktree + held-evidence integrity
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/201
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-06
   blocks:
@@ -1022,7 +1022,7 @@ tickets:
   title: 'test-graph: run.py --resume <report> [--from-node N]'
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/186
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-11
   blocks:
@@ -1085,7 +1085,7 @@ tickets:
   title: 'git-epic-workflow: milestone runner with its own lock (#147 step 1)'
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/147
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-11
   blocks:
@@ -1142,7 +1142,7 @@ tickets:
   title: One deferred-findings ledger per epic + closure census
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/148
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-02
   - BS-12
@@ -1208,7 +1208,7 @@ tickets:
   title: Workflow close refuses an explicit missing --result
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/203
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-12
   blocks:
@@ -1268,7 +1268,7 @@ tickets:
   title: Remove references to the skill-manager registry server (upstream skill-manager#427)
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/222
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on: []
   blocks:
   - BS-16
@@ -1329,11 +1329,241 @@ tickets:
     - Each covered issue has a regression test that is red on the epic base and green on the branch.
     - 'No-op model result recorded: specs/current is unchanged by this ticket.'
     evidence: []
+- id: BS-24
+  title: Bump the eval toolchain's skill-manager pin to v0.29.0
+  status: planned
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/224
+  schedule_revision: 3
+  depends_on: []
+  blocks:
+  - BS-16
+  - BS-25
+  - BS-26
+  - BS-27
+  wave: 4
+  promotion_order: 196
+  promotion_predecessor: BS-23
+  role: implementation
+  conflict_keys:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - evals/lib/toolchain.lock.toml
+  goals:
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  feature_branch: feature/224-eval-pin-sm-0-29
+  worktree: ../wt-epic-bug-sweep-224-eval-pin-sm-0-29
+  covers:
+  - '#224'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_eval_toolchain_pin.py -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    evidence_root: specs/results/bug-sweep/BS-24
+  objective: 'Fix #224 with a regression test (red on the epic base, green on the branch). No model delta expected:
+    record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - evals/lib/toolchain.lock.toml
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest tests/test_eval_toolchain_pin.py -q
+    assertions:
+    - Each covered issue has a regression test that is red on the epic base and green on the branch.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: BS-25
+  title: 'skt: sweep after a squash merge, index-base ref race, jbang build timeout'
+  status: planned
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/225
+  schedule_revision: 3
+  depends_on:
+  - BS-24
+  blocks:
+  - BS-16
+  wave: 5
+  promotion_order: 197
+  promotion_predecessor: BS-24
+  role: implementation
+  conflict_keys:
+    production:
+    - skills/skt/src/skt/sweep.py
+    - skills/skt/src/skt/ticket.py
+    - skills/skt/src/skt/check.py
+    - skills/skt/tests/
+    - skills/skt/references/worktree-sweep.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  goals:
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  feature_branch: feature/225-skt-sweep-race-jbang
+  worktree: ../wt-epic-bug-sweep-225-skt-sweep-race-jbang
+  covers:
+  - '#225'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sweep or ticket or check'
+    graphs:
+    - sktSurface
+    - sktHooks
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    evidence_root: specs/results/bug-sweep/BS-25
+  objective: 'Fix #225 with a regression test (red on the epic base, green on the branch). No model delta expected:
+    record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/skt/src/skt/sweep.py
+  - skills/skt/src/skt/ticket.py
+  - skills/skt/src/skt/check.py
+  - skills/skt/tests/
+  - skills/skt/references/worktree-sweep.md
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sweep or ticket or check'
+    assertions:
+    - Each covered issue has a regression test that is red on the epic base and green on the branch.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: BS-26
+  title: 'test-graph: attempt closure after continue-after-failure, so resume works'
+  status: planned
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/226
+  schedule_revision: 3
+  depends_on:
+  - BS-24
+  blocks:
+  - BS-16
+  wave: 5
+  promotion_order: 198
+  promotion_predecessor: BS-25
+  role: implementation
+  conflict_keys:
+    production:
+    - skills/test-graph/project_sdk_sources/build-logic/src/
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  goals:
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  feature_branch: feature/226-continue-closure
+  worktree: ../wt-epic-bug-sweep-226-continue-closure
+  covers:
+  - '#226'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: cd skills/test-graph/project_sdk_sources/build-logic && ./gradlew test
+    graphs:
+    - cliWorkflow
+    - effectProviderExamples
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    evidence_root: specs/results/bug-sweep/BS-26
+  objective: 'Fix #226 with a regression test (red on the epic base, green on the branch). No model delta expected:
+    record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/test-graph/project_sdk_sources/build-logic/src/
+  acceptance:
+    commands:
+    - cd skills/test-graph/project_sdk_sources/build-logic && ./gradlew test
+    assertions:
+    - Each covered issue has a regression test that is red on the epic base and green on the branch.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: BS-27
+  title: 'Skill text the skill-manager graphs assert: doc-smoke and onboarding'
+  status: planned
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/227
+  schedule_revision: 3
+  depends_on:
+  - BS-24
+  blocks:
+  - BS-16
+  wave: 5
+  promotion_order: 199
+  promotion_predecessor: BS-26
+  role: implementation
+  conflict_keys:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - skills/skill-manager/SKILL.md
+    - skills/git-issue-workflow/SKILL.md
+    - skills/git-issue-workflow/references/
+  goals:
+  - goal: GOAL-BS-SUITE
+    contribution: guard
+    expected_effect: no new failure in `pytest tests`
+    local_signal: uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)
+  - goal: GOAL-BS-EVALS
+    contribution: guard
+    expected_effect: must not regress any eval case; measured only by BS-17
+    local_signal: 'N/A: the full eval lane runs only in BS-17'
+  feature_branch: feature/227-sm-graph-wording
+  worktree: ../wt-epic-bug-sweep-227-sm-graph-wording
+  covers:
+  - '#227'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_plugin_layout_resolution.py -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket'
+    evidence_root: specs/results/bug-sweep/BS-27
+  objective: 'Fix #227 with a regression test (red on the epic base, green on the branch). No model delta expected:
+    record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/skill-manager/SKILL.md
+  - skills/git-issue-workflow/SKILL.md
+  - skills/git-issue-workflow/references/
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest tests/test_plugin_layout_resolution.py -q
+    assertions:
+    - Each covered issue has a regression test that is red on the epic base and green on the branch.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
 - id: BS-16
   title: 'Evaluation: bugs proven, suite green, every graph green'
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/196
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-09
   - BS-03
@@ -1355,11 +1585,15 @@ tickets:
   - BS-15
   - BS-21
   - BS-23
+  - BS-24
+  - BS-25
+  - BS-26
+  - BS-27
   blocks:
   - BS-17
-  wave: 5
+  wave: 6
   promotion_order: 200
-  promotion_predecessor: BS-23
+  promotion_predecessor: BS-27
   role: evaluation
   owns_goals:
   - GOAL-BS-BUGS
@@ -1416,12 +1650,12 @@ tickets:
   title: 'Evaluation: full eval lane, base vs tip'
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/197
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-16
   blocks:
   - BS-18
-  wave: 6
+  wave: 7
   promotion_order: 210
   promotion_predecessor: BS-16
   role: evaluation
@@ -1464,11 +1698,11 @@ tickets:
   title: 'Evaluation: manual testing loop with the owner'
   status: planned
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/198
-  schedule_revision: 2
+  schedule_revision: 3
   depends_on:
   - BS-17
   blocks: []
-  wave: 7
+  wave: 8
   promotion_order: 220
   promotion_predecessor: BS-17
   role: evaluation
@@ -1510,7 +1744,7 @@ tickets:
 epic_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/199
 epic_branch: epic/bug-sweep
 epic_base_sha: 68922587cfb9
-schedule_revision: 2
+schedule_revision: 3
 epic_goals:
 - id: GOAL-BS-BUGS
   kind: quality
@@ -1591,6 +1825,7 @@ review_policy:
   merges: owner
   milestones:
   - 3
-  - 7
+  - 5
+  - 8
   artifact_root: specs/results/bug-sweep/review
   walkthrough: required
