@@ -159,7 +159,7 @@ The git repo is the source of truth.
 skill-manager install file:///abs/path/to/my-skill --dry-run
 skill-manager install file:///abs/path/to/my-skill --yes
 skill-manager show my-skill
-skill-manager publish /abs/path/to/my-skill --dry-run
+skill-manager unit validate /abs/path/to/my-skill
 ```
 
 For a local starter, see `examples/skill/`.

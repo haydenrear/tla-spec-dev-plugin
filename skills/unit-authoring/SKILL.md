@@ -158,7 +158,7 @@ skill-manager list
 
 Extra validation:
 
-- Skill/plugin: `skill-manager publish <dir> --dry-run` to validate the
+- Skill/plugin: `skill-manager unit validate <dir>` to validate the
   unit's markdown imports (`install --dry-run` does not).
 - Skill/plugin with `skill-script:` deps: run a dry-run install from
   `file:///abs/path/to/unit`; use `install --force-scripts` or
