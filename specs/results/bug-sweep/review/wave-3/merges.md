@@ -25,3 +25,5 @@ Range: df48724c (kickoff plan) → 45575a43. Squash-merged by the epic agent, DC
 | 120 | BS-08 | #193 | #221 | 45575a43 | 19 | promoted last on purpose (merged every other fix first) |
 
 The lane did not hold strictly: tickets merged as they finished, never two at once, and only where conflict keys were disjoint and every `depends_on` was already merged. Zero merge conflicts across 19 PRs.
+
+| BS-23 | #222 | #223 | 90d4538f | wave 4, added at schedule revision 2 (owner request); docs only |
