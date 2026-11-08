@@ -206,10 +206,9 @@ agree and hand-editing one is the standard way to make them not. Guidance:
   changes. Both change what consumers can invoke, and a caller of
   `<plugin>:<skill>` gets nothing afterwards.
 
-Tags: a git-coord install or `sync --git-latest` never needs one. A registry
-`skill-manager publish` **refuses a version with no matching tag** (`no git tag
-matching version '1.0.0' (looked for v1.0.0, 1.0.0)`), so tag when you publish
-that way. `release.sh` prints the line and does not run it.
+Tags: a git-coord install or `sync --git-latest` never needs one. Tag when you
+want a pinnable ref (`github:owner/repo#v1.0.0`). `release.sh` prints the line
+and does not run it.
 
 ## Removing a skill from the bundle
 

@@ -8,8 +8,7 @@ skill-publisher workflow: take an existing directory of agent docs
 validate the install round-trip in a clean Docker container.
 
 The interesting part is the *manifest*. Distribution (push to GitHub
-and run `skill-manager install github:…`) and the optional registry
-publish are both straightforward; this document focuses on the two
+and run `skill-manager install github:…`) is straightforward; this document focuses on the two
 manifest patterns that needed first-class support to land this skill:
 **npm-distributed MCP servers** and **host-env passthrough for
 secrets**. Both are features of the local virtual gateway, not of any
@@ -121,7 +120,7 @@ still override at deploy time.
 
 ## Validation — what to look for after install
 
-Install from the git source (no registry needed):
+Install from the git source:
 
 ```bash
 skill-manager install github:<owner>/hyper-experiments-skill

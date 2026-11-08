@@ -36,17 +36,14 @@ The main job:
    `harness instantiate`).
 5. Distribute it: create a GitHub repo with a `LICENSE`, push, and
    install the durable copy from that git source — not from a local
-   `file://` path. Favor this unless the user asks otherwise. Registry
-   publish is optional metadata for supported shapes, not the primary
-   distribution path. See `references/coords-and-distribution.md`.
+   `file://` path. Favor this unless the user asks otherwise. See
+   `references/coords-and-distribution.md`.
 6. Ship later edits into the store: commit, push, then
    `skill-manager sync <unit>`. An edit that is not pushed and synced is
    invisible to agents. See "Shipping edits to an installed unit" below.
 
 The virtual MCP gateway is in scope: declaring `[[mcp_dependencies]]` in
-a skill/plugin manifest is how an MCP server becomes registered. Running
-or hosting a skill-manager-server registry is out of scope except for
-the optional publish step.
+a skill/plugin manifest is how an MCP server becomes registered.
 
 ## When to use
 
@@ -104,8 +101,7 @@ Load only the reference needed for the current task:
   instance locks, sync, and rm.
 - `references/coords-and-distribution.md` — coord grammar,
   `github:`/`git+`/`file:` sources, one unit per git repo root,
-  references, git sync behavior, the edit → push → sync store loop, and
-  registry metadata.
+  references, git sync behavior, and the edit → push → sync store loop.
 - `references/dependencies.md` — CLI and MCP dependency TOML examples
   and resolution behavior for pip/npm/brew/tar/skill-script and
   npm/uv/docker/binary/shell MCP load types.
@@ -142,7 +138,7 @@ cp -r <tla-spec-dev>/skills/unit-authoring/examples/harness <my-harness>
 3. Ensure the unit is at the root of its own git repo. Do not put
    multiple top-level units in one repo today.
 4. Use `references/coords-and-distribution.md` when adding references or
-   deciding between `github:`, `git+`, `file:`, and registry/name coords.
+   deciding between `github:`, `git+`, and `file:` coords.
 5. Use `references/dependencies.md` when adding CLI or MCP deps.
 6. Validate locally from outside the source directory. A `file://`
    install here is for dry-run/validation only, not the durable copy:
@@ -157,13 +153,13 @@ skill-manager list
 7. For the durable install, create a GitHub repo with a `LICENSE`,
    push, and install from `github:owner/repo`. Favor this over leaving a
    `file://` install unless the user asks for a local-only install. The
-   default publishing model lives in
+   default distribution model lives in
    `references/coords-and-distribution.md`.
 
 Extra validation:
 
-- Skill/plugin: `skill-manager publish <dir> --dry-run` for the current
-  registry package path.
+- Skill/plugin: `skill-manager publish <dir> --dry-run` to validate the
+  unit's markdown imports (`install --dry-run` does not).
 - Skill/plugin with `skill-script:` deps: run a dry-run install from
   `file:///abs/path/to/unit`; use `install --force-scripts` or
   `sync <unit> --force-scripts` only when validating explicit replay
@@ -198,7 +194,6 @@ into this skill.
 | `author-dependencies` | adding CLI, MCP, or reference dependencies to a unit | `skill-manager create --help` |
 | `author-unit` | scaffolding a skill or plugin starter | `skill-manager create --help` |
 | `install-local-unit` | validating an authored unit from disk | `skill-manager install --help` |
-| `publish-unit` | checking registry package metadata | `skill-manager publish --help` |
 | `skill-scripts` | authoring a private CLI installer under `skill-scripts/` | `skill-manager install --help` |
 
 For `skill-scripts`, also check `skill-manager sync --help` before
@@ -208,13 +203,10 @@ scripts.
 ## Boundaries
 
 - This skill does not publish anything itself. It explains how; the
-  agent runs `skill-manager publish`, `git push`, or `skill-manager
-  sync` when ready. Pushing and syncing are outward-facing — confirm
+  agent runs `git push` and `skill-manager sync` when ready. Pushing and syncing are outward-facing — confirm
   with the user before running them unless they already asked.
-- This skill does not modify `~/.skill-manager/cli-lock.toml`,
-  `policy.toml`, or `registry.properties`. Surface conflicts and let the
+- This skill does not modify `~/.skill-manager/cli-lock.toml` or
+  `policy.toml`. Surface conflicts and let the
   user decide.
 - This skill does not generate API keys or secrets. Prompt the user for
   required `init_schema` secrets; never invent them.
-- This skill does not cover hosting skill-manager-server. Use the main
-  skill-manager README for registry operations.

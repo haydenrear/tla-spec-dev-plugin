@@ -2,7 +2,7 @@
 skill-imports:
   - unit: tla-spec-dev
     path: skills/unit-authoring/references/coords-and-distribution.md
-    reason: Project-manifest unit refs use the same coord grammar as skill_references; the git-coord-only rule (no registry configured) is stated once there.
+    reason: Project-manifest unit refs use the same coord grammar as skill_references; the git-coord-only rule (only github:/git+/file: coords resolve) is stated once there.
     section: coord-forms
 ---
 
@@ -22,8 +22,8 @@ the source of truth.
 Unit references in the manifest (skills, plugins, doc-repos, harnesses)
 are resolved transitively at `project resolve` time, exactly like
 `skill_references`. Use **git coords only** (`github:owner/repo`,
-`git+…`, `file:…`); registry-name coords such as `skill:name` cannot
-resolve because no registry is configured, and the coord names the repo,
+`git+…`, `file:…`) — only git coords resolve, so bare-name coords such
+as `skill:name` cannot, and the coord names the repo,
 not the installed unit — find it with `gh repo list <owner>`. The rule
 and rationale live once in the skt plugin's
 `references/coords-and-distribution.md` (imported above); do not restate
