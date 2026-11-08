@@ -561,7 +561,8 @@ class RunReportWriterTraceTest {
 
         val closureRaw = source.resolve("attempt-closure.json").readText()
         val closure = MiniJson.obj(MiniJson.parse(closureRaw))
-        assertEquals(3L, closure["version"])
+        assertEquals(4L, closure["version"])
+        assertEquals(false, closure["continueAfterFailure"])
         assertEquals(emptyList<Any?>(), closure["finalizerNodeIds"])
         assertEquals(
             com.hayden.testgraphsdk.exec.sha256Utf8(
@@ -598,11 +599,122 @@ class RunReportWriterTraceTest {
         val closure = source.resolve("attempt-closure.json")
         closure.writeText(
             closure.readText()
-                .replaceFirst("\"version\":3", "\"version\":2")
+                .replaceFirst("\"version\":4", "\"version\":2")
                 .replace(",\"finalizerNodeIds\":[]", "")
+                .replace(",\"continueAfterFailure\":false", "")
         )
 
         RunReportWriter.requireReplaySource(source, graphName, "selected")
+    }
+
+    @Test
+    fun continueAfterFailureAttemptIsClosedAndReplayableFromThePersistedMode() {
+        val (source, traceId, expected) = continueAfterFailureEvidence()
+
+        RunReportWriter.persistAttemptClosure(
+            source, graphName, expected, traceId, continueAfterFailure = true,
+        )
+
+        val closure = MiniJson.obj(
+            MiniJson.parse(source.resolve("attempt-closure.json").readText())
+        )
+        assertEquals(true, closure["continueAfterFailure"])
+        assertEquals(
+            "cont.failed",
+            RunReportWriter.requireReplaySource(source, graphName, "cont.failed").selectedNodeId,
+        )
+        val outcome = RunReportWriter.writeRunReport(
+            runDir = source,
+            graphName = graphName,
+            expectedNodeIds = expected,
+            executionFailure = RuntimeException("expected fixture failure"),
+            expectedTraceId = traceId,
+        )
+        assertEquals("errored", outcome.status)
+        assertFalse(
+            source.resolve("summary.json").readText().contains("\"attemptClosureIntegrityError\"")
+        )
+    }
+
+    @Test
+    fun continueAfterFailureAttemptMayHoldASecondOrdinaryFailure() {
+        val (source, traceId, expected) = continueAfterFailureEvidence(lastStatus = "failed")
+
+        RunReportWriter.persistAttemptClosure(
+            source, graphName, expected, traceId, continueAfterFailure = true,
+        )
+
+        RunReportWriter.requireReplaySource(source, graphName, "cont.failed")
+    }
+
+    @Test
+    fun continueAfterFailureClosureStillRefusesReplayPastTheFailure() {
+        val (source, traceId, expected) = continueAfterFailureEvidence()
+        RunReportWriter.persistAttemptClosure(
+            source, graphName, expected, traceId, continueAfterFailure = true,
+        )
+
+        val refused = assertFailsWith<IllegalArgumentException> {
+            RunReportWriter.requireReplaySource(source, graphName, "cont.after")
+        }
+        assertContains(refused.message.orEmpty(), "failed or skipped prefix node")
+    }
+
+    @Test
+    fun ordinaryAttemptStillRefusesAnOrdinaryNodeAfterAFailure() {
+        for (lastStatus in listOf("passed", "failed")) {
+            val (source, traceId, expected) = continueAfterFailureEvidence(lastStatus = lastStatus)
+
+            val refused = assertFailsWith<IllegalArgumentException> {
+                RunReportWriter.persistAttemptClosure(source, graphName, expected, traceId)
+            }
+
+            assertContains(refused.message.orEmpty(), "cont.after")
+            assertFalse(source.resolve("attempt-closure.json").exists())
+        }
+    }
+
+    @Test
+    fun continueAfterFailureModeIsReadFromTheClosureNotAssumedAtReplay() {
+        val closureEdits = listOf<(String) -> String>(
+            { it.replace("\"continueAfterFailure\":true", "\"continueAfterFailure\":false") },
+            // A closure of an older version cannot claim the mode at all.
+            {
+                it.replaceFirst("\"version\":4", "\"version\":3")
+                    .replace(",\"continueAfterFailure\":true", "")
+            },
+        )
+        for (edit in closureEdits) {
+            val (source, traceId, expected) = continueAfterFailureEvidence()
+            RunReportWriter.persistAttemptClosure(
+                source, graphName, expected, traceId, continueAfterFailure = true,
+            )
+            val closure = source.resolve("attempt-closure.json")
+            closure.writeText(edit(closure.readText()))
+
+            val refused = assertFailsWith<IllegalArgumentException> {
+                RunReportWriter.requireReplaySource(source, graphName, "cont.failed")
+            }
+            assertContains(refused.message.orEmpty(), "cont.after")
+        }
+    }
+
+    @Test
+    fun closureWithoutABooleanContinueAfterFailureIsInvalid() {
+        val (source, traceId, expected) = continueAfterFailureEvidence()
+        RunReportWriter.persistAttemptClosure(
+            source, graphName, expected, traceId, continueAfterFailure = true,
+        )
+        val closure = source.resolve("attempt-closure.json")
+        closure.writeText(
+            closure.readText()
+                .replace("\"continueAfterFailure\":true", "\"continueAfterFailure\":\"true\"")
+        )
+
+        val refused = assertFailsWith<IllegalArgumentException> {
+            RunReportWriter.requireReplaySource(source, graphName, "cont.failed")
+        }
+        assertContains(refused.message.orEmpty(), "continueAfterFailure must be a boolean")
     }
 
     @Test
@@ -1902,6 +2014,30 @@ class RunReportWriterTraceTest {
         writePublishedEnvelope(second, "three", emptyMap())
         RunReportWriter.persistAttemptClosure(second, graphName, listOf("three"), trace, next)
         assertEquals(nodes, RunReportWriter.requireReplaySource(second, graphName, "three").sourceExpectedNodeIds)
+    }
+
+    private fun continueAfterFailureEvidence(
+        lastStatus: String = "passed",
+    ): Triple<java.io.File, String, List<String>> {
+        val source = Files.createTempDirectory("test-graph-continue-closure").toFile()
+        val traceId = "0123456789abcdef0123456789abcdef"
+        val expected = listOf("cont.before", "cont.failed", "cont.after")
+        RunReportWriter.persistExecutionScope(source, graphName, expected)
+        writePassingEnvelopes(source, expected, traceId)
+        mapOf("cont.failed" to "failed", "cont.after" to lastStatus)
+            .filterValues { it != "passed" }
+            .forEach { (nodeId, status) ->
+                source.resolve("envelope/$nodeId.json").let { envelope ->
+                    envelope.writeText(
+                        envelope.readText().replace(
+                            "\"status\":\"passed\"",
+                            "\"status\":\"$status\",\"failureMessage\":\"expected fixture failure\"",
+                        )
+                    )
+                }
+            }
+        writeTraceCarrier(source, traceId)
+        return Triple(source, traceId, expected)
     }
 
     private fun closedResumeFixture(): Pair<java.io.File, java.io.File> {
