@@ -1,0 +1,29 @@
+{
+  "nodeId" : "skill-manager.skill.docs.projected",
+  "status" : "passed",
+  "startedAt" : "2026-11-08T23:31:20.471300Z",
+  "endedAt" : "2026-11-08T23:31:20.481064Z",
+  "assertions" : [ {
+    "name" : "skill_md_mentions_projects_and_child_homes",
+    "status" : "passed"
+  }, {
+    "name" : "project_reference_complete",
+    "status" : "passed"
+  }, {
+    "name" : "workflow_routes_project_resolution",
+    "status" : "passed"
+  }, {
+    "name" : "env_helper_project_context_documented",
+    "status" : "passed"
+  }, {
+    "name" : "skill_manifest_mentions_projects",
+    "status" : "passed"
+  } ],
+  "artifacts" : [ ],
+  "processes" : [ ],
+  "metrics" : {
+    "durationMs" : 10
+  },
+  "logs" : [ ],
+  "published" : { }
+}
