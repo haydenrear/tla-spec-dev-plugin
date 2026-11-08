@@ -39,8 +39,10 @@ normal outcome that keeps the pass going:
                    a data-loss gate; it is the workflow one. Work that
                    never reached the remote has not been reviewed, and
                    retiring its worktree is how it gets forgotten.
-  not contained    commits not in the epic/target branch: the ticket did
-                   not land, whatever its branch says.
+  not contained    commits not in the epic/target branch, and no evidence
+                   their change landed there by squash or rebase — see
+                   :func:`landed_by_content`. The branch name is never
+                   evidence.
   integrity        :mod:`skt.ticket_integrity`, measured from the live
                    filesystem: a missing `.git` pointer, missing tracked
                    source, a missing declared home, missing or replaced
@@ -109,6 +111,7 @@ the collision `build_cmd.py` was renamed to avoid. Import it as
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -126,6 +129,11 @@ from .publish import _cli, _cli_env
 #: a local call and a hard stop for a git that hangs on a credential
 #: helper — `check._run_git` carries the same note about git's children.
 READ_TIMEOUT_SECONDS = 10.0
+
+#: Budget for the squash-landing read: one `git log -p` over the target's
+#: side of the merge base, which grows with the epic. Exceeding it blocks
+#: the worktree (`unmeasured`), so the bound can only cost a skip.
+LANDING_TIMEOUT_SECONDS = 30.0
 
 #: The gate is the slow step by an order of magnitude: a CLI start plus a
 #: full compare of two homes, per worktree. Bounded anyway, because a
@@ -199,6 +207,7 @@ def _run(
     cwd: str | Path | None = None,
     timeout: float | None,
     env: dict | None = None,
+    text: bool = True,
 ) -> subprocess.CompletedProcess | None:
     """One bounded child. None on deadline; `timeout=None` is unbounded.
 
@@ -217,7 +226,7 @@ def _run(
             cwd=str(cwd) if cwd is not None else None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True,
+            text=text,
             env=env,
             start_new_session=True,
         )
@@ -286,6 +295,98 @@ def human_bytes(value: int | None) -> str:
             return f"{sign}{size:.{precision}f} {unit}"
         size /= 1024
     return f"{sign}{size:.1f} TiB"  # unreachable; keeps the type checker honest
+
+
+# ----------------------------------------------------------- squash landings
+
+
+#: Pinned, because user diff config would otherwise change the bytes compared.
+#: `--binary` puts binary content in the text, so unequal bytes compare unequal.
+_DIFF_FLAGS = (
+    "--no-color", "--no-ext-diff", "--no-textconv", "--no-renames", "--binary",
+    "--ignore-submodules=none", "--diff-algorithm=myers", "--unified=3",
+    "--src-prefix=a/", "--dst-prefix=b/",
+)
+_COMMIT_MARK = b"\0\0commit "
+_HUNK_HEADER = re.compile(rb"^@@ -\d+(?:,\d+)? \+\d+(?:,\d+)? @@.*$")
+
+
+def _git_bytes(*args: str, cwd: Path, timeout: float = READ_TIMEOUT_SECONDS) -> bytes | None:
+    """Stdout as bytes: a diff is not guaranteed to decode as UTF-8."""
+    proc = _run(["git", *args], cwd=cwd, timeout=timeout, text=False)
+    return proc.stdout if proc is not None and proc.returncode == 0 else None
+
+
+def _changed_paths(root: Path, a: str, b: str) -> set[bytes] | None:
+    raw = _git_bytes(
+        "diff", "--name-only", "-z", "--no-renames", "--no-ext-diff",
+        "--ignore-submodules=none", a, b, "--", cwd=root,
+    )
+    return None if raw is None else {p for p in raw.split(b"\0") if p}
+
+
+def _fingerprint(diff: bytes) -> str | None:
+    """A hash of a diff that survives being applied at another line number.
+
+    Deliberately not `git patch-id`: it ignores whitespace, so two tickets
+    differing only in indentation — the whole change, in Python — hash alike,
+    and its text form drops binary content. This keeps every byte except the
+    blob ids and the hunk positions. None for an empty diff.
+    """
+    kept = bytearray()
+    for line in diff.split(b"\n"):  # not splitlines: a bare \r is content
+        if line.startswith(b"index "):
+            continue
+        kept += b"@@\n" if _HUNK_HEADER.match(line) else line + b"\n"
+    return hashlib.sha256(bytes(kept)).hexdigest() if kept else None
+
+
+def landed_by_content(root: Path, rev: str, target: str) -> tuple[str | None, bool]:
+    """Did `rev`'s change reach `target` without its commits? `(how, measured)`.
+
+    A squash or rebase leaves the commits unreachable, so ancestry cannot
+    answer. Two routes, each comparing the content of the ticket's WHOLE
+    change — merge base to tip, so anything committed after the squash is
+    part of what must be found:
+
+      identical paths  every path the branch changes is byte-identical (mode
+                       included) in the target.
+      whole-change     one commit on the target's side has exactly this diff.
+      match            Needed once a later commit has edited one of those paths.
+
+    `how` is None when neither holds. A net-empty branch, or one with no
+    single merge base, proves nothing and stays blocked. `measured` False
+    means git did not answer, which also blocks.
+    """
+    bases = _out("merge-base", "--all", target, rev, cwd=root)
+    if bases is None:
+        return None, False
+    bases_list = bases.split()
+    if len(bases_list) != 1:
+        return None, True
+    base = bases_list[0]
+    changed = _changed_paths(root, base, rev)
+    drift = _changed_paths(root, rev, target)
+    if changed is None or drift is None:
+        return None, False
+    if not changed:
+        return None, True
+    if not changed & drift:
+        return f"all {len(changed)} path(s) it changes are identical in {target}", True
+    mine = _git_bytes("diff", *_DIFF_FLAGS, base, rev, "--", cwd=root)
+    theirs = _git_bytes(
+        "log", "-p", "--no-merges", "--no-show-signature", *_DIFF_FLAGS,
+        "--format=%x00%x00commit %H", f"{base}..{target}", "--",
+        cwd=root, timeout=LANDING_TIMEOUT_SECONDS,
+    )
+    if mine is None or theirs is None:
+        return None, False
+    wanted = _fingerprint(mine)
+    for chunk in theirs.split(_COMMIT_MARK)[1:]:
+        sha, _, body = chunk.partition(b"\n")
+        if wanted is not None and _fingerprint(body.strip(b"\n") + b"\n") == wanted:
+            return f"its whole change matches commit {sha.decode()[:12]} on {target}", True
+    return None, True
 
 
 # -------------------------------------------------------------- the worktrees
@@ -454,6 +555,10 @@ class DeclaredTickets:
 
     ids: frozenset[str]
     issues: frozenset[str]
+    #: Read from the epic's history because the tip no longer carries a plan
+    #: (a finalize removed it). It then adds tickets but is not final: see
+    #: `_epic_exclusion`.
+    historical: bool = False
 
     def declares(self, ticket: str | None) -> bool:
         if not ticket:
@@ -483,17 +588,36 @@ def epic_declared_tickets(root: Path, epic_ref: str) -> DeclaredTickets | None:
     listing = _out("ls-tree", "--name-only", epic_ref, "--", TICKET_PLAN, cwd=root)
     if listing is None:
         raise PlanUnreadable(f"git could not list {TICKET_PLAN} on {epic_ref}")
+    historical = False
+    source = epic_ref
     if not listing:
-        return None
-    text = _out("show", f"{epic_ref}:{TICKET_PLAN}", cwd=root)
+        # Finalize removes the plan from the tip; the last commit that had it
+        # still says what the epic declared. Absent from all history: no plan.
+        removed = _out("rev-list", "-1", epic_ref, "--", TICKET_PLAN, cwd=root)
+        if removed is None:
+            raise PlanUnreadable(f"git could not search {epic_ref}'s history for {TICKET_PLAN}")
+        if not removed:
+            return None
+        source = f"{removed}^"
+        if not _out("rev-parse", "--verify", "--quiet", f"{source}^{{commit}}", cwd=root):
+            return None
+        before = _out("ls-tree", "--name-only", source, "--", TICKET_PLAN, cwd=root)
+        if before is None:
+            raise PlanUnreadable(f"git could not list {TICKET_PLAN} at {source}")
+        if not before:
+            return None
+        historical = True
+    text = _out("show", f"{source}:{TICKET_PLAN}", cwd=root)
     if text is None:
-        raise PlanUnreadable(f"git could not read {TICKET_PLAN} on {epic_ref}")
+        raise PlanUnreadable(f"git could not read {TICKET_PLAN} on {source}")
     # Only the `tickets:` list declares tickets: `epic_goals:` and other
     # lists also carry `- id:` items, and may carry a `github_issue`.
     items = ctx_mod.plan_outer_items(ctx_mod.plan_tickets_section(text))
     all_tickets = [tid for tid, _ in items]
     issues = {num for _, num in items if num}
-    return DeclaredTickets(ids=frozenset(all_tickets), issues=frozenset(issues))
+    return DeclaredTickets(
+        ids=frozenset(all_tickets), issues=frozenset(issues), historical=historical
+    )
 
 
 def resolve_trunks(root: Path) -> list[str]:
@@ -619,6 +743,13 @@ class Status:
     unpushed: int | None = None
     target: str | None = None
     not_in_target: int | None = None
+    #: How the change is known to have reached `target` although its commits
+    #: did not; None when it is not. See `landed_by_content`.
+    landed_by: str | None = None
+    #: The target's own commits are all on a remote, so a landing there
+    #: answers `unpushed` too. Without this, GitHub's delete-branch-on-merge
+    #: makes every squash-merged ticket read as unpushed.
+    landed_on_remote: bool = False
     missing: bool = False
     locked: str | None = None
     prunable: str | None = None
@@ -663,10 +794,10 @@ class Status:
                 f"{len(self.stashes)} stash entr{'y' if len(self.stashes) == 1 else 'ies'} "
                 f"made here: {', '.join(self.stashes[:MAX_REASON_ITEMS])}"
             )
-        if self.unpushed and self.remotes:
+        if self.unpushed and self.remotes and not (self.landed_by and self.landed_on_remote):
             where = self.upstream or "any remote"
             out.append(f"{self.unpushed} commit(s) not pushed to {where}")
-        if self.not_in_target:
+        if self.not_in_target and not self.landed_by:
             out.append(f"{self.not_in_target} commit(s) not contained in {self.target}")
         # An evidence gap is not a clean bill of health. `_local_state`
         # makes the same call for `unknown`: at a gate whose job is to
@@ -685,6 +816,11 @@ class Status:
             out.append(
                 "no epic/target branch known, so containment was not checked "
                 "(pass --epic <slug> or --target <ref>)"
+            )
+        if self.not_in_target and self.landed_by:
+            out.append(
+                f"{self.not_in_target} commit(s) are not ancestors of {self.target}, but the "
+                f"change landed there: {self.landed_by}"
             )
         if not self.remotes:
             out.append(
@@ -787,10 +923,20 @@ def inspect(wt: Worktree, *, root: Path, target: str | None) -> Status:
         unmeasured.append("whether its commits are pushed")
 
     not_in_target = None
+    landed_by = None
+    landed_on_remote = False
     if target is not None:
         not_in_target = _count("rev-list", "--count", f"{target}..{wt.rev}", cwd=root)
         if not_in_target is None:
             unmeasured.append(f"whether its commits are contained in {target}")
+        elif not_in_target:
+            landed_by, landing_measured = landed_by_content(root, wt.rev, target)
+            if not landing_measured:
+                unmeasured.append(f"whether its change landed in {target} by squash or rebase")
+            elif landed_by:
+                landed_on_remote = (
+                    _count("rev-list", "--count", target, "--not", "--remotes", cwd=root) == 0
+                )
     else:
         # NO TARGET IS AN EVIDENCE GAP, NOT A CLEAN BILL OF HEALTH, and this is
         # the one branch that used to treat it as the latter. `blockers` says it
@@ -823,6 +969,8 @@ def inspect(wt: Worktree, *, root: Path, target: str | None) -> Status:
         unpushed=unpushed,
         target=target,
         not_in_target=not_in_target,
+        landed_by=landed_by,
+        landed_on_remote=landed_on_remote,
         missing=wt.missing,
         locked=wt.locked,
         prunable=wt.prunable,
@@ -1115,7 +1263,9 @@ def _epic_exclusion(
     1. **A plan on the epic branch is authoritative.** The worktree's
        ticket is declared there — by spec id (`feature/<id>`), or by the
        issue number its `feature/<issue>-<slug>` branch leads with,
-       joined through `github_issue`. A plan miss is final.
+       joined through `github_issue`. A plan miss is final. A plan read
+       from history (removed from the tip at finalize) declares the same
+       way, but a miss falls through to rule 2.
     2. **With no plan,** its tip must be ticket work in `work`: reachable
        from the epic, on none of the bases — the default branch, local
        and remote, as it stood before the epic merged — and not one of
@@ -1135,9 +1285,9 @@ def _epic_exclusion(
     """
     if wt.epic_slug is not None:
         return f"another epic's own worktree (epic/{wt.epic_slug}), not a ticket of epic {slug}"
-    if declared is not None:
-        if declared.declares(wt.ticket):
-            return None
+    if declared is not None and declared.declares(wt.ticket):
+        return None
+    if declared is not None and not declared.historical:
         return (
             f"not part of epic {slug} (not declared in {TICKET_PLAN} on {epic_ref}, "
             "by spec id or github_issue)"
@@ -1190,7 +1340,12 @@ def build_plan(
         return Plan(
             root=root, destination=None, target=None, epic=epic, current=current,
             error=f"no branch epic/{epic} exists locally or on any remote",
-            fix="git fetch origin, then pass --epic <slug> exactly as the branch spells it",
+            fix=(
+                "git fetch origin, then pass --epic <slug> exactly as the branch spells it. "
+                "If the epic is finished and its branch deleted, --epic cannot tell its "
+                "tickets apart; drop it and run: skt ticket sweep --target origin/main "
+                "(removes only worktrees whose work landed there)"
+            ),
         )
     resolved_target = target or epic_ref
 
@@ -1214,7 +1369,7 @@ def build_plan(
         )
     work = (
         epic_work(root, epic_ref, epic_bases(root, epic_ref, resolve_trunks(root)))
-        if epic and epic_ref and declared is None else None
+        if epic and epic_ref and (declared is None or declared.historical) else None
     )
     plan = Plan(
         root=root, destination=destination, target=resolved_target, epic=slug,
@@ -1493,7 +1648,7 @@ def _header(plan: Plan) -> list[str]:
         scope = "scoped to it" if plan.scoped else "discovered; the candidate set is NOT narrowed"
         epic = f"epic       {plan.epic} ({scope})"
     target = (
-        f"target     {plan.target} — commits must be contained in it"
+        f"target     {plan.target} — commits must be contained in it, or their change landed"
         if plan.target
         else "target     none — containment NOT checked (pass --epic <slug> or --target <ref>)"
     )
@@ -1659,6 +1814,7 @@ def _status_json(status: Status) -> dict:
         "unpushed": status.unpushed,
         "target": status.target,
         "not_in_target": status.not_in_target,
+        "landed_by": status.landed_by,
         "missing": status.missing,
         "locked": status.locked,
         "prunable": status.prunable,
