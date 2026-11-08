@@ -356,23 +356,11 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
     commit_oid, tree_oid = commit.stdout.strip(), tree.stdout.strip()
     toplevel = git("rev-parse", "--show-toplevel").stdout.strip()
     repo_id = Path(toplevel).name if toplevel else "repo"
-    # A PATH `close` CAN FIND. `close-change.sh` resolves a ticket by looking in
-    # the repo's PARENT -- the derived `<parent>/<repo>-<ticket>`, then anything
-    # matching `*-<ticket>` there. A worktree created INSIDE the repo is in
-    # neither place, so this pair
-    #
-    #     skt ticket new  TICKET-7 --path ./wt-TICKET-7     -> created
-    #     skt ticket close TICKET-7                          -> "no worktree for
-    #                                                            ticket TICKET-7"
-    #
-    # both succeed at what they each do and disagree about where the worktree
-    # is. Measured in the ticket-close eval, then reproduced by hand outside it.
-    #
-    # Refused at CREATE, because that is the half that can still be corrected
-    # without anything having been built. An inside-the-repo worktree is also
-    # untracked content in the repo it belongs to, which makes the next
-    # clean-slate check fail -- so this rejects a path that was going to be a
-    # problem twice.
+    # NOT INSIDE THE REPO. `close` finds a worktree anywhere now: it asks git's
+    # own worktree list first (#183). What remains is that a worktree inside the
+    # checkout is untracked content in the repository it belongs to, so the
+    # primary's next clean-slate check fails. Refused at CREATE, while nothing
+    # has been built.
     if toplevel:
         try:
             resolved = Path(path).resolve()
@@ -381,9 +369,9 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
         except (OSError, RuntimeError):
             inside = False
         if inside:
-            print(f"error: --path {path} is inside the repository, where `skt ticket close`")
-            print(f"       cannot find it: close searches {Path(toplevel).parent} for the")
-            print(f"       derived path and for '*-{ticket_id}', never inside the checkout.")
+            print(f"error: --path {path} is inside the repository: the worktree would be")
+            print("       untracked content in the primary checkout, and its next")
+            print("       clean-slate check would fail.")
             print(f"fix:   put it beside the repository — --path ../{Path(path).name}")
             return 1
     ref_name = f"refs/index-bases/{repo_id}/{tree_oid}"
@@ -395,8 +383,17 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
     if existing.returncode != 0:
         made = git("update-ref", ref_name, commit_oid, "")
         if made.returncode != 0:
-            print(f"error: could not create retention ref {ref_name}: {made.stderr.strip()}")
-            return 1
+            # Create-only, and tickets start concurrently: another `ticket new`
+            # on the same tree may have made it since the check above. The same
+            # pin is what we wanted; anything else is the mismatch refused above.
+            again = git("rev-parse", "--verify", "--quiet", ref_name)
+            if again.returncode != 0:
+                print(f"error: could not create retention ref {ref_name}: {made.stderr.strip()}")
+                return 1
+            if again.stdout.strip() != commit_oid:
+                print(f"error: retention ref {ref_name} already points at {again.stdout.strip()[:8]}, not {commit_oid[:8]}")
+                print("fix:   the declared base disagrees with an earlier pin — reconcile with the epic owner")
+                return 1
     branch = f"feature/{ticket_id}"
     added = git("worktree", "add", path, "-b", branch, commit_oid)
     if added.returncode != 0:
