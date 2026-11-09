@@ -1,0 +1,8 @@
+# The milestone config used for BS-14's real run. A consuming repo would keep
+# this as <repo>/epic-workflow.toml; it lives under the evidence root here so
+# the ticket adds no repo-root file.
+[milestone]
+default = ["cliWorkflow"]
+shared = []
+runner = "skills/test-graph/scripts/run.py"
+test_graph_root = "test_graph"

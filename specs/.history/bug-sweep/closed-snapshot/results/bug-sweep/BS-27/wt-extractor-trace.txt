@@ -1,0 +1,13 @@
+### base-tree
+references/complete.md:253 before=[eak; }; done)/] claimedAsOwn=false
+references/provision.md:96 before=[eak; }; done)/] claimedAsOwn=false
+references/worktrees.md:93 before=[/…/skills/skt/] claimedAsOwn=false
+references/worktrees.md:510 before=[eak; }; done)/] claimedAsOwn=false
+references/worktrees.md:511 before=[eak; }; done)/] claimedAsOwn=false
+### after-tree
+references/complete.md:253 before=[eak; }; done)/] claimedAsOwn=false
+references/provision.md:92 before=[` is `skt`'s `] claimedAsOwn=true
+references/provision.md:96 before=[eak; }; done)/] claimedAsOwn=false
+references/worktrees.md:93 before=[/…/skills/skt/] claimedAsOwn=false
+references/worktrees.md:510 before=[eak; }; done)/] claimedAsOwn=false
+references/worktrees.md:511 before=[eak; }; done)/] claimedAsOwn=false

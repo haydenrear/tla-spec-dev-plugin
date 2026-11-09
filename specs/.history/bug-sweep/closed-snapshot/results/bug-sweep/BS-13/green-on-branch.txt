@@ -1,0 +1,20 @@
+# GREEN: feature/186-resume-front-door (uncommitted tip over da6ab2f7)
+# cmd: uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests/test_resume_front_door.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.13.14, pytest-9.2.0, pluggy-1.7.0 -- /Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/bin/python
+rootdir: /Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door
+collecting ... collected 10 items
+
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_an_outcome_json_chains_to_its_report PASSED [ 10%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_errored_node_is_resumable_when_nothing_failed PASSED [ 20%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_from_node_with_a_relative_path_and_a_bare_run_id PASSED [ 30%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_legacy_run_only_node_resolves_a_relative_path_against_the_test_graph_root PASSED [ 40%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_only_node_and_its_legacy_synonym PASSED [ 50%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_refusals_name_the_problem PASSED [ 60%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::ResumeFrontDoorTest::test_resume_relative_report_picks_first_failed_node_and_infers_graph PASSED [ 70%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_a_resume_of_a_resume_runs_only_the_tail PASSED [ 80%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_from_node_with_a_relative_report_path PASSED [ 90%]
+skills/test-graph/scripts/tests/test_resume_front_door.py::RealSdkResumeTest::test_run_only_node_with_a_relative_report_path PASSED [100%]
+
+======================== 10 passed in 190.79s (0:03:10) ========================
+exit=0

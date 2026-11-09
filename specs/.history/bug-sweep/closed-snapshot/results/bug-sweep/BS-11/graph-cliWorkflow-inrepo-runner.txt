@@ -1,0 +1,136 @@
+# in-repo runner: python3 skills/test-graph/scripts/run.py cliWorkflow --test-graph-root test_graph  (2026-11-07T18:20:58Z)
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin
+w: file:///Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:59:30 Parameter 'file' is never used
+
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors
+> Task :build-logic:processResources
+> Task :build-logic:classes
+> Task :build-logic:jar
+
+> Task :cliWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'cliWorkflow' run=20261107-182243 steps=2 fullPlanSteps=2 traceId=cf1555868c81e57cf5b76445b3f611dd
+  plan[1/2] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/2] spec.cli.help  [assertion, uv]  sources/tla_spec_dev_cli_help.py
+  [1/2] spec.cli.install (uv)
+  [2/2] spec.cli.help (uv)
+
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export spans. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :cliWorkflow
+wrote /Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/test_graph/build/validation-reports/20261107-182243/summary.json + /Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/test_graph/build/validation-reports/20261107-182243/report.md
+
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :cliWorkflow
+testGraph 'cliWorkflow' done. traceId=cf1555868c81e57cf5b76445b3f611dd reports: /Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/test_graph/build/validation-reports/20261107-182243
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 5s
+5 actionable tasks: 5 executed
+PASSED cliWorkflow
+/Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/test_graph/build/validation-sweeps/20261107-182058/outcome.json
+exit=0

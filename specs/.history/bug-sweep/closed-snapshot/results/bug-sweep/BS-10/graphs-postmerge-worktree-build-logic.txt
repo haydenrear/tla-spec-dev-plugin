@@ -1,0 +1,76 @@
+# post-merge HEAD a2ecbc8af697e8e3b840021de4420d695fb33b58; runner: in-repo skills/test-graph/scripts/run.py (binds build-logic to THIS worktree's source)
+=== cliWorkflow
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :cliWorkflow
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'cliWorkflow' run=20261107-174953 steps=2 fullPlanSteps=2 traceId=da67df1bf298ace2f978597d7829ea89
+  plan[1/2] spec.cli.install  [testbed, uv]  sources/tla_spec_dev_cli_install.py
+  plan[2/2] spec.cli.help  [assertion, uv]  sources/tla_spec_dev_cli_help.py
+  [1/2] spec.cli.install (uv)
+  [2/2] spec.cli.help (uv)
+
+
+> Task :cliWorkflow
+wrote /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/validation-reports/20261107-174953/summary.json + /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/validation-reports/20261107-174953/report.md
+
+
+> Task :cliWorkflow
+testGraph 'cliWorkflow' done. traceId=da67df1bf298ace2f978597d7829ea89 reports: /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/validation-reports/20261107-174953
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 50s
+5 actionable tasks: 1 executed, 4 up-to-date
+run.py exit=0
+build-logic -> /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/skills/test-graph/project_sdk_sources/build-logic
+=== effectProviderExamples
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :effectProviderExamples
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'effectProviderExamples' run=20261107-175037 steps=1 fullPlanSteps=1 traceId=b99bd4d1be86de1d173de3708d8c48f4
+  plan[1/1] effect.providers.examples  [assertion, uv]  sources/effect_provider_examples.py
+  [1/1] effect.providers.examples (uv)
+
+
+> Task :effectProviderExamples
+wrote /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/validation-reports/20261107-175037/summary.json + /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/validation-reports/20261107-175037/report.md
+testGraph 'effectProviderExamples' done. traceId=b99bd4d1be86de1d173de3708d8c48f4 reports: /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/validation-reports/20261107-175037
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 26s
+5 actionable tasks: 1 executed, 4 up-to-date
+run.py exit=0
+build-logic -> /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/skills/test-graph/project_sdk_sources/build-logic

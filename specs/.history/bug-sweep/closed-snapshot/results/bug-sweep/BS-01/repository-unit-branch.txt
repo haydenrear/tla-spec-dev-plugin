@@ -1,0 +1,16 @@
+        except ValueError as error:
+>           raise SystemExit(f"ERROR: {path}: {error}") from error
+E           SystemExit: ERROR: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-243/test_a_transition_diff_that_qu0/subject/specs/desired_program_model/ticket_plan.yaml: unexpected indentation at: 'goal: GOAL-BS-EVALS'
+
+skills/spec-double-2/scripts/close_tickets.py:112: SystemExit
+=========================== short test summary info ============================
+FAILED tests/test_ledger_resolution_is_deterministic.py::test_both_resolvers_agree_on_the_repositorys_ledger
+FAILED tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit
+FAILED tests/test_score_tools.py::test_the_repo_ledger_passes_its_own_audit_with_rh6
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_the_close_archives_the_cumulative_ledger_where_a_reader_can_find_it
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_disposition_still_answers_after_the_workflow_it_reports_on_is_closed
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_a_narrative_that_quotes_the_template_sentinel_is_not_blanked
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_an_unfilled_template_narrative_refuses_the_close_unless_forced
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_a_transition_diff_that_quotes_the_template_sentinel_is_not_blanked
+9 failed, 285 passed, 1 skipped, 1622 deselected, 2 errors in 238.80s (0:03:58)

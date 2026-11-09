@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/.skill-manager holds nothing that removing it would destroy

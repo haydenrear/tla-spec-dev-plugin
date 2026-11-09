@@ -1,0 +1,8 @@
+BS-07 model result: NO-OP.
+specs/current, specs/desired_program_model and specs/tickets/BS-07 are unchanged by this branch.
+Why: the four defects (#155, #159, #166, #143 SF-041) are tooling defects in the cfg parser,
+the projector loader and scaffolder text. None changes a named Internal.tla/External.tla
+action, variable or invariant of the tla-spec-dev program model. Per the epic's
+model-ownership rule no `open ticket`, `close ticket`, `close_tickets.py` or `--accept-new`
+was run; the epic agent closes and promotes BS-07 at wave merge.
+TLC: N/A (no model delta), per validation.tlc.

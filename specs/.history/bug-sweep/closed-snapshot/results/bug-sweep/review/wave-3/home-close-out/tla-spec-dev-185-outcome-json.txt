@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-185-outcome-json/.skill-manager holds nothing that removing it would destroy
