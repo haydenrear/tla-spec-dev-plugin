@@ -36,7 +36,8 @@ import sys
 import time
 from pathlib import Path
 
-from _common import add_test_graph_root_arg, run_gradle, target_project_root
+from _common import (add_test_graph_root_arg, run_gradle, target_project_root,
+                     project_execution_lock, ProjectExecutionBusy)
 
 SWEEP_LEDGER_ENV = "TEST_GRAPH_SWEEP_LEDGER"
 SWEEP_INIT_SCRIPT = Path(__file__).resolve().parent / "sweep-ledger.init.gradle"
@@ -309,10 +310,20 @@ def main(argv: list[str] | None = None) -> int:
     if not args.resume_from_build and replay_node_count:
         parser.error("--resume-from-build is required with --resume-from-node or --run-only-node")
 
+    if args.fail_fast and not (args.run_all or len(graphs) > 1 or args.keep_going):
+        parser.error("--fail-fast applies to a sweep (--all or more than one graph)")
+    root = target_project_root(args.test_graph_root)
+    args.test_graph_root = str(root)
+    try:
+        with project_execution_lock(root, 'run'):
+            return _run_locked(args, graphs)
+    except ProjectExecutionBusy as error:
+        parser.exit(2, f"error: {error}\n")
+
+
+def _run_locked(args, graphs: list[str]) -> int:
     if args.run_all or len(graphs) > 1 or args.keep_going:
         return run_sweep(args, graphs)
-    if args.fail_fast:
-        parser.error("--fail-fast applies to a sweep (--all or more than one graph)")
 
     # Single-graph path: unchanged. The per-graph task emits its own rollup
     # inline, and Gradle's exit code is the graph's verdict.

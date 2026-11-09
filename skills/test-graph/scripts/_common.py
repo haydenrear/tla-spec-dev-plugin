@@ -30,6 +30,7 @@ projects without path guessing or per-invocation flags.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import json
 import os
 import re
@@ -238,6 +239,43 @@ def target_project_root(override: str | Path | None = None) -> Path:
         "directly, or pass --test-graph-root <path> / set TEST_GRAPH_ROOT."
     )
 
+
+
+class ProjectExecutionBusy(RuntimeError):
+    """The canonical project's output tree is owned by another command."""
+
+
+@contextmanager
+def project_execution_lock(root: Path, command: str):
+    """Fail once on concurrent canonical commands; retain the stable lock inode.
+
+    The parent CLI owns this lock. It is not detached child cleanup proof.
+    Import POSIX support only at execution, so other script imports stay portable.
+    """
+    try:
+        import fcntl
+    except ImportError as error:
+        raise ProjectExecutionBusy('project execution requires POSIX advisory lock support') from error
+    root = Path(root).resolve()
+    state = root / 'build'
+    state.mkdir(parents=True, exist_ok=True)
+    path = state / '.test-graph-execution.lock'
+    with path.open('a+', encoding='utf-8') as handle:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            handle.seek(0)
+            owner = handle.read(512).strip()
+            raise ProjectExecutionBusy(f'project busy: {root}; owner diagnostic: {owner!r}') from error
+        try:
+            handle.seek(0)
+            handle.truncate()
+            handle.write(json.dumps({'pid': os.getpid(), 'command': command[:128]}) + '\n')
+            handle.flush()
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    # Do not unlink: a waiter must never lock a replacement inode.
 
 def _looks_like_test_graph_root(candidate: Path) -> bool:
     """True if ``candidate`` is plausibly a scaffolded test_graph project.
