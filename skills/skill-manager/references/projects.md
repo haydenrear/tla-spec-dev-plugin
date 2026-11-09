@@ -2,7 +2,7 @@
 skill-imports:
   - unit: tla-spec-dev
     path: skills/unit-authoring/references/coords-and-distribution.md
-    reason: Project-manifest unit refs use the same coord grammar as skill_references; the git-coord-only rule (only github:/git+/file: coords resolve) is stated once there.
+    reason: "Project-manifest unit refs use the same coord grammar as skill_references; the git-coord-only rule (only github:/git+/file: coords resolve) is stated once there."
     section: coord-forms
 ---
 
