@@ -590,6 +590,44 @@ blind:
       the shape a graph node would take, and it was thrown away.
     skill_change: "proposed(tla-spec-dev test_graph, add skt.ticket-sweep: synthetic repo, real CLI, dry run and --yes, assert the removed set)"
 
+  - case: "skills/skt/tests/test_ticket_sweep.py -- epic sweep (BS-HP-02)"
+    passes: true
+    could_not_have_caught: >-
+      any sweep of tickets landed by squash. Reproduced 2026-11-08 in scratch
+      repos: tickets merged with real merges were removed correctly and squashed
+      tickets never were, and this repository squashes every ticket PR.
+    why: "fixture shape, not assertion strength"
+    note: "Found by the skill-manager epic's own close-out, not by any graph or test."
+    skill_change: "applied(4ace6307)"
+
+  - case: "test-graph Kotlin suites and graphs -- attempt closure (BS-HP-05)"
+    passes: true
+    could_not_have_caught: >-
+      a closure write failure under TESTGRAPH_CONTINUE_AFTER_FAILURE=1. No test
+      exercised that mode, and the throw was added as a suppressed exception, so
+      even a run in that mode logged nothing. It surfaced only on resume.
+    why: "unexercised mode plus a failure channel nobody reads"
+    skill_change: "applied(ffd83da9)"
+
+  - case: "skills/skt/tests -- `skt check` CLI version probe (BS-HP-04)"
+    passes: true
+    could_not_have_caught: >-
+      UNDECIDED for a real jbang launcher. BS-25's tests simulate a slow
+      launcher; a real cold start over the 5-second budget was never measured
+      (warm launches took 1.2-1.7 s).
+    why: "simulated launcher"
+    skill_change: "applied(4ace6307)"
+
+  - case: "this plugin's tests/ over its own skill text (BS-27, DEF-HP9-002)"
+    passes: true
+    could_not_have_caught: >-
+      wording skill-manager's doc-smoke and onboarding graphs assert. Those
+      assertions live in another repository, so this repository stays green when
+      the text changes. Nothing here pins "project child homes" or the prose
+      form of `scripts/wt` now either.
+    why: "the assertion lives in a different repository"
+    skill_change: "applied(2f3e85c4)"
+
 # =====================================================================
 # PRICE -- declared before, measured after. (§7)
 # `declared_at_commit` is the point of the kind: a price whose declaration

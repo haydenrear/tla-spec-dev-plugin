@@ -1,0 +1,20 @@
+findings:
+  - id: BS-26-D1
+    found_by: "BS-26"
+    found_at_commit: "baf5faccb761ff70584af0e53c8550d298f95684"
+    schedule_revision: 3
+    severity: minor
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["skills/test-graph/specs/program_model/tests/test_fresh_replay_attempt_model.py"]
+      workflow: []
+    summary: "test_fresh_replay_attempt_model.py asserts ATTEMPT_CLOSURE_VERSION = 2; the base already had 3 and BS-26 makes it 4, so the source-text assertion was stale before this ticket. The file also errors at pytest collection when run alone."
+    reproduction: "grep -n 'ATTEMPT_CLOSURE_VERSION = 2' skills/test-graph/specs/program_model/tests/test_fresh_replay_attempt_model.py; compare with ATTEMPT_CLOSURE_VERSION in tasks/RunReportWriter.kt"
+    evidence: ["skills/test-graph/specs/program_model/tests/test_fresh_replay_attempt_model.py:583"]
+    why_out_of_scope: "outside BS-26's conflict key (skills/test-graph/project_sdk_sources/build-logic/src/) and stale before this ticket. The file also errors at pytest collection when run alone."
+    suggested_fix: "assert the current version, or stop pinning the literal version in a source-text test"
+    blast_radius: "that one test"
+    disposition: pending
+    disposition_ticket: null

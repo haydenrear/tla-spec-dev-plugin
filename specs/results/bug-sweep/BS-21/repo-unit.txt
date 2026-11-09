@@ -1,0 +1,15 @@
+E           - Closeout requires the semantic files in current/, desired_program_model/, and the promoted program_model/ to match, every delivered ticket to have one matching successful-close receipt, and every retired ticket to have its exact retirement receipt.
+E           - Compared semantic files: .cfg, .tla, .yaml, .yml (planning files such as README.md, ticket_plan.yaml, and status/notes metadata are ignored).
+E           - Option A: reconcile the models by hand (finish landing current/, promote the converged model into program_model/, mark every ticket closed), then re-run this command.
+E           - Option B: re-run with --accept-new to accept desired_program_model/ as the new current/ and program_model/ automatically (their semantic files are overwritten from desired_program_model/ before the snapshot); tickets must still be marked closed. It runs desired -> current: when desired_program_model/ is the STALE side (it still holds the previous model), --accept-new discards the delivered model.
+E           - `close ticket` carries each delivered delta into desired_program_model/ three ways (#141 SF-075; `desired_carry` in each ticket receipt names what followed, merged, or conflicted). A desired file a receipt lists under desired_carry.conflicts, or a workflow whose tickets closed before that, is reconciled by hand toward current/ and committed before this command.
+
+skills/spec-double-2/scripts/spec_evolution.py:138: SystemExit
+=========================== short test summary info ============================
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_the_close_archives_the_cumulative_ledger_where_a_reader_can_find_it
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_disposition_still_answers_after_the_workflow_it_reports_on_is_closed
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_a_narrative_that_quotes_the_template_sentinel_is_not_blanked
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_an_unfilled_template_narrative_refuses_the_close_unless_forced
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_a_transition_diff_that_quotes_the_template_sentinel_is_not_blanked
+6 failed, 243 passed, 1767 deselected in 48.42s

@@ -1,0 +1,95 @@
+== tla-spec-dev test graphs ==
+registered in test_graph/build.gradle.kts: 5
+  RUN      specWorkflow               the tla-spec-dev workflow end to end (scaffold, open, complete, spec-unit, close) against a disposable git repository, plus the reference-adapter import check
+  RUN      cliWorkflow                the CLI installs from this checkout and answers --help
+  RUN      effectProviderExamples     the committed effect-provider examples execute
+  OPT-IN   sktSurface                 provisions a pinned CPython 3.11/3.13 matrix through uv (net:external) to execute install-skt.sh, the wrapper it writes, the two shipped hooks and the ticket round trip; run it with `python3 test_graph/run-graphs.py --only sktSurface` once uv can reach its interpreter downloads
+  OPT-IN   sktHooks                   the hook-change subset of sktSurface (wrapper + cached-cost + hook contract); same pinned-interpreter provisioning, same opt-in command with --only sktHooks
+  (no dead graphs here)
+
+== managed provider bindings ==
+  build-logic -> ../skills/test-graph/project_sdk_sources/build-logic, sdk -> ../skills/test-graph/project_sdk_sources/sdk, standard-nodes -> ../skills/test-graph/project_sdk_sources/standard-nodes
+  runner: /Users/hayde/IdeaProjects/wt-epic-bug-sweep/skills/test-graph/scripts/run.py
+
+opted in to sktSurface, sktHooks -- these are OPT-IN because they reach the network; you asked for them explicitly.
+
+---- sktSurface ----
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :sktSurface
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'sktSurface' run=20261107-170719 steps=5 fullPlanSteps=5 traceId=5e5b092fd5873ed14b68fa4548d89f01
+  plan[1/5] skt.wrapper-installed  [testbed, uv]  sources/skt_wrapper_installed.py
+  plan[2/5] skt.status-tiers  [assertion, uv]  sources/skt_status_tiers.py
+  plan[3/5] skt.check-cached-costs-one-read  [assertion, uv]  sources/skt_check_cached.py
+  plan[4/5] skt.hook-contract  [assertion, uv]  sources/skt_hook_contract.py
+  plan[5/5] skt.ticket-roundtrip  [assertion, uv]  sources/skt_ticket_roundtrip.py
+  [1/5] skt.wrapper-installed (uv)
+  [2/5] skt.status-tiers (uv)
+  [3/5] skt.check-cached-costs-one-read (uv)
+  [4/5] skt.hook-contract (uv)
+  [5/5] skt.ticket-roundtrip (uv)
+wrote /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170719/summary.json + /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170719/report.md
+testGraph 'sktSurface' done. traceId=5e5b092fd5873ed14b68fa4548d89f01 reports: /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170719
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 9s
+5 actionable tasks: 1 executed, 4 up-to-date
+
+---- sktHooks ----
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :sktHooks
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'sktHooks' run=20261107-170844 steps=3 fullPlanSteps=3 traceId=67a85d887366e4909b9b39fb8db365da
+  plan[1/3] skt.wrapper-installed  [testbed, uv]  sources/skt_wrapper_installed.py
+  plan[2/3] skt.check-cached-costs-one-read  [assertion, uv]  sources/skt_check_cached.py
+  plan[3/3] skt.hook-contract  [assertion, uv]  sources/skt_hook_contract.py
+  [1/3] skt.wrapper-installed (uv)
+  [2/3] skt.check-cached-costs-one-read (uv)
+  [3/3] skt.hook-contract (uv)
+wrote /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170844/summary.json + /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170844/report.md
+testGraph 'sktHooks' done. traceId=67a85d887366e4909b9b39fb8db365da reports: /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170844
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 57s
+5 actionable tasks: 1 executed, 4 up-to-date
+
+== verdicts (read from each run's own summary.json, not from exit codes) ==
+  PASSED    sktSurface                 runner_exit=0  /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170719/summary.json
+  PASSED    sktHooks                   runner_exit=0  /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-170844/summary.json
+
+This command always exits 0. A red or undecided graph is a report, not a refusal.
+rc=0

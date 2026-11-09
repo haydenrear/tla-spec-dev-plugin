@@ -1,0 +1,29 @@
+# RED (a): origin/epic/bug-sweep (baf5faccb761ff70584af0e53c8550d298f95684) main sources + this branch's regression tests
+# build-logic test fails to compile: the base has no persisted continue-after-failure mode
+> Task :compileTestKotlin FAILED
+e: file://build-logic/src/test/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriterTraceTest.kt:615:51 Cannot find a parameter with this name: continueAfterFailure
+e: file://build-logic/src/test/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriterTraceTest.kt:644:51 Cannot find a parameter with this name: continueAfterFailure
+e: file://build-logic/src/test/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriterTraceTest.kt:654:51 Cannot find a parameter with this name: continueAfterFailure
+e: file://build-logic/src/test/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriterTraceTest.kt:690:55 Cannot find a parameter with this name: continueAfterFailure
+e: file://build-logic/src/test/kotlin/com/hayden/testgraphsdk/tasks/RunReportWriterTraceTest.kt:706:51 Cannot find a parameter with this name: continueAfterFailure
+BUILD FAILED in 8s
+
+# RED (b): this branch with only the validator's use of the persisted mode removed
+RunReportWriterTraceTest > continueAfterFailureClosureStillRefusesReplayPastTheFailure FAILED
+    java.lang.IllegalArgumentException at RunReportWriterTraceTest.kt:653
+RunReportWriterTraceTest > continueAfterFailureAttemptIsClosedAndReplayableFromThePersistedMode FAILED
+    java.lang.IllegalArgumentException at RunReportWriterTraceTest.kt:614
+RunReportWriterTraceTest > closureWithoutABooleanContinueAfterFailureIsInvalid FAILED
+    java.lang.IllegalArgumentException at RunReportWriterTraceTest.kt:705
+RunReportWriterTraceTest > continueAfterFailureModeIsReadFromTheClosureNotAssumedAtReplay FAILED
+    java.lang.IllegalArgumentException at RunReportWriterTraceTest.kt:689
+RunReportWriterTraceTest > continueAfterFailureAttemptMayHoldASecondOrdinaryFailure FAILED
+    java.lang.IllegalArgumentException at RunReportWriterTraceTest.kt:643
+65 tests completed, 5 failed
+> Task :test FAILED
+BUILD FAILED in 11s
+continueAfterFailureClosureStillRefusesReplayPastTheFailure :: java.lang.IllegalArgumentException: closed attempt envelope 'cont.after' passed after a non-passing ordinary node but is not a finalizer
+continueAfterFailureAttemptIsClosedAndReplayableFromThePersistedMode :: java.lang.IllegalArgumentException: closed attempt envelope 'cont.after' passed after a non-passing ordinary node but is not a finalizer
+closureWithoutABooleanContinueAfterFailureIsInvalid :: java.lang.IllegalArgumentException: closed attempt envelope 'cont.after' passed after a non-passing ordinary node but is not a finalizer
+continueAfterFailureModeIsReadFromTheClosureNotAssumedAtReplay :: java.lang.IllegalArgumentException: closed attempt envelope 'cont.after' passed after a non-passing ordinary node but is not a finalizer
+continueAfterFailureAttemptMayHoldASecondOrdinaryFailure :: java.lang.IllegalArgumentException: closed attempt envelope 'cont.after' is a second non-passing ordinary node but was not skipped

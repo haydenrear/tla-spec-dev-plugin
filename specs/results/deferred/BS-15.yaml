@@ -1,0 +1,64 @@
+findings:
+- id: BS-15-DF-01
+  found_by: BS-15
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: 'bug-sweep has no deferred ledger yet: census.py exits 2 (NO LEDGER) on the epic branch. A
+    scratch init+absorb takes 32 per-ticket rows and passes, so the epic agent can adopt it at wave close
+    with ''census.py init && census.py absorb''.'
+  reproduction: uv run --with pyyaml python3 skills/git-epic-workflow/scripts/census.py  -> exit 2; specs/results/bug-sweep/BS-15/census-on-bug-sweep-backlogs.txt
+  surface:
+    production:
+    - specs/results/bug-sweep/deferred-ledger.yaml
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: Creating the epic's ledger is epic-owner workflow data; BS-15 ships the tooling only.
+  disposition: pending
+- id: BS-15-DF-02
+  found_by: BS-15
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: 'BS-12-DF-02, other half: validate_epic_plan.py''s default plan path still has no closed-snapshot
+    fallback after workflow close. census.py now falls back (prints which plan it read); validate_epic_plan.py
+    does not.'
+  reproduction: 'After close_tickets.py removes specs/desired_program_model/, run skills/git-epic-workflow/scripts/validate_epic_plan.py
+    with no args: it reads the missing live plan.'
+  surface:
+    production:
+    - skills/git-epic-workflow/scripts/validate_epic_plan.py
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: validate_epic_plan.py is not in BS-15's conflict keys.
+  disposition: pending
+- id: BS-15-DF-03
+  found_by: BS-15
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: git-epic-workflow SKILL.md lists validate_assignment.py and validate_epic_plan.py but not the
+    new scripts/census.py; only references/deferment.md documents it.
+  reproduction: grep -n census skills/git-epic-workflow/SKILL.md  -> no match
+  surface:
+    production:
+    - skills/git-epic-workflow/SKILL.md
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: SKILL.md is not in BS-15's conflict keys (deferment.md ledger section only).
+  disposition: pending
+- id: BS-15-DF-04
+  found_by: BS-15
+  recorded_at: '2026-11-07'
+  severity: minor
+  summary: close_tickets.py (workflow close) does not mark ledger rows or keep closures; only the per-ticket
+    close ticket path does. A closure.yaml handled only at workflow close is invisible to the census.
+  reproduction: grep -n closure skills/spec-double-2/scripts/close_tickets.py -> no match
+  surface:
+    production:
+    - skills/spec-double-2/scripts/close_tickets.py
+    tla: []
+    adapters: []
+    test_graph: []
+  why_out_of_scope: BS-21 owns close_tickets.py this wave; the assignment forbids editing it.
+  disposition: pending

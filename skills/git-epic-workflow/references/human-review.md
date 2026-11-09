@@ -151,6 +151,44 @@ expand to the deeper architectural/options review when its triggers fire. Those
 triggers also apply between waves and during finalization, independently of the
 user's regular review cadence. Review effort should scale with unresolved risk.
 
+### Running a milestone's graphs: `scripts/milestone.py`
+
+When the wave's ticket-scoped evidence is in and you want the milestone's
+graphs run together, run them with the script, not a hand-kept `milestone.sh`.
+The repository declares which graphs make a milestone in
+`<repo>/epic-workflow.toml` (or `--config` / `MILESTONE_CONFIG`):
+
+```toml
+[milestone]
+default = ["cliWorkflow"]   # run first
+shared  = ["loadTest"]      # run only after every default graph is green
+runner  = "skills/test-graph/scripts/run.py"   # optional; else found in the home
+test_graph_root = "test_graph"                 # optional; passed to run.py -R
+lock    = "build/milestone.lock"               # optional
+```
+
+```bash
+python3 <git-epic-workflow>/scripts/milestone.py            # default, then shared
+python3 <git-epic-workflow>/scripts/milestone.py loadTest   # targeted rerun
+```
+
+- It holds one lock (pid, host, start time). A dead owner's lock is reclaimed
+  and the reclaim is printed. A lock held by an **ancestor** of the caller is
+  refused at once (exit 2), never waited on: that wait was a 4.1 h deadlock.
+  Another live owner is refused too.
+- The verdict per graph is read from the `outcome.json` that `run.py` prints
+  last. No `outcome.json`, or a graph absent from it, or a runner that cannot
+  start counts as **errored**.
+- Shared graphs are skipped (`not_run`) while default is not green. A targeted
+  rerun of a shared graph alone checks the last recorded milestone
+  (`build/milestone-last.json`).
+- It prints a per-graph table and exits 0 passed, 1 failed or not run, 3
+  errored with nothing failed, 2 refused. A config with no graphs is refused,
+  not green.
+- `--force` or `SKILL_GATES=off` overrides every gate: it takes over a live
+  lock, runs unlocked under an ancestor's, runs shared graphs although default
+  is red, and lets an empty milestone exit 0 with a warning.
+
 ## 2. When the review happens
 
 **Default: at every wave boundary, and it is a gate.** After the last PR of

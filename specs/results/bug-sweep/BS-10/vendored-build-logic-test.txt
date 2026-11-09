@@ -1,0 +1,17 @@
+# vendored copy examples/distributed_history/test_graph/build-logic, fix applied
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :pluginDescriptors
+> Task :processResources
+> Task :processTestResources NO-SOURCE
+> Task :compileKotlin
+> Task :compileJava NO-SOURCE
+> Task :classes
+> Task :jar
+> Task :pluginUnderTestMetadata
+> Task :compileTestKotlin
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test
+
+BUILD SUCCESSFUL in 6s
+7 actionable tasks: 7 executed

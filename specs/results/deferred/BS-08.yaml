@@ -1,0 +1,133 @@
+# BS-08 (#193) per-ticket deferment inbox (batch policy, budget 5).
+# The epic agent absorbs these rows into the ledger at wave close.
+findings:
+  - id: BS-08-DF-01
+    found_by: BS-08
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - specs/current/case_adapters.toml
+        - specs/current/production_adapters.py
+      test_graph: []
+    summary: >-
+      5a8527bf/2e7ba795 (2026-09-24) added three @command actions to
+      TlaSpecDevCli.tla -- SktStatus, SktCheck, SktTicketSweep -- with no
+      case_adapters.toml binding and no adapter class.
+      specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::
+      test_every_model_action_is_bound stays RED on purpose (the G5 desync
+      check). BS-08 updated only the action COUNT (15 -> 18, stale) and left
+      this check reporting the real gap.
+    reproduction: >-
+      uvx --with pyyaml --with jinja2 pytest
+      specs/current/tests/test_tla_spec_dev_binding_reconciliation.py -q
+    evidence:
+      - specs/results/bug-sweep/BS-08/spec-unit-branch.txt
+    why_out_of_scope: >-
+      Writing three skt adapters is model/adapter authoring for the skt
+      surface (owned by the epic agent as model owner; skt behaviour belongs
+      to BS-05/BS-06/BS-20). BS-08's spec-unit scope is the tests, and
+      binding labels with no adapter would be a stub that games the check.
+    suggested_fix: >-
+      Add SktStatusAdapter/SktCheckAdapter/SktTicketSweepAdapter that drive
+      `skt status|check|ticket sweep --dry-run` in a throwaway repo and
+      project skt_answer, then bind them; or remove the @command tags if the
+      skt actions are meant to be model-only (and say so in the test).
+    blast_radius: One spec-unit test; no shipped behaviour.
+  - id: BS-08-DF-02
+    found_by: BS-08
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: escalate
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      tests/test_architecture_tags.py::test_the_same_tag_control_holds is
+      DELIBERATELY RED (RM-06-DF-01): its docstring says "DO NOT MAKE IT
+      GREEN" and that it goes green only "when the axis can distinguish
+      treatment from architecture, or when the epic decides it cannot and
+      says so". Nine same-tag pairs separate (8 on D2, 1 on D5). Making it
+      green is an owner decision, not a ticket fix, so BS-08 left it red and
+      unmodified. GOAL-BS-SUITE cannot reach 0 without that decision.
+    reproduction: >-
+      uvx --with pyyaml --with jinja2 pytest
+      tests/test_architecture_tags.py::test_the_same_tag_control_holds -q
+    evidence:
+      - specs/results/bug-sweep/BS-08/repository-unit-branch.txt
+    why_out_of_scope: >-
+      Both available repairs (scope the control to D3; drop revision pairs)
+      were explicitly rejected in the test as converting a measurement into
+      a tautology. The remaining move is the epic owner's.
+    suggested_fix: >-
+      Owner decides: (a) keep it red and record it in GOAL-BS-SUITE as the one
+      sanctioned red; or (b) mark it `pytest.mark.xfail(strict=True,
+      reason="RM-06-DF-01 ...")`, which keeps the control's result asserted
+      (an XPASS fails the suite) while taking it out of the failed count.
+    blast_radius: The suite's failed count; no shipped behaviour.
+  - id: BS-08-DF-03
+    found_by: BS-08
+    found_at_commit: a94f0a82
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/spec-double-2/scripts/close_tickets.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      After BS-01 (#208) restored the close refusal for a rejected ledger
+      input, the refusal prints only the FIRST issue, cut at 120 characters
+      (close_tickets.py `first: {first[:120]}`). An unfilled template has two
+      issues (no refinement record, no narrative); the second is never shown
+      and is recorded nowhere, because a refused close writes no ledger entry.
+      specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::
+      test_unfilled_ledger_template_refuses_the_close asserts both are named
+      and is RED on the merged epic branch (it was red on the base for a
+      different, BS-08-fixed reason: the ticket tree had no current/).
+    reproduction: >-
+      uvx --with pyyaml --with jinja2 pytest
+      specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py -q
+    evidence:
+      - specs/results/bug-sweep/BS-08/spec-unit-branch.txt
+    why_out_of_scope: close_tickets.py and the close paths belong to BS-01.
+    suggested_fix: >-
+      Print every verdict error (one per line) in the refusal instead of the
+      first 120 characters of the first one.
+    blast_radius: The refusal message of `close ticket` on a rejected ledger.
+  - id: BS-08-DF-04
+    found_by: BS-08
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production: []
+      tla: []
+      adapters:
+        - specs/current/spec_manifest.yaml
+      test_graph: []
+    summary: >-
+      The manifest's `case_program_write` (filesystem.write `**/programs/case-*`)
+      and `case_program_process` ports describe per-case generated programs
+      that CA-06 (83245518) removed; the citation they carried
+      (run_generated_case_adapters.py `program_path`) matched zero lines.
+      BS-08 repointed the citation at the CA-06 tombstone comment so the
+      citation test is honest, and left the ports themselves alone (model
+      content).
+    reproduction: >-
+      grep -n "programs/case-" specs/current/spec_manifest.yaml;
+      grep -n "write_case_program" skills/spec-double-2/scripts/run_generated_case_adapters.py
+    evidence: []
+    why_out_of_scope: Port declarations are model content owned by the epic agent.
+    suggested_fix: Remove the two dead ports, or show a path that still writes there.
+    blast_radius: Effect-port declarations only.

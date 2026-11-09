@@ -1,0 +1,81 @@
+== skill-manager: skill-manager 0.28.2
+== install fixa
+exit 0
+stale 0 current 6
+== move the store under its record (reviewed pin reconciled; skill-scripts/ untouched)
+3428c19 reviewed
+67250e4 init
+stale 6 current 0
+   unit-store:fixa materialized [] | what is recorded about it does not describe the bytes on disk (records 67250e479989…, store is at 3428c19e532a…)
+   provisioned-tree:cache/skill-script-fixa-fixtool materialized ['unit-store:fixa'] | it is built from unit-store:fixa, which is stale
+   cli-shim:skill-script/fixtool materialized ['unit-store:fixa', 'provisioned-tree:cache/skill-script-fixa-fixtool'] | it is built from unit-store:fixa, provisioned-tree:cache/skill-script-fixa-fixtool, which are stale
+   projection:default:claude:fixa#SYMLINK/target/fixa materialized ['unit-store:fixa'] | it is built from unit-store:fixa, which is stale
+   projection:default:codex:fixa#SYMLINK/target/fixa materialized ['unit-store:fixa'] | it is built from unit-store:fixa, which is stale
+   projection:default:gemini:fixa#SYMLINK/target/fixa materialized ['unit-store:fixa'] | it is built from unit-store:fixa, which is stale
+== independent byte proof: installed skill-scripts/ vs unit source, and the tool runs
+skill-scripts/: identical
+bcdccdffbf8f8f0f2a7bcaa2cc9933f81b2b06820fd83765cb135b39ca271e76  /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/fx-branch/units/fixa/skill-scripts/install-fixtool.sh
+bcdccdffbf8f8f0f2a7bcaa2cc9933f81b2b06820fd83765cb135b39ca271e76  /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/fx-branch/ws/.skill-manager/skills/fixa/skill-scripts/install-fixtool.sh
+fixtool v1
+fixtool exit 0
+== skt build fixtool, run 1
+<frozen runpy>:128: RuntimeWarning: 'skt.cli' found in sys.modules after import of package 'skt', but prior to execution of 'skt.cli'; this may result in unpredictable behaviour
+skt build — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/fx-branch/ws/.skill-manager
+  no-op       cli-shim:skill-script/fixtool
+      stale — its declared inputs moved
+      now: stale
+
+not rebuilt here — nothing in `skt build` produces these:
+  unit-store:fixa  (stale)
+      a unit's store bytes come from its source, not from a local producer — `skill-manager sync fixa`
+  provisioned-tree:cache/skill-script-fixa-fixtool  (stale)
+      no install records that it wrote this tree; the owner shown for it was inferred from the shim that runs out of it, and an inference at the wrong granularity would mark a shared root rebuilt (ARTI-05 review). Build the artifact that runs out of it — its install is what rewrites this tree
+
+3 selected: 0 built, 0 already current, 2 not buildable here
+1 producer(s) ran and wrote nothing — the backend reported the dependency already satisfied from outside this home
+3 of the selected artifact(s) are still stale
+
+status: unresolved-ancestor (exit 4; the CLI said 1) — every attempted artifact was produced, and is still stale only because of an ancestor `skt build` cannot produce:
+  cli-shim:skill-script/fixtool  <-  unit-store:fixa
+repair the ancestor, then build again:
+  unit-store:fixa
+      a unit's store bytes come from its source, not from a local producer — `skill-manager sync fixa`
+  (a unit `sync` re-resolves the whole unit and may rerun its other CLI installers; rebuilding these artifacts again will not change this verdict)
+skt exit 4
+skt --json exit 4
+== skt build fixtool, run 2
+<frozen runpy>:128: RuntimeWarning: 'skt.cli' found in sys.modules after import of package 'skt', but prior to execution of 'skt.cli'; this may result in unpredictable behaviour
+skt build — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/fx-branch/ws/.skill-manager
+  no-op       cli-shim:skill-script/fixtool
+      stale — its declared inputs moved
+      now: stale
+
+not rebuilt here — nothing in `skt build` produces these:
+  unit-store:fixa  (stale)
+      a unit's store bytes come from its source, not from a local producer — `skill-manager sync fixa`
+  provisioned-tree:cache/skill-script-fixa-fixtool  (stale)
+      no install records that it wrote this tree; the owner shown for it was inferred from the shim that runs out of it, and an inference at the wrong granularity would mark a shared root rebuilt (ARTI-05 review). Build the artifact that runs out of it — its install is what rewrites this tree
+
+3 selected: 0 built, 0 already current, 2 not buildable here
+1 producer(s) ran and wrote nothing — the backend reported the dependency already satisfied from outside this home
+3 of the selected artifact(s) are still stale
+
+status: unresolved-ancestor (exit 4; the CLI said 1) — every attempted artifact was produced, and is still stale only because of an ancestor `skt build` cannot produce:
+  cli-shim:skill-script/fixtool  <-  unit-store:fixa
+repair the ancestor, then build again:
+  unit-store:fixa
+      a unit's store bytes come from its source, not from a local producer — `skill-manager sync fixa`
+  (a unit `sync` re-resolves the whole unit and may rerun its other CLI installers; rebuilding these artifacts again will not change this verdict)
+skt exit 4
+skt --json exit 4
+== repair the ancestor with its printed remedy (isolated: one unit, one CLI)
+sync exit 0
+stale 0 current 6
+== skt build fixtool, after repair
+<frozen runpy>:128: RuntimeWarning: 'skt.cli' found in sys.modules after import of package 'skt', but prior to execution of 'skt.cli'; this may result in unpredictable behaviour
+skt build — /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/fx-branch/ws/.skill-manager
+  skipped     cli-shim:skill-script/fixtool
+      already current — pass --force to rebuild it anyway
+
+1 selected: 0 built, 1 already current, 0 not buildable here
+skt exit 0

@@ -1,5 +1,0 @@
-MF-021 regression suite against the FIXED implementation.
-
-$ uv run --with pytest -m pytest tests/test_promotion_preserves_current.py -q
-......                                                                   [100%]
-6 passed in 0.03s

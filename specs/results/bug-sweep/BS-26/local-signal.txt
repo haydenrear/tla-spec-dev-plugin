@@ -1,0 +1,10 @@
+E         Left contains 9 more items, first extra item: {'example': 'ab_quota_ledger', 'a': 'arm_a', 'b': 'rd06_artifact_D', 'value': 'effectful', ...}
+E         Use -v to get more diff
+
+tests/test_architecture_tags.py:477: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 178 passed in 31.72s
+
+Classification: no measurable movement. This is the assigned `-x --lf` command, so it stopped at its first failure and is not a full count. The failing test (test_the_same_tag_control_holds) does not involve the test-graph SDK this ticket changes.

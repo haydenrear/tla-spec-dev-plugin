@@ -1,0 +1,4 @@
+# post-merge HEAD bb5cd8cb: uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'ticket or wt or sweep'
+........................................................................ [ 95%]
+.......                                                                  [100%]
+151 passed, 253 deselected in 140.95s (0:02:20)

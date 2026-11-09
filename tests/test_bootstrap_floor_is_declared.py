@@ -36,7 +36,35 @@ FLOOR = ROOT / "bootstrap-floor.toml"
 # ~200 MB of editor snapshots, and walking it turned the sweep below from a
 # third of a second into minutes.
 PRUNED = {".git", ".history", "__pycache__", "build", "node_modules",
-          ".skill-manager", ".gradle", ".venv", ".idea", "dist", ".pytest_cache"}
+          ".skill-manager", ".gradle", ".venv", ".idea", "dist", ".pytest_cache",
+          ".claude", ".codex", ".gemini"}
+
+
+def _candidate_tomls() -> list[Path]:
+    """Every .toml that is this plugin's source: tracked or untracked-not-ignored.
+
+    BS-08: this sweep used `os.walk` with a hand-kept prune list, and it went
+    red in any checkout where skill-manager had installed the plugin into the
+    repository's own `.claude/plugins/cache/` and `.codex/plugins/cache/` --
+    gitignored install fan-out that holds COPIES of `bootstrap-floor.toml`.
+    The answer depended on what had been installed, not on the source. Git's
+    own view (`--cached --others --exclude-standard`) is the source by
+    definition, still catches a duplicate that is not yet committed, and never
+    walks `.history`. The walk is kept only for a checkout without git.
+    """
+    import subprocess
+
+    listed = subprocess.run(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.toml"],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    if listed.returncode == 0:
+        return [ROOT / rel for rel in listed.stdout.split("\0") if rel and (ROOT / rel).is_file()]
+    found: list[Path] = []
+    for dirpath, dirnames, filenames in os.walk(ROOT):
+        dirnames[:] = [d for d in dirnames if d not in PRUNED]
+        found.extend(Path(dirpath) / name for name in filenames if name.endswith(".toml"))
+    return found
 
 
 def _floor_table() -> dict:
@@ -63,19 +91,14 @@ def test_exactly_one_file_declares_a_floor():
     """
     scanned = 0
     declaring: list[str] = []
-    for dirpath, dirnames, filenames in os.walk(ROOT):
-        dirnames[:] = [d for d in dirnames if d not in PRUNED]
-        for name in filenames:
-            if not name.endswith(".toml"):
-                continue
-            path = Path(dirpath) / name
-            try:
-                text = path.read_text()
-            except (OSError, UnicodeDecodeError):
-                continue
-            scanned += 1
-            if "[skill_manager]" in text and "minimum" in text:
-                declaring.append(str(path.relative_to(ROOT)))
+    for path in _candidate_tomls():
+        try:
+            text = path.read_text()
+        except (OSError, UnicodeDecodeError):
+            continue
+        scanned += 1
+        if "[skill_manager]" in text and "minimum" in text:
+            declaring.append(str(path.relative_to(ROOT)))
 
     # NON-VACUITY. An empty sweep is not a passing sweep — with `scanned == 0`
     # the assertion below would hold because nothing was read, which is the

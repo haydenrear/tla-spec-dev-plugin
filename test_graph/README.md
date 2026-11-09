@@ -23,13 +23,18 @@ green. The command always exits 0: it reports, it does not gate.
 # bound to (a project or worktree `.skill-manager`), and only that copy matches
 # the units this checkout was resolved against. See
 # references/runtime_requirements.md, "Which Skill Manager home those tools come from".
-"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/discover.py specWorkflow
-"$SKILL_MANAGER_HOME"/skills/test-graph/scripts/run.py specWorkflow
+"$SKILL_MANAGER_HOME"/plugins/tla-spec-dev/skills/test-graph/scripts/discover.py specWorkflow
+"$SKILL_MANAGER_HOME"/plugins/tla-spec-dev/skills/test-graph/scripts/run.py specWorkflow
 ```
 
-After SI-02 this repository carries the test-graph skill itself, so
-`skills/test-graph/scripts/run.py` is the copy that matches this checkout and is
-what `run-graphs.py` prefers.
+The graphs use the test-graph skill **installed in the home** (contained in the
+`tla-spec-dev` plugin), not the in-repo `skills/test-graph` source.
+`provider-bindings.json` declares only the `skill-root` candidate, so the runner
+you invoke decides which SDK the `build-logic`/`sdk`/`standard-nodes` links
+point at. Do not run `python3 skills/test-graph/scripts/run.py` here: that binds
+the graphs back to the working-tree copy. An edit to `skills/test-graph` reaches
+the graphs once it is merged and pulled into the home with
+`skt sync tla-spec-dev`.
 
 **Do not run `cd test_graph && ./gradlew <graph>` in a fresh worktree.**
 `settings.gradle.kts` includes the build `build-logic`, which is a *managed

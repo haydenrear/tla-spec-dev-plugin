@@ -1,0 +1,31 @@
+# base origin/epic/bug-sweep d9c20ee4
+
+tests/test_close_ticket_deferred_ledger.py:138: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_close_ticket_deferred_ledger.py::test_close_marks_closed_review_closed_and_also_rows_and_the_census_passes
+FAILED tests/test_close_ticket_deferred_ledger.py::test_close_without_a_ledger_keeps_the_closure_and_never_blocks
+FAILED tests/test_close_ticket_deferred_ledger.py::test_close_with_an_unrecorded_id_warns_and_the_census_fails
+FAILED tests/test_close_ticket_deferred_ledger.py::test_close_without_a_closure_leaves_the_ledger_alone
+4 failed in 7.52s
+E        +  where '' = CompletedProcess(args=['/Users/hayde/.cache/uv/builds-v0/.tmpquhoYx/bin/python', '/private/tmp/claude-501/-Users-hayde...-481a317067b5/scratchpad/base-bs15/skills/git-epic-workflow/scripts/census.py': [Errno 2] No such file or directory\n").stdout
+
+skills/git-epic-workflow/scripts/tests/test_census.py:216: AssertionError
+=========================== short test summary info ============================
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_vacuum_empty_ledger_and_no_closures_is_not_green
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_missing_ledger_is_its_own_red
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_reconciled_epic_passes
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_per_ticket_row_missing_from_the_ledger_fails
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_per_ticket_file_disagreeing_with_the_ledger_fails
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_unreadable_disposition_is_drift
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_open_row_already_fixed_in_a_merged_closure_fails[closed]
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_open_row_already_fixed_in_a_merged_closure_fails[review_closed]
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_open_row_already_fixed_in_a_merged_closure_fails[also]
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_closed_by_a_later_ticket_is_counted_and_named
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_duplicate_naming_no_recorded_original_fails
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_closure_naming_an_unrecorded_id_fails
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_force_reports_and_exits_zero[flag]
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_force_reports_and_exits_zero[env]
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_census_reads_the_closed_snapshot_plan_after_workflow_close
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_record_gives_ids_and_names_the_original_then_absorb_reconciles
+FAILED skills/git-epic-workflow/scripts/tests/test_census.py::test_record_without_per_ticket_backlog_writes_the_ledger
+17 failed in 0.97s

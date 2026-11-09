@@ -65,7 +65,11 @@ LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #      assert_worktree_outside_integration, assert_parent_clean, $PY.
 #   2  SI-17 moved `wt` out of this unit and into skt. A script here can no
 #      longer spell the front door as "$SCRIPT_DIR/wt", so: wt_bin().
-WORKTREE_LIB_ABI=2
+#   3  bug-sweep BS-06 (#183, #184, #171): ticket_worktree_from_git,
+#      provision_worktree, foreign_target_link. skt's `ticket new --path`
+#      sources this file to provision a declared-path worktree, so the hook and
+#      the target/ check have ONE implementation for both creation routes.
+WORKTREE_LIB_ABI=3
 
 die()  { printf 'error: %s\n' "$*" >&2; exit 1; }
 info() { printf '  %s\n' "$*" >&2; }
@@ -386,6 +390,137 @@ ticket_worktree_candidates() {
     [ -f "$c/.git" ] || continue
     (cd "$c" && pwd -P)
   done
+}
+
+# Every worktree of $1 whose checked-out branch is feature/<TICKET>, asked of
+# GIT rather than of the filesystem (#183). One physical path per line.
+#
+# ticket_worktree_candidates looks only in `worktree_parent_dir`, so a worktree
+# created with `skt ticket new T --path /Volumes/dev/wt-T` — beside nothing —
+# was invisible to `close`, and every caller fell back to a bare `git worktree
+# remove`, which skips the close-out gate and the plugin pre-remove callbacks.
+# The repo already KNOWS where its worktrees are; this asks it first, and the
+# directory search stays as the fallback for a caller standing in another repo.
+ticket_worktree_from_git() {
+  local root="$1" ticket="$2" p
+  git -C "$root" worktree list --porcelain 2>/dev/null \
+    | awk -v want="refs/heads/feature/$ticket" '
+        /^worktree /{ wt = substr($0, 10) }
+        /^branch /  { if (substr($0, 8) == want) print wt }' \
+    | while IFS= read -r p; do
+        [ -d "$p" ] && (cd "$p" && pwd -P)
+      done
+}
+
+# The physical destination of <wt>/target when it is a symlink that leaves the
+# worktree (#171); empty otherwise. A dangling link prints its raw target.
+#
+# A worktree whose target/ points into another checkout shares that checkout's
+# build outputs: cargo hashes both checkouts identically, so binaries built here
+# overwrite the other's, carry THIS worktree's absolute paths, and break the
+# moment the worktree is removed.
+foreign_target_link() {
+  local wt="$1" link="$1/target" dest wtp
+  [ -L "$link" ] || return 0
+  wtp="$(cd "$wt" && pwd -P)"
+  dest="$(cd "$link" 2>/dev/null && pwd -P)" || dest="$(readlink "$link")"
+  case "$dest" in
+    "$wtp"|"$wtp"/*) return 0 ;;
+  esac
+  printf '%s\n' "$dest"
+}
+
+# The `[worktree] provision` hook a checkout declares in skill-project.toml;
+# empty when none. Exit 2 (with the reason on stderr) when the manifest cannot
+# be read — a hook that MIGHT be declared is not one to skip silently.
+provision_hook() {
+  local manifest="$1/skill-project.toml"
+  [ -f "$manifest" ] || return 0
+  "$PY" - "$manifest" <<'PYEOF'
+import re, sys
+path = sys.argv[1]
+try:
+    import tomllib
+except ImportError:            # python < 3.11: the one key, read by hand
+    tomllib = None
+try:
+    if tomllib is not None:
+        with open(path, "rb") as fh:
+            value = (tomllib.load(fh).get("worktree") or {}).get("provision")
+    else:
+        value, table = None, None
+        for line in open(path, encoding="utf-8"):
+            line = line.split("#", 1)[0].strip()
+            m = re.match(r"^\[([^\]]+)\]$", line)
+            if m:
+                table = m.group(1).strip()
+                continue
+            m = re.match(r'^provision\s*=\s*["\'](.*)["\']$', line)
+            if table == "worktree" and m:
+                value = m.group(1)
+except Exception as exc:
+    print("cannot read %s: %s" % (path, exc), file=sys.stderr)
+    sys.exit(2)
+if value is not None and not isinstance(value, str):
+    print("%s: [worktree] provision must be a string path" % path, file=sys.stderr)
+    sys.exit(2)
+if value:
+    print(value)
+PYEOF
+}
+
+# provision_worktree <wt> — what a fresh worktree needs beyond `git worktree
+# add` and its home, run ONCE by whichever route created it (#184, #171):
+#
+#   1. the repository's declared `[worktree] provision` hook, run in <wt> with
+#      WT_ROOT (the worktree) and WT_MAIN (the main checkout) exported. Its
+#      stdout goes to stderr: the caller's stdout is a contract.
+#   2. a target/ symlink that leaves the worktree is REPLACED with a real,
+#      per-worktree directory, after the hook — a hook is a likely author of one.
+#
+# Returns 0, or non-zero with PROVISION_ERROR naming the hook and PROVISION_FIX
+# the command that re-runs it. PROVISION_UNSHARED holds the replaced link's old
+# destination, so the caller can say so.
+provision_worktree() {
+  local wt="$1" hook path rc main
+  PROVISION_ERROR=""; PROVISION_FIX=""; PROVISION_UNSHARED=""
+  wt="$(cd "$wt" && pwd -P)"
+  if ! hook="$(provision_hook "$wt")"; then
+    PROVISION_ERROR="cannot read [worktree] provision from $wt/skill-project.toml (reason in the log)"
+    PROVISION_FIX="$PY -c 'import tomllib; tomllib.load(open(\"$wt/skill-project.toml\", \"rb\"))'"
+    return 2
+  fi
+  if [ -n "$hook" ]; then
+    case "$hook" in /*) path="$hook" ;; *) path="$wt/$hook" ;; esac
+    PROVISION_FIX="(cd $wt && $hook)"
+    if [ ! -f "$path" ]; then
+      PROVISION_ERROR="[worktree] provision hook '$hook' (skill-project.toml) does not exist at $path"
+      return 1
+    fi
+    main="$(main_checkout_root "$wt" 2>/dev/null || true)"
+    info "provision: running [worktree] provision hook '$hook' in $wt"
+    rc=0
+    if [ -x "$path" ]; then
+      (cd "$wt" && WT_ROOT="$wt" WT_MAIN="$main" "$path") >&2 || rc=$?
+    else
+      (cd "$wt" && WT_ROOT="$wt" WT_MAIN="$main" bash "$path") >&2 || rc=$?
+    fi
+    if [ "$rc" != 0 ]; then
+      PROVISION_ERROR="[worktree] provision hook '$hook' (skill-project.toml) failed with exit $rc in $wt"
+      return 1
+    fi
+    info "provision: hook '$hook' ok"
+  fi
+  PROVISION_UNSHARED="$(foreign_target_link "$wt")"
+  if [ -n "$PROVISION_UNSHARED" ]; then
+    rm -f "$wt/target" && mkdir "$wt/target" || {
+      PROVISION_ERROR="$wt/target links to $PROVISION_UNSHARED (another checkout's build output) and could not be replaced"
+      PROVISION_FIX="rm $wt/target && mkdir $wt/target"
+      return 1
+    }
+    info "provision: replaced target -> $PROVISION_UNSHARED with a per-worktree target/ (a shared one poisons the other checkout's binaries, #171)"
+  fi
+  return 0
 }
 
 # Refuse a worktree path that lands inside an integration repo's working tree.

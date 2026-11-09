@@ -1,0 +1,36 @@
+# base: df48724c1ced68a3f6db17251e37e30aa041fd64 (origin/epic/bug-sweep at dispatch), production files reverted, regression file kept
+E       AssertionError: error: no worktree for ticket T: not at /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_183_close_finds_a_declare0/repo-T (where new-change.sh would put repo's), and nothing named '*-T' in /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_183_close_finds_a_declare0
+E         fix:   git -C "/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_183_close_finds_a_declare0/repo" worktree list
+E         
+E       assert 1 == 0
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_184_hook_runs_once_throug0/hook-runs.log'
+E       AssertionError: created ticket worktree for H2:
+E         worktree   /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_184_failing_hook_fails_ti0/repo-H2
+E         branch     feature/H2 (standalone repo repo)
+E         launch     none — this worktree has no home; an agent here uses the operator's GLOBAL home
+E         close      skt ticket close — or: /Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/skills/skt/scripts/wt close H2
+E         
+E         A skill edit inside that worktree's home is in no git diff; run `skt publish` there before closing, or the close gate will refuse.
+E         
+E       assert 0 != 0
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_184_hook_runs_once_and_fa0/hook-runs.log'
+E       AssertionError: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_ticket_new_replaces_a0/repo-S1/target must be the worktree's own directory, not a link to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_ticket_new_replaces_a0/main-target
+E       assert (True and not True)
+E        +  where True = is_dir()
+E        +    where is_dir = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_ticket_new_replaces_a0/repo-S1/target').is_dir
+E        +  and   True = is_symlink()
+E        +    where is_symlink = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_ticket_new_replaces_a0/repo-S1/target').is_symlink
+E       AssertionError: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_declared_path_replace0/wt-S2/target must be the worktree's own directory, not a link to /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_declared_path_replace0/main-target
+E       assert (True and not True)
+E        +  where True = is_dir()
+E        +    where is_dir = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_declared_path_replace0/wt-S2/target').is_dir
+E        +  and   True = is_symlink()
+E        +    where is_symlink = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-269/test_171_declared_path_replace0/wt-S2/target').is_symlink
+FAILED skills/skt/tests/test_ticket_lifecycle.py::test_183_close_finds_a_declared_path_worktree_outside_the_parent
+FAILED skills/skt/tests/test_ticket_lifecycle.py::test_184_hook_runs_once_through_ticket_new
+FAILED skills/skt/tests/test_ticket_lifecycle.py::test_184_failing_hook_fails_ticket_new_and_names_it
+FAILED skills/skt/tests/test_ticket_lifecycle.py::test_184_hook_runs_once_and_fails_loudly_through_declared_path
+FAILED skills/skt/tests/test_ticket_lifecycle.py::test_171_ticket_new_replaces_a_target_link_into_another_checkout
+FAILED skills/skt/tests/test_ticket_lifecycle.py::test_171_declared_path_replaces_a_target_link_into_another_checkout
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_171_a_target_link_inside_the_worktree_is_left_alone
+6 failed, 1 passed in 11.41s

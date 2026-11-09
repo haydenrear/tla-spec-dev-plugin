@@ -111,9 +111,8 @@ Version is $NEW in both manifests. Nothing was committed.
 
 Next:
   git add -A && git commit -m "release $NEW"
-  git tag "v$NEW"     # only needed for `skill-manager publish` (the registry
-                      # path refuses a version with no matching tag). A plain
-                      # git-coord install/sync does not use tags.
+  git tag "v$NEW"     # optional: a pinnable ref (github:owner/repo#v$NEW). A
+                      # plain git-coord install/sync does not use tags.
   # push, then consumers: skill-manager sync $(plugin_json_get "$ROOT" name) --git-latest
   #   (a green sync is NOT evidence the bytes moved — compare gitHash in
   #    \$SKILL_MANAGER_HOME/installed/<plugin>.json against the pushed HEAD)

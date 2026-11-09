@@ -76,7 +76,11 @@ def test_an_unreadable_verdict_is_refused_not_defaulted(tmp_path) -> None:
 
 def test_the_corpus_gate_states_its_verdict_as_data(tmp_path) -> None:
     """End to end through the real CLI, because a library nobody calls is not a fix."""
-    corpus = REPO_ROOT / "examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases"
+    # BS-08: the committed example corpus moved here from
+    # examples/distributed_history/specs/generated/, which 76ef2758 ("removed
+    # generated", 2026-09-14) deleted and gitignored. Restored byte-for-byte from
+    # 76ef2758^ as a TEST fixture, outside any directory a generator writes.
+    corpus = REPO_ROOT / "tests/fixtures/distributed_history_generated/testgraph/ecommerce_external_cases"
     out = tmp_path / "verdict.json"
     proc = subprocess.run(
         [sys.executable, str(SKILL_ROOT / "scripts" / "corpus_diagnostics.py"),

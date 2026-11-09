@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-exec python3 "/Users/hayde/IdeaProjects/wt-43-mf027-effect-oracle-observability/scripts/tla_spec_dev.py" "$@"

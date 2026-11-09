@@ -116,6 +116,69 @@ For all registered graphs:
 <skill>/scripts/run.py --all
 ```
 
+A sweep (`--all`, several graphs, or `--continue`) ends with one status per
+graph, counted from that invocation only and written to
+`build/validation-sweeps/<id>/sweep.json`. `FAILED` and `ERRORED` need opposite
+responses, so read the status before reading code:
+
+| Status | Means | Do | Sweep exit |
+| --- | --- | --- | --- |
+| `FAILED` | a node completed and an assertion was red (the graph's own `summary.json` says `failed`) | investigate the code | 1 |
+| `ERRORED` | the run did not complete: the Gradle process or daemon died mid-task, or a node never reported a verdict | retry, or fix the environment | 3 (when nothing failed) |
+| `NOT RUN` | Gradle never started it (stopped earlier, or never scheduled) | see the reason column | 1 |
+
+`sweep.py --retry-failed-from` resumes a `FAILED` graph from its first failing
+node and restarts an `ERRORED` one.
+
+### Read `outcome.json`, not the log
+
+Every `run.py` invocation -- one graph, several, `--all`, or a resume -- writes
+`build/validation-sweeps/<id>/outcome.json` and prints its absolute path as the
+**last line of stdout**, so a caller reads the outcome rather than grepping
+logs or parsing `report.md`:
+
+```bash
+out=$(<skill>/scripts/run.py <graph> | tail -n 1)
+jq '.status, .exit_code' "$out"
+jq '.graphs[] | {graph, status, cause, nodes: [.nodes[] | {node, status, cause}]}' "$out"
+```
+
+Exit codes are the same for one graph or many: **0** passed, **1** a graph
+`FAILED` or did not run, **3** a graph `ERRORED` and none failed.
+
+Per graph and per node it records `status` (`passed | failed | errored |
+not_run`), a `cause`, `duration_seconds`, `timeout_bound_seconds`, the host
+`load_avg_start` / `load_avg_end` (1/5/15-minute) and the `report_dir`:
+
+| `cause` | status | Means |
+| --- | --- | --- |
+| `assertion` | `failed` | the node completed and an assertion was red; investigate the code |
+| `timeout` | `errored` | the node outlived its timeout bound (`timeout_bound_seconds`) and was force-killed; check `load_avg_*` before you suspect the code |
+| `signal` | `errored` | the node process was killed by a signal (exit > 128) |
+| `crash` | `errored` | the node exited without writing a verdict |
+| `runner_died` | `errored` | Gradle or the daemon died mid-graph (the node was in flight) |
+| `no_run_dir` | `errored` | the graph task threw before allocating a run directory, so no node ran -- e.g. a node describe that failed on every retry (`NodeDescribeErroredException`) |
+| `skipped` / `not_scheduled` | `not_run` | stopped after an earlier failure, or never scheduled |
+
+A graph with a red node is `FAILED` even when another node errored: a red
+assertion outranks an error. The SDK stamps a node's timeout bound only into a
+timed-out envelope, so `timeout_bound_seconds` is `null` for a node that did not
+time out.
+
+### Keep running nodes after a failure: `--continue-after-failure`
+
+A graph stops at its first red node and reports the rest `not_run`. For a graph
+of independent scenarios measured together ("N of M"), or a deliberately red
+baseline, run every node anyway:
+
+```bash
+<skill>/scripts/run.py <graph> --continue-after-failure
+```
+
+It sets `TESTGRAPH_CONTINUE_AFTER_FAILURE=1` for `PlanExecutor`. Every node
+still reports its own status in `outcome.json`, and the run still fails. It is
+**not** `--continue`, which keeps a sweep going across *graphs*.
+
 ## Add Nodes
 
 Run node generators from the user repo root or anywhere inside the scaffold.
@@ -280,6 +343,35 @@ Gradle daemon while debugging:
 ```bash
 GRADLE_OPTS='-Dorg.gradle.daemon=false' python3 $(for d in "$SKILL_MANAGER_HOME"/skills/test-graph "$SKILL_MANAGER_HOME"/plugins/*/skills/test-graph; do [ -d "$d" ] && { printf %s "$d"; break; }; done)/scripts/run.py <graph>
 ```
+
+### Resume: the front door
+
+`--resume <report>` is the one command for resuming a red run. It wraps the
+explicit commands below, and writes the same `outcome.json` as a fresh run (its
+path is still the last stdout line), with a `resume` block naming the source
+report, node and mode:
+
+```bash
+<skill>/scripts/run.py --resume build/validation-reports/<runId>               # first failed/errored node
+<skill>/scripts/run.py --resume <runId> --from-node <node-id>                  # chosen node, then downstream
+<skill>/scripts/run.py --resume <runId> --only-node <node-id>                  # that node only
+<skill>/scripts/run.py --resume "$(<skill>/scripts/run.py --resume <runId> | tail -n 1)"   # chain
+```
+
+- With no node selector it resumes from the report's **first `failed` or
+  `errored` node** in plan order. A resume report's plan is its tail, so a
+  resume of a resume runs only the tail, never a node an earlier attempt passed.
+- `<report>` may be absolute or **relative** — tried against the current
+  directory, then the test-graph root, then its `build/validation-reports/` —
+  a bare `<runId>`, a file inside a report (`summary.json`, `report.md`), or a
+  single-graph `outcome.json`. That last form is what chains: each resume's
+  last stdout line is the next one's `<report>`.
+- `<graph>` is optional; it is read from the report, and a mismatch is refused.
+- It refuses, before Gradle starts (exit 2), a report with nothing red and no
+  selector, and a node with no saved `context/<node-id>.input.json`.
+- `--resume-from-node` / `--run-only-node` are accepted as synonyms of
+  `--from-node` / `--only-node` here. The explicit `--resume-from-build` form
+  keeps working and resolves a relative path the same way.
 
 ### Resume a graph from a saved build
 

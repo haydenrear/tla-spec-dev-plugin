@@ -85,8 +85,8 @@ skill-manager list
 
 Extra validation by kind:
 
-- Skill/plugin: `skill-manager publish <dir> --dry-run` validates the
-  registry package path for currently supported publish shapes.
+- Skill/plugin: `skill-manager unit validate <dir>` validates the
+  unit's markdown imports (`install --dry-run` does not).
 - Doc-repo: bind into a disposable project and inspect `docs/agents/`,
   `CLAUDE.md`, and `AGENTS.md`.
 - Harness: instantiate with explicit `--claude-config-dir`,

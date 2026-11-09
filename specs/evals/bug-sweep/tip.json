@@ -1,0 +1,1011 @@
+{
+ "cases": {
+  "compose-a-behavioural-graph": {
+   "commit": "b672cf35",
+   "unit": "test-graph",
+   "rc": 0,
+   "secs": 329,
+   "result": "2026-11-09T00-44-15-345Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 1.1377734,
+   "status": "green"
+  },
+  "w-tg-run-a-graph-not-bare-gradle": {
+   "commit": "b672cf35",
+   "unit": "test-graph",
+   "rc": 0,
+   "secs": 66,
+   "result": "2026-11-09T00-49-44-417Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.22095660000000003,
+   "status": "green"
+  },
+  "start-from-the-spec-not-the-source": {
+   "commit": "b672cf35",
+   "unit": "discovery",
+   "rc": 0,
+   "secs": 126,
+   "result": "2026-11-09T00-50-51-768Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.6314786,
+   "status": "green"
+  },
+  "w-misc-plugin-repo-finalize-sh": {
+   "commit": "b672cf35",
+   "unit": "plugin-repository",
+   "rc": 0,
+   "secs": 63,
+   "result": "2026-11-09T00-53-03-080Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.16095820000000002,
+   "status": "green"
+  },
+  "w-misc-plugin-repo-home-does-not-sandbox-install": {
+   "commit": "b672cf35",
+   "unit": "plugin-repository",
+   "rc": 0,
+   "secs": 80,
+   "result": "2026-11-09T00-54-06-826Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.29898030000000003,
+   "status": "green"
+  },
+  "w-misc-debug-bounded-wait": {
+   "commit": "b672cf35",
+   "unit": "unnested",
+   "rc": 0,
+   "secs": 65,
+   "result": "2026-11-09T00-55-22-190Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.11657740000000001,
+   "status": "green"
+  },
+  "w-misc-otlp-endpoint-native-runner": {
+   "commit": "b672cf35",
+   "unit": "unnested",
+   "rc": 1,
+   "secs": 61,
+   "result": "2026-11-09T00-56-26-689Z",
+   "undecided": false,
+   "score": 0.75,
+   "cost": 0.1331448,
+   "status": "triaged",
+   "triage": "out of scope: exercises the tracing skill, which this plugin does not ship; agent reported no installed skill covers it. Unrelated to the epic."
+  },
+  "a-work-order-not-a-wish": {
+   "commit": "b672cf35",
+   "unit": "git-issue",
+   "rc": 0,
+   "secs": 134,
+   "result": "2026-11-09T00-57-54-273Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.39452370000000003,
+   "status": "green"
+  },
+  "w-misc-issue-body-names-home-closeout": {
+   "commit": "b672cf35",
+   "unit": "git-issue",
+   "rc": 0,
+   "secs": 106,
+   "result": "2026-11-09T01-00-08-469Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2859417,
+   "status": "green"
+  },
+  "w-misc-issue-names-rubric-not-copies": {
+   "commit": "b672cf35",
+   "unit": "git-issue",
+   "rc": 0,
+   "secs": 86,
+   "result": "2026-11-09T01-01-49-313Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2713452,
+   "status": "green"
+  },
+  "epic-provisions-a-ticket-worktree": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 1,
+   "secs": 54,
+   "result": "2026-11-09T01-04-28-708Z",
+   "undecided": true,
+   "score": 0.3333333333333333,
+   "cost": 0.19749000000000003,
+   "status": "undecided"
+  },
+  "w-epic-merged-by-is-epic-owner": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 0,
+   "secs": 54,
+   "result": "2026-11-09T01-07-37-208Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.342458,
+   "status": "green"
+  },
+  "w-epic-plan-free-form-lane": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 0,
+   "secs": 55,
+   "result": "2026-11-09T01-08-30-721Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.196893,
+   "status": "green"
+  },
+  "epic-mode-is-not-main": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 1,
+   "secs": 74,
+   "result": "2026-11-09T01-11-07-941Z",
+   "undecided": false,
+   "score": 0.3333333333333333,
+   "cost": 0.36640139999999993,
+   "status": "triaged",
+   "triage": "instrument false negative: agent's plan is correct (epic base, stops at PR open, no self-merge); checker epic_plan.py matched a non-proposing line. Reproduced twice at 0.33. Filed as finding."
+  },
+  "w-epic-assignment-no-force-on-blocking": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 0,
+   "secs": 43,
+   "result": "2026-11-09T01-12-22-041Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1929904,
+   "status": "green"
+  },
+  "w-epic-force-when-owner-decided": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 1,
+   "secs": 52,
+   "result": "2026-11-09T01-13-05-289Z",
+   "undecided": false,
+   "score": 0.8571428571428571,
+   "cost": 0.26708599999999993,
+   "status": "triaged",
+   "triage": "only within-budget (weight 1) failed; the substantive graders passed."
+  },
+  "w-epic-retire-part-of-goal-warns-only": {
+   "commit": "b672cf35",
+   "unit": "git-epic-workflow",
+   "rc": 0,
+   "secs": 71,
+   "result": "2026-11-09T01-13-57-697Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2710194,
+   "status": "green"
+  },
+  "use-the-front-door": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 70,
+   "result": "2026-11-09T01-17-02-811Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2521022,
+   "status": "green"
+  },
+  "w-giw-bootstrap-cross-home-is-not-old-cli": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 56,
+   "result": "2026-11-09T01-28-24-875Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1578909,
+   "status": "green"
+  },
+  "w-giw-epic-ticket-plan-values-win": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 72,
+   "result": "2026-11-09T01-29-21-805Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.32958580000000004,
+   "status": "green"
+  },
+  "w-giw-epic-ticket-stops-on-wrong-pr-base": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 40,
+   "result": "2026-11-09T01-30-33-488Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1814754,
+   "status": "green"
+  },
+  "w-giw-exit6-is-unreadable-frontmatter": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 43,
+   "result": "2026-11-09T01-31-12-454Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1490512,
+   "status": "green"
+  },
+  "w-giw-wt-close-no-force-on-unpublished": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 45,
+   "result": "2026-11-09T01-31-54-345Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.14029950000000002,
+   "status": "green"
+  },
+  "w-giw-wt-new-dirty-ok": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 50,
+   "result": "2026-11-09T01-32-39-648Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1933664,
+   "status": "green"
+  },
+  "w-giw-wt-refusal-quotes-subject": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 1,
+   "secs": 51,
+   "result": "2026-11-09T01-33-29-674Z",
+   "undecided": false,
+   "score": 0.75,
+   "cost": 0.1834744,
+   "status": "triaged",
+   "triage": "environment: sandbox blocks git/dev-fd, so close never reaches the subject line. Scored 0.75 with the root home's base skt too, so not a regression. Harness finding."
+  },
+  "w-giw-wt-stale-branch-point": {
+   "commit": "b672cf35",
+   "unit": "git-issue-workflow",
+   "rc": 0,
+   "secs": 45,
+   "result": "2026-11-09T01-34-21-168Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.19387140000000003,
+   "status": "green"
+  },
+  "bootstraps-a-home-for-a-repo": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 1,
+   "secs": 44,
+   "result": "2026-11-09T01-35-18-212Z",
+   "undecided": true,
+   "score": 0.3,
+   "cost": 0.18659720000000002,
+   "status": "undecided"
+  },
+  "reconciles-a-worktree-into-the-project-home": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 1,
+   "secs": 37,
+   "result": "2026-11-09T01-36-00-680Z",
+   "undecided": true,
+   "score": 0.42857142857142855,
+   "cost": 0.17189600000000002,
+   "status": "undecided"
+  },
+  "syncs-a-stale-home-from-root": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 1,
+   "secs": 41,
+   "result": "2026-11-09T01-36-38-721Z",
+   "undecided": true,
+   "score": 0.42857142857142855,
+   "cost": 0.1864822,
+   "status": "undecided"
+  },
+  "w-sm-closeout-ahead-is-publish-not-sync": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 0,
+   "secs": 44,
+   "result": "2026-11-09T01-37-20-739Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1380574,
+   "status": "green"
+  },
+  "w-sm-cold-shim-means-build": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 0,
+   "secs": 34,
+   "result": "2026-11-09T01-38-04-517Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.124756,
+   "status": "green"
+  },
+  "w-sm-drift-ack-once": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 0,
+   "secs": 43,
+   "result": "2026-11-09T01-38-39-281Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.14362899999999998,
+   "status": "green"
+  },
+  "w-sm-fresh-install-exit-11-is-fixtures": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 0,
+   "secs": 45,
+   "result": "2026-11-09T01-39-20-919Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.157074,
+   "status": "green"
+  },
+  "w-sm-reinstall-is-remove-then-install": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 0,
+   "secs": 49,
+   "result": "2026-11-09T01-40-05-109Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.22276980000000002,
+   "status": "green"
+  },
+  "w-sm-sync-retired-name-redirects": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 0,
+   "secs": 45,
+   "result": "2026-11-09T01-40-52-975Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.247123,
+   "status": "green"
+  },
+  "w-sm-sync-skt-when-absent": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 1,
+   "secs": 44,
+   "result": "2026-11-09T01-41-40-763Z",
+   "undecided": false,
+   "score": 0.25,
+   "cost": 0.1743026,
+   "status": "triaged",
+   "triage": "noise: 0.25 then 1.00 on an unchanged commit; needs base comparison with repeats",
+   "needs_base": true
+  },
+  "w-sm-verify-is-not-currency": {
+   "commit": "b672cf35",
+   "unit": "skill-manager",
+   "rc": 1,
+   "secs": 79,
+   "result": "2026-11-09T01-42-22-787Z",
+   "undecided": false,
+   "score": 0.3333333333333333,
+   "cost": 0.25358649999999994,
+   "status": "triaged",
+   "triage": "agent answered correctly but did not run skt check (0.33, then 0.50); needs base comparison with repeats",
+   "needs_base": true
+  },
+  "ticket-agent-closes-a-ticket": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 1,
+   "secs": 37,
+   "result": "2026-11-09T01-46-00-075Z",
+   "undecided": true,
+   "score": 0.3,
+   "cost": 0.15768819999999997,
+   "status": "undecided"
+  },
+  "ticket-agent-opens-a-ticket": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 1,
+   "secs": 34,
+   "result": "2026-11-09T01-46-34-903Z",
+   "undecided": true,
+   "score": 0.2727272727272727,
+   "cost": 0.1558178,
+   "status": "undecided"
+  },
+  "w-skt-check-pinned-is-not-stale": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 33,
+   "result": "2026-11-09T01-47-09-107Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.11969029999999999,
+   "status": "green"
+  },
+  "w-skt-check-record-disagrees-with-checkout": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 1,
+   "secs": 49,
+   "result": "2026-11-09T01-47-41-946Z",
+   "undecided": false,
+   "score": 0.8333333333333334,
+   "cost": 0.2610188,
+   "status": "triaged",
+   "triage": "only within-budget (weight 1) failed; substantive graders passed"
+  },
+  "w-skt-check-unknown-is-not-current": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 27,
+   "result": "2026-11-09T01-48-31-943Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.108288,
+   "status": "green"
+  },
+  "w-skt-is-a-plugin-not-a-skill": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 52,
+   "result": "2026-11-09T01-48-59-666Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.18877120000000003,
+   "status": "green"
+  },
+  "w-skt-migration-delete-project-block": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 1,
+   "secs": 33,
+   "result": "2026-11-09T01-49-52-768Z",
+   "undecided": false,
+   "score": 0.5714285714285714,
+   "cost": 0.1146296,
+   "status": "triaged",
+   "triage": "judge: dropped the wrong skill block or kept one; needs base comparison with repeats",
+   "needs_base": true
+  },
+  "w-skt-migration-no-import-edits": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 33,
+   "result": "2026-11-09T01-50-25-668Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1254632,
+   "status": "green"
+  },
+  "w-skt-not-installed-is-not-not-synced": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 49,
+   "result": "2026-11-09T01-51-00-779Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.189124,
+   "status": "green"
+  },
+  "w-skt-remedy-without-origin": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 50,
+   "result": "2026-11-09T01-51-50-702Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1919788,
+   "status": "green"
+  },
+  "w-skt-stale-artifacts-are-not-stale-home": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 32,
+   "result": "2026-11-09T01-52-39-922Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1079499,
+   "status": "green"
+  },
+  "w-skt-sweep-requires-epic": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 60,
+   "result": "2026-11-09T01-53-11-395Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.23151620000000003,
+   "status": "green"
+  },
+  "w-skt-ticket-new-needs-a-project-home": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 1,
+   "secs": 45,
+   "result": "2026-11-09T01-54-13-367Z",
+   "undecided": false,
+   "score": 0.875,
+   "cost": 0.1992512,
+   "status": "triaged",
+   "triage": "only within-budget (weight 1) failed; substantive graders passed"
+  },
+  "w-skt-ticket-path-must-be-sibling": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 48,
+   "result": "2026-11-09T01-54-56-568Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.18258239999999998,
+   "status": "green"
+  },
+  "w-skt-ticket-verb-help-is-scoped": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 39,
+   "result": "2026-11-09T01-55-41-845Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1302964,
+   "status": "green"
+  },
+  "w-skt-which-copy-of-skt-ran": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 57,
+   "result": "2026-11-09T01-56-21-288Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.302374,
+   "status": "green"
+  },
+  "w-skt-worktree-leaves-the-integration-repo": {
+   "commit": "b672cf35",
+   "unit": "skt",
+   "rc": 0,
+   "secs": 73,
+   "result": "2026-11-09T01-57-18-371Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.342712,
+   "status": "green"
+  },
+  "catch-the-drift": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 1,
+   "secs": 77,
+   "result": "2026-11-09T01-58-47-473Z",
+   "undecided": false,
+   "score": 0.8,
+   "cost": 0.2974356000000001,
+   "status": "triaged",
+   "needs_base": true,
+   "triage": "pending base comparison"
+  },
+  "scaffold-a-program-model": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 245,
+   "result": "2026-11-09T02-00-05-225Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.8857021,
+   "status": "green"
+  },
+  "w-roles-epic-finds-its-empty-inbox": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 51,
+   "result": "2026-11-09T02-04-11-411Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.21782050000000003,
+   "status": "green"
+  },
+  "w-roles-propagation-is-checkable": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 1,
+   "secs": 64,
+   "result": "2026-11-09T02-05-00-976Z",
+   "undecided": false,
+   "score": 0.9166666666666666,
+   "cost": 0.3063939,
+   "status": "triaged",
+   "needs_base": true,
+   "triage": "pending base comparison"
+  },
+  "w-roles-review-finds-its-destination": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 53,
+   "result": "2026-11-09T02-06-05-251Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2526877,
+   "status": "green"
+  },
+  "w-roles-testing-finds-its-destination": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 44,
+   "result": "2026-11-09T02-06-54-232Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2332698,
+   "status": "green"
+  },
+  "w-roles-ticket-finds-its-back-channel": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 51,
+   "result": "2026-11-09T02-07-39-575Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.212115,
+   "status": "green"
+  },
+  "w-sdc-attribution-before-close": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 76,
+   "result": "2026-11-09T02-08-32-658Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.38061390000000006,
+   "status": "green"
+  },
+  "w-sdc-close-ticket-delivered-status": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 71,
+   "result": "2026-11-09T02-09-48-870Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.271947,
+   "status": "green"
+  },
+  "w-sdc-close-workflow-is-close-tickets": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 54,
+   "result": "2026-11-09T02-10-59-420Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.216657,
+   "status": "green"
+  },
+  "w-sdc-complexity-ledger-is-advisory": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 1,
+   "secs": 47,
+   "result": "2026-11-09T02-11-53-373Z",
+   "undecided": false,
+   "score": 0.75,
+   "cost": 0.1426942,
+   "status": "triaged",
+   "triage": "case defect: its prompt names fixture files but the case ships no fixture/ (since 9ba955b7); agent correctly reports they do not exist"
+  },
+  "w-sdc-effect-conformance-observed-nothing": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 1,
+   "secs": 39,
+   "result": "2026-11-09T02-12-40-167Z",
+   "undecided": false,
+   "score": 0.7777777777777778,
+   "cost": 0.12148400000000001,
+   "status": "triaged",
+   "needs_base": true,
+   "triage": "pending base comparison"
+  },
+  "w-sdc-eval-run-has-case-glob": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 41,
+   "result": "2026-11-09T02-13-20-373Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.1909072,
+   "status": "green"
+  },
+  "w-sdc-forced-close-names-guard-weakening": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 86,
+   "result": "2026-11-09T02-14-00-241Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.33187820000000007,
+   "status": "green"
+  },
+  "w-sdc-no-deferred-findings-at-root": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 53,
+   "result": "2026-11-09T02-15-25-829Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.24850779999999997,
+   "status": "green"
+  },
+  "w-sdc-open-closed-ticket-adds-new-entry": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 74,
+   "result": "2026-11-09T02-16-18-110Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.190339,
+   "status": "green"
+  },
+  "w-sdc-out-path-is-absolute": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 53,
+   "result": "2026-11-09T02-17-32-353Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.23815360000000002,
+   "status": "green"
+  },
+  "w-sdc-scorecard-tool-needs-a-newer-python": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 1,
+   "secs": 785,
+   "result": "2026-11-09T02-18-25-147Z",
+   "undecided": false,
+   "score": 0.6666666666666666,
+   "cost": 0.2628246,
+   "status": "triaged",
+   "needs_base": true,
+   "triage": "pending base comparison"
+  },
+  "w-sdc-spec-unit-ticket-runs-only-the-first-target": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 0,
+   "secs": 48,
+   "result": "2026-11-09T02-31-30-907Z",
+   "undecided": false,
+   "score": 1,
+   "cost": 0.2294454,
+   "status": "green"
+  },
+  "w-sdc-ticket-binding-bare-adapter-module": {
+   "commit": "b672cf35",
+   "unit": "spec-double-2",
+   "rc": 1,
+   "secs": 49,
+   "result": "2026-11-09T02-32-20-319Z",
+   "undecided": false,
+   "score": 0.16666666666666666,
+   "cost": 0.150864,
+   "status": "triaged",
+   "needs_base": true,
+   "triage": "pending base comparison"
+  }
+ },
+ "voided": [
+  {
+   "epic-mode-is-not-main": {
+    "commit": "8655e008",
+    "unit": "git-epic-workflow",
+    "rc": 1,
+    "secs": 80,
+    "result": "2026-11-09T01-03-08-354Z",
+    "undecided": false,
+    "score": 0.3333333333333333,
+    "cost": 0.3775342,
+    "status": "red",
+    "void_reason": "no offline uv wheels in this worktree (operator setup)"
+   }
+  },
+  {
+   "w-epic-assignment-no-force-on-blocking": {
+    "commit": "8655e008",
+    "unit": "git-epic-workflow",
+    "rc": 1,
+    "secs": 72,
+    "result": "2026-11-09T01-05-21-191Z",
+    "undecided": false,
+    "score": 0.875,
+    "cost": 0.2703428,
+    "status": "red",
+    "void_reason": "no offline uv wheels in this worktree (operator setup)"
+   }
+  },
+  {
+   "w-epic-force-when-owner-decided": {
+    "commit": "8655e008",
+    "unit": "git-epic-workflow",
+    "rc": 1,
+    "secs": 62,
+    "result": "2026-11-09T01-06-33-759Z",
+    "undecided": false,
+    "score": 0.5714285714285714,
+    "cost": 0.3031292,
+    "status": "red",
+    "void_reason": "no offline uv wheels in this worktree (operator setup)"
+   }
+  },
+  {
+   "w-epic-retire-part-of-goal-warns-only": {
+    "commit": "8655e008",
+    "unit": "git-epic-workflow",
+    "rc": 1,
+    "secs": 75,
+    "result": "2026-11-09T01-09-25-943Z",
+    "undecided": false,
+    "score": 0.75,
+    "cost": 0.25023650000000003,
+    "status": "red",
+    "void_reason": "no offline uv wheels in this worktree (operator setup)"
+   }
+  },
+  {
+   "w-giw-bootstrap-cross-home-is-not-old-cli": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 51,
+    "result": "2026-11-09T01-18-08-908Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.1485261,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-epic-ticket-plan-values-win": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 67,
+    "result": "2026-11-09T01-19-00-028Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.3170818,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-epic-ticket-stops-on-wrong-pr-base": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 41,
+    "result": "2026-11-09T01-20-08-365Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.1886734,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-exit6-is-unreadable-frontmatter": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 44,
+    "result": "2026-11-09T01-20-45-150Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.1527014,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-wt-close-no-force-on-unpublished": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 47,
+    "result": "2026-11-09T01-21-29-444Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.1446754,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-wt-new-dirty-ok": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 37,
+    "result": "2026-11-09T01-22-15-554Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.1759232,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-wt-refusal-quotes-subject": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 1,
+    "secs": 45,
+    "result": "2026-11-09T01-22-53-528Z",
+    "undecided": false,
+    "score": 0.75,
+    "cost": 0.177467,
+    "status": "red",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  },
+  {
+   "w-giw-wt-stale-branch-point": {
+    "commit": "8655e008",
+    "unit": "git-issue-workflow",
+    "rc": 0,
+    "secs": 45,
+    "result": "2026-11-09T01-23-40-347Z",
+    "undecided": false,
+    "score": 1,
+    "cost": 0.2014134,
+    "status": "green",
+    "void_reason": "agent could have run the root home's skt; rerun with the branch skt"
+   }
+  }
+ ]
+}

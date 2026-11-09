@@ -1,0 +1,42 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :build-logic:compileKotlin
+w: file:///Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:59:30 Parameter 'file' is never used
+
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors
+> Task :build-logic:processResources
+> Task :build-logic:classes
+> Task :build-logic:jar
+
+> Task :sktSurface
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.13.7 (path: /opt/homebrew/bin/uv)
+testGraph 'sktSurface' run=20261108-234111 steps=5 fullPlanSteps=5 traceId=3e94f70bd6c48bcd06479244be761e4d
+  plan[1/5] skt.wrapper-installed  [testbed, uv]  sources/skt_wrapper_installed.py
+  plan[2/5] skt.status-tiers  [assertion, uv]  sources/skt_status_tiers.py
+  plan[3/5] skt.check-cached-costs-one-read  [assertion, uv]  sources/skt_check_cached.py
+  plan[4/5] skt.hook-contract  [assertion, uv]  sources/skt_hook_contract.py
+  plan[5/5] skt.ticket-roundtrip  [assertion, uv]  sources/skt_ticket_roundtrip.py
+  [1/5] skt.wrapper-installed (uv)
+  [2/5] skt.status-tiers (uv)
+  [3/5] skt.check-cached-costs-one-read (uv)
+  [4/5] skt.hook-contract (uv)
+  [5/5] skt.ticket-roundtrip (uv)
+wrote /Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/test_graph/build/validation-reports/20261108-234111/summary.json + /Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/test_graph/build/validation-reports/20261108-234111/report.md
+testGraph 'sktSurface' done. traceId=3e94f70bd6c48bcd06479244be761e4d reports: /Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/test_graph/build/validation-reports/20261108-234111
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 21s
+5 actionable tasks: 5 executed
+PASSED sktSurface
+/Users/hayde/IdeaProjects/wt-epic-bug-sweep-225-skt-sweep-race-jbang/test_graph/build/validation-sweeps/20261108-234031/outcome.json

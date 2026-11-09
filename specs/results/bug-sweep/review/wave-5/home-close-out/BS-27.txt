@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/wt-epic-bug-sweep-227-sm-graph-wording/.skill-manager holds nothing that removing it would destroy

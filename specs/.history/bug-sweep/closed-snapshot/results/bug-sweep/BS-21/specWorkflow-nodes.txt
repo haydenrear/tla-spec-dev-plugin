@@ -1,0 +1,9 @@
+spec.cli.install passed 
+spec.workflow.repo passed 
+spec.workflow.start passed 
+spec.workflow.complete passed 
+spec.workflow.spec_units passed 
+spec.workflow.close passed 
+spec.workflow.failure_cleanup_probe errored node launcher exited with live descendants: 5083
+spec.workflow.cleanup passed 
+spec.reference.adapters_resolve not_run node skipped after earlier graph failure

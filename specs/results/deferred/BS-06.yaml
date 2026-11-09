@@ -1,0 +1,64 @@
+# BS-06 (#191) per-ticket deferment inbox (batch policy, budget 5).
+# The epic agent absorbs these rows into the ledger at wave close.
+findings:
+  - id: BS-06-DF-01
+    found_by: BS-06
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/skt/src/skt/sweep.py
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      #171's second proposed half is not done: `skt ticket sweep` does not warn
+      or invalidate the surviving checkout's build outputs after removing a
+      worktree whose target/ was a symlink into it. BS-06 prevents the shared
+      link at `ticket new` (both routes) and warns at `close-change.sh`, but
+      sweep runs its own gate and `git worktree remove` rather than
+      close-change.sh, so a link created by hand mid-life and then swept is
+      reported nowhere.
+    reproduction: >-
+      Create a worktree, `ln -s <main>/target <wt>/target` by hand, then
+      `skt ticket sweep -y`; sweep's output names no shared target/.
+    evidence:
+      - skills/skt/tests/test_ticket_lifecycle.py
+    why_out_of_scope: >-
+      skills/skt/src/skt/sweep.py is outside BS-06's conflict keys
+      (skt/scripts/wt, the three git-issue-workflow scripts, skt/ticket*.py).
+    suggested_fix: >-
+      In sweep, call lib.sh's `foreign_target_link` (ABI 3) on each worktree
+      before removal and surface it in the sweep summary with the rebuild
+      command for the surviving checkout.
+    blast_radius: Repositories that hand-link target/ into the main checkout and retire worktrees by sweep.
+  - id: BS-06-DF-02
+    found_by: BS-06
+    found_at_commit: df48724c
+    schedule_revision: 1
+    severity: minor
+    blocking: none
+    surface:
+      production:
+        - skills/git-issue-workflow/references/worktrees.md
+        - skills/git-issue-workflow/references/epic-ticket.md
+        - skills/skt/SKILL.md
+      tla: []
+      adapters: []
+      test_graph: []
+    summary: >-
+      The `[worktree] provision` hook (#184) and exit 9 are documented only in
+      code comments and in `new-change.sh`. worktrees.md's exit-code table
+      (3, 7, 1, 79) and the skt/epic-ticket references do not mention the hook,
+      its WT_ROOT/WT_MAIN environment, or that `close` now resolves through
+      `git worktree list` before the directory search (epic-ticket.md §2 still
+      says close resolves "by searching for <parent>/*-<ticket>").
+    reproduction: grep -n "provision" skills/git-issue-workflow/references/worktrees.md
+    evidence: []
+    why_out_of_scope: Reference docs are outside BS-06's conflict keys.
+    suggested_fix: >-
+      Add exit 9 and the `[worktree] provision` declaration to worktrees.md's
+      exit-code section; update epic-ticket.md §2's close-resolution sentence.
+    blast_radius: Agents reading the references rather than the scripts.

@@ -1,10 +1,10 @@
 ---
 name: skill-manager
 description: >-
-  Search, install, bind, sync and remove skill-manager units — skills, plugins,
-  doc-repos, harnesses — and manage skill projects, child homes, CLI and MCP
-  tools. Use when the user asks to find, add, remove, inspect, bind, unbind,
-  instantiate, sync, upgrade or resolve one of those surfaces. Trigger on
+  Find, install, bind, sync and remove skill-manager units — skills, plugins,
+  doc-repos, harnesses — and manage skill projects, project child homes, CLI
+  and MCP tools. Use when the user asks to find, add, remove, inspect, bind,
+  unbind, instantiate, sync, upgrade or resolve one of those surfaces. Trigger on
   "install a skill", "what units are installed", "bind this doc-repo",
   "instantiate a harness", "resolve this skill project". This is the plumbing;
   for day-to-day lifecycle questions prefer the `skt` front door.
@@ -47,8 +47,8 @@ option" banner; the usage text is still the source of truth.
   and a skill-manager unit may provide it.
 
 Narrate the plan before commands that modify state. Install, uninstall,
-publish, sync, bind, unbind, rebind, upgrade, and harness instantiate/rm
-all change disk state or external registry state.
+sync, bind, unbind, rebind, upgrade, and harness instantiate/rm all
+change disk state.
 
 ## Unit Model
 
@@ -149,7 +149,7 @@ flows:
 
 ## CLI Boundaries
 
-Use the CLI for install state, local projections, registry operations,
+Use the CLI for install state, local projections,
 project manifests, child-home projections, gateway process lifecycle,
 and lock maintenance.
 
@@ -172,17 +172,16 @@ skill-manager bind --help
 skill-manager harness --help
 skill-manager project --help
 skill-manager env --help
-skill-manager publish --help
 ```
 
 Do not duplicate long command tables here. The CLI help already covers:
 
-- Source forms such as registry names, `skill:`, `plugin:`, `doc:`,
-  `harness:`, `github:owner/repo`, `git+https://...`, and local paths.
+- Source forms such as `github:owner/repo`, `git+https://...`, and
+  local paths (`file:`).
 - Install planning, policy gates, and store/projection side effects.
 - `sync`, `upgrade`, `lock`, `bind`, `unbind`, `rebind`, `bindings`,
-  `harness`, `project`, `env`, `publish`, `registry`, `gateway`,
-  `policy`, `pm`, and `cli` subcommands.
+  `harness`, `project`, `env`, `gateway`, `policy`, `pm`, and `cli`
+  subcommands.
 
 Keep skill-specific guidance to the things the CLI cannot decide for
 the agent: which workflow to choose, what to inspect before mutating
@@ -231,7 +230,7 @@ skill-manager harness --help
 Use `references/workflows.md` for the agent-level decision flow: when to
 install only, when to bind, when to instantiate, and how to clean up.
 
-## Lock, Policy, And Auth
+## Lock And Policy
 
 `units.lock.toml` is updated atomically by install, sync, upgrade, and
 uninstall. Use `skill-manager lock --help` and `skill-manager sync
@@ -241,17 +240,3 @@ Never bypass policy with `--yes` blindly. The plan output is the
 security surface. If a plan reports `BLOCKED`, `CONFLICT`, or a
 policy-gated category, surface it to the user and do not loosen
 `~/.skill-manager/policy.toml` without explicit instruction.
-
-Most reads work without login. Mutating registry operations such as
-publish require authentication. If the CLI prints this banner, relay it
-verbatim and pause until the user signs in:
-
-```text
-ACTION_REQUIRED: skill-manager login
-Reason: <specifics>
-Ask the user to run the following in their terminal, then retry the task:
-
-    skill-manager login
-```
-
-Do not try to complete the browser login on the user's behalf.

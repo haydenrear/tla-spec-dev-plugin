@@ -1,0 +1,18 @@
+# base: origin/epic/bug-sweep @ d9c20ee46134025b1b941e41fd8aad5e1bf9b6c3 with tests/test_milestone.py copied in (milestone.py absent)
+$ uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q
+==================================== ERRORS ====================================
+__ ERROR collecting skills/git-epic-workflow/scripts/tests/test_milestone.py ___
+skills/git-epic-workflow/scripts/tests/test_milestone.py:31: in <module>
+    SPEC.loader.exec_module(ms)
+<frozen importlib._bootstrap_external>:1019: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1156: in get_code
+    ???
+<frozen importlib._bootstrap_external>:1214: in get_data
+    ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/bs14-base/skills/git-epic-workflow/scripts/milestone.py'
+=========================== short test summary info ============================
+ERROR skills/git-epic-workflow/scripts/tests/test_milestone.py - FileNotFound...
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.20s
+pytest exit=2

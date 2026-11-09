@@ -34,7 +34,7 @@ skill edit survive this worktree?*
 ```bash
 skt status            # startup report: units, plugins, home tier, epic/ticket state, CLI version
 skt check             # new-version-available, unit errors, stale artifacts, a stale OR too-old skill-manager
-skt sync <unit>       # pull a unit to its latest pushed source
+skt sync <unit>       # project/worktree home: back to the skill-project.toml pin; --trunk pulls the latest pushed source
 skt ticket new <T>    # ticket worktree + its own Skill Manager home, one command
 skt ticket close <T>  # teardown through the close-out gate (--into <home> names the gate's destination)
 skt ticket list       # every ticket worktree here, and what blocks retiring it
@@ -78,7 +78,7 @@ one tier down from where it was installed. Every `skt` verb is a wrapper:
 | instead of | run |
 | --- | --- |
 | `skt status` / `skt check` | `skill-manager list`, `skill-manager home describe --json` |
-| `skt sync <unit>` | `skill-manager sync <unit> --git-latest` |
+| `skt sync <unit>` | project/worktree home: `skill-manager project resolve`; root or `--trunk`: `skill-manager sync <unit> --git-latest` |
 | `skt publish <unit>` | `skill-manager home sync` then `skill-manager unit publish` (the two legs below) |
 | `skt ticket new/close` | `<home>/skills/skt/scripts/wt new\|close <TICKET>` — this plugin's own script, so a home without skt has neither |
 

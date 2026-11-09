@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-191-skt-ticket-lifecycle/.skill-manager holds nothing that removing it would destroy
