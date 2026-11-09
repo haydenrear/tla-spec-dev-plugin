@@ -53,8 +53,8 @@ schema_version = 1
 
 [units.skill-manager]
 origin = "git@github.com:haydenrear/skill-manager.git"
-commit = "48a07c1d0d8d9d8b8188fc55f1bee6393887c744"
-ref_when_pinned = "v0.29.0"
+commit = "365abbf16c4fef4da9f0e84a1664fdc70198cbd5"
+ref_when_pinned = "v0.30.0"
 role = """
 The CLI itself. Evals must run against the skill-manager from the branch under
 review, NOT the operator's brew install at
