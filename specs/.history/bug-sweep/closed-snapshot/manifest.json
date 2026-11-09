@@ -2473,5 +2473,12 @@
       "worktree": "../tla-spec-dev-198-eval-manual-loop"
     }
   ],
-  "workflow_name": "bug-sweep"
+  "workflow_name": "bug-sweep",
+  "validation": {
+    "claimed": false,
+    "note": "No per-ticket spec close receipts exist: every ticket had a no-op model result and none was opened or closed through the spec CLI. BS-18 (manual loop) was not run. Ticket validation lives in specs/results/bug-sweep and specs/evals/bug-sweep."
+  },
+  "owner_authorisation": {
+    "note": "Owner instructed \"merge everything in, close everything out\" on 2026-11-08; standing owner rule that close never blocks and gaps are marked missing."
+  }
 }
