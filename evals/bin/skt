@@ -1,0 +1,24 @@
+#!/bin/sh
+# THE CHECKOUT'S skt, NOT THE INSTALLED ONE. The same rule as the tla-spec-dev
+# shim beside this file, and it was missing: measured 2026-11-08 (BS-17), an eval
+# agent's `command -v skt` returned ~/.skill-manager/bin/cli/skt, so a run graded
+# the operator's root-home skt instead of the branch under review.
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH= cd -- "$here/../.." && pwd)
+cli="$repo/skills/skt/src/skt/cli.py"
+test -f "$cli" || {
+    echo "skt shim: no checkout at $repo -- refusing to fall through to an" \
+         "installed copy, which would grade code nobody is reviewing" >&2
+    exit 127
+}
+# skt needs python >= 3.11 (tomllib) and an agent's plain `python3` is Xcode's 3.9.
+# SKT_PYTHON does not reach a sandboxed agent, so look in the fixed locations.
+py="${SKT_PYTHON:-}"
+if [ -z "$py" ]; then
+    for c in /opt/homebrew/bin/python3.14 /opt/homebrew/bin/python3.13 /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11; do
+        if [ -x "$c" ]; then py="$c"; break; fi
+    done
+fi
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$repo/skills/skt/src${PYTHONPATH:+:$PYTHONPATH}" \
+    exec "${py:-python3}" "$cli" "$@"
