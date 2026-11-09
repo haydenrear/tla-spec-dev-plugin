@@ -3,19 +3,18 @@
 Run staggered, one case at a time, on 2026-11-08. `tip.json` is one run per case;
 `compare.json` is base vs tip, three runs each, for the eight unsettled cases.
 
-| Result on tip (75 cases) | Count |
+| Result on tip (74 cases) | Count |
 | --- | --- |
 | Passed | 53 |
 | Undecided: the fixture needs a real home | 6 |
-| Failed | 16 |
+| Failed | 15 |
 
-Failed, explained without a comparison (8): w-misc-otlp-endpoint-native-runner
+Failed, explained without a comparison (7): w-misc-otlp-endpoint-native-runner
 (skill not in this plugin); epic-mode-is-not-main (grader false negative);
 w-epic-force-when-owner-decided, w-skt-check-record-disagrees-with-checkout,
 w-skt-ticket-new-needs-a-project-home (over tool-call budget only);
 w-giw-wt-refusal-quotes-subject (sandbox; same score with base skt);
-w-sdc-complexity-ledger-is-advisory (case ships no fixture); plus w-harness-smoke
-accounting as recorded in tip.json.
+w-sdc-complexity-ledger-is-advisory (case ships no fixture).
 
 Base vs tip, three runs each:
 

@@ -38,7 +38,7 @@ service_catalog:
 tickets:
 - id: BS-09
   title: Repo test_graph uses the installed test-graph
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/194
   schedule_revision: 3
   depends_on: []
@@ -99,7 +99,7 @@ tickets:
     evidence: []
 - id: BS-03
   title: 'test-graph: errored vs failed (PR #176)'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/175
   schedule_revision: 3
   depends_on: []
@@ -161,7 +161,7 @@ tickets:
     evidence: []
 - id: BS-01
   title: 'close: stop writing close records nobody reads'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/187
   schedule_revision: 3
   depends_on: []
@@ -237,7 +237,7 @@ tickets:
     evidence: []
 - id: BS-02
   title: Ledger and disposition tools read consumer ledgers
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/188
   schedule_revision: 3
   depends_on: []
@@ -304,7 +304,7 @@ tickets:
     evidence: []
 - id: BS-04
   title: 'Workflow references: RED controls, contract reruns, fixed findings'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/189
   schedule_revision: 3
   depends_on: []
@@ -362,7 +362,7 @@ tickets:
     evidence: []
 - id: BS-05
   title: 'skt sync: pin, CLI from the tier above, dry-run lock docs'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/190
   schedule_revision: 3
   depends_on: []
@@ -426,7 +426,7 @@ tickets:
     evidence: []
 - id: BS-06
   title: 'skt ticket new/close: provision hook, outside paths, no shared target/'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/191
   schedule_revision: 3
   depends_on: []
@@ -501,7 +501,7 @@ tickets:
     evidence: []
 - id: BS-07
   title: TLC config parsing and case generation
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/192
   schedule_revision: 3
   depends_on: []
@@ -573,7 +573,7 @@ tickets:
     evidence: []
 - id: BS-10
   title: 'test-graph: retry node describe; errored on persistent describe failure'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/195
   schedule_revision: 3
   depends_on: []
@@ -635,7 +635,7 @@ tickets:
     evidence: []
 - id: BS-20
   title: 'skt build: successful CLI artifacts vs unbuildable ancestors'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/202
   schedule_revision: 3
   depends_on: []
@@ -696,7 +696,7 @@ tickets:
     evidence: []
 - id: BS-22
   title: 'git-epic-workflow: epic tracking issue, plan order, one Closes per line'
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/200
   schedule_revision: 3
   depends_on: []
@@ -755,7 +755,7 @@ tickets:
     evidence: []
 - id: BS-08
   title: Red suite to zero
-  status: next
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/193
   schedule_revision: 3
   depends_on: []
@@ -819,7 +819,7 @@ tickets:
     evidence: []
 - id: BS-11
   title: 'test-graph: outcome.json per run + keep going'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/185
   schedule_revision: 3
   depends_on:
@@ -886,7 +886,7 @@ tickets:
     evidence: []
 - id: BS-12
   title: close carries the delivered model into desired; ordinal check
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/141
   schedule_revision: 3
   depends_on:
@@ -956,7 +956,7 @@ tickets:
     evidence: []
 - id: BS-19
   title: Resume/retirement recheck worktree + held-evidence integrity
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/201
   schedule_revision: 3
   depends_on:
@@ -1020,7 +1020,7 @@ tickets:
     evidence: []
 - id: BS-13
   title: 'test-graph: run.py --resume <report> [--from-node N]'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/186
   schedule_revision: 3
   depends_on:
@@ -1083,7 +1083,7 @@ tickets:
     evidence: []
 - id: BS-14
   title: 'git-epic-workflow: milestone runner with its own lock (#147 step 1)'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/147
   schedule_revision: 3
   depends_on:
@@ -1140,7 +1140,7 @@ tickets:
     evidence: []
 - id: BS-15
   title: One deferred-findings ledger per epic + closure census
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/148
   schedule_revision: 3
   depends_on:
@@ -1206,7 +1206,7 @@ tickets:
     evidence: []
 - id: BS-21
   title: Workflow close refuses an explicit missing --result
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/203
   schedule_revision: 3
   depends_on:
@@ -1266,7 +1266,7 @@ tickets:
     evidence: []
 - id: BS-23
   title: Remove references to the skill-manager registry server (upstream skill-manager#427)
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/222
   schedule_revision: 3
   depends_on: []
@@ -1331,7 +1331,7 @@ tickets:
     evidence: []
 - id: BS-24
   title: Bump the eval toolchain's skill-manager pin to v0.29.0
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/224
   schedule_revision: 3
   depends_on: []
@@ -1386,7 +1386,7 @@ tickets:
     evidence: []
 - id: BS-25
   title: 'skt: sweep after a squash merge, index-base ref race, jbang build timeout'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/225
   schedule_revision: 3
   depends_on:
@@ -1449,7 +1449,7 @@ tickets:
     evidence: []
 - id: BS-26
   title: 'test-graph: attempt closure after continue-after-failure, so resume works'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/226
   schedule_revision: 3
   depends_on:
@@ -1504,7 +1504,7 @@ tickets:
     evidence: []
 - id: BS-27
   title: 'Skill text the skill-manager graphs assert: doc-smoke and onboarding'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/227
   schedule_revision: 3
   depends_on:
@@ -1561,7 +1561,7 @@ tickets:
     evidence: []
 - id: BS-16
   title: 'Evaluation: bugs proven, suite green, every graph green'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/196
   schedule_revision: 3
   depends_on:
@@ -1648,7 +1648,7 @@ tickets:
     evidence: []
 - id: BS-17
   title: 'Evaluation: full eval lane, base vs tip'
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/197
   schedule_revision: 3
   depends_on:
