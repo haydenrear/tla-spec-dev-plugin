@@ -1,0 +1,16 @@
+#!/bin/sh
+# THE CHECKOUT'S skt, NOT THE INSTALLED ONE. The same rule as the tla-spec-dev
+# shim beside this file, and it was missing: measured 2026-11-08 (BS-17), an eval
+# agent's `command -v skt` returned ~/.skill-manager/bin/cli/skt, so a run graded
+# the operator's root-home skt instead of the branch under review.
+set -eu
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH= cd -- "$here/../.." && pwd)
+cli="$repo/skills/skt/src/skt/cli.py"
+test -f "$cli" || {
+    echo "skt shim: no checkout at $repo -- refusing to fall through to an" \
+         "installed copy, which would grade code nobody is reviewing" >&2
+    exit 127
+}
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$repo/skills/skt/src${PYTHONPATH:+:$PYTHONPATH}" \
+    exec "${SKT_PYTHON:-python3}" "$cli" "$@"
