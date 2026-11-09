@@ -57,6 +57,12 @@
 name = "tla-spec-dev"
 version = "0.1.0"
 description = "The TLA+ program-model toolchain: the spec-double-2 skill, the tla-spec-dev CLI, and the workflow skills that drive them, versioned and improved as one unit."
+# specs/.history is the append-only archive of this repository's own closed
+# workflows: 246 MB and 18k+ files in every home. Nothing installed reads it
+# here (the close and retire paths write into the CONSUMING repo's spec root),
+# so an install leaves it out of the working tree and its blobs out of .git,
+# and every commit keeps it. See skill-manager#261.
+excluded_from_install = ["specs/.history"]
 
 [[cli_dependencies]]
 spec = "skill-script:tlc2"
