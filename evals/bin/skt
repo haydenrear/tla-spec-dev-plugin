@@ -12,5 +12,13 @@ test -f "$cli" || {
          "installed copy, which would grade code nobody is reviewing" >&2
     exit 127
 }
+# skt needs python >= 3.11 (tomllib) and an agent's plain `python3` is Xcode's 3.9.
+# SKT_PYTHON does not reach a sandboxed agent, so look in the fixed locations.
+py="${SKT_PYTHON:-}"
+if [ -z "$py" ]; then
+    for c in /opt/homebrew/bin/python3.14 /opt/homebrew/bin/python3.13 /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11; do
+        if [ -x "$c" ]; then py="$c"; break; fi
+    done
+fi
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$repo/skills/skt/src${PYTHONPATH:+:$PYTHONPATH}" \
-    exec "${SKT_PYTHON:-python3}" "$cli" "$@"
+    exec "${py:-python3}" "$cli" "$@"
