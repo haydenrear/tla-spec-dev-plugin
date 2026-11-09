@@ -434,7 +434,10 @@ def _materialize_ticket_segment(
                 "which is MF-031's out-of-segment surface"
             )
         _ensure_ticket_in_plan(plan_path, ticket)
-        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+        # BS-08: tickets are desired-only since 2026-09-14; the modelled
+        # lifecycle includes UpdateTicketCurrent, which exists only for tickets
+        # opened `--with-current`, so the replay opens that variant.
+        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket, "--with-current")
         records.append({"step": f"open ticket {ticket}", "exit_code": opened.returncode, "stderr": opened.stderr[-400:]})
         if opened.returncode != 0:
             raise BeforeStateUnreachable(

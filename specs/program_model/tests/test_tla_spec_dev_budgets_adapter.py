@@ -2,7 +2,8 @@
 
 Scaffolding must establish per-program budgets before any generation action:
 the emitted manifest carries the documented defaults, and the scaffold output
-tells the agent to negotiate them with the user.
+states they are recorded and how to change one (with a rationale). Since
+3922b16c nothing negotiates them with the user up front.
 """
 
 import importlib.util
@@ -20,10 +21,17 @@ def load_adapters():
 
 
 def load_budgets_module(adapters):
-    sys.path.insert(0, str(adapters.repo_root()))
-    from scripts import budgets
-
-    return budgets
+    # BS-08 (stale test, updated): SI-01 (09d8108d) moved the skill scripts
+    # from <repo>/scripts to <repo>/skills/spec-double-2/scripts, so the old
+    # `from scripts import budgets` raised ModuleNotFoundError. Load the module
+    # from the path the adapters themselves drive.
+    path = adapters.repo_root() / "skills" / "spec-double-2" / "scripts" / "budgets.py"
+    spec = importlib.util.spec_from_file_location("bs08_budgets", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_record_budgets_adapter_emits_defaults_and_prompt(tmp_path: Path) -> None:
@@ -35,7 +43,10 @@ def test_record_budgets_adapter_emits_defaults_and_prompt(tmp_path: Path) -> Non
     assert result["accepted"] is True, result["stderr"]
     assert result["budgets_block_emitted"] is True
     assert result["defaults_match"] is True
-    assert result["prompts_user"] is True
+    # BS-08 (stale test, updated): scaffold stopped asking the agent to
+    # negotiate budgets with the user in 3922b16c; it now states the defaults
+    # are recorded and how to change one with a rationale.
+    assert result["states_defaults_and_change_path"] is True
     assert result["budgets"] == budgets.DEFAULT_BUDGETS
 
 

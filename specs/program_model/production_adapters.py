@@ -634,18 +634,22 @@ FIXTURE_CFG = "SPECIFICATION Spec\n"
 #: CM-01: the measured model is declared, not discovered. Without this the
 #: ledger would pick the outermost view of the scaffolded baseline and find the
 #: fixture module under a name that does not match its cfg.
-FIXTURE_MODEL_DECLARATION = "\nmodel:\n  tla: External.tla\n  cfg: MC.cfg\n"
+FIXTURE_MODEL_DECLARATION = "\nmodel:\n  tla: Internal.tla\n  cfg: MC.cfg\n"
 
 
 def set_ticket_model(target_repo: Path, spec_root: str, ticket_id: str, text: str) -> None:
-    """Write a fixture model into BOTH ticket trees, with a cfg that configures it.
+    """Write a fixture model into every ticket tree, with a cfg that configures it.
 
-    Both trees, because ticket current and desired must stay equal -- otherwise
-    the close is refused by the equality gate and a test asserting on the
-    ledger's refusal would be asserting against the wrong one.
+    Every tree the ticket HAS: tickets are desired-only since 2026-09-14, so a
+    ticket opened without `--with-current` has no `current/` to write (BS-08:
+    writing into it raised FileNotFoundError). When `current/` exists it is kept
+    equal to `desired/`, so the refusal a test asserts on is the ledger's and
+    not a current/desired divergence.
     """
     for tree in ("current", "desired"):
         model_dir = target_repo / spec_root / "tickets" / ticket_id / tree
+        if not model_dir.is_dir():
+            continue
         for tla in model_dir.glob("*.tla"):
             if not tla.name.startswith("MC"):
                 tla.write_text(text, encoding="utf-8")
@@ -671,7 +675,11 @@ class OpenTicketAdapter:
     ) -> dict[str, object]:
         root = repo_root()
         setup = prepare_ticket_workflow(root, target_repo, spec_root=spec_root, ticket_id=ticket_id, title=title)
-        result = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id)
+        # BS-08: tickets are desired-only since 2026-09-14. The model's ticket
+        # lifecycle includes UpdateTicketCurrent, which exists only for tickets
+        # opened `--with-current` (TlaSpecDevCli.tla, CloseTicket comment), so
+        # the adapter opens that variant and asserts both trees.
+        result = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket_id, "--with-current")
         ticket_dir = target_repo / spec_root / "tickets" / ticket_id
         return {
             "accepted": all(record.returncode == 0 for record in setup)
@@ -729,7 +737,8 @@ class OpenTicketAdapter:
         # Perform the modelled transition: the real `open ticket` CLI command.
         plan_path = target_repo / spec_root / "desired_program_model" / "ticket_plan.yaml"
         _ensure_ticket_in_plan(plan_path, ticket)
-        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket)
+        # BS-08: `--with-current`, as in apply() and materialize_before.
+        opened = run_cli(root, target_repo, "--spec-root", spec_root, "open", "ticket", ticket, "--with-current")
         if opened.returncode != 0:
             raise BeforeStateUnreachable(f"open ticket {ticket} failed: {opened.stderr[-600:]}")
 
@@ -1153,10 +1162,15 @@ class RecordBudgetsAdapter:
         recorded = load_budgets(manifest, warn=False) if manifest.is_file() else {}
         stdout = result.stdout
 
+        # BS-08: 3922b16c ("nothing refuses, nothing negotiates") replaced the
+        # negotiation prompt with a statement that the documented defaults are
+        # recorded, plus the path for changing one. The adapter asserts that
+        # text; the old phrases ("Propose these defaults to the user", "Ask
+        # which to adjust") are no longer printed by any scaffold.
         prompt_phrases = (
-            "Propose these defaults to the user",
-            "Ask which to adjust for this program",
+            "documented defaults, recorded",
             "one-line rationale",
+            "set budgets.source to negotiated",
         )
 
         return {
@@ -1170,7 +1184,7 @@ class RecordBudgetsAdapter:
             "budgets_block_emitted": "budgets:" in manifest_text,
             "budgets": recorded,
             "defaults_match": recorded == DEFAULT_BUDGETS,
-            "prompts_user": all(phrase in stdout for phrase in prompt_phrases),
+            "states_defaults_and_change_path": all(phrase in stdout for phrase in prompt_phrases),
             "manifest": str(manifest),
             "stderr": result.stderr,
         }
