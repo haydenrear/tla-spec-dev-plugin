@@ -773,3 +773,84 @@ findings:
     after history was partly written.'
   proposed: Refuse duplicate destination names up front (alongside the missing-result guard), or disambiguate
     with an index prefix and record it.
+- found_by: BS-26
+  id: BS-26-D1
+  found_at_commit: baf5faccb761ff70584af0e53c8550d298f95684
+  schedule_revision: 3
+  severity: minor
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - skills/test-graph/specs/program_model/tests/test_fresh_replay_attempt_model.py
+    workflow: []
+  summary: test_fresh_replay_attempt_model.py asserts ATTEMPT_CLOSURE_VERSION = 2; the base already had
+    3 and BS-26 makes it 4, so the source-text assertion was stale before this ticket. The file also errors
+    at pytest collection when run alone.
+  reproduction: grep -n 'ATTEMPT_CLOSURE_VERSION = 2' skills/test-graph/specs/program_model/tests/test_fresh_replay_attempt_model.py;
+    compare with ATTEMPT_CLOSURE_VERSION in tasks/RunReportWriter.kt
+  evidence:
+  - skills/test-graph/specs/program_model/tests/test_fresh_replay_attempt_model.py:583
+  why_out_of_scope: outside BS-26's conflict key (skills/test-graph/project_sdk_sources/build-logic/src/)
+    and stale before this ticket. The file also errors at pytest collection when run alone.
+  suggested_fix: assert the current version, or stop pinning the literal version in a source-text test
+  blast_radius: that one test
+  disposition: pending
+  disposition_ticket: null
+- found_by: skill-manager honest-pins epic (#411)
+  id: BS-HP-01
+  unit: skt ticket close
+  blocking: false
+  severity: minor
+  channel: operator-doing-the-work
+  observed: '`skt ticket close` could not find a `--path` worktree outside the repo''s parent directory.'
+  area: the ticket close path
+  pinned_by: skills/skt/tests/test_ticket_lifecycle.py::test_183_close_finds_a_declared_path_worktree_outside_the_parent
+  disposition: fixed
+  disposition_ticket: BS-06
+- found_by: skill-manager honest-pins epic (#411)
+  id: BS-HP-02
+  unit: skt ticket sweep
+  blocking: false
+  severity: major
+  channel: operator-doing-the-work
+  observed: '`sweep --epic` retired nothing after squash merges: 0 removed, every ticket skipped or excluded.'
+  area: worktree retirement after an epic merge
+  pinned_by: skills/skt/tests/test_ticket_sweep_squash.py::test_a_squashed_ticket_is_removed_and_says_how_it_landed
+  disposition: fixed
+  disposition_ticket: BS-25
+- found_by: skill-manager honest-pins epic (#411)
+  id: BS-HP-03
+  unit: skt ticket new
+  blocking: false
+  severity: minor
+  channel: operator-doing-the-work
+  observed: Concurrent `ticket new --path` from one base lost the create-only retention ref and failed.
+  area: worktree provisioning
+  pinned_by: skills/skt/tests/test_ticket_sweep_squash.py::test_ticket_new_survives_losing_the_retention_ref_race
+  disposition: fixed
+  disposition_ticket: BS-25
+- found_by: skill-manager honest-pins epic (#411)
+  id: BS-HP-04
+  unit: skt check
+  blocking: false
+  severity: minor
+  channel: operator-doing-the-work
+  observed: '`skt check` said ''no skill-manager build consulted (timeout)'' for a jbang-launched pin.'
+  area: the session-start version probe
+  pinned_by: skills/skt/tests/test_ticket_sweep_squash.py::test_check_reports_a_jbang_launcher_that_misses_its_budget_as_unmeasured
+  disposition: fixed
+  disposition_ticket: BS-25
+- found_by: skill-manager honest-pins epic (#411)
+  id: BS-HP-05
+  unit: test-graph
+  blocking: false
+  severity: major
+  channel: operator-doing-the-work
+  observed: A run with TESTGRAPH_CONTINUE_AFTER_FAILURE=1 wrote no attempt closure, so resume was refused;
+    the throw was hidden as a suppressed exception.
+  area: graph resume after a keep-going run
+  pinned_by: RunReportWriterTraceTest.continueAfterFailureAttemptIsClosedAndReplayableFromThePersistedMode
+  disposition: fixed
+  disposition_ticket: BS-26
