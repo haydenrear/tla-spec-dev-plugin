@@ -1904,6 +1904,30 @@ class RunReportWriterTraceTest {
         assertEquals(nodes, RunReportWriter.requireReplaySource(second, graphName, "three").sourceExpectedNodeIds)
     }
 
+    @Test
+    fun chainedResumeDepthLimitRejectsTheThirtyThirdClosedAttempt() {
+        val (full, _) = closedResumeFixture()
+        var source = full
+        repeat(32) { index ->
+            val snapshot = RunReportWriter.requireReplaySource(source, graphName, "three")
+            val replay = RunReportWriter.ReplayMetadata(
+                RunReportWriter.ReplayMode.RESUME_FROM_NODE, "three", source,
+                snapshot.closureSha256, snapshot.selectedContextSha256,
+            )
+            val next = full.parentFile.resolve("depth-$index").apply { mkdirs() }
+            writeTraceCarrier(next, snapshot.traceId)
+            RunReportWriter.persistExecutionScope(next, graphName, listOf("three"), replay)
+            writeInputContextSnapshot(snapshot.selectedContext, next, "three")
+            writePublishedEnvelope(next, "three", emptyMap(), status = "failed")
+            RunReportWriter.persistAttemptClosure(next, graphName, listOf("three"), snapshot.traceId, replay)
+            source = next
+        }
+        val error = assertFailsWith<IllegalArgumentException> {
+            RunReportWriter.requireReplaySource(source, graphName, "three")
+        }
+        assertContains(error.message.orEmpty(), "replay ancestry exceeds 32 closed attempts")
+    }
+
     private fun closedResumeFixture(): Pair<java.io.File, java.io.File> {
         val root = Files.createTempDirectory("test-graph-chain-negative").toFile()
         val full = root.resolve("full").apply { mkdirs() }
