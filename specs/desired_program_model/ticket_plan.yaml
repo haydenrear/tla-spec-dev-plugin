@@ -421,7 +421,7 @@ tickets:
     evidence: []
 - id: ESD-06
   title: Evaluate instruction uptake, safe batching and validation cost with existing facilities
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/240
   schedule_revision: 1
   depends_on:

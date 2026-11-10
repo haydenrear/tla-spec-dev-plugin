@@ -8,3 +8,5 @@
 | /Volumes/dev/tla-spec-dev-plugin-237-graph-architecture | feature/237-graph-architecture | ESD-03 | #257 6380abe3 | clean | nothing to reconcile | no |
 | /Volumes/dev/tla-spec-dev-plugin-238-step-sizing | feature/238-step-sizing | ESD-04 | #258 8cb577b7 | clean | nothing to reconcile | no |
 | /Volumes/dev/tla-spec-dev-plugin-239-role-routing | feature/239-role-routing | ESD-05 | #259 cc8e4f99 | clean | nothing to reconcile | no |
+| /Volumes/dev/tla-spec-dev-plugin-240-evaluation | feature/240-evaluation | ESD-06 | #260 b72e2b6e | clean | nothing to reconcile | no |
+| /Volumes/dev/tla-spec-dev-plugin-esd06-base (detached, measurement-only base arm; local commit 14e3247c with case data) | — | ESD-06 | n/a (scratch) | no home | — | no |
