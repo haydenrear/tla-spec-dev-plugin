@@ -37,7 +37,7 @@ service_catalog:
 tickets:
 - id: ESD-01
   title: Audit cross-repository attribution and the actual cost of validation
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/235
   schedule_revision: 1
   depends_on: []
@@ -132,8 +132,7 @@ tickets:
       and ESD-04 sizing do not count instrument faults as product risk
     local_signal: Trace each worked example back to an ESD-01 row; record origin/channel separation and before/after finding
       conservation by hand
-  - &id001
-    goal: GOAL-ESD-UPTAKE
+  - goal: GOAL-ESD-UPTAKE
     contribution: guard
     expected_effect: must not regress existing eval cases for the skills it edits; measured only by ESD-06
     local_signal: 'N/A: the eval lane runs only in ESD-06'
@@ -209,7 +208,10 @@ tickets:
       time; each miss named
     local_signal: Apply the checklist to spec.workflow.failure_cleanup_probe and audited consumer nodes; tabulate flagged
       vs missed historical failures
-  - *id001
+  - goal: GOAL-ESD-UPTAKE
+    contribution: guard
+    expected_effect: must not regress existing eval cases for the skills it edits; measured only by ESD-06
+    local_signal: 'N/A: the eval lane runs only in ESD-06'
   feature_branch: feature/237-graph-architecture
   worktree: /Volumes/dev/tla-spec-dev-plugin-237-graph-architecture
   covers:
@@ -287,7 +289,10 @@ tickets:
     expected_effect: 'directional: fixed setup/review/eval cost amortized over larger safe batches where evidence supports
       it; no speed claim from fewer checks'
     local_signal: Worked cost comparison for the five scenarios cites ESD-01 cost rows or marks inputs unknown
-  - *id001
+  - goal: GOAL-ESD-UPTAKE
+    contribution: guard
+    expected_effect: must not regress existing eval cases for the skills it edits; measured only by ESD-06
+    local_signal: 'N/A: the eval lane runs only in ESD-06'
   feature_branch: feature/238-step-sizing
   worktree: /Volumes/dev/tla-spec-dev-plugin-238-step-sizing
   covers:
