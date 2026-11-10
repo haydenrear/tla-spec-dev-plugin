@@ -101,7 +101,7 @@ tickets:
     evidence: []
 - id: ESD-02
   title: Clarify TLA+ architecture anchors and attribution of validation defects
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/236
   schedule_revision: 1
   depends_on:
