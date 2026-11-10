@@ -443,7 +443,11 @@ def _cli(*args: str) -> subprocess.CompletedProcess:
 
 
 def test_cli_passes_on_the_committed_example_corpus() -> None:
-    result = _cli("examples/distributed_history/specs/generated/testgraph/ecommerce_external_cases")
+    # BS-08: the committed example corpus moved here from
+    # examples/distributed_history/specs/generated/, which 76ef2758 ("removed
+    # generated", 2026-09-14) deleted and gitignored. Restored byte-for-byte from
+    # 76ef2758^ as a TEST fixture, outside any directory a generator writes.
+    result = _cli("tests/fixtures/distributed_history_generated/testgraph/ecommerce_external_cases")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "corpus gate PASS" in result.stdout
     assert "cap max_external_cases_per_action = 50 per action" in result.stdout

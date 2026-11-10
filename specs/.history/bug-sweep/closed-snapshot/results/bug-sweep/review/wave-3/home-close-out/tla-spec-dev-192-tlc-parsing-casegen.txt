@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-192-tlc-parsing-casegen/.skill-manager holds nothing that removing it would destroy

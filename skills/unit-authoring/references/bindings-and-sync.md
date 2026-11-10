@@ -107,7 +107,7 @@ skill-manager sync
 
 Skill/plugin sync:
 
-- Updates from the installed source or registry/git ref.
+- Updates from the installed source or git ref.
 - Re-runs CLI/MCP/plugin marketplace side effects.
 - Reconciles default-agent bindings.
 
@@ -190,11 +190,10 @@ Notes that trip agents up:
 - **Nested repos need two pushes.** When a unit repo lives inside a
   parent repo's tree, push the unit repo first; the parent commit only
   records the unit's files, and sync never reads the parent.
-- **`--git-latest` when no registry is configured.** Plain
-  `sync <unit>` may consult the registry for a published `git_sha`.
-  `--git-latest` skips it and fetches the install-time `gitRef`
-  directly, which is what you want for an unpublished edit. See the
-  registry caution in `references/coords-and-distribution.md`.
+- **`--git-latest` for a pushed edit.** `--git-latest` fetches the
+  install-time `gitRef` directly, which is what you want for an edit
+  you just pushed. See "Git versioning and sync" in
+  `references/coords-and-distribution.md`.
 - **Never edit the store copy in place** *as a way of authoring*. The
   next sync overwrites it, and its provenance no longer matches
   `origin`. This is a rule about where work should START, not a claim

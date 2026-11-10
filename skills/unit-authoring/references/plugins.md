@@ -119,7 +119,7 @@ description = "Short blurb."
 
 # Plugin-level references — apply to the whole bundle. Use git coords
 # (github:owner/repo, git+…, file:…). Never use skill:/plugin: name coords:
-# no registry is configured here, so they cannot resolve. Find the repo with
+# only git coords resolve. Find the repo with
 # `gh repo list <owner>` — the repo name is usually not the installed name.
 references = [
     "github:owner/utility-skill",
@@ -216,8 +216,8 @@ addressable** through skill-manager.
   re-runs orphan MCP and managed CLI dependency cleanup against the
   unioned dep set.
 
-This means: **don't try to publish a contained skill as a top-level
-skill in a registry.** Its identity is the plugin's. If you want a
+This means: **don't try to install a contained skill as a top-level
+skill.** Its identity is the plugin's. If you want a
 skill to also be usable standalone in a different context, ship it as
 its own skill repo and have the plugin reference it via `references =
 ["github:owner/skill-repo"]` instead of bundling its bytes.
@@ -248,7 +248,7 @@ skill-manager install github:owner/plugin-repo
 ```
 
 The resolver detects `.claude-plugin/plugin.json` and treats it as a
-plugin install. No registry is required.
+plugin install.
 
 ### Layout for the plugin's repo
 
@@ -311,9 +311,9 @@ deps, `browse_mcp_servers` against the local gateway for MCP deps.
   `SKILL.md` still installs as a plugin and the root `SKILL.md` is
   never loaded by the agent. Contained-skill `SKILL.md` files (under
   `skills/<contained>/`) are the right place.
-- **Publishing a contained skill to a registry independently.** It
-  isn't addressable as a top-level skill once the plugin is installed.
-  Either remove it from the plugin and publish it standalone, or
+- **Shipping a contained skill independently.** It isn't addressable
+  as a top-level skill once the plugin is installed. Either remove it
+  from the plugin and ship it standalone in its own repo, or
   accept that the plugin owns its identity.
 - **Hook scripts assuming a shell environment that's not there.** The
   harness runs hooks in whatever environment Claude Code provides;

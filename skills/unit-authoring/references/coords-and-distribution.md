@@ -2,10 +2,10 @@
 
 ## Source of truth
 
-Units are distributed as git repositories. The registry is
-metadata/search, not the source of bytes for the normal flow.
+Units are distributed as git repositories, and installed from git
+coords.
 
-Default publishing model — favor this unless the user asks for
+Default distribution model — favor this unless the user asks for
 something different:
 
 1. Put exactly one installable unit at the git repo root.
@@ -16,10 +16,8 @@ something different:
    `skill-manager install github:owner/repo`,
    `skill-manager install git+https://...`, or
    `skill-manager install git+ssh://...`.
-6. Optionally publish metadata to a registry for search/discovery when
-   that unit kind is supported.
 
-Do not leave a `file://` install as the published result. A
+Do not leave a `file://` install as the distributed result. A
 `file:///abs/path` install is for local dry-run and validation only
 (see "Minimal validation" in `references/scaffolding.md`); the copy a
 user actually keeps should resolve to a pushed git source so `sync`,
@@ -55,21 +53,16 @@ references.
 | `file:///abs/path/to/unit` | Local absolute path. |
 | `file:./relative/path` | Local path relative to the referencing unit's root when used transitively. |
 | `./relative/path` / `../relative/path` | Local path shorthand. |
-| `skill:name` | Kind-pinned registry/name lookup for a skill. **Registry-only — unavailable here.** |
-| `plugin:name` | Kind-pinned registry/name lookup for a plugin. **Registry-only — unavailable here.** |
-| `doc:name` | Installed/registry doc-repo coord; bindable after install. |
+| `doc:name` | Installed doc-repo coord; bindable after install. |
 | `doc:name/source-id` | One doc-repo source sub-element of an already-installed doc-repo. |
-| `harness:name` | Harness template coord. **Registry-only — unavailable here.** |
-| `name` / `name@version` | Bare registry/name lookup; kind inferred by registry metadata. **Registry-only — unavailable here.** |
 
-**No registry is configured in this environment.** Any coord that
-resolves through a registry — `skill:name`, `plugin:name`, `harness:name`,
-bare `name`/`name@version` — has nothing to resolve against and will fail
-the install. **Always use git coords (`github:owner/repo`, `git+...`,
+**Only git coords resolve.** Bare-name and kind-pinned coords —
+`skill:name`, `plugin:name`, `harness:name`, bare `name`/`name@version`
+— are not install sources and fail the install, naming the github:/git:/
+file: forms. **Always use git coords (`github:owner/repo`, `git+...`,
 `file:...`)** for both distribution and transitive references. The only
 name-coord that is safe is `doc:<repo>/<id>` selecting a source of a
-doc-repo that is *already installed* — that targets the installed unit,
-not the registry.
+doc-repo that is *already installed* — that targets the installed unit.
 
 Find the right `github:` coord with the GitHub CLI rather than guessing —
 the repo name is usually not the installed unit name:
@@ -86,8 +79,8 @@ mirror a markdown import.
 ## References in manifests
 
 Skills use `skill_references`. Always use git coords (`github:owner/repo`,
-`git+…`, `file:…`) for transitive deps. **Never `skill:name`** — there is
-no registry configured, so it cannot resolve (see the caution below):
+`git+…`, `file:…`) for transitive deps. **Never `skill:name`** — only
+git coords resolve (see the caution below):
 
 ```toml
 skill_references = [
@@ -101,9 +94,8 @@ skill_references = [
 > installed *before* the top-level install commits, so it must point at
 > fetchable bytes. Two things bite authors:
 >
-> 1. **`skill:name` needs a registry, and none is configured here.** It is
->    a registry/name lookup, not an "already installed locally" lookup, so
->    it has nothing to resolve against and the install aborts. Never use it.
+> 1. **`skill:name` does not resolve.** It is not an "already installed
+>    locally" lookup either, so the install aborts. Never use it.
 >    Git coords (`github:owner/repo`) always resolve — use them.
 > 2. **The coord is the repo, not the `[skill].name`.** The resolver
 >    reads the unit kind and name from the *repo root*, and the repo is
@@ -148,8 +140,8 @@ doc-repo manifest declares source ids; references select them with
 For git-backed installs, the installed record remembers origin/ref/SHA.
 `skill-manager sync <name>` pulls upstream and re-runs install side
 effects. When the source was a branch, sync can advance to the latest
-commit on that branch. `--git-latest` skips registry-pinned SHA lookup
-and fetches the install-time git ref directly.
+commit on that branch. `--git-latest` fetches the install-time git ref
+directly.
 
 Implications for authors:
 
@@ -184,24 +176,10 @@ will fetch. Two failure modes to know:
    the unit `skill-publisher`). Use `skill-manager list` for unit names
    and `gh repo list <owner>` for repo names.
 
-Because no registry is configured here (see the caution above), prefer
-`--git-latest` so sync fetches the install-time `gitRef` directly
-instead of asking an unreachable registry for a published `git_sha`.
+Prefer `--git-latest` so sync fetches the install-time `gitRef`
+directly.
 
 To iterate before you are ready to push, sync straight from the working
 tree with `skill-manager sync <unit> --from <dir> --merge --yes`, or use
 the `skill-dev` worktree flow. Both leave the store's provenance pointing
 at a local tree, so finish with a real push + `sync --git-latest`.
-
-## Registry role
-
-The registry is optional and metadata-oriented:
-
-- `skill-manager search` discovers published metadata.
-- Modern publish records git URL, git ref/SHA, owner, name, and version.
-- Install-by-name resolves metadata and clones from git.
-- The registry should not be treated as the canonical byte store.
-
-During current authoring, validate distribution with direct git/local
-install first. Use registry publish only when you need discoverability
-for a supported unit kind.

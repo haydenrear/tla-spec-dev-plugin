@@ -1,0 +1,10 @@
+# base: origin/epic/bug-sweep @ 933bfcadeecc9505fdc9324993c84a87878f6f63; branch test file applied to base sources
+FAILED tests/test_sync.py::test_project_home_without_a_pin_syncs_through_the_path_cli_and_names_it
+FAILED tests/test_sync.py::test_project_home_without_a_pin_prefers_the_root_homes_pinned_build
+FAILED tests/test_sync.py::test_project_home_with_no_cli_anywhere_still_refuses_and_names_the_remedy
+FAILED tests/test_sync.py::test_project_home_sync_stays_at_the_pin_not_the_trunk
+FAILED tests/test_sync.py::test_project_home_sync_restores_a_drifted_unit_to_the_pin
+FAILED tests/test_sync.py::test_trunk_flag_moves_to_the_trunk_and_names_the_invalidated_pins
+FAILED tests/test_sync.py::test_trunk_flag_is_wired_into_the_cli - SystemExit: 2
+FAILED tests/test_sync.py::test_projects_md_dry_run_names_the_destination_lock_requirement
+8 failed, 9 deselected in 7.79s

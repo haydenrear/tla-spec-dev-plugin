@@ -1,0 +1,29 @@
+# base: origin/epic/bug-sweep @ bc926c4e3d97890e742515e4eba70d9def999249, test file from feature/201-resume-integrity
+# cmd: uvx --with pyyaml --with jinja2 pytest tests/test_ticket_integrity.py -q
+FAILED tests/test_ticket_integrity.py::test_list_identifies_each_failure_distinctly
+FAILED tests/test_ticket_integrity.py::test_list_reports_handles_and_expected_vs_current_hashes
+FAILED tests/test_ticket_integrity.py::test_list_text_names_each_kind_and_a_non_destructive_recovery
+FAILED tests/test_ticket_integrity.py::test_sweep_refuses_every_damaged_worktree_and_keeps_the_pointer_metadata
+FAILED tests/test_ticket_integrity.py::test_sweep_refuses_to_delete_intact_retained_evidence
+FAILED tests/test_ticket_integrity.py::test_skill_gates_off_forces_past_evidence_but_git_still_refuses_a_broken_tree
+FAILED tests/test_ticket_integrity.py::test_an_old_intact_receipt_cannot_satisfy_the_current_check
+FAILED tests/test_ticket_integrity.py::test_offered_recovery_restores_pointer_and_source_without_touching_other_files
+FAILED tests/test_ticket_integrity.py::test_declare_and_check_round_trip_through_the_cli
+FAILED tests/test_ticket_integrity.py::test_epic_new_records_a_home_baseline_so_a_lost_home_is_reported
+FAILED tests/test_ticket_integrity.py::test_close_refuses_a_worktree_missing_tracked_source
+FAILED tests/test_ticket_integrity.py::test_close_names_a_missing_pointer_and_its_repair
+12 failed in 54.85s
+E   AssertionError: assert set() == {'pointer_missing'}
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:121: AssertionError: assert set() == {'pointer_missing'}
+E   KeyError: 'integrity'
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:133: KeyError: 'integrity'
+E   AssertionError: pointer_missing
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:150: AssertionError: pointer_missing
+E   KeyError: 'missing_before_sweep'
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:171: KeyError: 'missing_before_sweep'
+E   AssertionError: assert 'retained evidence' in 'skt ticket sweep — /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-332/test_sweep_ref...ls every shared block to every copy and over-reports by ~30x (a home `du` called 1.1 GB cost 33.7 MB of real space).\n'
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:193: AssertionError: assert 'retained evidence' in 'skt ticket sweep — /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-332/test_sweep_ref...ls every shared block to every copy and over-reports by ~30x (a home `du` called 1.1 GB cost 33.7 MB of real space).\n'
+E   AssertionError: the override is on the record
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:206: AssertionError: the override is on the record
+E   ImportError: cannot import name 'ticket_integrity' from 'skt' (/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/src/skt/__init__.py)
+/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/tests/test_ticket_integrity.py:214: ImportError: cannot import name 'ticket_integrity' from 'skt' (/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmp.kyVw3M1IuA/skills/skt/src/skt/__init__.py)

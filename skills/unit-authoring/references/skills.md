@@ -110,12 +110,12 @@ Supported top-level sections:
   `skill-imports` alone are semantic links to installed units.
 
   **Always use a git coord — `github:owner/repo` (or `git+https://…`,
-  `file:…`). Never use `skill:name`.** There is **no registry configured**
-  in this environment, so `skill:name` (a registry/name lookup) has no way
-  to resolve — it will fail and abort the whole install. A transitive
+  `file:…`). Never use `skill:name`.** Only git coords resolve, so
+  `skill:name` (a bare-name coord) has no way to resolve — it will fail
+  and abort the whole install. A transitive
   reference is fetched and installed before the top-level install commits,
   so it must point at bytes the resolver can clone. Git coords always
-  resolve; registry-name coords are simply not an option here.
+  resolve; bare-name coords are simply not an option.
 
   **Find the coord with `gh repo list`, don't guess it.** The coord is the
   **repo**, not the installed `[skill].name` — the resolver clones the repo
@@ -151,8 +151,7 @@ skill-manager install git+https://host/org/my-skill.git
 skill-manager install file:///abs/path/to/my-skill
 ```
 
-Registry publish is optional metadata/search for supported unit kinds.
-The git repo remains the source of truth.
+The git repo is the source of truth.
 
 ## Validation
 
@@ -160,7 +159,7 @@ The git repo remains the source of truth.
 skill-manager install file:///abs/path/to/my-skill --dry-run
 skill-manager install file:///abs/path/to/my-skill --yes
 skill-manager show my-skill
-skill-manager publish /abs/path/to/my-skill --dry-run
+skill-manager unit validate /abs/path/to/my-skill
 ```
 
 For a local starter, see `examples/skill/`.

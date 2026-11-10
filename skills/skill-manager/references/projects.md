@@ -2,7 +2,7 @@
 skill-imports:
   - unit: tla-spec-dev
     path: skills/unit-authoring/references/coords-and-distribution.md
-    reason: Project-manifest unit refs use the same coord grammar as skill_references; the git-coord-only rule (no registry configured) is stated once there.
+    reason: "Project-manifest unit refs use the same coord grammar as skill_references; the git-coord-only rule (only github:/git+/file: coords resolve) is stated once there."
     section: coord-forms
 ---
 
@@ -22,8 +22,8 @@ the source of truth.
 Unit references in the manifest (skills, plugins, doc-repos, harnesses)
 are resolved transitively at `project resolve` time, exactly like
 `skill_references`. Use **git coords only** (`github:owner/repo`,
-`git+…`, `file:…`); registry-name coords such as `skill:name` cannot
-resolve because no registry is configured, and the coord names the repo,
+`git+…`, `file:…`) — only git coords resolve, so bare-name coords such
+as `skill:name` cannot, and the coord names the repo,
 not the installed unit — find it with `gh repo list <owner>`. The rule
 and rationale live once in the skt plugin's
 `references/coords-and-distribution.md` (imported above); do not restate
@@ -251,8 +251,16 @@ skill-manager home sync --from <worktree>/.skill-manager \
 - `--merge` three-way merges such a unit against its recorded per-file baseline.
   Conflicts are **reported, never resolved**; local work is kept either way and a
   conflicted unit writes nothing.
-- `--dry-run` computes and prints the whole report and writes nothing at all — no
-  records, no lock file. Use it to ask the question without answering it.
+- `--dry-run` computes and prints the whole report and writes no unit content —
+  no records, no staging, and it never *creates* a lock file. It still takes the
+  destination's home lock so a peer cannot reconcile underneath the report: when
+  `<to>/.materialization/.home.lock` already exists (any home a real sync has
+  run in), the dry run opens that file for writing to hold the OS lock. So it
+  needs write permission on that one file, even though it changes nothing; a
+  sandbox with read-only access to the parent home fails with `Operation not
+  permitted` on it (observed on CLI 0.28.2). Grant write on that lock path, or
+  run the dry run outside the sandbox. Use it to ask the question without
+  answering it.
 
 `home sync` is local to this machine and moves an edit exactly one tier. It does
 not reach any other project.

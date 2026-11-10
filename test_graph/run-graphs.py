@@ -122,17 +122,23 @@ def registered_graphs() -> list[str]:
 
 
 def skill_runner() -> Path | None:
-    """The test-graph skill's runner, preferring this repository's own copy.
+    """The test-graph skill's runner from the INSTALLED tla-spec-dev plugin.
 
-    `skills/test-graph/` is a contained skill of this plugin after SI-02, so the
-    checkout carries the runner that matches it. A Skill Manager home is the
-    fallback for a checkout that does not.
+    The graphs run against the test-graph skill installed in this checkout's
+    Skill Manager home (`<home>/plugins/tla-spec-dev/skills/test-graph`), never
+    the in-repo `skills/test-graph` source. `provider-bindings.json` declares
+    only the `skill-root` candidate, so whichever runner executes decides the
+    SDK the links point at — which is why the in-repo copy is deliberately NOT
+    a candidate here: it would silently bind the graphs back to the working
+    tree. An edit to `skills/test-graph` reaches the graphs after
+    `skt sync tla-spec-dev` pulls it into the home.
     """
-    candidates = [REPO_ROOT / "skills" / "test-graph" / "scripts" / "run.py"]
+    rel = Path("plugins") / "tla-spec-dev" / "skills" / "test-graph" / "scripts" / "run.py"
+    candidates = []
     home = os.environ.get("SKILL_MANAGER_HOME")
     if home:
-        candidates.append(Path(home) / "skills" / "test-graph" / "scripts" / "run.py")
-    candidates.append(REPO_ROOT / ".skill-manager" / "skills" / "test-graph" / "scripts" / "run.py")
+        candidates.append(Path(home) / rel)
+    candidates.append(REPO_ROOT / ".skill-manager" / rel)
     for candidate in candidates:
         if candidate.is_file():
             return candidate

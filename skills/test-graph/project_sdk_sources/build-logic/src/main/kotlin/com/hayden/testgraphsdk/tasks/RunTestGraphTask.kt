@@ -272,8 +272,14 @@ abstract class RunTestGraphTask : DefaultTask() {
                         .mapTo(linkedSetOf()) { it.id },
                     traceId = observability.traceId,
                     replay = replayMetadata,
+                    continueAfterFailure = PlanExecutor.continueAfterFailureRequested(),
                 )
             } catch (closureFailure: Throwable) {
+                logger.error(
+                    "attempt closure could not be written; this run cannot be resumed: " +
+                            "${closureFailure.message ?: closureFailure.javaClass.name}",
+                    closureFailure,
+                )
                 if (executionFailure == null) {
                     executionFailure = closureFailure
                 } else if (closureFailure !== executionFailure) {

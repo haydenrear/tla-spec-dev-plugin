@@ -1,0 +1,4 @@
+# post-merge of origin/epic/bug-sweep @ da6ab2f775aeb7c9c10916517714e7dec6f1998b, HEAD 250b10b1d4b8bdf7ed10cf8f37a0cd7a3e5e5fc5 (merge)
+$ uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q
+195 passed in 6.64s
+pytest exit=0

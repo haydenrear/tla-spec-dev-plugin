@@ -1,0 +1,334 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :sktSurface
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'sktSurface' run=20261107-195515 steps=5 fullPlanSteps=5 traceId=31fe57ac38850b9283a4e30a077bba10
+  plan[1/5] skt.wrapper-installed  [testbed, uv]  sources/skt_wrapper_installed.py
+  plan[2/5] skt.status-tiers  [assertion, uv]  sources/skt_status_tiers.py
+  plan[3/5] skt.check-cached-costs-one-read  [assertion, uv]  sources/skt_check_cached.py
+  plan[4/5] skt.hook-contract  [assertion, uv]  sources/skt_hook_contract.py
+  plan[5/5] skt.ticket-roundtrip  [assertion, uv]  sources/skt_ticket_roundtrip.py
+  [1/5] skt.wrapper-installed (uv)
+
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export spans. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :sktSurface
+  [2/5] skt.status-tiers (uv)
+
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export spans. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :sktSurface
+  [3/5] skt.check-cached-costs-one-read (uv)
+
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :sktSurface
+  [4/5] skt.hook-contract (uv)
+
+Failed to export spans. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :sktSurface
+  [5/5] skt.ticket-roundtrip (uv)
+
+Failed to export spans. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+
+> Task :sktSurface
+wrote /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-195515/summary.json + /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-195515/report.md
+testGraph 'sktSurface' done. traceId=31fe57ac38850b9283a4e30a077bba10 reports: /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-195515
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 19s
+5 actionable tasks: 1 executed, 4 up-to-date
+PASSED sktSurface
+/Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-sweeps/20261107-195503/outcome.json
+rc=0

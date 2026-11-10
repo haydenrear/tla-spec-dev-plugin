@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-175-errored-vs-failed/.skill-manager holds nothing that removing it would destroy

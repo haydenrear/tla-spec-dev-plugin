@@ -1,0 +1,39 @@
+# BS-05's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-05
+issue: 190
+base_sha: df48724c
+findings:
+  - id: BS-05-DF-01
+    unit: skt (SKILL.md)
+    blocking: false
+    observed: >-
+      skills/skt/SKILL.md still describes `skt sync <unit>` as "pull a unit to its latest
+      pushed source" and maps it to `skill-manager sync <unit> --git-latest` (lines 37, 81).
+      After #181 a project/worktree home holds a pinned unit at its skill-project.toml pin
+      (via `project resolve`) and the trunk needs `--trunk`; after #182 a pinless
+      non-root home uses the tier-above CLI with --home. SKILL.md is outside BS-05's
+      conflict keys.
+    proposed: >-
+      Line 37: `skt sync <unit> [--trunk]  # to the pin (project/worktree) or trunk (root)`.
+      Line 81 row: `skill-manager project resolve` when pinned below root, else
+      `skill-manager sync <unit> --git-latest [--home=<home>]`.
+  - id: BS-05-DF-02
+    unit: skill-manager (CLI)
+    blocking: false
+    observed: >-
+      The CLI has no verb that syncs ONE unit to a given revision. `sync --lock` re-syncs
+      bumped units to their recorded ref, not the lock's resolved_sha, and `sync --from`
+      needs a hand-made clone. So skt restores a pin through `project resolve`, which
+      reconciles the whole project. Whether resolve moves an already-installed drifted
+      unit back to its revision was not exercised against the real CLI here (fixture
+      CLI only); skt verifies the result and exits 11 if it did not.
+    proposed: >-
+      `skill-manager sync <unit> --revision <sha>` (or have `sync --lock` honour
+      resolved_sha), then point skt's pin path at it.
+  - id: BS-05-DF-03
+    unit: git-issue-workflow (epic-ticket close-out)
+    blocking: false
+    observed: >-
+      `skill-manager home close-out` is denied to ticket agents by the permission
+      classifier, as recorded by BS-03-DF-02. Not attempted from this seat.
+    proposed: Same as BS-03-DF-02 — the epic owner runs close-out at wave merge.

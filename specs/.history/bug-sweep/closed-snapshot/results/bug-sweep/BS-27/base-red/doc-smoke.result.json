@@ -1,0 +1,30 @@
+{
+  "nodeId" : "skill-manager.skill.docs.projected",
+  "status" : "failed",
+  "startedAt" : "2026-11-08T23:31:18.827855Z",
+  "endedAt" : "2026-11-08T23:31:18.834935Z",
+  "failureMessage" : "SKILL.md missing project/child-home guidance",
+  "assertions" : [ {
+    "name" : "skill_md_mentions_projects_and_child_homes",
+    "status" : "failed"
+  }, {
+    "name" : "project_reference_complete",
+    "status" : "passed"
+  }, {
+    "name" : "workflow_routes_project_resolution",
+    "status" : "passed"
+  }, {
+    "name" : "env_helper_project_context_documented",
+    "status" : "passed"
+  }, {
+    "name" : "skill_manifest_mentions_projects",
+    "status" : "passed"
+  } ],
+  "artifacts" : [ ],
+  "processes" : [ ],
+  "metrics" : {
+    "durationMs" : 7
+  },
+  "logs" : [ ],
+  "published" : { }
+}

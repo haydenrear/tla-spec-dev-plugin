@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/wt-epic-bug-sweep-226-continue-closure/.skill-manager holds nothing that removing it would destroy

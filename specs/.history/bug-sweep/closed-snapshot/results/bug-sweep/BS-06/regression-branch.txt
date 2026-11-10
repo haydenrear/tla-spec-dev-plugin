@@ -1,0 +1,9 @@
+# branch: feature/191-skt-ticket-lifecycle working tree on df48724c
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_183_close_finds_a_declared_path_worktree_outside_the_parent
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_184_hook_runs_once_through_ticket_new
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_184_failing_hook_fails_ticket_new_and_names_it
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_184_hook_runs_once_and_fails_loudly_through_declared_path
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_171_ticket_new_replaces_a_target_link_into_another_checkout
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_171_declared_path_replaces_a_target_link_into_another_checkout
+PASSED skills/skt/tests/test_ticket_lifecycle.py::test_171_a_target_link_inside_the_worktree_is_left_alone
+7 passed in 15.32s

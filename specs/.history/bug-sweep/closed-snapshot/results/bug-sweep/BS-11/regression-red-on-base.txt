@@ -1,0 +1,31 @@
+# origin/epic/bug-sweep 0bb9a950 skills/test-graph (git archive), with BS-11's tests/test_outcome_json.py + tests/test_run.py copied in, 2026-11-07T18:15:05Z
+# uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests/test_outcome_json.py skills/test-graph/scripts/tests/test_run.py -q
+                   {"event": "finished", "task": "g", "graph": True, "outcome": "failed",
+                    "runDirs": [], "seconds": 2.0, "failure": "Execution failed for task ':g'."}]
+E       AssertionError: 'NodeDescribeErroredException' not found in "the graph wrote no summary.json, so no node reported a verdict: Execution failed for task ':g'."
+        write_envelope(d, "n.ok", "passed")
+        write_envelope(d, "n.red", "failed", failureMessage="expected 1 but was 2", spawnExitCode=1)
+E   FAILURE: Build failed with an exception.
+E   Execution failed for task ':onlySlow'.
+E   FAILURE: Build failed with an exception.
+E   Execution failed for task ':describeErrored'.
+E   > errored: describe for broken_describe.py failed on all 3 attempts; the run did not complete, which is not a node failure (retry it or fix the environment). attempt 1: exit=3; attempt 2: exit=3; attempt 3: exit=3. Run directly to debug: /opt/homebrew/bin/uv run /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/tmpxy7odl7q/test_graph/nodes/broken_describe.py --describe-out=<tmp>
+E   FAILURE: Build failed with an exception.
+E   Execution failed for task ':threeWays'.
+E   > node fixture.red failed: expected 1 but was 2
+E       AssertionError: '--continue-after-failure' not found in "usage: pytest [-h] [--all] [--continue | --fail-fast]\n              [--resume-from-build RESUME_FROM_BUILD]\n              [--resume-from-node RESUME_FROM_NODE]\n              [--run-only-node RUN_ONLY_NODE]\n              [--test-graph-root TEST_GRAPH_ROOT]\n              [graph ...]\n\nRun a test graph by name (or several, or every registered graph).\n\npositional arguments:\n  graph                 Test graph name(s) (also the Gradle task names). List\n                        available graphs with `discover.py`. More than one\n                        runs as a sweep that continues past failures.\n\noptions:\n  -h, --help            show this help message and exit\n  --all                 Run every registered test graph sequentially (Gradle\n                        task `validationRunAll`), continuing past failures.\n                        Mutually exclusive with <graph>.\n  --continue            Run as a sweep that keeps going past a failing graph\n                        and ends with an executed/passed/failed/errored/not-\n                        run summary. Implied by --all and by more than one\n                        graph; with a single graph it adds the summary.\n  --fail-fast           In a sweep, stop at the first failing graph. Graphs\n                        after it are reported as not run.\n  --resume-from-build RESUME_FROM_BUILD\n                        Existing build/validation-reports/<runId> directory\n                        whose saved context/<node-id>.input.json should seed\n                        resumed execution. Requires one <graph> and exactly\n                        one of --resume-from-node or --run-only-node.\n  --resume-from-node RESUME_FROM_NODE\n                        Node id to resume from. The selected node's saved\n                        input context must exist under --resume-from-\n                        build/context/.\n  --run-only-node RUN_ONLY_NODE\n                        Node id to run by itself from --resume-from-build. The\n                        selected node's saved input context must exist under\n                        --resume-from-build/context/.\n  --test-graph-root, -R TEST_GRAPH_ROOT\n                        Path to the scaffolded test_graph project. Defaults to\n                        auto-detection: walk up from cwd, then look for\n                        ./test_graph/ in the current directory, then fall back\n                        to TEST_GRAPH_ROOT env.\n\nReplay examples:\n  Continue a graph from a saved node context:\n    run.py smoke --resume-from-build build/validation-reports/<runId> --resume-from-node login.smoke\n  Run only one node from a saved node context:\n    run.py smoke --resume-from-build build/validation-reports/<runId> --run-only-node login.smoke\n\nUse --resume-from-build with exactly one node selector. --resume-from-node continues downstream; --run-only-node does not. Both preserve the source build and write a fresh replay report.\n"
+                      finished("smoke", "passed")]
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::CollectNodesTest::test_describe_errored_graph_is_errored_with_its_own_cause
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::CollectNodesTest::test_exit_codes_never_leave_0_1_3
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::CollectNodesTest::test_load_average_is_looked_up_at_node_start_and_end
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::CollectNodesTest::test_statuses_causes_durations_and_timeout_bound
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::SweepPyReadsOutcomeTest::test_run_one_takes_status_and_run_id_from_outcome_json
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::RealSdkFixtureTest::test_a_timeout_alone_is_errored_and_exits_3
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::RealSdkFixtureTest::test_describe_errored_graph_is_errored_not_not_run
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::RealSdkFixtureTest::test_red_killed_and_timed_out_nodes_get_distinct_outcomes
+FAILED skills/test-graph/scripts/tests/test_outcome_json.py::RealSdkFixtureTest::test_without_continue_after_failure_later_nodes_are_not_run
+FAILED skills/test-graph/scripts/tests/test_run.py::SweepInvocationTest::test_continue_after_failure_sets_the_plan_executor_env
+FAILED skills/test-graph/scripts/tests/test_run.py::SweepInvocationTest::test_help_documents_continue_after_failure
+FAILED skills/test-graph/scripts/tests/test_run.py::SweepInvocationTest::test_single_graph_runs_under_the_ledger_and_writes_outcome_json
+12 failed, 10 passed in 149.49s (0:02:29)
+exit=1 (pytest; 12 failed -- recorded by hand: zsh has no PIPESTATUS)

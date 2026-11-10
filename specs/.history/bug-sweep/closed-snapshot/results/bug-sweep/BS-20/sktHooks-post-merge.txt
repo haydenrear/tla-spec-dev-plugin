@@ -1,0 +1,6 @@
+
+== verdicts (read from each run's own summary.json, not from exit codes) ==
+  PASSED    sktHooks                   runner_exit=0  /Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/test_graph/build/validation-reports/20261107-175753/summary.json
+  NOT RUN   sktSurface                 opt-in: provisions a pinned CPython 3.11/3.13 matrix through uv (net:external) to execute install-skt.sh, the wrapper it writes, the two shipped hooks and the ticket round trip; run it with `python3 test_graph/run-graphs.py --only sktSurface` once uv can reach its interpreter downloads
+
+This command always exits 0. A red or undecided graph is a report, not a refusal.

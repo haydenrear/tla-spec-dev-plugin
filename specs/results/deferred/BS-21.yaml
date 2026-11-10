@@ -1,0 +1,32 @@
+# BS-21's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-21
+issue: 203
+base_sha: d9c20ee4
+findings:
+  - id: BS-21-DF-01
+    unit: spec-double-2 (scripts/spec_evolution.py create_ticket_closed_snapshot; outside BS-21's conflict key, which is close_tickets.py only)
+    blocking: false
+    severity: medium
+    observed: >-
+      `tla-spec-dev close ticket --result <missing>` goes through the same
+      snapshot_results / add_copied_path path and still records exists=false
+      and closes. #203 names only the workflow close; the ticket close has the
+      identical hole (the ticket receipt is immutable too).
+    proposed: >-
+      Reuse close_tickets.missing_result_problems (or move it into
+      spec_evolution) and call it with refuse_or_warn at the top of the
+      ticket close, before any promotion or receipt write. Same --force /
+      SKILL_GATES=off path recording exists=false.
+  - id: BS-21-DF-02
+    unit: spec-double-2 (scripts/spec_evolution.py snapshot_results)
+    blocking: false
+    severity: low
+    observed: >-
+      snapshot_results copies each result to `results/<basename>`. Two
+      different results sharing a basename (e.g. two `report.json` from
+      different nodes) collide: a file silently overwrites the first copy
+      while both manifest records claim a snapshot at the same path; a
+      directory raises from copytree after history was partly written.
+    proposed: >-
+      Refuse duplicate destination names up front (alongside the missing-result
+      guard), or disambiguate with an index prefix and record it.

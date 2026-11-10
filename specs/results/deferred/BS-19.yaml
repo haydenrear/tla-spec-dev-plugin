@@ -1,0 +1,46 @@
+# BS-19's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-19
+issue: 201
+base_sha: edd8d5d0
+findings:
+  - id: BS-19-DF-01
+    unit: skt (skills/skt/src/skt/cli.py; outside BS-19's conflict keys)
+    blocking: false
+    severity: low
+    observed: >-
+      `skt ticket --force` is help-texted and refused as "close only", so the
+      sweep's force path for an integrity refusal is `SKILL_GATES=off` (the
+      owner's gate override), not a flag. `skt ticket sweep --help` does not
+      mention it; only the refusal text and finalize.md §6 do.
+    proposed: >-
+      In cli.py, mention SKILL_GATES=off in the --yes help for sweep, or accept
+      --force on sweep as an alias that sets it (then drop "sweep" from
+      test_ticket_publish.py::test_close_options_refused_on_other_verbs).
+  - id: BS-19-DF-02
+    unit: git-issue-workflow (scripts/close-change.sh removal; outside the "integrity recheck only" key)
+    blocking: false
+    severity: medium
+    observed: >-
+      close-change.sh removes with `git worktree remove --force`, which deletes
+      every ignored file in the worktree. BS-19's recheck now refuses when
+      DECLARED retained evidence is present, but undeclared ignored raw data
+      still goes without a word. The sweep removes without --force and so keeps
+      git's own refusal over untracked files (not ignored ones).
+    proposed: >-
+      Before the removal, list ignored files outside .skill-manager/ and
+      target/ (`git -C <wt> ls-files --others --ignored --exclude-standard
+      --directory`) and print their count as a DISCARDED line, so the loss is
+      at least on the record.
+  - id: BS-19-DF-03
+    unit: git-issue-workflow (scripts/close-change.sh, pointer check)
+    blocking: false
+    severity: low
+    observed: >-
+      For a worktree with no .git pointer, close-change.sh names `git -C
+      "$ROOT" worktree repair "$WT"` with ROOT derived from $PWD. Closing
+      another repository's worktree by path from an unrelated checkout would
+      name the wrong ROOT; repair from the wrong repo is a no-op error, not
+      damage.
+    proposed: >-
+      Derive ROOT for that message from the admin entry whose gitdir names
+      "$WT/.git" (ticket_integrity.admin_dir does this) rather than from $PWD.

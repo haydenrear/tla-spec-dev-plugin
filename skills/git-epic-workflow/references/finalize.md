@@ -403,8 +403,14 @@ tip and the close commit changed workflow artifacts only. Its body includes:
 - the guardrail overrides and implicit decisions from §2b that the user had not
   already accepted, with their disposition, and the machinery recommendations
   that were published, filed, or dropped;
-- issue-closing references for delivered child issues and explicit not-planned
-  or carried dispositions for retired child issues;
+- one `Closes #N` per line for the epic issue and each delivered child issue
+  (GitHub closes only the first of `Closes #1, #2`), and explicit not-planned
+  or carried dispositions for retired child issues:
+
+  ```text
+  Closes #199
+  Closes #200
+  ```
 - the worktree sweep from §6 — how many were removed, how much space that
   reclaimed, and anything retained with its reason.
 
@@ -435,6 +441,25 @@ order of magnitude (`references/worktree-lifecycle.md` §1).
 git -C <repo-root> worktree list --porcelain | awk '/^worktree /{print $2}'
 df -k <repo-root>          # before the sweep, and again after
 ```
+
+**Recheck integrity before anything is validated or removed (#201).** A
+receipt written waves ago — clean, home closed out, evidence held — describes
+the filesystem as it was, not as it is. Run `skt ticket list --epic <slug>`
+first: each worktree's `integrity` line is measured now and names, separately,
+`pointer_missing`, `source_missing`, `home_missing`, `evidence_missing` and
+`evidence_replaced`, with an opaque handle and expected against current hashes.
+A committed or staged deletion is never one of them. Recover what is
+recoverable with the commands it prints — `git worktree repair` for the
+pointer, `git checkout-index` without `-f` for committed source — and never with
+reset, clean or `--force`. Missing raw evidence stays `unavailable`; say so in
+the epic PR rather than describing it as retained. `skt ticket sweep` and
+`skt ticket close` re-run the same check immediately before each removal and
+refuse a worktree that fails it (force: `SKILL_GATES=off` for the sweep,
+`--force` for close; neither makes git remove a tree it cannot validate), and
+the sweep skips its final `git worktree prune` while any worktree has lost its
+pointer, because prune deletes the admin entry repair needs. Do not run that
+prune by hand until those worktrees are repaired. Report prior loss apart from
+what the sweep removed.
 
 Each worktree removal is the irreversible step for its home,
 so re-run §1b's gate immediately before it rather than trusting the earlier pass —

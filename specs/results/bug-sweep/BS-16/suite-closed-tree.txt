@@ -1,0 +1,148 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+..................................F..................................... [ 11%]
+........................................................................ [ 15%]
+........................................................................ [ 18%]
+........................................................................ [ 22%]
+........................................................................ [ 26%]
+........................................................................ [ 30%]
+...........s..................................s......................... [ 33%]
+................................................s....................... [ 37%]
+........................................................................ [ 41%]
+........................................................................ [ 45%]
+........................................................................ [ 49%]
+........................................................................ [ 52%]
+........................................................................ [ 56%]
+........................................................................ [ 60%]
+........................................................................ [ 64%]
+........................................................................ [ 67%]
+..........................................ss.ss......................... [ 71%]
+........................................................................ [ 75%]
+........................................................................ [ 79%]
+........................................................................ [ 83%]
+........................................................................ [ 86%]
+........................................................................ [ 90%]
+..ss.ss.ss.ss.ss.ss..................................................... [ 94%]
+............................................................F........... [ 98%]
+....................................                                     [100%]
+=================================== FAILURES ===================================
+_______________________ test_the_same_tag_control_holds ________________________
+
+at = <module 'architecture_tags_rd05' from '/Users/hayde/IdeaProjects/wt-epic-bug-sweep/examples/validation/scorecards/architecture_tags.py'>
+world = {'subjects': {'arm_b': {'name': 'arm_b', 'example': 'ab_quota_ledger', 'scope': ['specs/results/scorecards/ports-as-ad...ful-vs-ports-and-adapters', 'axis': 'effect_boundary', 'example': 'eval_toolchain', 'dimension': 'D2', ...}, ...], ...}
+
+    def test_the_same_tag_control_holds(at, world) -> None:
+        """Without it any two artifacts pass, because any two differ in something.
+    
+        **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+    
+        It is not pinned to a count the corpus grew. It is a CONTROL, it is now
+        reporting a real result, and the result is unflattering: nine same-tag pairs
+        separate — eight on D2 and one on D5 — every one of them a before-tree
+        scoring disjointly from an after-tree at the SAME derived value. RD-06's
+        three revision pairs gave this control its first within-value TREATMENT
+        difference and it cannot tell that apart from a difference in architecture
+        (`RD-03-DF-12`).
+    
+        The two repairs that would clear it were both rejected. Scoping the control
+        to the dimension the separation is claimed on (D3, where it still holds)
+        would make it a check about the row rather than about the axis. Excluding
+        revision pairs from the population would remove exactly the evidence the
+        control exists to see. Either one converts a measurement into a tautology,
+        which is the failure this epic family exists to prevent.
+    
+        Filed as `RM-06-DF-01`. It goes green when the axis can distinguish
+        treatment from architecture, or when the epic decides it cannot and says so.
+        """
+    
+        controls = at.same_tag_controls(world["rows"], world["derived"], world["subjects"])
+        assert controls, "no same-tag control is available; the separation is uncontrolled"
+        failed = [c for c in controls if c["separates"]]
+>       assert failed == [], (
+            f"{len(failed)} same-tag pair(s) separate: "
+            f"{[(c['dimension'], c['a'], c['b']) for c in failed]}. "
+            f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+            f"is reporting a real result and may not be narrowed to silence it."
+        )
+E       AssertionError: 9 same-tag pair(s) separate: [('D2', 'arm_a', 'rd06_artifact_D'), ('D2', 'arm_a', 'rd06_artifact_M'), ('D2', 'arm_c', 'rd06_artifact_D'), ('D2', 'arm_c', 'rd06_artifact_M'), ('D2', 'rd06_artifact_D', 'rd06_artifact_N'), ('D2', 'rd06_artifact_D', 'rd06_artifact_Z'), ('D5', 'rd06_artifact_E', 'rd06_artifact_F'), ('D2', 'rd06_artifact_M', 'rd06_artifact_N'), ('D2', 'rd06_artifact_M', 'rd06_artifact_Z')]. EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control is reporting a real result and may not be narrowed to silence it.
+E       assert [{'example': ...l', ...}, ...] == []
+E         
+E         Left contains 9 more items, first extra item: {'example': 'ab_quota_ledger', 'a': 'arm_a', 'b': 'rd06_artifact_D', 'value': 'effectful', ...}
+E         Use -v to get more diff
+
+tests/test_architecture_tags.py:477: AssertionError
+_____ test_repository_canonical_delivered_plan_has_matching_close_receipts _____
+
+    def test_repository_canonical_delivered_plan_has_matching_close_receipts() -> None:
+        """Every delivered ticket of the OPEN workflow has one close receipt.
+    
+        NO OPEN WORKFLOW IS A LEGITIMATE STATE, and it is the state this repository
+        is supposed to be in on `main`: `close_tickets.py` removes
+        `specs/desired_program_model/` and `specs/current/` at workflow close, so the
+        plan this test reads is absent by design between epics.
+    
+        The first version asserted against a hardcoded plan path and went red the
+        moment a workflow closed correctly. But an absent plan must not simply pass:
+        deleting the plan would then satisfy the check that exists to stop tickets
+        being marked done without evidence. So absence is only accepted against
+        EVIDENCE OF A CLOSE -- a `closed-snapshot` under `specs/.history/` -- and is
+        a failure without one.
+        """
+        plan_path = ROOT / "specs" / "desired_program_model" / "ticket_plan.yaml"
+    
+        if not plan_path.is_file():
+            # THE FIRST VERSION OF THIS BRANCH WAS UNCONDITIONAL. It accepted ANY
+            # closed-snapshot from ANY epic -- and six already existed on `main`
+            # before the branch was written, so the guard was satisfied before its
+            # own code was authored and could never fail again. `.history` is
+            # append-only, so "delete them all" is unreachable. It read as a guard
+            # and behaved as `return`.
+            #
+            # The close archives the plan it consumed, so the real subject is right
+            # there: check the NEWEST snapshot's OWN plan against the receipts
+            # beside it. That goes red if a plan is deleted to dodge the check, and
+            # red if a workflow closes with a ticket missing its receipt.
+            snapshots = _closed_snapshots_oldest_first()
+            assert snapshots, (
+                "no ticket plan and no closed-snapshot either: the plan is absent "
+                "only because a workflow closed and took it with it, so with no "
+                "close on record this check is passing on the absence of its "
+                "own subject."
+            )
+            newest = snapshots[-1]
+            archived = newest / "snapshots" / "desired_program_model" / "ticket_plan.yaml"
+            assert archived.is_file(), (
+                f"{newest.parent.name} closed without archiving the plan it consumed, "
+                "so nothing can be checked against its receipts"
+            )
+            problems = validate_ticket_plan_closed(
+                archived,
+                repo_root=ROOT,
+                workflow=newest.parent.name,
+                specs_dir=ROOT / "specs",
+            )
+            if problems:
+                # Close never blocks (owner rule, 2026-09-26): a close may complete
+                # with its gaps MARKED. Missing receipts are accepted only when the
+                # snapshot's own manifest says validation was not claimed AND
+                # records who authorised the close -- the gap is stated as data,
+                # never silent. Anything else is the deleted-plan / missing-receipt
+                # defect this test exists for.
+                manifest = json.loads((newest / "manifest.json").read_text(encoding="utf-8"))
+                validation = manifest.get("validation") or {}
+                authorised = manifest.get("owner_authorisation") or {}
+>               assert validation.get("claimed") is False and str(validation.get("note", "")).strip() \
+                    and str(authorised.get("note", "")).strip(), (
+                    f"{newest.parent.name} closed with {len(problems)} receipt problem(s) "
+                    f"and does not mark them as unclaimed, owner-authorised gaps: {problems[:3]}"
+                )
+E               AssertionError: bug-sweep closed with 27 receipt problem(s) and does not mark them as unclaimed, owner-authorised gaps: ['ticket BS-09 must have exactly one successful close receipt under /Users/hayde/IdeaProjects/wt-epic-bug-sweep/specs/.history/bug-sweep, found 0', 'ticket BS-03 must have exactly one successful close receipt under /Users/hayde/IdeaProjects/wt-epic-bug-sweep/specs/.history/bug-sweep, found 0', 'ticket BS-01 must have exactly one successful close receipt under /Users/hayde/IdeaProjects/wt-epic-bug-sweep/specs/.history/bug-sweep, found 0']
+E               assert (None is False)
+E                +  where None = <built-in method get of dict object at 0x109ec9500>('claimed')
+E                +    where <built-in method get of dict object at 0x109ec9500> = {}.get
+
+tests/test_ticket_retirement.py:791: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+FAILED tests/test_ticket_retirement.py::test_repository_canonical_delivered_plan_has_matching_close_receipts
+2 failed, 1887 passed, 19 skipped in 1629.69s (0:27:09)

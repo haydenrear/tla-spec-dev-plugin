@@ -1,0 +1,11 @@
+{
+  "graphs": {
+    "cliWorkflow": {
+      "status": "passed",
+      "cause": null,
+      "duration_seconds": 41.798,
+      "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942"
+    }
+  },
+  "updated_at": "2026-11-07T18:40:02Z"
+}

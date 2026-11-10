@@ -1,0 +1,10 @@
+GOAL-BS-BUGS local_signal: uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q
+  branch:  76 passed, 30 subtests passed, exit 0  (repository-unit-green-on-branch.txt)
+  base:    the 12 BS-11 regression tests fail on origin/epic/bug-sweep 0bb9a950  (regression-red-on-base.txt)
+  expected_effect: 2 in-scope issue(s) proven fixed (red on base, green on branch)
+  classification: moved as expected -- #185 (outcome.json, 0/1/3, describe-errored) and #168
+  (--continue-after-failure) each have regression tests red on base and green on the branch.
+GOAL-BS-GRAPHS local_signal: in-repo runner, python3 skills/test-graph/scripts/run.py cliWorkflow --test-graph-root test_graph
+  PASSED, exit 0 (graph-cliWorkflow-inrepo-runner.txt, graph-cliWorkflow-outcome.json)
+  classification: no measurable movement (guard held: no graph newly red)
+GOAL-BS-EVALS: N/A: the full eval lane runs only in BS-17

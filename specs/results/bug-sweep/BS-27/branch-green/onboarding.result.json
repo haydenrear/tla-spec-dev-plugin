@@ -1,0 +1,41 @@
+{
+  "nodeId" : "onboarding.docs.and.scripts.static",
+  "status" : "passed",
+  "startedAt" : "2026-11-08T23:31:21.276315Z",
+  "endedAt" : "2026-11-08T23:31:21.338894Z",
+  "assertions" : [ {
+    "name" : "the_skill_under_test_was_found",
+    "status" : "passed"
+  }, {
+    "name" : "the_documentation_extractor_found_at_least_one_script",
+    "status" : "passed"
+  }, {
+    "name" : "the_extractor_found_the_four_known_good_scripts",
+    "status" : "passed"
+  }, {
+    "name" : "every_script_the_docs_tell_you_to_copy_or_run_exists",
+    "status" : "passed"
+  }, {
+    "name" : "the_resolution_base_is_the_skill_root_not_an_ancestor",
+    "status" : "passed"
+  }, {
+    "name" : "the_existence_predicate_discriminates_present_from_absent",
+    "status" : "passed"
+  }, {
+    "name" : "the_relative_cli_pattern_still_matches_its_known_waived_lines",
+    "status" : "passed"
+  }, {
+    "name" : "no_script_outside_the_waiver_resolves_a_cli_by_relative_path",
+    "status" : "passed"
+  } ],
+  "artifacts" : [ ],
+  "processes" : [ ],
+  "metrics" : {
+    "scriptsReferenced" : 5,
+    "scriptsMissing" : 0,
+    "waivedRelativeCliLines" : 4,
+    "durationMs" : 62
+  },
+  "logs" : [ "referenced: [agent-home.sh, bootstrap-home.sh, close-change.sh, selftest.sh, wt]", "missing: []", "relative-cli hits: [selftest.sh:76, selftest.sh:2789, selftest.sh:2812, selftest.sh:2813]", "skill root: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/after-tree/home/plugins/tla-spec-dev/skills/git-issue-workflow", "ancestor copy of agent-home.sh exists: false at /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/after-tree/home/plugins/tla-spec-dev/scripts/agent-home.sh" ],
+  "published" : { }
+}

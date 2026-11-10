@@ -1,0 +1,129 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:compileKotlin UP-TO-DATE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+
+> Task :effectProviderExamples
+[toolchain] jbang=0.137.0 (path: /opt/homebrew/bin/jbang)
+[toolchain] uv=0.12.19 (path: /opt/homebrew/bin/uv)
+testGraph 'effectProviderExamples' run=20261107-195346 steps=1 fullPlanSteps=1 traceId=871b414a1c7451a5fcdddce8f230dcd4
+  plan[1/1] effect.providers.examples  [assertion, uv]  sources/effect_provider_examples.py
+  [1/1] effect.providers.examples (uv)
+
+Failed to export logs. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export spans. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Failed to export metrics. The request could not be executed.
+java.net.ConnectException: Failed to connect to localhost/[0:0:0:0:0:0:0:1]:4318
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:278)
+	at okhttp3.internal.connection.ConnectPlan.connectTcp(ConnectPlan.kt:135)
+	at okhttp3.internal.connection.FastFallbackExchangeFinder$launchTcpConnect$1.runOnce(FastFallbackExchangeFinder.kt:141)
+	at okhttp3.internal.concurrent.TaskRunner$runnable$1.run(TaskRunner.kt:81)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+	Suppressed: java.net.ConnectException: Failed to connect to localhost/127.0.0.1:4318
+		... 7 more
+	Caused by: java.net.ConnectException: Connection refused
+		at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+		at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+		at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+		at java.base/java.net.Socket.connect(Socket.java:751)
+		at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+		at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+		... 6 more
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method)
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549)
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592)
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327)
+	at java.base/java.net.Socket.connect(Socket.java:751)
+	at okhttp3.internal.platform.Platform.connectSocket(Platform.kt:148)
+	at okhttp3.internal.connection.ConnectPlan.connectSocket(ConnectPlan.kt:276)
+	... 6 more
+Exporter failed
+
+> Task :effectProviderExamples
+wrote /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-195346/summary.json + /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-195346/report.md
+testGraph 'effectProviderExamples' done. traceId=871b414a1c7451a5fcdddce8f230dcd4 reports: /Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-reports/20261107-195346
+
+[Incubating] Problems report is available at: file:///Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 37s
+5 actionable tasks: 1 executed, 4 up-to-date
+PASSED effectProviderExamples
+/Users/hayde/IdeaProjects/wt-epic-bug-sweep/test_graph/build/validation-sweeps/20261107-195325/outcome.json
+rc=0

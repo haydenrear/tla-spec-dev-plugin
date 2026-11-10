@@ -1,0 +1,285 @@
+FFFF.........F.FFFFFFFFF.                                                [100%]
+=================================== FAILURES ===================================
+___________ test_a_squashed_ticket_is_removed_and_says_how_it_landed ___________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_squashed_ticket_is_remo0')
+
+    def test_a_squashed_ticket_is_removed_and_says_how_it_landed(tmp_path):
+        repo = planned_repo(tmp_path)
+        path = ticket(repo, "201-alpha")
+        result = sweep_yes(repo, epic="demo")
+        step = step_for(result, path)
+>       assert step.action == "removed", step.reasons
+E       AssertionError: ('1 commit(s) not contained in epic/demo',)
+E       assert 'skipped' == 'removed'
+E         
+E         - removed
+E         + skipped
+
+skills/skt/tests/test_ticket_sweep_squash.py:94: AssertionError
+_ test_a_multi_commit_ticket_later_edited_on_the_epic_lands_by_its_whole_change _
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_multi_commit_ticket_lat0')
+
+    def test_a_multi_commit_ticket_later_edited_on_the_epic_lands_by_its_whole_change(tmp_path):
+        """The path now differs on the epic, so only the whole-change match can admit it."""
+        repo = planned_repo(tmp_path)
+        path = add_worktree(repo, "201-alpha")
+        commit(path, "a.txt", "one\n")
+        commit(path, "a.txt", "one\ntwo\n")
+        git("push", "-q", "-u", "origin", "feature/201-alpha", cwd=path)
+        squash_into_epic(repo, "201-alpha")
+        commit(repo["epic_wt"], "a.txt", "one\ntwo\nlater ticket\n")
+        git("push", "-q", "origin", "epic/demo", cwd=repo["epic_wt"])
+    
+        status = sweep_mod.inspect(
+            next(w for w in sweep_mod.list_worktrees(repo["root"]) if w.path.resolve() == path.resolve()), root=repo["root"], target="epic/demo"
+        )
+>       assert status.clean, status.blockers
+E       AssertionError: ('2 commit(s) not contained in epic/demo',)
+E       assert False
+E        +  where False = Status(dirty=(), stashes=(), upstream='origin/feature/201-alpha', unpushed=0, target='epic/demo', not_in_target=2, mis...ticket_lat0/wt-201-alpha', findings=(), retained=(), manifest=False, unmeasured=(), counts={}), integrity_forced=False).clean
+
+skills/skt/tests/test_ticket_sweep_squash.py:113: AssertionError
+______ test_a_ticket_squashed_while_another_landed_nearby_is_still_found _______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_ticket_squashed_while_a0')
+
+    def test_a_ticket_squashed_while_another_landed_nearby_is_still_found(tmp_path):
+        repo = planned_repo(tmp_path)
+        path = add_worktree(repo, "201-alpha")
+        commit(path, "b.txt", "mine\n")
+        git("push", "-q", "-u", "origin", "feature/201-alpha", cwd=path)
+        commit(repo["epic_wt"], "c.txt", "someone else\n")
+        squash_into_epic(repo, "201-alpha")
+        result = sweep_yes(repo, epic="demo")
+>       assert step_for(result, path).action == "removed"
+E       AssertionError: assert 'skipped' == 'removed'
+E         
+E         - removed
+E         + skipped
+
+skills/skt/tests/test_ticket_sweep_squash.py:125: AssertionError
+______ test_a_squashed_ticket_whose_remote_branch_was_deleted_is_removed _______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_squashed_ticket_whose_r0')
+
+    def test_a_squashed_ticket_whose_remote_branch_was_deleted_is_removed(tmp_path):
+        """GitHub deletes the head branch on merge; `pushed` must not then block."""
+        repo = planned_repo(tmp_path)
+        path = ticket(repo, "201-alpha")
+        git("push", "-q", "origin", "--delete", "feature/201-alpha", cwd=path)
+        git("fetch", "-q", "--prune", "origin", cwd=repo["root"])
+        result = sweep_yes(repo, epic="demo")
+        step = step_for(result, path)
+>       assert step.action == "removed", step.reasons
+E       AssertionError: ('1 commit(s) not pushed to any remote', '1 commit(s) not contained in epic/demo')
+E       assert 'skipped' == 'removed'
+E         
+E         - removed
+E         + skipped
+
+skills/skt/tests/test_ticket_sweep_squash.py:136: AssertionError
+________ test_plan_removed_from_the_tip_still_declares_squashed_tickets ________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_plan_removed_from_the_tip0')
+
+    def test_plan_removed_from_the_tip_still_declares_squashed_tickets(tmp_path):
+        repo = planned_repo(tmp_path)
+        path = ticket(repo, "201-alpha")
+        git("rm", "-q", PLAN, cwd=repo["epic_wt"])
+        git("commit", "-q", "-m", "finalize: remove the plan", cwd=repo["epic_wt"])
+        git("push", "-q", "origin", "epic/demo", cwd=repo["epic_wt"])
+    
+        declared = sweep_mod.epic_declared_tickets(repo["root"], "epic/demo")
+>       assert declared is not None and declared.historical
+E       assert (None is not None)
+
+skills/skt/tests/test_ticket_sweep_squash.py:251: AssertionError
+____________________ test_a_tip_plan_still_outranks_history ____________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_tip_plan_still_outranks0')
+
+    def test_a_tip_plan_still_outranks_history(tmp_path):
+        repo = planned_repo(tmp_path)
+        declared = sweep_mod.epic_declared_tickets(repo["root"], "epic/demo")
+>       assert declared is not None and not declared.historical
+                                            ^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'DeclaredTickets' object has no attribute 'historical'
+
+skills/skt/tests/test_ticket_sweep_squash.py:269: AttributeError
+____________ test_a_deleted_epic_branch_names_the_route_that_works _____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_deleted_epic_branch_nam0')
+
+    def test_a_deleted_epic_branch_names_the_route_that_works(tmp_path):
+        repo = planned_repo(tmp_path)
+        path = ticket(repo, "201-alpha")
+        root = repo["root"]
+        git("merge", "-q", "--no-ff", "-m", "merge epic", "epic/demo", cwd=root)
+        git("push", "-q", "origin", "main", cwd=root)
+        git("worktree", "remove", "--force", str(repo["epic_wt"]), cwd=root)
+        git("branch", "-qD", "epic/demo", cwd=root)
+        git("push", "-q", "origin", "--delete", "epic/demo", cwd=root)
+        git("fetch", "-q", "--prune", "origin", cwd=root)
+    
+        refused = sweep_mod.sweep(start=root, epic="demo", yes=True)
+        assert refused.exit_code == sweep_mod.EXIT_FAILED
+>       assert "--target" in refused.plan.fix
+E       AssertionError: assert '--target' in 'git fetch origin, then pass --epic <slug> exactly as the branch spells it'
+E        +  where 'git fetch origin, then pass --epic <slug> exactly as the branch spells it' = Plan(root=PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_deleted...demo exists locally or on any remote', fix='git fetch origin, then pass --epic <slug> exactly as the branch spells it').fix
+E        +    where Plan(root=PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_a_deleted...demo exists locally or on any remote', fix='git fetch origin, then pass --epic <slug> exactly as the branch spells it') = SweepResult(plan=Plan(root=PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-...e, steps=[], pruned=False, prune_error='', free_before=None, free_after=None, abandoned='', not_reached=0, exit_code=1).plan
+
+skills/skt/tests/test_ticket_sweep_squash.py:285: AssertionError
+_______ test_target_route_keeps_an_unlanded_ticket_when_the_epic_is_gone _______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_target_route_keeps_an_unl0')
+
+    def test_target_route_keeps_an_unlanded_ticket_when_the_epic_is_gone(tmp_path):
+        repo = planned_repo(tmp_path)
+        landed = ticket(repo, "201-alpha")
+        unlanded = ticket(repo, "202-beta", squash=False)
+        root = repo["root"]
+        git("merge", "-q", "--no-ff", "-m", "merge epic", "epic/demo", cwd=root)
+        git("push", "-q", "origin", "main", cwd=root)
+        result = sweep_yes(repo, target="origin/main")
+>       assert step_for(result, landed).action == "removed"
+E       AssertionError: assert 'skipped' == 'removed'
+E         
+E         - removed
+E         + skipped
+
+skills/skt/tests/test_ticket_sweep_squash.py:301: AssertionError
+____________ test_ticket_new_survives_losing_the_retention_ref_race ____________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_ticket_new_survives_losin0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1074fd640>
+capsys = <_pytest.capture.CaptureFixture object at 0x1074f4980>
+
+    def test_ticket_new_survives_losing_the_retention_ref_race(tmp_path, monkeypatch, capsys):
+        repo = bare_epic_repo(tmp_path)
+        raced = _lose_the_create_race(monkeypatch, repo)
+        declared = tmp_path / "wt-7-slug"
+        rc = run_epic_new(repo, "7-slug", declared, base="epic/slug")
+        assert raced, "the race was never exercised"
+>       assert rc == 0, capsys.readouterr().out
+E       AssertionError: error: could not create retention ref refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a: fatal: update_ref failed for ref 'refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a': cannot lock ref 'refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a': reference already exists
+E         
+E       assert 1 == 0
+
+skills/skt/tests/test_ticket_sweep_squash.py:330: AssertionError
+______ test_ticket_new_refuses_when_the_race_winner_pinned_another_commit ______
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_ticket_new_refuses_when_t0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107cda450>
+capsys = <_pytest.capture.CaptureFixture object at 0x10751ccd0>
+
+    def test_ticket_new_refuses_when_the_race_winner_pinned_another_commit(tmp_path, monkeypatch, capsys):
+        repo = bare_epic_repo(tmp_path)
+        other = subprocess.run(
+            [*GIT, "-C", str(repo), "commit-tree", "HEAD^{tree}", "-m", "other"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        _lose_the_create_race(monkeypatch, repo, winner_oid=other)
+        declared = tmp_path / "wt-8-slug"
+        assert run_epic_new(repo, "8-slug", declared, base="epic/slug") == 1
+        out = capsys.readouterr().out
+>       assert "retention ref" in out and other[:8] in out
+E       assert ('retention ref' in "error: could not create retention ref refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a: fatal: update_r...2b4494a': cannot lock ref 'refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a': reference already exists\n" and 'bf9ac4ff' in "error: could not create retention ref refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a: fatal: update_r...2b4494a': cannot lock ref 'refs/index-bases/repo/84c5d3d8939fe8fc4402c3ccb292291e72b4494a': reference already exists\n")
+
+skills/skt/tests/test_ticket_sweep_squash.py:344: AssertionError
+__ test_ticket_new_inside_repo_refusal_no_longer_claims_close_cannot_find_it ___
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_ticket_new_inside_repo_re0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10798b1d0>
+capsys = <_pytest.capture.CaptureFixture object at 0x10759fed0>
+
+    def test_ticket_new_inside_repo_refusal_no_longer_claims_close_cannot_find_it(
+        tmp_path, monkeypatch, capsys
+    ):
+        repo = bare_epic_repo(tmp_path)
+        rc = run_epic_new(repo, "9-slug", repo / "wt-9-slug", base="epic/slug")
+        out = capsys.readouterr().out
+        assert rc == 1
+>       assert "close searches" not in out and "cannot find" not in out
+E       AssertionError: assert ('close searches' not in 'error: --pa.../wt-9-slug\n'
+E         
+E         'close searches' is contained here:
+E            find it: close searches /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_ticket_new_inside_repo_re0 for the
+E         ?           ++++++++++++++
+E                  derived path and for '*-9-slug', never inside the checkout.
+E           fix:   put it beside the repository — --path ../wt-9-slug)
+
+skills/skt/tests/test_ticket_sweep_squash.py:355: AssertionError
+___ test_check_reports_a_jbang_launcher_that_misses_its_budget_as_unmeasured ___
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_check_reports_a_jbang_lau0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1075d60b0>
+
+    def test_check_reports_a_jbang_launcher_that_misses_its_budget_as_unmeasured(tmp_path, monkeypatch):
+        home = _home_for_check(tmp_path)
+        _slow_pin(home, JBANG_WRAPPER)
+        started = time.monotonic()
+        state = _probe(monkeypatch, home)
+        assert time.monotonic() - started < 10, "the budget itself must not be raised"
+>       assert state["state"] == "slow-launcher", state
+E       AssertionError: {'state': 'timeout', 'reason': 'the CLI did not answer --version inside its budget', 'fix': 'skill-manager home shims ...bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_check_reports_a_jbang_lau0/repo/.skill-manager   # re-writes the pin'}
+E       assert 'timeout' == 'slow-launcher'
+E         
+E         - slow-launcher
+E         + timeout
+
+skills/skt/tests/test_ticket_sweep_squash.py:389: AssertionError
+______________ test_check_follows_a_home_pin_to_its_jbang_wrapper ______________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_check_follows_a_home_pin_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107dfc520>
+
+    def test_check_follows_a_home_pin_to_its_jbang_wrapper(tmp_path, monkeypatch):
+        home = _home_for_check(tmp_path)
+        wrapper = tmp_path / "checkout" / "skill-manager"
+        wrapper.parent.mkdir()
+        wrapper.write_text(JBANG_WRAPPER)
+        wrapper.chmod(0o755)
+        _slow_pin(
+            home,
+            "#!/usr/bin/env bash\n# skill-manager:cli-pin\n"
+            f'cli="${{SKILL_MANAGER_CLI:-{wrapper}}}"\nexec "$cli" "$@"\n',
+        )
+>       assert _probe(monkeypatch, home)["state"] == "slow-launcher"
+E       AssertionError: assert 'timeout' == 'slow-launcher'
+E         
+E         - slow-launcher
+E         + timeout
+
+skills/skt/tests/test_ticket_sweep_squash.py:405: AssertionError
+________________ test_check_build_line_names_the_slow_launcher _________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-26/test_check_build_line_names_th0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107dfcf30>
+
+    def test_check_build_line_names_the_slow_launcher(tmp_path, monkeypatch):
+        home = _home_for_check(tmp_path)
+        _slow_pin(home, JBANG_WRAPPER)
+        state = _probe(monkeypatch, home)
+        line = check_mod._build_line({"skt_version": "1", "cli": state})
+>       assert "slow-launcher" in line and "(timeout)" not in line
+E       AssertionError: assert ('slow-launcher' in '  build: skt 1; no skill-manager build consulted (timeout)')
+
+skills/skt/tests/test_ticket_sweep_squash.py:413: AssertionError
+=========================== short test summary info ============================
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_a_squashed_ticket_is_removed_and_says_how_it_landed
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_a_multi_commit_ticket_later_edited_on_the_epic_lands_by_its_whole_change
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_a_ticket_squashed_while_another_landed_nearby_is_still_found
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_a_squashed_ticket_whose_remote_branch_was_deleted_is_removed
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_plan_removed_from_the_tip_still_declares_squashed_tickets
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_a_tip_plan_still_outranks_history
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_a_deleted_epic_branch_names_the_route_that_works
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_target_route_keeps_an_unlanded_ticket_when_the_epic_is_gone
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_ticket_new_survives_losing_the_retention_ref_race
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_ticket_new_refuses_when_the_race_winner_pinned_another_commit
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_ticket_new_inside_repo_refusal_no_longer_claims_close_cannot_find_it
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_check_reports_a_jbang_launcher_that_misses_its_budget_as_unmeasured
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_check_follows_a_home_pin_to_its_jbang_wrapper
+FAILED skills/skt/tests/test_ticket_sweep_squash.py::test_check_build_line_names_the_slow_launcher
+14 failed, 11 passed in 38.72s

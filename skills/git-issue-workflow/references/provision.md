@@ -89,7 +89,7 @@ that is the defect `SKILL.md` §*Reaching a by-hand route is itself a finding*
 asks you to report, not a route this section offers.
 
 ```bash
-# The front door. `wt` ships with skt (SI-17), so the unit in this path is skt
+# The front door. `wt` is `skt`'s `scripts/wt` (SI-17), so the unit in this path is skt
 # and not this skill; an installed unit's files live at
 # $SKILL_MANAGER_HOME/skills/<unit>/, with the plugins/ rung for a contained one.
 # The :- fallback is what makes this line work from a bare shell too.

@@ -395,7 +395,10 @@ if [ "$INFO" = 1 ]; then
   # for both verbs, so `wt info T` and `wt close T` cannot answer about
   # different worktrees.
   if [ ! -d "$WT" ]; then
-    INFO_FOUND="$(ticket_worktree_candidates "$(worktree_parent_dir "$ROOT")" "$TICKET")"
+    # Git first, the directory search second — the same order close-change.sh
+    # resolves in (#183), so `info T` and `close T` answer about one worktree.
+    INFO_FOUND="$(ticket_worktree_from_git "$ROOT" "$TICKET")"
+    [ -n "$INFO_FOUND" ] || INFO_FOUND="$(ticket_worktree_candidates "$(worktree_parent_dir "$ROOT")" "$TICKET")"
     INFO_N="$(printf '%s\n' "$INFO_FOUND" | command grep -c . || true)"
     if [ "$INFO_N" = 1 ]; then
       WT="$(printf '%s\n' "$INFO_FOUND" | command sed -n 1p)"
@@ -687,6 +690,24 @@ Or, if this worktree will never host an agent, create it with --no-home.
 EOF
     exit 3
   fi
+fi
+
+# ------------------------------------------------------------- provisioning
+#
+# What `git worktree add` and the home do not give a fresh worktree: the
+# gitignored artifacts the repository needs (its declared `[worktree] provision`
+# hook, #184) and a target/ of its own (#171). Run ONCE, here, after the home so
+# a hook may use it. A failing hook is a failed `new`, exit 9, naming the hook —
+# reporting success on a worktree whose graphs then fail like code regressions
+# is the defect. The worktree is KEPT: it and its home are sound, and the fix is
+# to re-run the hook in it, not to start again.
+step "Provisioning the worktree"
+if ! provision_worktree "$WT"; then
+  die_fix 9 "$PROVISION_FIX" "$PROVISION_ERROR — worktree $WT kept; re-run the hook there"
+fi
+if [ -n "$PROVISION_UNSHARED" ] && [ "$QUIET" != 1 ]; then
+  printf 'warning:   %s/target linked to %s; replaced with a per-worktree directory\n' \
+    "$WT" "$PROVISION_UNSHARED" >&3
 fi
 
 emit_contract "$WT" "$BRANCH (from $BASE, $KIND repo $(basename "$ROOT"))"

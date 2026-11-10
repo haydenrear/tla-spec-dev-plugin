@@ -1,0 +1,57 @@
+# BS-20's inbox (batch policy, budget 5). The epic agent absorbs this at wave close.
+ticket: BS-20
+issue: 202
+base_sha: 5748dcc6
+findings:
+  - id: BS-20-DF-01
+    unit: skill-manager (upstream CLI, 0.28.2; outside this repository)
+    blocking: false
+    severity: medium
+    observed: >-
+      `skill-manager build` exits 1 for an attempted artifact that is still stale
+      ONLY because a stale ancestor it has no producer for (unit-store:<u>) sits
+      above it — the same exit it uses for a failed producer — and a second
+      unchanged build exits 1 again. BuildCommand.java:299-303 sets exit=1 for any
+      attempted step whose freshness_after is stale, and BuildReport.StepView
+      carries no `because`, so a consumer cannot tell the cases apart without a
+      second `artifacts stale` read. The attempted shim's step reason also says
+      "its declared inputs moved" when its own fingerprint matches (the plan-time
+      reason is reused). Reproduced in a one-unit fixture home with the real
+      0.28.2 pin: specs/results/bug-sweep/BS-20/real-fixture-*.txt.
+    proposed: >-
+      In skill-manager: add `because` (and a typed `blocked_by_unbuildable`
+      flag) to BuildReport.StepView, give the blocked case its own exit code or
+      summary counter, and stop reusing the plan reason for a step whose local
+      verdict is current. skt then reads the field instead of re-deriving it
+      from the propagation sentence ("it is built from ...").
+  - id: BS-20-DF-02
+    unit: skill-manager (upstream CLI, 0.28.2; outside this repository)
+    blocking: false
+    severity: medium
+    observed: >-
+      The only remedy for a stale unit-store row is `skill-manager sync <unit>`,
+      which re-resolves the whole unit and reruns/rechecks its CLI installers;
+      the issue reports that in a real home this fans out to unrelated installed
+      CLIs. In the isolated fixture (one unit, one CLI) `sync fixa` did re-record
+      the unit and the home went 6 stale -> 0 stale. There is no narrower verb that
+      re-records only the unit-store row after a reviewed pin is reconciled into
+      the home (home close-out / reconcile moves the store bytes without updating
+      installed/<u>.json's gitHash).
+    proposed: >-
+      Have home reconciliation (close-out --into / home sync) update the install
+      record it is moving bytes under, or add a scoped `skill-manager rebind
+      --record-only <unit>` that re-stamps installed/<u>.json from the store
+      without touching CLI deps.
+  - id: BS-20-DF-03
+    unit: skill-manager (upstream CLI, 0.28.2)
+    blocking: false
+    severity: low
+    observed: >-
+      `build` reports provisioned-tree:cache/skill-script-<u>-<tool> as
+      not-buildable with "no install records that it wrote this tree; the owner
+      shown for it was inferred from the shim", although `artifacts list` shows
+      that same tree carrying recorded backend=skill-script and the install
+      fingerprint. The sentence contradicts the ledger.
+    proposed: >-
+      Word the not-buildable reason for a recorded skill-script tree as "rebuilt
+      with its shim: skt build <shim>" instead of "no install record".

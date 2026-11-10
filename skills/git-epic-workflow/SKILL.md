@@ -167,7 +167,10 @@ keys before dispatch, and validate each assignment against its plan entry.
   scaffolding, author issues through `git-issue`, record the deferment policy
   and review cadence, and validate every rendered assignment with
   `scripts/validate_assignment.py` — run with `uv run --script`, never
-  `python3` — before handing out its URL.
+  `python3` — before handing out its URL. `scripts/census.py` keeps the epic's
+  one deferred ledger and runs the closure census (`references/deferment.md`);
+  `scripts/milestone.py` runs a milestone's graphs under one lock
+  (`references/human-review.md`).
 - **Work an epic issue:** read the issue before touching git; on the markers
   follow `references/epic-ticket.md`.
 - **Integrate and review a wave:** merge in promotion order, reconcile each

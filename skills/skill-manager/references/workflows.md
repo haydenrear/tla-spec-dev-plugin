@@ -2,7 +2,7 @@
 skill-imports:
   - unit: tla-spec-dev
     path: skills/unit-authoring/references/coords-and-distribution.md
-    reason: Install-source and reference coords follow one rule (git coords only, no registry configured); stated once there.
+    reason: Install-source and reference coords follow one rule (git coords only — github:, git+, file:); stated once there.
     section: coord-forms
   - unit: tla-spec-dev
     path: skills/unit-authoring/references/coords-and-distribution.md
@@ -60,9 +60,8 @@ a different unit and a project or worktree home may not have it installed.
   deps in `skill-project.toml` or `skill-manager-project.toml`.
 - Sync when an installed git-backed unit should pull the latest commit,
   re-run side effects, or reconcile bindings.
-- Upgrade when the user wants the newest registry-published version.
-- Publish only when the user wants registry/search discoverability;
-  direct git/local installs do not require publish.
+- Upgrade when the user wants the newest git version of an installed
+  unit.
 
 ## Modeled CLI Workflow Coverage
 
@@ -72,8 +71,6 @@ run the listed help command for exact syntax before mutating state.
 
 | Workflow id | Start with | Help |
 | --- | --- | --- |
-| `account-auth` | `login` | `skill-manager login --help` |
-| `ads-manage` | `ads` | `skill-manager ads --help` |
 | `bind-projection` | `bind` | `skill-manager bind --help` |
 | `cli-lock-inspect` | `cli` | `skill-manager cli --help` |
 | `discover-installed-units` | `list` | `skill-manager list --help` |
@@ -84,7 +81,6 @@ run the listed help command for exact syntax before mutating state.
 | `inspect-unit` | `show` | `skill-manager show --help` |
 | `install-git-unit` | `install` | `skill-manager install --help` |
 | `install-local-unit` | `install` | `skill-manager install --help` |
-| `install-registry-unit` | `install` | `skill-manager install --help` |
 | `onboard-default-skills` | `onboard` | `skill-manager onboard --help` |
 | `package-manager-bootstrap` | `pm` | `skill-manager pm --help` |
 | `policy-inspect` | `policy` | `skill-manager policy --help` |
@@ -92,10 +88,8 @@ run the listed help command for exact syntax before mutating state.
 | `project-profile-resolve` | `project profiles` | `skill-manager project profiles --help` |
 | `project-register` | `project register` | `skill-manager project register --help` |
 | `project-resolve` | `project resolve` | `skill-manager project resolve --help` |
-| `publish-unit` | `publish` | `skill-manager publish --help` |
 | `rebind-projection` | `rebind` | `skill-manager rebind --help` |
 | `refresh-lockfile` | `sync` | `skill-manager sync --help` |
-| `registry-lifecycle` | `registry` | `skill-manager registry --help` |
 | `remove-installed-unit` | `remove` | `skill-manager remove --help` |
 | `sync-all-units` | `sync` | `skill-manager sync --help` |
 | `sync-from-local-source` | `sync` | `skill-manager sync --help` |
@@ -111,9 +105,10 @@ id, related skill docs, next commands, and log locations.
 
 ## Find and install a unit
 
-1. Search or inspect:
-   `skill-manager search "<query>"`, `skill-manager registry --help`,
-   `skill-manager show <name>`, or `skill-manager list`.
+1. Inspect what is installed:
+   `skill-manager show <name>` or `skill-manager list`. A unit that is
+   not installed is found by its repository, then installed from its git
+   coord.
 2. Prefer a skill unless the user explicitly asks for a plugin,
    doc-repo, or harness, or the result is shaped that way.
 3. Run install with `--dry-run` first for unfamiliar or policy-relevant
@@ -122,12 +117,12 @@ id, related skill docs, next commands, and log locations.
    bindings, and policy gates.
 5. Proceed only after the plan is acceptable.
 
-Check exact source forms with `skill-manager install --help`. Common
-sources include registry names, kind-pinned coords, GitHub shorthand,
-arbitrary git URLs, and local paths. **In practice use git coords
-(`github:owner/repo`, `git+…`, `file:…`): no registry is configured, so
-registry-name and kind-pinned coords cannot resolve** — see the imported
-`coords-and-distribution.md` for the single statement of this rule.
+Check exact source forms with `skill-manager install --help`. Sources
+are git coords: GitHub shorthand (`github:owner/repo`), arbitrary git
+URLs (`git+…`), and local paths (`file:…`). **Bare-name and kind-pinned
+coords (`skill:name`, `plugin:name`, `harness:name`, `name@version`) do
+not resolve** — see the imported `coords-and-distribution.md` for the
+single statement of this rule.
 
 ## Bind project docs
 
@@ -246,35 +241,31 @@ Use sync for reconciliation:
   it.
 - Reconcile a vendored lock or refresh the lock from live state.
 
-Use upgrade to advance to a registry-published version. Check
+Use upgrade to advance an installed unit to its latest git version. Check
 `skill-manager sync --help`, `skill-manager upgrade --help`, and
 `skill-manager lock --help` before choosing flags.
 
-## Publish
+## Distribute via a git repo
 
-Publishing is optional registry metadata/search discoverability.
-Installing from a GitHub repo, arbitrary git URL, or local path does not
-require publishing.
+A unit is distributed by pushing it to a git repository; installing from
+a GitHub repo, arbitrary git URL, or local path needs nothing else.
 
 Favor a durable git-backed install: create a GitHub repo with a
 `LICENSE`, push the unit, and install from `github:owner/repo`. A
 `file://` install is for local validation only; do not leave it as the
-published result unless the user explicitly asks for a local-only
-install. The default publishing model is authoritative in the skt plugin's
+distributed result unless the user explicitly asks for a local-only
+install. The default distribution model is authoritative in the skt plugin's
 `references/coords-and-distribution.md`.
 
-Before publishing:
+Before distributing:
 
 1. Use the skt plugin's `unit-authoring` skill for manifest anatomy
    and examples.
 2. Ensure the unit root is a git repo and contains the correct marker
    file for exactly one top-level unit.
-3. Run the publish dry run.
-4. If the CLI asks for login, relay the `ACTION_REQUIRED` banner and
-   pause.
-
-Use `skill-manager publish --help` for the current supported shapes and
-flags.
+3. Push the edit to the unit's git repo — `skt publish` /
+   `skill-manager unit publish` ship an edit made in a home back to
+   its repository.
 
 ## Troubleshooting
 

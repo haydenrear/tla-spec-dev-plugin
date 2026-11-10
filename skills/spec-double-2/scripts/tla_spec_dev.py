@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -123,10 +124,60 @@ def run_scaffold_workflow(args: argparse.Namespace) -> int:
     return 0
 
 
+def _strings(value: object) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [text for item in value.values() for text in _strings(item)]
+    if isinstance(value, list):
+        return [text for item in value for text in _strings(item)]
+    return []
+
+
+def plan_requires_ticket_current(specs_dir: Path, ticket_ref: str, ticket_root: Path) -> str | None:
+    """The plan text that names this ticket's `current/`, if any (#138 DEF-516).
+
+    `open ticket` seeds `desired/` only by default, but an epic plan may run TLC
+    or spec-unit on `specs/tickets/<id>/current/...`. A ticket that follows its
+    assignment literally then has a TLC command whose input does not exist. The
+    plan is the authority on what the ticket runs, so `open` seeds `current/`
+    whenever the ticket's own plan entry names it.
+    """
+    from scripts.spec_evolution import find_ticket, load_ticket_plan, ticket_id
+
+    try:
+        plan = load_ticket_plan(specs_dir)
+        index, ticket = find_ticket(plan, ticket_ref)
+    except SystemExit:
+        return None
+    resolved = ticket_id(ticket, index)
+    root = ticket_root.as_posix().strip("/") or "tickets"
+    needle = f"{root}/{resolved}/current"
+    for text in _strings(ticket):
+        position = text.find(needle)
+        if position < 0:
+            continue
+        tail = text[position + len(needle):position + len(needle) + 1]
+        if tail in ("", "/", " ", "'", '"', ")", ";"):
+            return text.strip()
+    return None
+
+
 def run_open_ticket(args: argparse.Namespace) -> int:
     from scripts.new_ticket_workflow import scaffold_ticket_directory
 
     repo_root = Path(args.repo_root).resolve()
+    with_current = bool(getattr(args, "with_current", False))
+    if not with_current:
+        named = plan_requires_ticket_current(
+            resolved_spec_root(repo_root, args.spec_root), args.ticket_name, Path(args.ticket_root)
+        )
+        if named is not None:
+            with_current = True
+            print(
+                "open ticket: the plan entry runs the ticket's current/ "
+                f"({named[:120]}); seeding current/ as with --with-current"
+            )
     written = scaffold_ticket_directory(
         repo_root=repo_root,
         ticket_ref=args.ticket_name,
@@ -135,7 +186,7 @@ def run_open_ticket(args: argparse.Namespace) -> int:
         spec_root=Path(args.spec_root),
         ticket_root=args.ticket_root,
         print_next_steps=True,
-        with_current=bool(getattr(args, "with_current", False)),
+        with_current=with_current,
     )
     print(f"scaffolded ticket-local workflow files: {len(written)}")
     return 0
@@ -213,14 +264,337 @@ def run_effect_conformance_cmd(args: argparse.Namespace) -> int:
 # `scripts/kill_test.py` because the A/B evaluation instruments import them.
 
 
-def run_close_ticket(args: argparse.Namespace) -> int:
-    from scripts.spec_evolution import create_ticket_history_entry, print_commit_recommendation
+def _stage_tlc_report(results_dir: Path, report: Path | None, result_paths: list[Path]) -> None:
+    """#143 SF-007/009: put the ticket's TLC report where the ledger reads it.
 
+    The close's complexity ledger probes `<ticket>/results/` for
+    `tlc-current.txt` (then `tlc.txt`, `tlc-baseline.txt`); nothing put a report
+    there, so `generated_states`/`distinct_states`/`depth` were null in 42 of 44
+    ledger entries and the self-loop red flag never ran. An explicit
+    `--tlc-report`, or else the first `--result` whose name starts with `tlc`,
+    is copied in as `tlc-current.txt`. With none, the metrics are recorded as
+    missing and the close says so.
+    """
+    from scripts.close_tickets import TLC_PROBE_NAMES
+
+    candidate = report or next(
+        (path for path in result_paths if path.name.lower().startswith("tlc") and path.is_file()),
+        None,
+    )
+    staged = results_dir / TLC_PROBE_NAMES[0]
+    if candidate is None:
+        if not any((results_dir / name).exists() for name in TLC_PROBE_NAMES):
+            print(
+                "WARNING: no TLC report for this close; the complexity ledger records "
+                "generated/distinct states and depth as missing. Pass --tlc-report <path>.",
+                file=sys.stderr,
+            )
+        return
+    if not candidate.is_file():
+        print(f"WARNING: --tlc-report {candidate} does not exist; TLC metrics recorded as missing.", file=sys.stderr)
+        return
+    results_dir.mkdir(parents=True, exist_ok=True)
+    if staged.exists() and staged.resolve() == candidate.resolve():
+        return
+    shutil.copyfile(candidate, staged)
+    print(f"complexity ledger TLC report: {candidate} -> {staged}")
+
+
+MUTATION_PREFIX = ".tlc-mutation-"
+#: Planning and bookkeeping files that never follow `current/` into desired.
+DESIRED_CARRY_SKIP = {
+    "README.md",
+    "ticket_plan.yaml",
+    "desired_state.yaml",
+    "deferred_findings.yaml",
+    "attribution.yaml",
+}
+
+
+def mutation_paths(active_dir: Path) -> list[str]:
+    """Every `.tlc-mutation-*` path in a ticket tree (#138 PLUGIN-mutation-close).
+
+    A spec test helper copies the model to a sibling `.tlc-mutation-<hex>`
+    directory and removes it with `rmtree(ignore_errors=True)`; one run left a
+    mutated Internal.tla inside a ticket tree with no error
+    (commit-diff-context-parent DEF-521). The close promotes whatever the tree
+    holds, so the tree is checked first.
+    """
+    if not active_dir.is_dir():
+        return []
+    found = []
+    for path in sorted(active_dir.rglob(f"{MUTATION_PREFIX}*")):
+        relative = path.relative_to(active_dir)
+        if any(part.startswith(MUTATION_PREFIX) for part in relative.parts[:-1]):
+            continue  # report the outermost mutation path only
+        found.append(relative.as_posix())
+    return found
+
+
+def _model_files(root: Path) -> dict[str, bytes]:
+    files: dict[str, bytes] = {}
+    if not root.is_dir():
+        return files
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root)
+        if any(part == "__pycache__" or part.startswith(".") for part in relative.parts):
+            continue
+        if relative.as_posix() in DESIRED_CARRY_SKIP:
+            continue
+        files[relative.as_posix()] = path.read_bytes()
+    return files
+
+
+def carry_delivered_into_desired(
+    specs_dir: Path, before: dict[str, bytes], *, dry_run: bool = False
+) -> dict[str, object]:
+    """Carry the delta this close promoted into project current/ into
+    `desired_program_model/` (#141 SF-075).
+
+    Per file the close changed in project ``current/``, a three-way merge with
+    the same `git merge-file` the close's ticket carry uses (#149):
+
+    - base: project ``current/`` before this close promoted;
+    - ours: ``desired_program_model/`` now;
+    - theirs: project ``current/`` after the promotion.
+
+    Desired that never moved off the base takes the delivered bytes; desired
+    that already says what was delivered is left alone; desired that declares
+    something else for the same lines is merged, and a conflicting hunk leaves
+    that desired file untouched and is recorded (the close never blocks on it).
+    Before this, every ticket close moved current/ and nothing moved desired, so
+    workflow close found desired still holding the PREVIOUS epic's model and
+    the only route, `--accept-new`, overwrote current with it (8 hand-made
+    carry commits in commit-diff-context-parent #462).
+    """
+    from scripts.spec_evolution import _merge_file, conflict_hunks
+
+    current_dir = specs_dir / "current"
+    desired_dir = specs_dir / "desired_program_model"
+    record: dict[str, object] = {
+        "performed": False,
+        "base": "project current/ before this close promoted",
+        "followed": [],
+        "merged": [],
+        "removed": [],
+        "already_matching": [],
+        "conflicts": [],
+    }
+    if not desired_dir.is_dir():
+        record["skipped"] = "no desired_program_model/"
+        return record
+    after = _model_files(current_dir)
+    changed = sorted(path for path in set(before) | set(after) if before.get(path) != after.get(path))
+    for relative in changed:
+        base, theirs = before.get(relative), after.get(relative)
+        target = desired_dir / relative
+        ours = target.read_bytes() if target.is_file() else None
+        if ours == theirs:
+            record["already_matching"].append(relative)  # type: ignore[union-attr]
+            continue
+        if ours == base:
+            if theirs is None:
+                if not dry_run:
+                    target.unlink()
+                record["removed"].append(relative)  # type: ignore[union-attr]
+            else:
+                if not dry_run:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_bytes(theirs)
+                record["followed"].append(relative)  # type: ignore[union-attr]
+            continue
+        if base is None or ours is None or theirs is None:
+            record["conflicts"].append({  # type: ignore[union-attr]
+                "path": relative,
+                "reason": "added or removed on one side while desired declares something else",
+            })
+            continue
+        conflicts, merged = _merge_file(ours, base, theirs)
+        if conflicts:
+            record["conflicts"].append({  # type: ignore[union-attr]
+                "path": relative,
+                "reason": f"{conflicts} conflicting hunk(s)",
+                "hunks": conflict_hunks(merged),
+            })
+            continue
+        if not dry_run:
+            target.write_bytes(merged)
+        record["merged"].append(relative)  # type: ignore[union-attr]
+    record["performed"] = bool(record["followed"] or record["merged"] or record["removed"])
+    return record
+
+
+#: closure.yaml keys, in attribution order (#148).
+CLOSURE_KINDS = ("closed", "review_closed", "also")
+
+
+def _read_yaml_text(text: str) -> object:
+    """PyYAML when present; the CLI's stdlib parser otherwise (the installed CLI has no PyYAML)."""
+    try:
+        import yaml
+    except ImportError:
+        from scripts.extract_spec_manifest import parse_simple_yaml
+
+        return parse_simple_yaml(text)
+    return yaml.safe_load(text)
+
+
+def _write_yaml(path: Path, data: object) -> None:
+    """PyYAML when present; otherwise JSON, which is valid YAML every reader here accepts."""
+    import json
+
+    try:
+        import yaml
+    except ImportError:
+        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        return
+    path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=100), encoding="utf-8")
+
+
+def mark_deferred_ledger(
+    repo_root: Path, specs_dir: Path, plan: dict, workflow: str, ticket: str,
+    closure_path: Path, closure_text: str | None,
+) -> dict[str, object]:
+    """Mark the epic ledger rows this ticket's closure.yaml closes (#148).
+
+    The closure (``closed`` / ``review_closed`` / ``also`` id lists) is kept at
+    ``<ledger dir>/closures/<ticket>.yaml`` whether or not a ledger exists, so
+    the closure census (git-epic-workflow ``scripts/census.py``) can still find
+    an open row whose fix is already merged. An id the ledger does not hold is
+    recorded, never refused: close never blocks on the ledger.
+    """
+    import datetime
+
+    record: dict[str, object] = {"performed": False, "marked": [], "unknown": []}
+    if closure_text is None:
+        record["skipped"] = f"no closure at {rel_to(repo_root, closure_path)}"
+        return record
+    closure = _read_yaml_text(closure_text) or {}
+    if not isinstance(closure, dict):
+        record["skipped"] = f"closure is not a mapping: {rel_to(repo_root, closure_path)}"
+        return record
+    policy = plan.get("deferment_policy") if isinstance(plan.get("deferment_policy"), dict) else {}
+    ledger_path = (
+        repo_root / policy["ledger"]
+        if isinstance(policy.get("ledger"), str) and policy["ledger"].strip()
+        else specs_dir / "results" / workflow / "deferred-ledger.yaml"
+    )
+    kept = {"ticket": ticket, **{kind: [str(i) for i in closure.get(kind) or []] for kind in CLOSURE_KINDS}}
+    kept_path = ledger_path.parent / "closures" / f"{ticket}.yaml"
+    kept_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_yaml(kept_path, kept)
+    record.update({"ledger": rel_to(repo_root, ledger_path), "closure": rel_to(repo_root, kept_path)})
+    ledger = _read_yaml_text(ledger_path.read_text(encoding="utf-8")) if ledger_path.is_file() else None
+    if not isinstance(ledger, dict):
+        record["skipped"] = "no ledger"
+        return record
+    rows = {str(row.get("id")): row for row in ledger.get("findings") or [] if isinstance(row, dict)}
+    today = datetime.date.today().isoformat()
+    for kind in CLOSURE_KINDS:
+        for fid in kept[kind]:
+            row = rows.get(fid)
+            if row is None:
+                record["unknown"].append(fid)  # type: ignore[union-attr]
+                continue
+            if row.get("closed_by"):
+                continue  # attributed already (an earlier kind, or an earlier close)
+            row.update({"disposition": "fixed", "closed_by": ticket, "closed_as": kind, "closed_on": today})
+            record["marked"].append({"id": fid, "as": kind})  # type: ignore[union-attr]
+    if record["marked"]:
+        _write_yaml(ledger_path, ledger)
+    record["performed"] = bool(record["marked"])
+    return record
+
+
+def rel_to(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def _amend_receipt(entry_dir: Path, **fields: object) -> None:
+    import json
+
+    manifest_path = entry_dir / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    manifest.update(fields)
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def run_close_ticket(args: argparse.Namespace) -> int:
+    from scripts.close_tickets import complexity_ledger_input_problems, summary_or_missing
+    from scripts.spec_evolution import (
+        active_ticket_dir,
+        complexity_ledger_input_path,
+        create_ticket_history_entry,
+        find_ticket,
+        gates_forced,
+        load_ticket_plan,
+        print_commit_recommendation,
+        refuse_or_warn,
+        ticket_id,
+        workflow_name,
+    )
+
+    repo_root = Path(args.repo_root).resolve()
+    specs_dir = resolved_spec_root(repo_root, args.spec_root)
+    force = gates_forced(args.force)
+    plan = load_ticket_plan(specs_dir)
+    resolved_workflow = workflow_name(plan, args.workflow_name)
+    index, ticket = find_ticket(plan, args.ticket_name)
+    resolved_ticket = ticket_id(ticket, index)
+    active_dir = active_ticket_dir(specs_dir, resolved_ticket, args.ticket_root)
+    has_workdir = active_dir.exists()
+    forced_mutation_paths = mutation_paths(active_dir)
+    refuse_or_warn(
+        [f"{active_dir.name}/{path}" for path in forced_mutation_paths],
+        force=force,
+        header=(
+            "ERROR: cannot close ticket: the ticket tree holds .tlc-mutation-* paths, "
+            "left by a mutation helper; the close would promote the mutated model. "
+            "Remove them (or pass --force / SKILL_GATES=off, recorded in the receipt):"
+        ),
+    )
+    if has_workdir:
+        # Ticket-local only: staging into specs/results/ would leave a report
+        # behind for the NEXT close to recycle -- the #172 failure again.
+        _stage_tlc_report(active_dir / "results", args.tlc_report, list(args.result))
+    model_dir = (
+        (active_dir / "current" if (active_dir / "current").exists() and not args.accept_new else active_dir / "desired")
+        if has_workdir
+        else specs_dir / "current"
+    )
+    refuse_or_warn(
+        complexity_ledger_input_problems(
+            specs_dir,
+            scope="ticket",
+            scope_id=resolved_ticket,
+            workflow=resolved_workflow,
+            model_dir=model_dir,
+            input_path=complexity_ledger_input_path(specs_dir, active_dir if has_workdir else None, "ticket"),
+        ),
+        force=force,
+        header="ERROR: cannot close ticket: complexity ledger input refused:",
+    )
+
+    # Read before the history entry: the close archives the ticket tree (#148).
+    closure_path = args.closure if args.closure is not None else active_dir / "closure.yaml"
+    closure_path = closure_path if closure_path.is_absolute() else repo_root / closure_path
+    closure_text = closure_path.read_text(encoding="utf-8") if closure_path.is_file() else None
+
+    carry_desired = not args.no_carry_desired
+    current_before = _model_files(specs_dir / "current") if carry_desired else {}
     result = create_ticket_history_entry(
-        repo_root=Path(args.repo_root).resolve(),
+        repo_root=repo_root,
         spec_root=Path(args.spec_root),
         ticket_ref=args.ticket_name,
-        summary=args.summary,
+        summary=summary_or_missing(args.summary),
         result_paths=args.result,
         workflow=args.workflow_name,
         entry_name=args.entry_name,
@@ -228,8 +602,63 @@ def run_close_ticket(args: argparse.Namespace) -> int:
         ticket_root=args.ticket_root,
         promote_current=not args.no_promote_current,
         accept_new=args.accept_new,
+        # #187: the per-ticket feedback stub is written only on request. 61
+        # stubs closed `unreviewed` yielded zero findings; the workflow close
+        # keeps its retro (close_tickets.py) and lists any ticket entry left
+        # unreviewed.
+        emit_feedback=args.feedback,
         force=args.force,
     )
+    if carry_desired:
+        desired_carry = carry_delivered_into_desired(specs_dir, current_before)
+        for key in ("followed", "merged", "removed"):
+            for relative in desired_carry[key]:  # type: ignore[union-attr]
+                print(f"desired carry ({key}): desired_program_model/{relative}")
+        for conflict in desired_carry["conflicts"]:  # type: ignore[union-attr]
+            print(
+                f"WARNING: desired carry left desired_program_model/{conflict['path']} as it was: "
+                f"{conflict['reason']}; reconcile it by hand (recorded in the receipt)",
+                file=sys.stderr,
+            )
+    else:
+        desired_carry = {"performed": False, "skipped": "--no-carry-desired"}
+    deferred_ledger = mark_deferred_ledger(
+        repo_root, specs_dir, plan, resolved_workflow, resolved_ticket, closure_path, closure_text
+    )
+    for marked in deferred_ledger["marked"]:  # type: ignore[union-attr]
+        print(f"deferred ledger: {marked['id']} closed by {resolved_ticket} ({marked['as']})")
+    if deferred_ledger["unknown"]:
+        print(
+            f"WARNING: closure names id(s) the deferred ledger does not hold: "
+            f"{', '.join(deferred_ledger['unknown'])} (recorded in the receipt)",  # type: ignore[arg-type]
+            file=sys.stderr,
+        )
+    receipt_fields: dict[str, object] = {
+        "desired_carry": desired_carry,
+        "deferred_ledger": deferred_ledger,
+        "forced_mutation_paths": forced_mutation_paths,
+    }
+    extra_add = []
+    if desired_carry.get("performed"):
+        extra_add.append(specs_dir / "desired_program_model")
+    if deferred_ledger.get("closure"):
+        extra_add.append((repo_root / str(deferred_ledger["ledger"])).parent)
+    if extra_add:
+        import dataclasses
+        import shlex
+
+        from scripts.spec_evolution import rel
+
+        result = dataclasses.replace(
+            result,
+            git_add_command=" ".join([result.git_add_command, *(shlex.quote(rel(path)) for path in extra_add)]),
+        )
+        receipt_fields["commit_recommendation"] = {
+            "message": result.recommendation,
+            "git_add": result.git_add_command,
+            "git_commit": result.git_commit_command,
+        }
+    _amend_receipt(result.entry_dir, **receipt_fields)
     print_commit_recommendation(result)
     return 0
 
@@ -893,7 +1322,17 @@ def build_parser() -> argparse.ArgumentParser:
     close_ticket.add_argument("ticket_name", help="Ticket id from desired_program_model/ticket_plan.yaml.")
     close_ticket.add_argument("--workflow-name", help="Override ticket_plan.yaml name/status.workflow for the history directory.")
     close_ticket.add_argument("--entry-name", help="Override the default ticket-NNN-id history entry name.")
-    close_ticket.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change.")
+    close_ticket.add_argument("--summary", default="", help="Human-readable summary of the ticket-specific change. Empty is recorded as 'missing'.")
+    close_ticket.add_argument(
+        "--feedback",
+        action="store_true",
+        help="Append this ticket's close-out entry to <spec-root>/results/skill_feedback.md. Off by default: write it only when you have feedback to record.",
+    )
+    close_ticket.add_argument(
+        "--tlc-report",
+        type=Path,
+        help="TLC output for the complexity ledger (copied to <ticket>/results/tlc-current.txt). Defaults to the first --result named tlc*.",
+    )
     close_ticket.add_argument("--result", action="append", type=Path, default=[], help="TLC, generated-case, adapter, or test result path to snapshot.")
     close_ticket.add_argument("--allow-open", action="store_true", help="Allow snapshotting a ticket whose status is not closed/done.")
     close_ticket.add_argument("--ticket-root", type=Path, default=Path("tickets"), help="Ticket directory root, relative to spec root by default.")
@@ -906,7 +1345,21 @@ def build_parser() -> argparse.ArgumentParser:
     close_ticket.add_argument(
         "--force",
         action="store_true",
-        help="Warn instead of refusing on status, receipt, and convergence gates; a divergent ticket is accepted as with --accept-new. SKILL_GATES=off means the same. Recorded in the receipt.",
+        help="Warn instead of refusing on status, receipt, convergence, mutation-path, and complexity-ledger gates; a divergent ticket is accepted as with --accept-new. SKILL_GATES=off means the same. Recorded in the receipt.",
+    )
+    close_ticket.add_argument(
+        "--no-carry-desired",
+        action="store_true",
+        help="Do not carry the delta this close promoted into project current/ on into desired_program_model/ (three-way, recorded in the receipt as desired_carry).",
+    )
+    close_ticket.add_argument(
+        "--closure",
+        type=Path,
+        help=(
+            "closure.yaml listing the deferred-ledger ids this close fixes (closed / review_closed / also). "
+            "Default: <ticket dir>/closure.yaml when present. Marks the epic ledger rows and keeps the closure "
+            "beside the ledger for scripts/census.py; never blocks."
+        ),
     )
     close_ticket.set_defaults(
         func=run_close_ticket,
