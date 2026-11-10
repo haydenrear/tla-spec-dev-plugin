@@ -128,6 +128,13 @@ Use dependency nodes for reusable setup:
 Do not hide setup inside assertion nodes. If multiple graphs need the same
 app/database/user fixture, make one node and declare dependencies on it.
 
+**Before authoring or changing a node or graph — or reviewing a PR that does —**
+read [`references/graph-architecture-review.md`](references/graph-architecture-review.md).
+A graph change is reviewed like a product change: oracle validity,
+false-green/false-red risk, effect scope, runtime identity and recovery. That
+page is the checklist, each rule tied to an observed failure, with a worked
+review of this repository's own `test_graph/`.
+
 ## Editing Rules
 
 - In a consumer scaffold, do not edit `sdk/`, `build-logic/`, or
@@ -179,6 +186,7 @@ Open only the page your task needs.
 | Normal operating guide: root detection, scaffolding, node creation, graph composition, reports | [`references/workflows.md`](references/workflows.md) |
 | Dense API/DSL/task reference: `NodeSpec`, `NodeResult`, context wire format, Gradle DSL, Java/Python SDK | [`references/reference.md`](references/reference.md) |
 | Debugging a failed graph: direct node invocation, resume/run-only rules, envelope and closure schema | [`references/failure-loop.md`](references/failure-loop.md) |
+| Authoring or reviewing a node/graph: declared effects, runtime identity, timeouts, process ownership, cleanup, replay/recovery contracts | [`references/graph-architecture-review.md`](references/graph-architecture-review.md) |
 | Branch environment repository contract, Git fixture policy, OpenTofu outputs, local k3d, required coverage | [`references/environment-repositories.md`](references/environment-repositories.md) |
 | Generated GitHub Actions workflow, skill install, symlink repair/preserve modes, private installs | [`references/github-actions.md`](references/github-actions.md) |
 | Python/uv/Gradle environment mismatches, `python` alias vs `python3` | [`references/debug-python-uv-env.md`](references/debug-python-uv-env.md) |
