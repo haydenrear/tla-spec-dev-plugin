@@ -211,8 +211,10 @@ keys before dispatch, and validate each assignment against its plan entry.
 the role the whole loop narrows at. Your reading path, your own inbox
 (`specs/results/deferred/EPIC-AGENT.yaml`, which has held one row ever), and how
 the other three roles see what you did with their findings are in the
-spec-double-2 skill's `references/agent_roles.md` § epic. Nothing detects your
-role; you arrive by reading.
+spec-double-2 skill's `references/agent_roles.md` § epic. Its § *Evidence
+routing* names the bounded risk evidence you read at planning, at each review
+point and at close, and who consumes what you write. Nothing detects your role;
+you arrive by reading.
 
 ## Reference map
 
@@ -225,4 +227,6 @@ role; you arrive by reading.
 | The front door and its five miss cases; homes; ledger; sweep | `references/worktree-lifecycle.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
 | Classify, defer, batch, and triage failure cases | `references/deferment.md` |
+| Size a wave from review and verification capacity; hold, increase or decrease at a review | `references/step-sizing.md` |
+| A repair loop that is not converging; short and deep reviews; valid targeted reruns | `references/validation-review.md` |
 | Whether a ticket home's `declared-only` artifacts need rebuilding | `skills/skt/references/derived-artifacts.md`; `references/plan-and-schedule.md` §2 has the fallback |

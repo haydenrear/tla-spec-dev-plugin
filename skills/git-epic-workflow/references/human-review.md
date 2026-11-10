@@ -277,6 +277,13 @@ Rank, highest first:
    A small production diff behind a semantic change is a hot spot even when the
    line count says otherwise.
 5. **Anything a deferred finding already points at.**
+6. **A changed graph node, fixture, runner or oracle/recovery contract.** Review
+   it beside the product change it judges, with test-graph's
+   `references/graph-architecture-review.md` sections for that contract. A
+   passing graph is evidence to assess, not authority over its own correctness.
+
+Start from each PR's `## Review input` hot spots; check the evidence it cites
+was produced on this tip, by the home and runner copy it names.
 
 Keep it to about seven rows. Each row: the location, why it is hot, and the one
 question the reviewer should ask about it.
@@ -366,7 +373,11 @@ Draw from:
   ticket predicted, and the prediction was the design;
 - pending backlog entries at `severity: major`;
 - order- or concurrency-sensitive code that two tickets in one wave introduced
-  independently.
+  independently;
+- **validation-specific bugs**: a green that never exercised the change, a red
+  the instrument produced, effects outside the node's report directory, a replay
+  that reuses stale context (spec-double-2 `references/bug_attribution.md` §6,
+  §6a; the checklist above).
 
 Each row: the location, why it is suspicious, and the cheapest experiment that
 would settle it. Label a row with no reproduction as a suspicion in the row
@@ -504,7 +515,9 @@ Look for evidence the wave produced, not for wishes:
   `unit publish` rather than stopping at this one project home.
 
 Each row: what was observed → what shape it suggests → which door it ships
-through (`unit publish`, plan amendment, new issue) → rough cost. Recommend;
+through (`unit publish`, plan amendment, new issue) → rough cost → owner and
+disposition (scheduled as <ticket or issue>, deferred, or declined with a
+reason). A recommendation with no owner is routed, not consumed. Recommend;
 do not implement. A review that starts changing things is no longer a review,
 and the wave it was reviewing has moved underneath it.
 
@@ -528,6 +541,14 @@ One place where the schedule and the defect ledger are read together:
   the evaluation ticket. Say plainly when the trend suggests the target will be
   missed; that is a decision the user can still act on cheaply now and cannot
   act on at finalization.
+- **Delivery velocity and step size** — the delivery-velocity section
+  `validation-review.md` (*Deeper review*) asks for, placed here. A few lines,
+  `unknown` where nothing was recorded: reviewer and verifier model and
+  version; the scope items in this batch; escapes with severity; reds by origin, with product and validation repair
+  cost kept apart; whether review coverage supported this batch size; and
+  hold, increase or decrease, with the override that drove it
+  (`step-sizing.md` §6). Collect the delivery lines from the PR bodies rather
+  than re-deriving them. The finalizer compares these with the plan's estimate.
 - **What gets more expensive if deferred** — a hot spot two more tickets are
   scheduled to write, a goal whose baseline is still `unmeasured`, a unit edit
   reconciled into the project home that nobody has decided to publish.

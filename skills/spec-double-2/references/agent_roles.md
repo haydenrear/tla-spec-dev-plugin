@@ -77,6 +77,8 @@ still worked by a **ticket** agent.
    matches the task you were given. Not the rest of it.
 4. `skills/git-issue-workflow/references/complete.md` — at close-out, for the
    PR body.
+5. Only when a **ticket** trigger in § *Evidence routing* fires: the one section
+   that row names.
 
 ### You write
 
@@ -130,6 +132,9 @@ an id that is not there.
 3. `skills/spec-double-2/scripts/improvement_ledger.py` — **run it**, do not
    read it. It is the only reader of the `skill_change` field across all four
    record files, and it never refuses.
+4. At planning, at each review point and at close: the **planning**,
+   **wave owner** or **finalizer** row of § *Evidence routing*, and only the
+   section it names.
 
 ### You write
 
@@ -172,6 +177,8 @@ Your own findings return by the same absorption as anyone's — the `awk` in
    re-deriving it.
 3. `skills/spec-double-2/references/blind_dispatch.md` — only when you are
    reviewing work you also wrote.
+4. When the wave changes a graph node, fixture, runner or oracle, or a PR cites
+   a red or green as evidence: the **review** row of § *Evidence routing*.
 
 ### You write
 
@@ -229,6 +236,27 @@ because of a finding is itself the evidence that the finding was consumed.
 ```bash
 git log --oneline --diff-filter=A -- evals/**/<your-case-name>/case.yaml
 ```
+
+---
+
+## Evidence routing: who reads which risk evidence, and who reads what they wrote
+
+The finding records, the graph review checklist and the batch-sizing policy each
+have **one** home. This table only routes to them. Read a row when its trigger
+fires, read only the section it names, and write into a field that already
+exists. It adds no role, approval round, script or artifact, and every output
+has a named next reader.
+
+| role, moment | trigger | minimum evidence (canonical source) | decision | output (existing field) | next consumer |
+| --- | --- | --- | --- | --- | --- |
+| **epic: planning** | `plan-and-schedule.md` §3, before any assignment is rendered | only for the affected actions, bins and graph nodes: the findings anchored to them (discovery `SKILL.md`, *Starting an issue/ticket*; `bug_attribution.md` §7d); instrument CATCHes and nodes the checklist flags (`bug_attribution.md` §6a; test-graph `graph-architecture-review.md`); the previous epic's starting estimate (`finalize.md` §2c) | split or not; review and verification estimates; batch and cadences; confidence; cold-start gaps; expensive-eval cost (`step-sizing.md` §1–§5, §7) | planning conversation; `wave`, `depends_on`, `validation`, `review_policy`, `eval_budget`; each assignment's *Evidence slice* bullet (`epic-ticket.md`) | ticket agent; first review artifact |
+| **ticket** | the assignment's *Evidence slice* names something you touch; your diff changes a node, fixture or runner; you must interpret a red or green | the *Evidence slice*; *A graph change is a product change* (`graph-architecture-review.md`) for a changed node; `bug_attribution.md` §4.3 for a finding; *A changed contract reruns every instrument that asserts it* (`validation-review.md`) for a rerun | which reruns are valid; whether evidence invalidates the planned capacity (`step-sizing.md` §8). Report it; never widen scope or drop a REQUIRED entry | the `## Review input` delivery line and lists; `## Deferred findings` with origin, channel and effect kept apart | review agent; epic owner |
+| **review** | the wave changes a node, fixture, runner or oracle, or a PR cites a red or green as evidence | the PRs' `## Review input`; the checklist sections for the changed contract (`graph-architecture-review.md` A–H); `bug_attribution.md` §6, §6a | does the passing graph prove the change? It is evidence to assess, not authority. Does review coverage support this batch size? | `human-review.md` §3.1 graph hot spots, §3.3 validation-specific rows, §3.5 *Delivery velocity and step size* | epic wave owner |
+| **epic: wave owner** | each review point `review_policy` names, or a `validation-review.md` trigger | the review artifact; reds by origin; the observations in `step-sizing.md` §6 | hold, increase by one step, or decrease, within policy; product vs validation repair cost; a disposition and owner per architecture recommendation | `human-review.md` §3.4 recommendations, §3.5 *Delivery velocity and step size*; plan fields when rescheduled | next wave's assignments; finalizer |
+| **epic: finalizer** | `finalize.md` §2a–§2c | the planning estimate against each wave's *Delivery velocity and step size*; recurrence of attributed families; REACH and BLIND; manual acceptance results | the next epic's starting estimate; what stays uncertain | the epic PR's *Next epic's starting estimate* (`finalize.md` §2c) | the next epic's planning row |
+
+No row changes the integrated graph or the manual acceptance phase
+(`finalize.md` §2–§2c); a larger batch never removes them.
 
 ---
 
