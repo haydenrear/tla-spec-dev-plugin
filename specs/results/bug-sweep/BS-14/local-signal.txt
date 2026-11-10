@@ -1,0 +1,4 @@
+$ uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q -k milestone
+...........................                                              [100%]
+27 passed, 168 deselected in 5.53s
+expected_effect: 1 in-scope issue (#147 step 1) proven fixed: red on base (collection error, milestone.py absent), green on branch

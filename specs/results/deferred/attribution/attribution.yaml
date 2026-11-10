@@ -291,6 +291,61 @@ reach:
       agent's own test-graph runs had written the fixtures.
     skill_change: applied(d09d8326)
 
+  # ---- #157, filed 2026-11-02 (feature/157-attribution) ----
+
+  - invariant: >-
+      a worktree is a member of an epic only through an explicit join -- the
+      plan's spec id, or its `github_issue` number against the issue number a
+      branch leads with -- never by literal slug-vs-spec-id comparison and
+      never by shared git ancestry
+    enforced_on:
+      - "`skt status` -- context.gather, via plan_issue_index (3ff232bb, SI-20-DF-06)"
+      - "`skt ticket list|sweep --epic` -- sweep.DeclaredTickets / epic_work (23e43f63, I157-DF-01)"
+      - "TLA+: SktClaimsNoMembershipItDidNotJoin, over the SktStatus action only"
+    unenforced_on:
+      - "the TLA+ SktTicketSweep action, which carries containment_known and
+         sweep_planned but no membership variable -- TLC cannot express
+         'planned a non-member', which is exactly I157-DF-01"
+      - "agreement BETWEEN the two enforcing surfaces: status reads the issue
+         number with greedy leading digits, the sweep requires `-`/`_` or end
+         after them (context.issue_number strict=). `feature/2fa-login` is
+         issue 2 to status and no issue to the sweep. Deliberate (a wrong
+         status line is cheap, a wrong deletion is not) but nothing checks
+         the two stay in the relation intended"
+    enumerated_by: >-
+      git grep on 2026-11-02 for issue_number(, plan_issue_index,
+      plan_outer_items, parse_ticket_plan( and github_issue across
+      skills/**/*.py and *.sh, excluding tests: every hit is in
+      skt/context.py or skt/sweep.py. Also read the scripts naming both
+      `worktree` and `ticket_plan`/`epic/` (validate_assignment.py,
+      new-change.sh, new_ticket_workflow.py): none decides membership.
+    note: >-
+      I157-DF-01 is SI-20-DF-06 recurring one command over. The fix in
+      3ff232bb was applied where the defect was reported, and the sweep kept
+      its own comparison -- a REACH row written then would have listed it.
+    skill_change: "proposed(tla-spec-dev program model, add membership_claim/membership_joined to SktTicketSweep and constrain sweep_planned => membership_joined)"
+
+  - invariant: >-
+      every flag the `skt ticket` front door parses is either acted on by the
+      verb it was given to or refused -- never accepted and dropped
+    enforced_on:
+      - "--force / --dry-run on any verb but close (refused, pre-existing)"
+      - "--into on close (forwarded to close-change.sh) and on new/info (refused) -- I157-DF-02"
+      - "--epic / --target / --yes on new/info/close (refused) -- I157-DF-02"
+    unenforced_on:
+      - "--json on new/info/close: parsed, ignored, output stays text"
+      - "--base and --path on close/info: parsed, ignored"
+    enumerated_by: >-
+      read every `ticket.add_argument` in skills/skt/src/skt/cli.py on
+      2026-11-02 (verb, ticket_id, --dry-run, --force, base_pos, --base,
+      --path, --epic, --target, --into, -y/--yes, --json) against what
+      ticket.run does with each per verb.
+    note: >-
+      The remaining three were left as they are because none of them changes
+      what gets deleted or where work is gated to; --into was the one whose
+      silent drop moved the gate's destination.
+    skill_change: "applied(feature/157-attribution) for --into/--epic/--target/--yes; none for the three listed unenforced"
+
 blind:
 
   - case: "skills/plugin-repository/scripts/verify.sh -- the repository sweep"
@@ -489,6 +544,89 @@ blind:
       missing upstream, so the next plugin declaring a skill-script dep on a
       contained skill meets the same silent partial.
     skill_change: "proposed(skill-manager, SI-11-DF-01: add the plugins/<unit>/skills/*/skill-scripts rung, refuse on more than one match, and report EVERY probed candidate)"
+
+  # ---- #157, filed 2026-11-02 (feature/157-attribution) ----
+
+  - case: "skills/skt/tests/test_ticket_sweep.py::test_epic_scoping_limits_the_pass, as it stood before 23e43f63"
+    passes: true
+    could_not_have_caught: >-
+      any worktree selected by shared ancestry that was not a ticket. Its
+      fixture gave each epic its own commit and cut the one non-member from
+      the OTHER epic's diverged tip, so the only foreign worktree in the room
+      was the one that ancestry already excluded. No worktree cut from main
+      or the shared base, no planning or owner worktree of another epic
+      existed, so the defect's whole population was absent.
+    why: "fixture construction, not assertion strength"
+    note: >-
+      Green through all of I157-DF-01's lifetime. Rewritten in 23e43f63 to
+      include a worktree that shares only ancestry, and the membership fixture
+      (_membership_repo) now carries eight such worktrees.
+    skill_change: applied(23e43f63)
+
+  - case: "TLC over specs/current/TlaSpecDevCli.tla -- SktPlansNoRemovalWithoutContainment"
+    passes: true
+    could_not_have_caught: >-
+      a sweep that plans removal of a NON-MEMBER. SktTicketSweep's only state
+      is containment_known/sweep_planned; containment against the epic is
+      exactly what a worktree cut from the shared base satisfies, so every
+      I157-DF-01 removal is a state the model calls safe.
+    why: "model abstraction: membership is not a variable of the sweep action"
+    note: >-
+      The membership invariant exists in the same file
+      (SktClaimsNoMembershipItDidNotJoin) and constrains SktStatus only.
+    skill_change: "proposed(tla-spec-dev program model -- see the membership REACH row)"
+
+  - case: "test_graph sktSurface -- 5/5 nodes passed on 2026-11-02 (run 20261102-192840, main at 23e43f63)"
+    passes: true
+    could_not_have_caught: >-
+      anything in `skt ticket sweep` or `skt ticket list`. No node invokes
+      either: skt.ticket-roundtrip covers new/info/close only (its two
+      `sweep` hits are unrelated comments), and the other four are
+      wrapper/status/check/hook nodes.
+    why: "no node for the verb"
+    note: >-
+      The sweep's only automated coverage is pytest. The manual regression for
+      #157 was a hand-built synthetic repo driven through the real CLI; it is
+      the shape a graph node would take, and it was thrown away.
+    skill_change: "proposed(tla-spec-dev test_graph, add skt.ticket-sweep: synthetic repo, real CLI, dry run and --yes, assert the removed set)"
+
+  - case: "skills/skt/tests/test_ticket_sweep.py -- epic sweep (BS-HP-02)"
+    passes: true
+    could_not_have_caught: >-
+      any sweep of tickets landed by squash. Reproduced 2026-11-08 in scratch
+      repos: tickets merged with real merges were removed correctly and squashed
+      tickets never were, and this repository squashes every ticket PR.
+    why: "fixture shape, not assertion strength"
+    note: "Found by the skill-manager epic's own close-out, not by any graph or test."
+    skill_change: "applied(4ace6307)"
+
+  - case: "test-graph Kotlin suites and graphs -- attempt closure (BS-HP-05)"
+    passes: true
+    could_not_have_caught: >-
+      a closure write failure under TESTGRAPH_CONTINUE_AFTER_FAILURE=1. No test
+      exercised that mode, and the throw was added as a suppressed exception, so
+      even a run in that mode logged nothing. It surfaced only on resume.
+    why: "unexercised mode plus a failure channel nobody reads"
+    skill_change: "applied(ffd83da9)"
+
+  - case: "skills/skt/tests -- `skt check` CLI version probe (BS-HP-04)"
+    passes: true
+    could_not_have_caught: >-
+      UNDECIDED for a real jbang launcher. BS-25's tests simulate a slow
+      launcher; a real cold start over the 5-second budget was never measured
+      (warm launches took 1.2-1.7 s).
+    why: "simulated launcher"
+    skill_change: "applied(4ace6307)"
+
+  - case: "this plugin's tests/ over its own skill text (BS-27, DEF-HP9-002)"
+    passes: true
+    could_not_have_caught: >-
+      wording skill-manager's doc-smoke and onboarding graphs assert. Those
+      assertions live in another repository, so this repository stays green when
+      the text changes. Nothing here pins "project child homes" or the prose
+      form of `scripts/wt` now either.
+    why: "the assertion lives in a different repository"
+    skill_change: "applied(2f3e85c4)"
 
 # =====================================================================
 # PRICE -- declared before, measured after. (§7)

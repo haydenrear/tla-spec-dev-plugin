@@ -1,5 +1,0 @@
-recorded spec history entry: /Users/hayde/IdeaProjects/wt-25-mf021-promotion-preserves-current/specs/.history/modular-fuzzing-epic/ticket-002-MF-021
-It is recommended to commit this history directory now: specs/.history/modular-fuzzing-epic/ticket-002-MF-021
-recommended next step:
-  git add specs/.history/modular-fuzzing-epic/ticket-002-MF-021 specs/current
-  git commit -m 'record spec history for MF-021'

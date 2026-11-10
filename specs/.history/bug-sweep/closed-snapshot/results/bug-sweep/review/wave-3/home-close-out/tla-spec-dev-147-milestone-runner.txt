@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/.skill-manager holds nothing that removing it would destroy

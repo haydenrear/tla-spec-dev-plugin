@@ -1,0 +1,2 @@
+! Telemetry export unavailable; continuing without telemetry.
+✓ /Users/hayde/IdeaProjects/wt-epic-bug-sweep-222-remove-registry-server-refs/.skill-manager holds nothing that removing it would destroy

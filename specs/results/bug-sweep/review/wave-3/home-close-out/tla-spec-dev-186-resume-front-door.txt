@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/.skill-manager holds nothing that removing it would destroy

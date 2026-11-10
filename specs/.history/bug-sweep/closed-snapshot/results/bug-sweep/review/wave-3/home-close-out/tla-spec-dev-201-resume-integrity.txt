@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-201-resume-integrity/.skill-manager holds nothing that removing it would destroy

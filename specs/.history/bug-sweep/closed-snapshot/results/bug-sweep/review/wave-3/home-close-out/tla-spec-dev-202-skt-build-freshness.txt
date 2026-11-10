@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-202-skt-build-freshness/.skill-manager holds nothing that removing it would destroy

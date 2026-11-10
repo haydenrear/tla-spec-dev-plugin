@@ -1,0 +1,132 @@
+........................................................................ [ 16%]
+...........................................................s.......F.... [ 33%]
+.........FF.ss..................F....................................... [ 49%]
+........................................................................ [ 66%]
+........................................................................ [ 83%]
+........................................................................ [ 99%]
+.                                                                        [100%]
+=================================== FAILURES ===================================
+____________________ test_one_home_two_builds_two_verdicts _____________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-400/test_one_home_two_builds_two_v0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1078e7770>
+
+    def test_one_home_two_builds_two_verdicts(tmp_path, monkeypatch):
+        # brew is not what this asserts about; keep it out of the pass.
+        monkeypatch.setattr(check_mod, "_brew_latest", lambda timeout: (None, "no brew in test"))
+        # SI-28: nor is the plugin's declared skill-manager floor, on exactly the
+        # same terms as the line above — and here saying so is load-bearing rather
+        # than tidy. Both pins below are 0.27.2, so both sit under the real floor,
+        # and they differ in one more way than this test's `_without_build`
+        # equality allows: `0.27.2+gaaaa1111bbbb` is a LOCAL BUILD and `0.27.2` is
+        # not, so the floor warning carries its "may already carry the fix" clause
+        # on the first pass and not the second. That is the floor notification
+        # behaving correctly and it is not "the build", so it is silenced here
+        # rather than accommodated. tests/test_cli_floor.py asserts it instead.
+        monkeypatch.setattr(check_mod, "bootstrap_floor",
+                            lambda root=None: {"state": "absent",
+                                               "reason": "no floor in this test"})
+        repo = make_repo(tmp_path / "repo")
+        home = make_home(repo)
+    
+        _pin(home, "0.27.2+gaaaa1111bbbb", "aaaa1111bbbb (refs/heads/main)")
+        first = check_mod.collect(repo, use_network=False, probe_artifacts=False,
+                                  probe_migration=False)
+        _pin(home, "0.27.2", "artifact ffff66660000 built 2026-09-12T00:00:00Z (skill-manager.jar)")
+        second = check_mod.collect(repo, use_network=False, probe_artifacts=False,
+                                   probe_migration=False)
+    
+        # --json: the fields name each pass's own build.
+        assert first["skt_version"] == cli_mod.__version__ == second["skt_version"]
+>       assert "aaaa1111bbbb" in first["skill_manager_build"]
+E       AssertionError: assert 'aaaa1111bbbb' in 'skill-manager 0.28.2 @ artifact 03c0143ec45e built 2026-09-26T01:18:51Z (skill-manager.jar)'
+
+skills/skt/tests/test_check_build_stamp.py:77: AssertionError
+_________________________________ test_version _________________________________
+
+    def test_version():
+        result = run("--version")
+        assert result.returncode == 0
+        from skt import __version__ as pkg_version
+>       assert result.stdout.strip() == f"skt {pkg_version}"
+E       AssertionError: assert 'skt 0.8.2' == 'skt 0.9.0'
+E         
+E         - skt 0.9.0
+E         ?       ^ ^
+E         + skt 0.8.2
+E         ?       ^ ^
+
+skills/skt/tests/test_cli.py:33: AssertionError
+_____________________ test_the_two_version_literals_agree ______________________
+
+    def test_the_two_version_literals_agree():
+        """`skt.cli` must keep its own copy, so something has to check it.
+    
+        cli.py is stdlib-only by contract -- the skill-script installer runs
+        it with the system python3 and no venv -- so it cannot import the
+        package to learn the version, and the duplicate literal is deliberate.
+        What is NOT acceptable is the duplicate drifting silently: the 0.7.0
+        bump moved three manifests and `skt/__init__.py`, left this one at
+        0.6.0, and every test still passed because the only assertion read
+        the stale copy.
+        """
+        from skt import __version__ as pkg_version
+        from skt.cli import __version__ as cli_version
+>       assert cli_version == pkg_version, (
+            f"skt.cli.__version__ is {cli_version} but the package says "
+            f"{pkg_version} — bump both, they cannot import each other"
+        )
+E       AssertionError: skt.cli.__version__ is 0.8.2 but the package says 0.9.0 — bump both, they cannot import each other
+E       assert '0.8.2' == '0.9.0'
+E         
+E         - 0.9.0
+E         + 0.8.2
+
+skills/skt/tests/test_cli.py:49: AssertionError
+____________ test_exactly_one_file_in_the_plugin_declares_the_floor ____________
+
+    def test_exactly_one_file_in_the_plugin_declares_the_floor():
+        """ONE source of truth, swept for rather than asserted about.
+    
+        A second declaration is the failure this ticket is a consequence of:
+        two places to look, one of them stale, and nothing saying which won.
+        """
+        # PRUNED, not filtered. `rglob` + a post-hoc `any(part in skipped)` walks
+        # every directory anyway, and this repository carries a `.history` tree of
+        # ~200 MB: the first version of this test spent minutes in it before
+        # reaching its first assertion.
+        skipped = {".git", ".history", "__pycache__", "build", "node_modules",
+                   ".skill-manager", ".gradle", ".venv", ".idea", "dist"}
+        scanned = 0
+        declaring: list[str] = []
+        for dirpath, dirnames, filenames in os.walk(PLUGIN_ROOT):
+            dirnames[:] = [d for d in dirnames if d not in skipped]
+            for name in filenames:
+                if not name.endswith(".toml"):
+                    continue
+                path = Path(dirpath) / name
+                try:
+                    text = path.read_text()
+                except (OSError, UnicodeDecodeError):
+                    continue
+                scanned += 1
+                if "[skill_manager]" in text and "minimum" in text:
+                    declaring.append(str(path.relative_to(PLUGIN_ROOT)))
+    
+        # NON-VACUITY. An empty sweep is not a passing sweep: if the glob matched
+        # nothing the assertion below would hold for the wrong reason.
+        assert scanned > 5, f"the sweep read only {scanned} toml file(s) — it found nothing to check"
+>       assert declaring == [check_mod.FLOOR_MANIFEST], declaring
+E       AssertionError: ['bootstrap-floor.toml', '.claude/plugins/cache/skill-manager-f833668e/tla-spec-dev/0.1.0/bootstrap-floor.toml', '.codex/plugins/cache/skill-manager-f833668e/tla-spec-dev/0.1.0/bootstrap-floor.toml']
+E       assert ['bootstrap-f...p-floor.toml'] == ['bootstrap-floor.toml']
+E         
+E         Left contains 2 more items, first extra item: '.claude/plugins/cache/skill-manager-f833668e/tla-spec-dev/0.1.0/bootstrap-floor.toml'
+E         Use -v to get more diff
+
+skills/skt/tests/test_cli_floor.py:97: AssertionError
+=========================== short test summary info ============================
+FAILED skills/skt/tests/test_check_build_stamp.py::test_one_home_two_builds_two_verdicts
+FAILED skills/skt/tests/test_cli.py::test_version - AssertionError: assert 's...
+FAILED skills/skt/tests/test_cli.py::test_the_two_version_literals_agree - As...
+FAILED skills/skt/tests/test_cli_floor.py::test_exactly_one_file_in_the_plugin_declares_the_floor
+4 failed, 426 passed, 3 skipped in 222.60s (0:03:42)

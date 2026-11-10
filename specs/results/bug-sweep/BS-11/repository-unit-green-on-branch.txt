@@ -1,0 +1,6 @@
+# branch 02375b14+worktree changes, 2026-11-07T18:09:06Z
+# uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q
+.......................................... [ 55%]
+..................................                                       [100%]
+76 passed, 30 subtests passed in 348.17s (0:05:48)
+exit=0

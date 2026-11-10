@@ -262,6 +262,85 @@ class PlanExecutorResumeHarnessTest {
         assertEquals(listOf("two"), selection.executionPlan.map { it.id })
     }
 
+    @Test
+    fun nestedResumeRetainsFullPlanAndExecutesOnlyTheUnfinishedSuffix() {
+        System.setProperty("otel.traces.exporter", "none")
+        System.setProperty("otel.metrics.exporter", "none")
+        System.setProperty("otel.logs.exporter", "none")
+        val root = Files.createTempDirectory("test-graph-nested-resume").toFile()
+        val project = ProjectBuilder.builder().withProjectDir(root).build()
+        val graph = "nestedResume"
+        val plan = listOf(node("one"), node("two", dependsOn = listOf("one")),
+            node("three", dependsOn = listOf("two")))
+        val launched = mutableListOf<String>()
+        fun attempt(name: String, source: File? = null, selected: String? = null,
+                    failAt: String? = null): File {
+            val target = root.resolve(name).apply { mkdirs() }
+            val snapshot = source?.let {
+                com.hayden.testgraphsdk.tasks.RunReportWriter.requireReplaySource(it, graph, selected!!)
+            }
+            val replay = snapshot?.let {
+                com.hayden.testgraphsdk.tasks.RunReportWriter.ReplayMetadata(
+                    com.hayden.testgraphsdk.tasks.RunReportWriter.ReplayMode.RESUME_FROM_NODE,
+                    selected!!, source!!, it.closureSha256, it.selectedContextSha256)
+            }
+            val ids = if (selected == null) plan.map { it.id }
+                else plan.dropWhile { it.id != selected }.map { it.id }
+            com.hayden.testgraphsdk.tasks.RunReportWriter.persistExecutionScope(target, graph, ids, replay)
+            val obs = GraphObservability.open(target, graph, replaySourceSnapshot = snapshot)
+            val executor = object : ValidationExecutor {
+                override val runtimeName = "uv"
+                override fun execute(invocation: NodeInvocation): ExecutionOutcome {
+                    val id = invocation.spec.id
+                    launched += id
+                    val status = if (id == failAt) "failed" else "passed"
+                    val now = java.time.Instant.now().toString()
+                    invocation.resultOut.writeText("""{"nodeId":"$id","status":"$status","startedAt":"$now","endedAt":"$now","assertions":[],"artifacts":[],"processes":[],"metrics":{},"logs":[],"published":{"value":"$id"}}""")
+                    return ExecutionOutcome.Completed(0)
+                }
+            }
+            try {
+                val run = {
+                    PlanExecutor(ExecutorRegistry(mapOf("uv" to executor)),
+                        project.layout.projectDirectory,
+                        project.layout.dir(project.provider { target }).get(), name,
+                        project.logger, graph, obs).run(plan,
+                        source?.let { PlanExecutor.ResumeFromBuild(it, selected!!) }, snapshot)
+                }
+                if (failAt == null) run() else {
+                    val failure = assertFailsWith<RuntimeException> { run() }
+                    assertContains(failure.message.orEmpty(), "node $failAt failed")
+                }
+                com.hayden.testgraphsdk.tasks.RunReportWriter.persistAttemptClosure(
+                    target, graph, ids, obs.traceId, replay)
+            } finally { obs.finish(if (failAt == null) "passed" else "failed", timeoutMillis = 10) }
+            return target
+        }
+        val full = attempt("full", failAt = "two")
+        assertEquals(listOf("one", "two"), launched)
+        launched.clear()
+        val resumed = attempt("resumed", full, "two", failAt = "three")
+        assertEquals(listOf("two", "three"), launched)
+        val snapshot = com.hayden.testgraphsdk.tasks.RunReportWriter.requireReplaySource(resumed, graph, "three")
+        assertEquals(listOf("one", "two", "three"), snapshot.sourceExpectedNodeIds)
+        assertEquals(listOf("one", "two"), snapshot.selectedContext.map { it.nodeId })
+        launched.clear()
+        val nested = attempt("nested", resumed, "three", failAt = "three")
+        assertEquals(listOf("three"), launched)
+        launched.clear()
+        attempt("next", nested, "three")
+        assertEquals(listOf("three"), launched)
+        // The ordinary full-plan mismatch control still exercises PlanExecutor's
+        // unchanged guard; the nested loader must not shorten its effective plan.
+        assertResumeRejected(listOf("dependency", "selected", "stale.tail"),
+            listOf(ContextItem("dependency", emptyMap())), "source full-plan node sequence")
+        val ancestorContext = full.resolve("context/two.input.json")
+        ancestorContext.appendText(" ")
+        assertFailsWith<IllegalArgumentException> {
+            com.hayden.testgraphsdk.tasks.RunReportWriter.requireReplaySource(resumed, graph, "three")
+        }
+    }
+
     private fun node(
         id: String,
         rerun: Boolean = true,

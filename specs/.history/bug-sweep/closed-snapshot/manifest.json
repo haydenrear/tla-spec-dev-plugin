@@ -1,0 +1,2484 @@
+{
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/bug-sweep/closed-snapshot specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'close spec ticket workflow'",
+    "message": "It is recommended to commit this history directory now: specs/.history/bug-sweep/closed-snapshot"
+  },
+  "complexity_delta": {
+    "direction": "increase",
+    "metrics": {
+      "actions": {
+        "after": 19,
+        "before": 16,
+        "delta": 3,
+        "percent": 18.8
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "distinct_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "generated_states": {
+        "after": null,
+        "before": null,
+        "delta": null
+      },
+      "variables": {
+        "after": 9,
+        "before": 8,
+        "delta": 1,
+        "percent": 12.5
+      }
+    },
+    "previous_scope_id": "attribute-the-catch-epic"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "specs/desired_program_model/ticket_plan.yaml epic_goals -- the six goals AT-04 decided clause by clause.",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "increase",
+      "metrics": {
+        "actions": {
+          "after": 19,
+          "before": 16,
+          "delta": 3,
+          "percent": 18.8
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "distinct_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "generated_states": {
+          "after": null,
+          "before": null,
+          "delta": null
+        },
+        "variables": {
+          "after": 9,
+          "before": 8,
+          "delta": 1,
+          "percent": 12.5
+        }
+      },
+      "previous_scope_id": "attribute-the-catch-epic"
+    },
+    "errors": [],
+    "input_path": "specs/results/complexity_ledger_input.yaml",
+    "justification": "ZERO model delta, so no TLA+ representation was added and none needs justifying. TLC was nonetheless run at close on the converged model rather than cited from a previous epic, so the receipts carry a measurement of THIS tree.",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 19,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result",
+        "skt_answer"
+      ],
+      "budget_utilization": {
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": null,
+      "distinct_states": null,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8"
+      ],
+      "generated_states": null,
+      "modularity": 0.00327538422776524,
+      "variables": 9
+    },
+    "narrative": "Workflow close of attribute-the-catch. The epic ships documentation and prompts: `references/bug_attribution.md` (the four record kinds -- CATCH, REACH, BLIND, PRICE), the two surfaces that ask for them at ticket close-out and workflow close, `prompts/regression_architecture.md`, and AT-04's clause-by-clause evaluation of six goals. MODEL DELTA IS ZERO AND THAT IS THE TICKET: no TLA+ action, variable or invariant was added, removed or changed, and `specs/current` was byte-identical to `specs/desired_program_model` on every semantic file at close. Six goals MET; one clause of GOAL-the-record-says-what-caught-it is DESIGNED, NOT APPLIED, because the 364-row ledger whose 27 out-of-vocabulary rows it would dispose lives on epic/stabilize-substrate and arrives with #296 -- stated in AT-04's RESULT.md as the epic's single largest limitation rather than worked around.",
+    "notes": [
+      "NOTE: TLC reports incomplete; comparison skipped.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-11-09T13:14:26.023864+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "No reduction was searched for, because there is no model change to reduce. An epic that adds zero actions cannot simplify its way to a smaller one, and inventing a refactor to fill this field is the retrospective this programme has spent three epics learning not to write.",
+      "measured": true,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "EXPERIMENTAL per the pivot; no decrease claimed, and no model delta to claim it for.",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "workflow",
+    "scope_id": "bug-sweep",
+    "tlc_findings": [
+      {
+        "level": "NOTE",
+        "message": "TLC reports incomplete; comparison skipped."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "Full suite at the close tip: 12 failed, 1613 passed, 23 skipped -- item for item the standing baseline, with no failure introduced by this epic. The 12 are pre-existing and four of them assert against a ledger that is not on main; see #296.",
+        "status": "green",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "`diff -rq specs/current specs/desired_program_model` differs only in README.md, spec_manifest.yaml status metadata, and the two planning files the close ignores by design (desired_state.yaml, ticket_plan.yaml). No semantic file differs.",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/current/TlaSpecDevCli.tla with MC.cfg, run at close on 2026-09-06: \"Model checking completed. No error has been found.\" 2,505,440 states generated, 124,643 distinct, depth 24, 0 left on queue, finished in 02s.",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "Not a separate run, and deliberately not presented as one. Model delta is zero, so the before-model and the after-model are the same file and one TLC run measures both. A second run of an unchanged model would be the same numbers wearing a different label, which is the shape that made the recycled evidence hard to spot.",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=green (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "bug-sweep"
+  },
+  "created_at_utc": "2026-11-09T13:14:26.143194+00:00",
+  "entry_name": "closed-snapshot",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "findings_ledger": {
+    "exists": true,
+    "role": "findings_ledger",
+    "snapshot": "specs/.history/bug-sweep/closed-snapshot/deferred_findings.yaml",
+    "source": "specs/desired_program_model/deferred_findings.yaml"
+  },
+  "git": {
+    "branch": "epic/bug-sweep",
+    "commit": "90c63330",
+    "inside_work_tree": "true"
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "workflow-close",
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "No reduction was searched for, because there is no model change to reduce. An epic that adds zero actions cannot simplify its way to a smaller one, and inventing a refactor to fill this field is the retrospective this programme has spent three epics learning not to write.",
+    "measured": true,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/bug-sweep/closed-snapshot/results/bug-sweep",
+      "source": "specs/results/bug-sweep"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "EXPERIMENTAL per the pivot; no decrease claimed, and no model delta to claim it for.",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": null,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/bug-sweep/closed-snapshot/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/bug-sweep/closed-snapshot/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/bug-sweep/closed-snapshot/snapshots/current",
+      "source": "specs/current"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "bug-sweep (#199): 26 of 27 tickets delivered. Missing: per-ticket spec close receipts (no-op model, never opened), BS-18 manual loop not run, specs/current never converged by ticket closes.",
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "tickets": [
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests/test_plugin_layout_resolution.py -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [
+          "test_graph/provider-bindings.json",
+          "test_graph/run-graphs.py",
+          "test_graph/README.md"
+        ],
+        "tla": [],
+        "workflow": [
+          "skill-project.toml",
+          "tests/test_plugin_layout_resolution.py"
+        ]
+      },
+      "covers": [
+        "owner request"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/194-test-graph-installed-home",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/194",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "guard: graphs run the installed plugin; none newly red",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only cliWorkflow"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-09",
+      "implementation_scope": [
+        "test_graph/provider-bindings.json",
+        "test_graph/run-graphs.py",
+        "test_graph/README.md",
+        "skill-project.toml",
+        "tests/test_plugin_layout_resolution.py"
+      ],
+      "objective": "Fix owner request with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 10,
+      "promotion_predecessor": null,
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Repo test_graph uses the installed test-graph",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-09",
+        "graphs": [
+          "cliWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests/test_plugin_layout_resolution.py -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-194-test-graph-installed-home"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-11",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/test-graph/scripts/run.py",
+          "skills/test-graph/scripts/sweep.py",
+          "skills/test-graph/scripts/sweep-ledger.init.gradle",
+          "skills/test-graph/references/workflows.md"
+        ],
+        "test_graph": [
+          "skills/test-graph/scripts/tests/"
+        ],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#175"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/175-errored-vs-failed",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/175",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-03",
+      "implementation_scope": [
+        "skills/test-graph/scripts/run.py",
+        "skills/test-graph/scripts/sweep.py",
+        "skills/test-graph/scripts/sweep-ledger.init.gradle",
+        "skills/test-graph/references/workflows.md",
+        "skills/test-graph/scripts/tests/"
+      ],
+      "objective": "Fix #175 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 20,
+      "promotion_predecessor": "BS-09",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "test-graph: errored vs failed (PR #176)",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-03",
+        "graphs": [
+          "cliWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "/Users/hayde/IdeaProjects/tla-spec-dev-175-errored-vs-failed"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or complexity_ledger or ledger or retirement'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-12",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/spec-double-2/scripts/close_tickets.py",
+          "skills/spec-double-2/scripts/tla_spec_dev.py (close ticket / close workflow paths only)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "tests/test_complexity_ledger.py",
+          "tests/test_workflow_close_keeps_the_ledger.py"
+        ]
+      },
+      "covers": [
+        "#187",
+        "#134",
+        "#172",
+        "#173",
+        "#174",
+        "#177",
+        "#72",
+        "#143 (SF-007/009, SF-042b, SF-045)"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/187-close-records",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/187",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "8 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or complexity_ledger or ledger'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "the fixed path must hold end to end in the owner's manual loop",
+          "goal": "GOAL-BS-MANUAL",
+          "local_signal": "N/A: exercised only in BS-18"
+        }
+      ],
+      "id": "BS-01",
+      "implementation_scope": [
+        "skills/spec-double-2/scripts/close_tickets.py",
+        "skills/spec-double-2/scripts/tla_spec_dev.py (close ticket / close workflow paths only)",
+        "tests/test_complexity_ledger.py",
+        "tests/test_workflow_close_keeps_the_ledger.py"
+      ],
+      "objective": "Fix #187, #134, #172, #173, #174, #177, #72, #143 (SF-007/009, SF-042b, SF-045) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 30,
+      "promotion_predecessor": "BS-03",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "close: stop writing close records nobody reads",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-01",
+        "graphs": [
+          "specWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or complexity_ledger or ledger or retirement'",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-187-close-records"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'disposition or improvement_ledger or attribution'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-15",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/spec-double-2/scripts/disposition.py",
+          "skills/spec-double-2/scripts/improvement_ledger.py",
+          "skills/spec-double-2/references/bug_attribution.md"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#161",
+        "#162",
+        "#163",
+        "#164",
+        "#165",
+        "#143 (SF-010)"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/188-ledger-disposition",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/188",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "6 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'disposition or improvement_ledger or attribution'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-02",
+      "implementation_scope": [
+        "skills/spec-double-2/scripts/disposition.py",
+        "skills/spec-double-2/scripts/improvement_ledger.py",
+        "skills/spec-double-2/references/bug_attribution.md"
+      ],
+      "objective": "Fix #161, #162, #163, #164, #165, #143 (SF-010) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 40,
+      "promotion_predecessor": "BS-01",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Ledger and disposition tools read consumer ledgers",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-02",
+        "graphs": [
+          "specWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'disposition or improvement_ledger or attribution'",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-188-ledger-disposition"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'reference or deferment or goal_signal'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/git-issue-workflow/references/goal-signal.md",
+          "skills/git-epic-workflow/references/validation-review.md",
+          "skills/git-epic-workflow/references/deferment.md"
+        ]
+      },
+      "covers": [
+        "#169",
+        "#170",
+        "#167"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/189-workflow-references",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/189",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "3 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'reference or workflow_doc or deferment'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-04",
+      "implementation_scope": [
+        "skills/git-issue-workflow/references/goal-signal.md",
+        "skills/git-epic-workflow/references/validation-review.md",
+        "skills/git-epic-workflow/references/deferment.md"
+      ],
+      "objective": "Fix #169, #170, #167 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 50,
+      "promotion_predecessor": "BS-02",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Workflow references: RED controls, contract reruns, fixed findings",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-04",
+        "graphs": [],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'reference or deferment or goal_signal'",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-189-workflow-references"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sync or check'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/skt/src/skt/sync.py",
+          "skills/skill-manager/references/projects.md"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/skt/tests/ (sync tests)"
+        ]
+      },
+      "covers": [
+        "#181",
+        "#182",
+        "#178"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/190-skt-sync",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/190",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "3 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k sync"
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "guard: sktSurface/sktHooks stay green",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only sktHooks"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-05",
+      "implementation_scope": [
+        "skills/skt/src/skt/sync.py",
+        "skills/skill-manager/references/projects.md",
+        "skills/skt/tests/ (sync tests)"
+      ],
+      "objective": "Fix #181, #182, #178 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 60,
+      "promotion_predecessor": "BS-04",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "skt sync: pin, CLI from the tier above, dry-run lock docs",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-05",
+        "graphs": [
+          "sktSurface",
+          "cliWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sync or check'",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-190-skt-sync"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'ticket or wt or sweep'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-19",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/skt/scripts/wt",
+          "skills/git-issue-workflow/scripts/new-change.sh",
+          "skills/git-issue-workflow/scripts/close-change.sh",
+          "skills/git-issue-workflow/scripts/lib.sh",
+          "skills/skt/src/skt/ticket*.py"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/skt/tests/ (ticket tests)"
+        ]
+      },
+      "covers": [
+        "#183",
+        "#184",
+        "#171"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/191-skt-ticket-lifecycle",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/191",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "3 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'ticket or wt'"
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "guard: sktSurface (ticket round trip) stays green",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only sktSurface"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "the fixed path must hold end to end in the owner's manual loop",
+          "goal": "GOAL-BS-MANUAL",
+          "local_signal": "N/A: exercised only in BS-18"
+        }
+      ],
+      "id": "BS-06",
+      "implementation_scope": [
+        "skills/skt/scripts/wt",
+        "skills/git-issue-workflow/scripts/new-change.sh",
+        "skills/git-issue-workflow/scripts/close-change.sh",
+        "skills/git-issue-workflow/scripts/lib.sh",
+        "skills/skt/src/skt/ticket*.py",
+        "skills/skt/tests/ (ticket tests)"
+      ],
+      "objective": "Fix #183, #184, #171 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 70,
+      "promotion_predecessor": "BS-05",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "skt ticket new/close: provision hook, outside paths, no shared target/",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-06",
+        "graphs": [
+          "sktSurface",
+          "cliWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'ticket or wt or sweep'",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-191-skt-ticket-lifecycle"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'tlc or cfg or generate_cases or analyze_complexity or spec_evolution'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/spec-double-2/scripts/spec_evolution.py",
+          "skills/spec-double-2/scripts/analyze_complexity.py",
+          "skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py",
+          "skills/spec-double-2/scripts/scaffold_spec.py",
+          "skills/spec-double-2/scripts/onboard_program_model.py"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "tests/test_generate_cases_from_tlc_dump.py"
+        ]
+      },
+      "covers": [
+        "#155",
+        "#159",
+        "#166",
+        "#143 (SF-041)"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/192-tlc-parsing-casegen",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/192",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "4 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'tlc or cfg or generate_cases or complexity'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-07",
+      "implementation_scope": [
+        "skills/spec-double-2/scripts/spec_evolution.py",
+        "skills/spec-double-2/scripts/analyze_complexity.py",
+        "skills/spec-double-2/scripts/generate_cases_from_tlc_dump.py",
+        "skills/spec-double-2/scripts/scaffold_spec.py",
+        "skills/spec-double-2/scripts/onboard_program_model.py",
+        "tests/test_generate_cases_from_tlc_dump.py"
+      ],
+      "objective": "Fix #155, #159, #166, #143 (SF-041) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 80,
+      "promotion_predecessor": "BS-06",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "TLC config parsing and case generation",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-07",
+        "graphs": [
+          "specWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'tlc or cfg or generate_cases or analyze_complexity or spec_evolution'",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-192-tlc-parsing-casegen"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q (plus the build-logic Gradle tests)"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt",
+          "examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#138 (CDC-ISF-023-F02)"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/195-describe-retry",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/195",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "cd skills/test-graph/project_sdk_sources/build-logic && ./gradlew test (or the nearest Gradle test task)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "guard: no graph newly red",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only cliWorkflow"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-10",
+      "implementation_scope": [
+        "skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt",
+        "examples/distributed_history/test_graph/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt"
+      ],
+      "objective": "Fix #138 (CDC-ISF-023-F02) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 90,
+      "promotion_predecessor": "BS-07",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "test-graph: retry node describe; errored on persistent describe failure",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-10",
+        "graphs": [
+          "cliWorkflow",
+          "effectProviderExamples"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q (plus the build-logic Gradle tests)",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-195-describe-retry"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'build or artifact or stale'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/skt/src/skt/build_cmd.py",
+          "skills/skt/src/skt/artifacts.py"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/skt/tests/ (build/artifact tests)"
+        ]
+      },
+      "covers": [
+        "#202"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/202-skt-build-freshness",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/202",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'build or artifact'"
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "guard: sktSurface/sktHooks stay green",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only sktHooks"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-20",
+      "implementation_scope": [
+        "skills/skt/src/skt/build_cmd.py",
+        "skills/skt/src/skt/artifacts.py",
+        "skills/skt/tests/ (build/artifact tests)"
+      ],
+      "objective": "Fix #202 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 100,
+      "promotion_predecessor": "BS-10",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "skt build: successful CLI artifacts vs unbuildable ancestors",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-20",
+        "graphs": [
+          "sktHooks"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'build or artifact or stale'",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-202-skt-build-freshness"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-12",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/git-epic-workflow/scripts/validate_epic_plan.py (epic_issue warning only)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/git-epic-workflow/references/plan-and-schedule.md",
+          "skills/git-epic-workflow/references/finalize.md (PR-body template only)",
+          "skills/git-epic-workflow/scripts/tests/"
+        ]
+      },
+      "covers": [
+        "#200"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/200-epic-issue-and-closes",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/200",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-22",
+      "implementation_scope": [
+        "skills/git-epic-workflow/scripts/validate_epic_plan.py (epic_issue warning only)",
+        "skills/git-epic-workflow/references/plan-and-schedule.md",
+        "skills/git-epic-workflow/references/finalize.md (PR-body template only)",
+        "skills/git-epic-workflow/scripts/tests/"
+      ],
+      "objective": "Fix #200 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 110,
+      "promotion_predecessor": "BS-20",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "git-epic-workflow: epic tracking issue, plan order, one Closes per line",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-22",
+        "graphs": [],
+        "repository_unit": "uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-200-epic-issue-and-closes"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -rf (full suite; this ticket owns it)"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "the 9 failing tests and the fixtures/examples/specs they read",
+          "tests/test_ticket_retirement.py",
+          "specs/tickets/* (stale, delete)",
+          "specs/current/tests (the 11 spec-unit failures)"
+        ]
+      },
+      "covers": [
+        "the repo test suite"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/193-red-suite",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/193",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "9 \u2192 0 failures; the mtime-dependent test made deterministic",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -rf"
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -rf"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-08",
+      "implementation_scope": [
+        "the 9 failing tests and the fixtures/examples/specs they read",
+        "tests/test_ticket_retirement.py",
+        "specs/tickets/* (stale, delete)",
+        "specs/current/tests (the 11 spec-unit failures)"
+      ],
+      "objective": "Fix the repo test suite with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 120,
+      "promotion_predecessor": "BS-22",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Red suite to zero",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-08",
+        "graphs": [
+          "specWorkflow",
+          "effectProviderExamples"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -rf (full suite; this ticket owns it)",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 1,
+      "worktree": "../tla-spec-dev-193-red-suite"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-13",
+        "BS-14",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/test-graph/scripts/run.py",
+          "skills/test-graph/scripts/sweep.py",
+          "skills/test-graph/references/workflows.md"
+        ],
+        "test_graph": [
+          "skills/test-graph/scripts/tests/"
+        ],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#185",
+        "#168"
+      ],
+      "depends_on": [
+        "BS-03"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/185-outcome-json",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/185",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "2 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "guard: no graph newly red",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only cliWorkflow"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-11",
+      "implementation_scope": [
+        "skills/test-graph/scripts/run.py",
+        "skills/test-graph/scripts/sweep.py",
+        "skills/test-graph/references/workflows.md",
+        "skills/test-graph/scripts/tests/"
+      ],
+      "objective": "Fix #185, #168 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 130,
+      "promotion_predecessor": "BS-08",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "test-graph: outcome.json per run + keep going",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-11",
+        "graphs": [
+          "cliWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 2,
+      "worktree": "../tla-spec-dev-185-outcome-json"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or carry or open_ticket or retirement' && uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-15",
+        "BS-21",
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/spec-double-2/scripts/close_tickets.py",
+          "skills/spec-double-2/scripts/tla_spec_dev.py (open/close ticket)",
+          "skills/git-epic-workflow/scripts/validate_epic_plan.py (SF-074/076)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "tests/test_close_three_way_carry.py"
+        ]
+      },
+      "covers": [
+        "#141",
+        "#138 (DEF-516, mutation-close)"
+      ],
+      "depends_on": [
+        "BS-01",
+        "BS-22"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/141-close-carries-desired",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/141",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "2 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or carry or open_ticket'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-12",
+      "implementation_scope": [
+        "skills/spec-double-2/scripts/close_tickets.py",
+        "skills/spec-double-2/scripts/tla_spec_dev.py (open/close ticket)",
+        "skills/git-epic-workflow/scripts/validate_epic_plan.py (SF-074/076)",
+        "tests/test_close_three_way_carry.py"
+      ],
+      "objective": "Fix #141, #138 (DEF-516, mutation-close) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 140,
+      "promotion_predecessor": "BS-11",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "close carries the delivered model into desired; ordinal check",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-12",
+        "graphs": [
+          "specWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or carry or open_ticket or retirement' && uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 2,
+      "worktree": "../tla-spec-dev-141-close-carries-desired"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'ticket or sweep or integrity'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/skt/src/skt/ticket*.py (list/sweep)",
+          "skills/git-issue-workflow/scripts/close-change.sh (integrity recheck only)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/git-epic-workflow/references/worktree-lifecycle.md",
+          "skills/git-epic-workflow/references/finalize.md (resume/sweep integrity only)"
+        ]
+      },
+      "covers": [
+        "#201"
+      ],
+      "depends_on": [
+        "BS-06"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/201-resume-integrity",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/201",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sweep or list or integrity'"
+        },
+        {
+          "contribution": "direct",
+          "expected_effect": "guard: sktSurface stays green",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "python3 test_graph/run-graphs.py --only sktSurface"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-19",
+      "implementation_scope": [
+        "skills/skt/src/skt/ticket*.py (list/sweep)",
+        "skills/git-issue-workflow/scripts/close-change.sh (integrity recheck only)",
+        "skills/git-epic-workflow/references/worktree-lifecycle.md",
+        "skills/git-epic-workflow/references/finalize.md (resume/sweep integrity only)"
+      ],
+      "objective": "Fix #201 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 150,
+      "promotion_predecessor": "BS-12",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Resume/retirement recheck worktree + held-evidence integrity",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-19",
+        "graphs": [
+          "sktSurface"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'ticket or sweep or integrity'",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 2,
+      "worktree": "../tla-spec-dev-201-resume-integrity"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/test-graph/scripts/run.py",
+          "skills/test-graph/references/workflows.md"
+        ],
+        "test_graph": [
+          "skills/test-graph/scripts/tests/"
+        ],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#186",
+        "#138 (--run-only-node)"
+      ],
+      "depends_on": [
+        "BS-11"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/186-resume-front-door",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/186",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "2 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q -k resume"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "the fixed path must hold end to end in the owner's manual loop",
+          "goal": "GOAL-BS-MANUAL",
+          "local_signal": "N/A: exercised only in BS-18"
+        }
+      ],
+      "id": "BS-13",
+      "implementation_scope": [
+        "skills/test-graph/scripts/run.py",
+        "skills/test-graph/references/workflows.md",
+        "skills/test-graph/scripts/tests/"
+      ],
+      "objective": "Fix #186, #138 (--run-only-node) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 160,
+      "promotion_predecessor": "BS-19",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "test-graph: run.py --resume <report> [--from-node N]",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-13",
+        "graphs": [
+          "cliWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 3,
+      "worktree": "../tla-spec-dev-186-resume-front-door"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/git-epic-workflow/scripts/milestone.py (new)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/git-epic-workflow/scripts/tests/test_milestone*.py",
+          "skills/git-epic-workflow/references/human-review.md (runner usage only)"
+        ]
+      },
+      "covers": [
+        "#147 (step 1)"
+      ],
+      "depends_on": [
+        "BS-11"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/147-milestone-runner",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/147",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q -k milestone"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-14",
+      "implementation_scope": [
+        "skills/git-epic-workflow/scripts/milestone.py (new)",
+        "skills/git-epic-workflow/scripts/tests/test_milestone*.py",
+        "skills/git-epic-workflow/references/human-review.md (runner usage only)"
+      ],
+      "objective": "Fix #147 (step 1) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 170,
+      "promotion_predecessor": "BS-13",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "git-epic-workflow: milestone runner with its own lock (#147 step 1)",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-14",
+        "graphs": [],
+        "repository_unit": "uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 3,
+      "worktree": "../tla-spec-dev-147-milestone-runner"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'deferred or census or ledger' && uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/spec-double-2/scripts/tla_spec_dev.py (close ticket: marking ledger rows only)",
+          "skills/git-epic-workflow/scripts/census.py (new)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/git-epic-workflow/references/deferment.md (ledger section)"
+        ]
+      },
+      "covers": [
+        "#148",
+        "#147 (census step)"
+      ],
+      "depends_on": [
+        "BS-02",
+        "BS-12"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/148-epic-deferred-ledger",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/148",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'deferred or census or ledger'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-15",
+      "implementation_scope": [
+        "skills/spec-double-2/scripts/tla_spec_dev.py (close ticket: marking ledger rows only)",
+        "skills/git-epic-workflow/scripts/census.py (new)",
+        "skills/git-epic-workflow/references/deferment.md (ledger section)"
+      ],
+      "objective": "Fix #148, #147 (census step) with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 180,
+      "promotion_predecessor": "BS-14",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "One deferred-findings ledger per epic + closure census",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-15",
+        "graphs": [
+          "specWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'deferred or census or ledger' && uv run --with pyyaml --with pytest pytest skills/git-epic-workflow/scripts/tests -q",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 3,
+      "worktree": "../tla-spec-dev-148-epic-deferred-ledger"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or result or retirement'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/spec-double-2/scripts/close_tickets.py (result resolution / pre-close guard)"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "tests/test_close_*.py (new missing-result tests)"
+        ]
+      },
+      "covers": [
+        "#203"
+      ],
+      "depends_on": [
+        "BS-12"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/203-missing-result-guard",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/203",
+      "goals": [
+        {
+          "contribution": "direct",
+          "expected_effect": "1 in-scope issue(s) proven fixed (red on base, green on branch)",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close and result'"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-21",
+      "implementation_scope": [
+        "skills/spec-double-2/scripts/close_tickets.py (result resolution / pre-close guard)",
+        "tests/test_close_*.py (new missing-result tests)"
+      ],
+      "objective": "Fix #203 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 190,
+      "promotion_predecessor": "BS-15",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Workflow close refuses an explicit missing --result",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-21",
+        "graphs": [
+          "specWorkflow"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -k 'close or result or retirement'",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 3,
+      "worktree": "../tla-spec-dev-203-missing-result-guard"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "git grep regression (see issue) + targeted tests/ for touched docs"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/skill-manager/SKILL.md",
+          "skills/skill-manager/references/",
+          "skills/unit-authoring/",
+          "skills/plugin-repository/references/",
+          "skills/plugin-repository/scripts/release.sh",
+          "skills/plugin-repository/assets/",
+          "skills/*/skill-project.toml (coord comment only)"
+        ]
+      },
+      "covers": [
+        "#222",
+        "skill-manager#427"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/222-remove-registry-server-refs",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/222",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-23",
+      "implementation_scope": [
+        "skills/skill-manager/SKILL.md",
+        "skills/skill-manager/references/",
+        "skills/unit-authoring/",
+        "skills/plugin-repository/references/",
+        "skills/plugin-repository/scripts/release.sh",
+        "skills/plugin-repository/assets/",
+        "skills/*/skill-project.toml (coord comment only)"
+      ],
+      "objective": "Fix #222, skill-manager#427 with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 195,
+      "promotion_predecessor": "BS-21",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Remove references to the skill-manager registry server (upstream skill-manager#427)",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-23",
+        "graphs": [],
+        "repository_unit": "git grep regression (see issue) + targeted tests/ for touched docs",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 4,
+      "worktree": "../wt-epic-bug-sweep-222-remove-registry-server-refs"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests/test_eval_toolchain_pin.py -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16",
+        "BS-25",
+        "BS-26",
+        "BS-27"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "evals/lib/toolchain.lock.toml"
+        ]
+      },
+      "covers": [
+        "#224"
+      ],
+      "depends_on": [],
+      "desired_actions": [],
+      "feature_branch": "feature/224-eval-pin-sm-0-29",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/224",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-24",
+      "implementation_scope": [
+        "evals/lib/toolchain.lock.toml"
+      ],
+      "objective": "Fix #224 with a regression test (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 196,
+      "promotion_predecessor": "BS-23",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Bump the eval toolchain's skill-manager pin to v0.29.0",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-24",
+        "graphs": [],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests/test_eval_toolchain_pin.py -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 4,
+      "worktree": "../wt-epic-bug-sweep-224-eval-pin-sm-0-29"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sweep or ticket or check'"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/skt/src/skt/sweep.py",
+          "skills/skt/src/skt/ticket.py",
+          "skills/skt/src/skt/check.py",
+          "skills/skt/tests/",
+          "skills/skt/references/worktree-sweep.md"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#225"
+      ],
+      "depends_on": [
+        "BS-24"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/225-skt-sweep-race-jbang",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/225",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-25",
+      "implementation_scope": [
+        "skills/skt/src/skt/sweep.py",
+        "skills/skt/src/skt/ticket.py",
+        "skills/skt/src/skt/check.py",
+        "skills/skt/tests/",
+        "skills/skt/references/worktree-sweep.md"
+      ],
+      "objective": "Fix #225 with a regression test (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 197,
+      "promotion_predecessor": "BS-24",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "skt: sweep after a squash merge, index-base ref race, jbang build timeout",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-25",
+        "graphs": [
+          "sktSurface",
+          "sktHooks"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest skills/skt/tests -q -k 'sweep or ticket or check'",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 5,
+      "worktree": "../wt-epic-bug-sweep-225-skt-sweep-race-jbang"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "cd skills/test-graph/project_sdk_sources/build-logic && ./gradlew test"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [
+          "skills/test-graph/project_sdk_sources/build-logic/src/"
+        ],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "#226"
+      ],
+      "depends_on": [
+        "BS-24"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/226-continue-closure",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/226",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-26",
+      "implementation_scope": [
+        "skills/test-graph/project_sdk_sources/build-logic/src/"
+      ],
+      "objective": "Fix #226 with a regression test (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 198,
+      "promotion_predecessor": "BS-25",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "test-graph: attempt closure after continue-after-failure, so resume works",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-26",
+        "graphs": [
+          "cliWorkflow",
+          "effectProviderExamples"
+        ],
+        "repository_unit": "cd skills/test-graph/project_sdk_sources/build-logic && ./gradlew test",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 5,
+      "worktree": "../wt-epic-bug-sweep-226-continue-closure"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests/test_plugin_layout_resolution.py -q"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-16"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": [
+          "skills/skill-manager/SKILL.md",
+          "skills/git-issue-workflow/SKILL.md",
+          "skills/git-issue-workflow/references/"
+        ]
+      },
+      "covers": [
+        "#227"
+      ],
+      "depends_on": [
+        "BS-24"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/227-sm-graph-wording",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/227",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "no new failure in `pytest tests`",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "uvx --with pyyaml --with jinja2 pytest tests -q -x --lf (the targeted subset in validation.repository_unit)"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "must not regress any eval case; measured only by BS-17",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: the full eval lane runs only in BS-17"
+        }
+      ],
+      "id": "BS-27",
+      "implementation_scope": [
+        "skills/skill-manager/SKILL.md",
+        "skills/git-issue-workflow/SKILL.md",
+        "skills/git-issue-workflow/references/"
+      ],
+      "objective": "Fix #227 with a regression test (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "promotion_order": 199,
+      "promotion_predecessor": "BS-26",
+      "role": "implementation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Skill text the skill-manager graphs assert: doc-smoke and onboarding",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-27",
+        "graphs": [],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests/test_plugin_layout_resolution.py -q",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 5,
+      "worktree": "../wt-epic-bug-sweep-227-sm-graph-wording"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [
+          "uvx --with pyyaml --with jinja2 pytest tests -q -rf"
+        ],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-17"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "the epic's goals"
+      ],
+      "depends_on": [
+        "BS-09",
+        "BS-03",
+        "BS-01",
+        "BS-02",
+        "BS-04",
+        "BS-05",
+        "BS-06",
+        "BS-07",
+        "BS-10",
+        "BS-20",
+        "BS-22",
+        "BS-08",
+        "BS-11",
+        "BS-12",
+        "BS-19",
+        "BS-13",
+        "BS-14",
+        "BS-15",
+        "BS-21",
+        "BS-23",
+        "BS-24",
+        "BS-25",
+        "BS-26",
+        "BS-27"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/196-eval-bugs-suite-graphs",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/196",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-BS-BUGS",
+          "local_signal": "N/A: this ticket is the measurement"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-BS-SUITE",
+          "local_signal": "N/A: this ticket is the measurement"
+        },
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-BS-GRAPHS",
+          "local_signal": "N/A: this ticket is the measurement"
+        }
+      ],
+      "id": "BS-16",
+      "implementation_scope": [],
+      "objective": "Fix the epic's goals with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "owns_goals": [
+        "GOAL-BS-BUGS",
+        "GOAL-BS-SUITE",
+        "GOAL-BS-GRAPHS"
+      ],
+      "promotion_order": 200,
+      "promotion_predecessor": "BS-27",
+      "role": "evaluation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Evaluation: bugs proven, suite green, every graph green",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-16",
+        "graphs": [
+          "specWorkflow",
+          "cliWorkflow",
+          "effectProviderExamples",
+          "sktSurface",
+          "sktHooks"
+        ],
+        "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests -q -rf",
+        "spec_graph": "specWorkflow",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "specWorkflow"
+      },
+      "wave": 6,
+      "worktree": "../tla-spec-dev-196-eval-bugs-suite-graphs"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [],
+        "evidence": []
+      },
+      "blocks": [
+        "BS-18"
+      ],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "the epic's goals"
+      ],
+      "depends_on": [
+        "BS-16"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/197-eval-full-lane",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/197",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-BS-EVALS",
+          "local_signal": "N/A: this ticket is the measurement"
+        }
+      ],
+      "id": "BS-17",
+      "implementation_scope": [],
+      "objective": "Fix the epic's goals with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "owns_goals": [
+        "GOAL-BS-EVALS"
+      ],
+      "promotion_order": 210,
+      "promotion_predecessor": "BS-16",
+      "role": "evaluation",
+      "schedule_revision": 3,
+      "status": "closed",
+      "title": "Evaluation: full eval lane, base vs tip",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-17",
+        "graphs": [],
+        "repository_unit": "N/A: eval lane ticket",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 7,
+      "worktree": "../tla-spec-dev-197-eval-full-lane"
+    },
+    {
+      "acceptance": {
+        "assertions": [
+          "Each covered issue has a regression test that is red on the epic base and green on the branch.",
+          "No-op model result recorded: specs/current is unchanged by this ticket."
+        ],
+        "commands": [],
+        "evidence": []
+      },
+      "blocks": [],
+      "conflict_keys": {
+        "adapters": [],
+        "production": [],
+        "test_graph": [],
+        "tla": [],
+        "workflow": []
+      },
+      "covers": [
+        "the epic's goals"
+      ],
+      "depends_on": [
+        "BS-17"
+      ],
+      "desired_actions": [],
+      "feature_branch": "feature/198-eval-manual-loop",
+      "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/198",
+      "goals": [
+        {
+          "contribution": "guard",
+          "expected_effect": "decides the goal; adds no behavioral delta",
+          "goal": "GOAL-BS-MANUAL",
+          "local_signal": "N/A: this ticket is the measurement"
+        }
+      ],
+      "id": "BS-18",
+      "implementation_scope": [],
+      "objective": "Fix the epic's goals with a regression test per issue (red on the epic base, green on the branch). No model delta expected: record a no-op model result.",
+      "owns_goals": [
+        "GOAL-BS-MANUAL"
+      ],
+      "promotion_order": 220,
+      "promotion_predecessor": "BS-17",
+      "role": "evaluation",
+      "schedule_revision": 3,
+      "status": "planned",
+      "title": "Evaluation: manual testing loop with the owner",
+      "validation": {
+        "evidence_root": "specs/results/bug-sweep/BS-18",
+        "graphs": [],
+        "repository_unit": "N/A: manual acceptance",
+        "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket",
+        "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+        "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+        "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI change in this ticket"
+      },
+      "wave": 8,
+      "worktree": "../tla-spec-dev-198-eval-manual-loop"
+    }
+  ],
+  "workflow_name": "bug-sweep",
+  "validation": {
+    "claimed": false,
+    "note": "No per-ticket spec close receipts exist: every ticket had a no-op model result and none was opened or closed through the spec CLI. BS-18 (manual loop) was not run. Ticket validation lives in specs/results/bug-sweep and specs/evals/bug-sweep."
+  },
+  "owner_authorisation": {
+    "note": "Owner instructed \"merge everything in, close everything out\" on 2026-11-08; standing owner rule that close never blocks and gaps are marked missing."
+  }
+}

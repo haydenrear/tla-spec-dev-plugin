@@ -1,0 +1,119 @@
+{
+  "schema": "test-graph.outcome.v1",
+  "status": "passed",
+  "exit_code": 0,
+  "gradle_exit_code": 0,
+  "exit_codes": {
+    "0": "passed",
+    "1": "failed or not run",
+    "3": "errored"
+  },
+  "command": [
+    "run.py",
+    "cliWorkflow",
+    "-R",
+    "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph"
+  ],
+  "mode": "graphs",
+  "continue_after_failure": false,
+  "started_at": "2026-11-07T18:38:32.382133Z",
+  "ended_at": "2026-11-07T18:40:02.775691Z",
+  "duration_seconds": 90.394,
+  "load_avg_start": [
+    66.03,
+    49.36,
+    59.86
+  ],
+  "load_avg_end": [
+    48.9,
+    47.98,
+    58.28
+  ],
+  "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-sweeps/20261107-183832",
+  "selection_known": true,
+  "graphs_passed": 1,
+  "graphs_failed": 0,
+  "graphs_errored": 0,
+  "graphs_not_run": 0,
+  "nodes_passed": 2,
+  "nodes_failed": 0,
+  "nodes_errored": 0,
+  "nodes_not_run": 0,
+  "graphs": [
+    {
+      "graph": "cliWorkflow",
+      "status": "passed",
+      "cause": null,
+      "reason": null,
+      "report_status": "passed",
+      "started_at": "2026-11-07T18:39:20.550273Z",
+      "ended_at": "2026-11-07T18:40:02.046342Z",
+      "duration_seconds": 41.798,
+      "timeout_bound_seconds": null,
+      "load_avg_start": [
+        52.75,
+        48.36,
+        58.97
+      ],
+      "load_avg_end": [
+        48.9,
+        47.98,
+        58.28
+      ],
+      "report_dirs": [
+        "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942"
+      ],
+      "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942",
+      "nodes": [
+        {
+          "node": "spec.cli.install",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:39:42.929309Z",
+          "ended_at": "2026-11-07T18:39:49.262049Z",
+          "duration_seconds": 6.333,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            50.58,
+            48.23,
+            58.61
+          ],
+          "load_avg_end": [
+            49.5,
+            48.05,
+            58.49
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942/envelope/spec.cli.install.json"
+        },
+        {
+          "node": "spec.cli.help",
+          "status": "passed",
+          "cause": null,
+          "reason": null,
+          "started_at": "2026-11-07T18:39:49.286402Z",
+          "ended_at": "2026-11-07T18:39:56.807451Z",
+          "duration_seconds": 7.521,
+          "timeout_bound_seconds": null,
+          "timeout_bound": null,
+          "load_avg_start": [
+            49.5,
+            48.05,
+            58.49
+          ],
+          "load_avg_end": [
+            49.46,
+            48.06,
+            58.43
+          ],
+          "spawn_exit_code": 0,
+          "report_dir": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942",
+          "envelope": "/Users/hayde/IdeaProjects/tla-spec-dev-147-milestone-runner/test_graph/build/validation-reports/20261107-183942/envelope/spec.cli.help.json"
+        }
+      ]
+    }
+  ]
+}

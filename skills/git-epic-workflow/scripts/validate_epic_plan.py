@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 from collections import defaultdict
 from dataclasses import dataclass
+import json
 import os
 from pathlib import Path
 import re
@@ -1106,10 +1107,19 @@ def _validate_goal_alignment(
                 for _, impact in impacts
                 if impact.disposition == "carried"
             }
-            if len(carried_targets) > 1:
+            # #141 SF-076: when an epic is carried into a successor epic, each
+            # ticket retires to that epic's own MEMBER issue (MB-031 -> #451,
+            # MB-032 -> #455, MB-023 -> #462 all carry GOAL-MB-MANUAL). One
+            # successor workflow is the unit a goal moves to; per-ticket issues
+            # under it are not a disagreement.
+            carried_workflows = {workflow for _, workflow in carried_targets}
+            if len(carried_targets) > 1 and (
+                len(carried_workflows) > 1 or None in carried_workflows
+            ):
                 errors.append(
                     f"goal {goal_id!r}: carried retirement dispositions must name "
-                    "one successor issue/workflow"
+                    "one successor workflow (per-ticket successor issues under it "
+                    "are accepted)"
                 )
 
             evaluator_id = goal.evaluation_ticket
@@ -1228,6 +1238,22 @@ def _validate_deferment_policy(plan: object, errors: list[str]) -> None:
     backlog = policy.get("backlog", MISSING)
     if not isinstance(backlog, str) or not backlog.strip():
         errors.append("deferment_policy.backlog must be a non-empty path string")
+
+
+def _validate_epic_issue(plan: object, warnings: list[str]) -> None:
+    """Warn, never fail, while the plan names no epic tracking issue.
+
+    Appended to `warnings`, so no flag turns it into a refusal: a plan written
+    before this field existed is still schedulable.
+    """
+    if not isinstance(plan, dict):
+        return
+    value = plan.get("epic_issue")
+    if not isinstance(value, str) or not value.strip():
+        warnings.append(
+            "plan declares no epic_issue; create the epic tracking issue and "
+            "record its URL (see references/plan-and-schedule.md section 6)"
+        )
 
 
 def _validate_review_policy(
@@ -1429,6 +1455,53 @@ def _validate_findings_partition(
     )
 
 
+def _validate_closed_ordinals(
+    plan: object,
+    tickets: dict[str, Ticket],
+    repo_root: Path | None,
+    errors: list[str],
+) -> None:
+    """#141 SF-074: a plan must not move a closed ticket's immutable ordinal.
+
+    A close receipt (`specs/.history/<workflow>/*/manifest.json`, kind
+    `ticket`) records the plan index the ticket held when it closed. A plan
+    generator that inserts later tickets mid-list shifts that index, and the
+    collision used to surface only when `close_tickets.py` ran at workflow close
+    (commit-diff-context-parent #394: ticket-017 named both MB-015 and MB-019).
+
+    Blocking, so the plan is refused here, where the fix is a reorder; `--force`
+    or SKILL_GATES=off passes it with the diagnostic printed as FORCED.
+    """
+    if repo_root is None or not isinstance(plan, dict):
+        return
+    workflow = _workflow_name(plan)
+    if not isinstance(workflow, str) or not workflow.strip():
+        return
+    root = repo_root / "specs" / ".history" / workflow
+    if not root.is_dir():
+        return
+    for manifest_path in sorted(root.glob("*/manifest.json")):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(manifest, dict) or manifest.get("kind") != "ticket":
+            continue
+        if isinstance(manifest.get("superseded_by"), dict):
+            continue
+        ticket = tickets.get(str(manifest.get("ticket_id")))
+        receipt_index = manifest.get("ticket_index")
+        if ticket is None or type(receipt_index) is not int:
+            continue
+        if receipt_index != ticket.index:
+            errors.append(Blocking(
+                f"ticket {ticket.id!r}: plan moved a closed ticket's ordinal: its "
+                f"close receipt records ticket_index {receipt_index}, the plan now "
+                f"holds it at {ticket.index} ({manifest_path}); restore the order "
+                "and append new tickets after it (--force or SKILL_GATES=off passes)"
+            ))
+
+
 def _default_repo_root(plan_path: Path) -> Path | None:
     """The repository the plan describes, inferred from the canonical layout.
 
@@ -1462,6 +1535,7 @@ def validate_plan(
     warnings: list[str] = []
     schedule_revision = _schedule_revision(plan, errors)
     _validate_deferment_policy(plan, errors)
+    _validate_epic_issue(plan, warnings)
     _validate_review_policy(plan, errors, warnings)
     goals = _parse_goals(plan, errors, warnings)
     tickets = _parse_tickets(plan, errors)
@@ -1474,6 +1548,7 @@ def validate_plan(
         _validate_promotion_lane(tickets, errors)
         _validate_goal_alignment(goals, tickets, retirements, errors, warnings)
         _validate_findings_partition(plan, tickets, warnings)
+        _validate_closed_ordinals(plan, tickets, repo_root, errors)
     _validate_wave_artifacts(plan, tickets, repo_root, warnings)
     if strict:
         return PlanReport(errors=errors, warnings=warnings)

@@ -162,6 +162,25 @@ def _print_contract(contract) -> None:
         print(f"propagate  {contract.propagate}")
 
 
+def _record_baseline(worktree: str | Path) -> None:
+    """Declare the new worktree's integrity baseline (BS-19, #201).
+
+    Records that it has a Skill Manager home, so a home that later goes
+    missing is reported as `home_missing` by `list`, `sweep` and `close`
+    rather than read as "never had one". Best-effort: a worktree is never
+    rolled back because this note could not be written.
+    """
+    from . import ticket_integrity
+
+    try:
+        manifest = ticket_integrity.declare(worktree, worktree)
+    except Exception as exc:  # noqa: BLE001 - advisory record only
+        print(f"note: integrity baseline not recorded for {worktree}: {exc}", file=sys.stderr)
+        return
+    print(f"integrity  baseline {manifest['handle']} (home={'yes' if manifest['home'] else 'no'}); "
+          f"declare retained evidence: python3 {ticket_integrity.__file__} declare {worktree} <path>...")
+
+
 def _bootstrap_script() -> Path | None:
     """Resolve git-issue-workflow's bootstrap-home.sh, standalone OR contained.
 
@@ -190,6 +209,70 @@ def _bootstrap_script() -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+
+def _giw_lib(bootstrap: Path | None = None) -> Path | None:
+    """git-issue-workflow's lib.sh, by the rungs `scripts/wt` uses.
+
+    `$GIT_ISSUE_WORKFLOW_SCRIPTS`, then the sibling in a checkout of the
+    bundle (this file is `skills/skt/src/skt/ticket.py`, installed or not),
+    then beside the bootstrap script the home resolved.
+    """
+    candidates: list[Path] = []
+    env = os.environ.get("GIT_ISSUE_WORKFLOW_SCRIPTS")
+    if env:
+        candidates.append(Path(env) / "lib.sh")
+    candidates.append(Path(__file__).resolve().parents[3] / UNIT / "scripts" / "lib.sh")
+    if bootstrap is not None:
+        candidates.append(bootstrap.parent / "lib.sh")
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def provision(worktree: str | Path, bootstrap: Path | None = None) -> tuple[int, str, str, str]:
+    """Run lib.sh's `provision_worktree` on a worktree this module created.
+
+    ONE implementation for both creation routes (#184, #171): new-change.sh
+    calls the same function. Returns ``(rc, error, fix, unshared)``. A
+    missing lib.sh is only an error when a hook is declared — an undeclared
+    hook has nothing to run, and the target/ check is then the one thing lost.
+    """
+    import subprocess
+
+    lib = _giw_lib(bootstrap)
+    if lib is None:
+        manifest = Path(worktree) / "skill-project.toml"
+        declared = False
+        if manifest.is_file():
+            try:
+                declared = bool((tomllib.loads(manifest.read_text()).get("worktree") or {}).get("provision"))
+            except (OSError, tomllib.TOMLDecodeError):
+                declared = True
+        if declared:
+            return (1, f"{manifest} declares a [worktree] provision hook, but {UNIT}'s "
+                    "lib.sh (which runs it) could not be found", f"skt sync {UNIT}", "")
+        return (0, "", "", "")
+    # provision_worktree sends the hook's stdout and its own narration to
+    # stderr, so this child's stdout carries only the three fields below.
+    script = (
+        '. "$1" || exit 70\n'
+        'rc=0; provision_worktree "$2" || rc=$?\n'
+        'printf "PROVISION_ERROR=%s\\nPROVISION_FIX=%s\\nPROVISION_UNSHARED=%s\\n" '
+        '"$PROVISION_ERROR" "$PROVISION_FIX" "$PROVISION_UNSHARED"\n'
+        'exit $rc\n'
+    )
+    proc = subprocess.run(
+        ["bash", "-c", script, "provision", str(lib), str(worktree)],
+        stdout=subprocess.PIPE, text=True,
+    )
+    rc, report = proc.returncode, proc.stdout
+    fields = dict(line.split("=", 1) for line in report.splitlines() if "=" in line)
+    error = fields.get("PROVISION_ERROR", "")
+    if rc != 0 and not error:
+        error = f"provisioning {worktree} failed (exit {rc}) before naming a cause"
+    return (rc, error, fields.get("PROVISION_FIX", ""), fields.get("PROVISION_UNSHARED", ""))
 
 
 def dirty_ok() -> bool:
@@ -273,23 +356,11 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
     commit_oid, tree_oid = commit.stdout.strip(), tree.stdout.strip()
     toplevel = git("rev-parse", "--show-toplevel").stdout.strip()
     repo_id = Path(toplevel).name if toplevel else "repo"
-    # A PATH `close` CAN FIND. `close-change.sh` resolves a ticket by looking in
-    # the repo's PARENT -- the derived `<parent>/<repo>-<ticket>`, then anything
-    # matching `*-<ticket>` there. A worktree created INSIDE the repo is in
-    # neither place, so this pair
-    #
-    #     skt ticket new  TICKET-7 --path ./wt-TICKET-7     -> created
-    #     skt ticket close TICKET-7                          -> "no worktree for
-    #                                                            ticket TICKET-7"
-    #
-    # both succeed at what they each do and disagree about where the worktree
-    # is. Measured in the ticket-close eval, then reproduced by hand outside it.
-    #
-    # Refused at CREATE, because that is the half that can still be corrected
-    # without anything having been built. An inside-the-repo worktree is also
-    # untracked content in the repo it belongs to, which makes the next
-    # clean-slate check fail -- so this rejects a path that was going to be a
-    # problem twice.
+    # NOT INSIDE THE REPO. `close` finds a worktree anywhere now: it asks git's
+    # own worktree list first (#183). What remains is that a worktree inside the
+    # checkout is untracked content in the repository it belongs to, so the
+    # primary's next clean-slate check fails. Refused at CREATE, while nothing
+    # has been built.
     if toplevel:
         try:
             resolved = Path(path).resolve()
@@ -298,9 +369,9 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
         except (OSError, RuntimeError):
             inside = False
         if inside:
-            print(f"error: --path {path} is inside the repository, where `skt ticket close`")
-            print(f"       cannot find it: close searches {Path(toplevel).parent} for the")
-            print(f"       derived path and for '*-{ticket_id}', never inside the checkout.")
+            print(f"error: --path {path} is inside the repository: the worktree would be")
+            print("       untracked content in the primary checkout, and its next")
+            print("       clean-slate check would fail.")
             print(f"fix:   put it beside the repository — --path ../{Path(path).name}")
             return 1
     ref_name = f"refs/index-bases/{repo_id}/{tree_oid}"
@@ -312,8 +383,17 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
     if existing.returncode != 0:
         made = git("update-ref", ref_name, commit_oid, "")
         if made.returncode != 0:
-            print(f"error: could not create retention ref {ref_name}: {made.stderr.strip()}")
-            return 1
+            # Create-only, and tickets start concurrently: another `ticket new`
+            # on the same tree may have made it since the check above. The same
+            # pin is what we wanted; anything else is the mismatch refused above.
+            again = git("rev-parse", "--verify", "--quiet", ref_name)
+            if again.returncode != 0:
+                print(f"error: could not create retention ref {ref_name}: {made.stderr.strip()}")
+                return 1
+            if again.stdout.strip() != commit_oid:
+                print(f"error: retention ref {ref_name} already points at {again.stdout.strip()[:8]}, not {commit_oid[:8]}")
+                print("fix:   the declared base disagrees with an earlier pin — reconcile with the epic owner")
+                return 1
     branch = f"feature/{ticket_id}"
     added = git("worktree", "add", path, "-b", branch, commit_oid)
     if added.returncode != 0:
@@ -358,7 +438,18 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
             )
         )
         return 3
+    # The worktree and its home are sound; a failed hook is reported, not
+    # rolled back, exactly as new-change.sh does (exit 9, naming the hook).
+    prov_rc, prov_err, prov_fix, unshared = provision(path, bootstrap)
+    if prov_rc != 0:
+        print(f"error: {prov_err} — worktree {path} kept; re-run the hook there")
+        if prov_fix:
+            print(f"fix:   {prov_fix}")
+        return 9
+    if unshared:
+        print(f"warning: {path}/target linked to {unshared}; replaced with a per-worktree directory")
     print(f"created epic worktree {path}")
+    _record_baseline(path)
     print(f"branch     {branch} (pinned base {commit_oid[:12]}; retention ref {ref_name})")
     launch = Path(path) / ".skill-manager" / "bin" / "launch" / "claude"
     if launch.is_file():
@@ -373,7 +464,8 @@ def epic_new(ticket_id: str, base: str | None, path: str) -> int:
 
 USAGE = "\n".join(
     [
-        "usage: skt ticket new|close|info <TICKET> [--base <branch>] [--path <dir>]",
+        "usage: skt ticket new|info <TICKET> [--base <branch>] [--path <dir>]",
+        "       skt ticket close <TICKET> [--into <home>] [--dry-run|--force]",
         "       skt ticket list  [--epic <slug>] [--target <ref>] [--into <home>] [--json]",
         "       skt ticket sweep [--epic <slug>] [--target <ref>] [--into <home>] "
         "[-y|--yes] [--json]",
@@ -416,6 +508,19 @@ def run(
             file=sys.stderr,
         )
         return 2
+    # Fleet flags on a one-ticket verb are refused, never dropped (#157):
+    # `close --into <home>` used to close into the PRIMARY's home while the
+    # operator believed they had named another one.
+    if verb in ("new", "info", "close"):
+        stray = [flag for flag, given in (
+            ("--epic", epic), ("--target", target), ("--yes", yes),
+            ("--into", into if verb != "close" else None),
+        ) if given]
+        if stray:
+            for flag in stray:
+                where = "close, list and sweep" if flag == "--into" else "list and sweep"
+                print(f"skt ticket {verb}: {flag} applies to {where} only", file=sys.stderr)
+            return 2
     if verb in FLEET_VERBS:
         if ticket_id:
             print(
@@ -444,6 +549,7 @@ def run(
             contract = giw.wt_new(ticket_id, base)
             print(f"created ticket worktree for {ticket_id}:")
             _print_contract(contract)
+            _record_baseline(contract.worktree)
             print(
                 "\nA skill edit inside that worktree's home is in no git diff; "
                 "run `skt publish` there before closing, or the close gate will refuse."
@@ -467,6 +573,9 @@ def run(
         if verb == "close":
             from . import publish as publish_mod
 
+            # Forwarded to close-change.sh, which honours `--into HOME`.
+            into_kw = {"into": into} if into else {}
+
             # The advisory must inspect the TARGET worktree's home, not
             # cwd's — `skt ticket close <T>` runs from anywhere, and the
             # edited skills at risk live in the home being torn down.
@@ -484,7 +593,7 @@ def run(
                 print(f"note: edited unit(s) in this home before close: {names}")
                 print("      (`skt publish <unit>` moves them out; the gate below enforces it)")
             if dry_run:
-                result = giw.wt_close(ticket_id, dry_run=True)
+                result = giw.wt_close(ticket_id, dry_run=True, **into_kw)
                 if result.dry_run_clean:
                     print(f"would close {result.worktree} — the gate holds nothing back")
                     return 0
@@ -503,7 +612,7 @@ def run(
                     "work. If you have not read them, stop and run --dry-run.",
                     flush=True,
                 )
-            result = giw.wt_close(ticket_id, force=force)
+            result = giw.wt_close(ticket_id, force=force, **into_kw)
             print(f"closed {result.worktree}" + (" (forced)" if force else ""))
             if result.branch:
                 print(f"branch {result.branch} kept — delete once the change has landed")

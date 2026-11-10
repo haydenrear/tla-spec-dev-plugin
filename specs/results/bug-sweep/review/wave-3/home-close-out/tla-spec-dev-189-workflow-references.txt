@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-189-workflow-references/.skill-manager holds nothing that removing it would destroy

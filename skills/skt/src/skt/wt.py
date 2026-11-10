@@ -264,9 +264,12 @@ def wt_close(
     *,
     force: bool = False,
     dry_run: bool = False,
+    into: str | Path | None = None,
     cwd: str | Path | None = None,
 ) -> CloseResult:
     args = ["close", ticket_or_path]
+    if into:
+        args.extend(["--into", str(into)])
     if force:
         args.extend(["--force", "--verbose"])
     if dry_run:

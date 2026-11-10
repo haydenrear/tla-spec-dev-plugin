@@ -210,6 +210,17 @@ find every measurement of a goal in one place).
 A harness that fails to run is `unmeasured` with the reason. It is not a zero,
 and it is not silently omitted.
 
+### A control is only as current as the node revision it ran on
+
+Where a target counts a node only with a seeded-violation or RED control, a
+committed control is not a control that still holds. Check each one against the
+node you measure: `git log --oneline <control-commit>..HEAD -- <node source>`.
+Empty means it still applies. Non-empty means the measured revision was never
+shown able to fail: re-run its seed on the tip if the graph carries one,
+otherwise decide the clause `met` with that caveat named per node and file a
+finding asking for a seed that runs on any tip. Do not rebuild pre-fix binaries
+inside the evaluation ticket to close the gap.
+
 ### When the instrument is judged rather than executed
 
 Some goals are decided by an artifact scored against a versioned rubric, by

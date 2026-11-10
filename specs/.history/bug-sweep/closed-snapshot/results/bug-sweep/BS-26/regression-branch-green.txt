@@ -1,0 +1,7 @@
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test
+
+BUILD SUCCESSFUL in 15s
+8 actionable tasks: 1 executed, 7 up-to-date
+tests=149 failures=0 errors=0 skipped=0

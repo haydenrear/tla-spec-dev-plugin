@@ -1,0 +1,27 @@
+## 1. auto-pick on an all-green report (expect refusal, exit 2)
+$ run.py --resume build/validation-reports/20261107-185418 --test-graph-root test_graph
+              [--test-graph-root TEST_GRAPH_ROOT]
+              [graph ...]
+run.py: error: /Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-reports/20261107-185418 has no failed or errored node to resume from; pass --from-node or --only-node to choose one
+exit=2 (argparse error; $PIPESTATUS is empty under zsh, so the code was not captured here — it is parser.error)
+
+## 2. --from-node with a relative report path (graph inferred)
+$ run.py --resume build/validation-reports/20261107-185418 --from-node spec.cli.help --test-graph-root test_graph
+resume cliWorkflow: from spec.cli.help (report /Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-reports/20261107-185418)
+PASSED cliWorkflow
+/Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-sweeps/20261107-185448/outcome.json
+exit=0
+
+## 3. resume of that resume via its outcome.json, --only-node
+$ run.py --resume /Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-sweeps/20261107-185448/outcome.json --only-node spec.cli.help --test-graph-root test_graph
+resume cliWorkflow: only spec.cli.help (report /Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-reports/20261107-185504)
+PASSED cliWorkflow
+/Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-sweeps/20261107-185516/outcome.json
+exit=0
+passed 0 {'source_report': '/Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-reports/20261107-185418', 'node': 'spec.cli.help', 'mode': 'resume-from-node'} [('spec.cli.help', 'passed')]
+passed 0 {'source_report': '/Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-reports/20261107-185504', 'node': 'spec.cli.help', 'mode': 'run-only-node'} [('spec.cli.help', 'passed')]
+
+## 4. legacy --run-only-node with a relative path
+PASSED cliWorkflow
+/Users/hayde/IdeaProjects/tla-spec-dev-186-resume-front-door/test_graph/build/validation-sweeps/20261107-185547/outcome.json
+exit=0

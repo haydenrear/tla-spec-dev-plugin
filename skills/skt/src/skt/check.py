@@ -99,6 +99,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import signal
 import subprocess
 import time
@@ -204,6 +205,11 @@ CLI_VERSION_ENV = "SKT_CLI_VERSION"
 # home agree) instead of the one that does not (re-write the pin — the pin
 # is fine, and re-writing it changes nothing about a cross-home refusal).
 CLI_REFUSED_PREFIX = "the CLI refused a cross-home run: "
+
+# A `--version` budget miss from a CLI launched through jbang. That launcher
+# compiles and starts a JVM when its cache is cold, so missing the budget says
+# nothing about the CLI, and the budget stays: this is the SessionStart path.
+CLI_SLOW_LAUNCHER_PREFIX = "the jbang launcher did not answer --version inside its budget"
 
 # The tap formula `skill-manager upgrade --self` upgrades, and therefore the
 # only thing whose "newer one exists" answer matches that remedy.
@@ -543,6 +549,29 @@ def _build_stamp(version_stdout: str) -> str | None:
     return f"{lines[0]} @ {build}" if build else lines[0]
 
 
+def _launches_through_jbang(cli: Path) -> bool:
+    """Is this pin a script that ends up in jbang? Called only after a miss.
+
+    A generated home pin execs the path it was bound to, so one hop is
+    followed through its `SKILL_MANAGER_CLI` default.
+    """
+    bound = re.compile(rb'cli="\$\{SKILL_MANAGER_CLI:-([^"}]+)\}"')
+    path = cli
+    for _ in range(3):
+        try:
+            with open(path, "rb") as handle:
+                head = handle.read(65536)
+        except OSError:
+            return False
+        if re.search(rb"\bjbang\b", head):
+            return True
+        match = bound.search(head)
+        if match is None:
+            return False
+        path = Path(os.fsdecode(match.group(1)))
+    return False
+
+
 def _installed_cli_identity(home: Path, timeout: float) -> tuple[str | None, str, str | None]:
     """The version of the CLI THIS HOME runs, not the one brew installed.
 
@@ -560,6 +589,8 @@ def _installed_cli_identity(home: Path, timeout: float) -> tuple[str | None, str
         return None, f"this home has no skill-manager CLI pin at {cli}", None
     proc = _run_git([str(cli), "--version"], timeout, env=_cli_env())
     if proc is None:
+        if _launches_through_jbang(cli):
+            return None, CLI_SLOW_LAUNCHER_PREFIX + " (a cold start can exceed it); not measured", None
         return None, "the CLI did not answer --version inside its budget", None
     if proc.returncode != 0:
         # A REFUSAL IS NOT EVIDENCE ABOUT A VERSION (skill-manager#264).
@@ -729,6 +760,8 @@ def _cli_state(home: Path, deadline: float) -> dict:
                       the newest is (no brew, not a brew install)
       no-cli          this home holds no CLI pin to ask
       timeout         the probe did not finish inside its slice
+      slow-launcher   the same miss from a jbang-launched CLI: not measured,
+                      and not a fault
       error           anything else, with the reason attached
       off             SKT_CLI_VERSION=0
     """
@@ -745,6 +778,9 @@ def _cli_state(home: Path, deadline: float) -> dict:
             "timeout" if "budget" in why else "error"
         )
         fix = f"skill-manager home shims --root {home}   # re-writes the pin"
+        if why.startswith(CLI_SLOW_LAUNCHER_PREFIX):
+            state = "slow-launcher"
+            fix = "skt check   # the pin is fine; jbang answers once its cache is warm"
         if why.startswith(CLI_REFUSED_PREFIX):
             fix = (
                 f"SKILL_MANAGER_HOME={home} skt check   # the pin is fine; the "

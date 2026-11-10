@@ -13,8 +13,8 @@ description = "REPLACE_DESCRIPTION"
 # --- plugin-level references -------------------------------------------------
 #
 # Units this WHOLE bundle needs installed. Git coords only (github:owner/repo,
-# git+…, file:…) — no registry is configured, so skill:/plugin: name coords
-# cannot resolve — and the coord names the REPO, which is usually spelled
+# git+…, file:…) — skill:/plugin: name coords do not resolve — and the coord
+# names the REPO, which is usually spelled
 # differently from the installed unit.
 #
 # Do NOT list a skill that is a constituent of this bundle: it ships inside,

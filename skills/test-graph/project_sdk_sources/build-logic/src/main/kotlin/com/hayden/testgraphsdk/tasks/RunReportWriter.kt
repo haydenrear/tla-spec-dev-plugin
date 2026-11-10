@@ -76,6 +76,7 @@ internal object RunReportWriter {
         val traceId: String,
         val scope: ExecutionScope,
         val finalizerNodeIds: List<String>,
+        val continueAfterFailure: Boolean,
         val scopeSha256: String,
         val carrierSha256: String,
         val contextSha256: Map<String, String>,
@@ -438,6 +439,7 @@ internal object RunReportWriter {
         traceId: String,
         replay: ReplayMetadata? = null,
         finalizerNodeIds: Set<String> = emptySet(),
+        continueAfterFailure: Boolean = false,
     ) {
         requireRegularDirectory(runDir, "attempt closure directory")
         require(isValidTraceId(traceId)) {
@@ -474,6 +476,7 @@ internal object RunReportWriter {
             scope = persistedScope,
             traceId = traceId,
             finalizerNodeIds = orderedFinalizerNodeIds.toSet(),
+            continueAfterFailure = continueAfterFailure,
             aggregateBudget = AggregateJsonStructureBudget(
                 MAX_AGGREGATE_JSON_STRUCTURAL_TOKENS
             ),
@@ -484,6 +487,7 @@ internal object RunReportWriter {
                 traceId = traceId,
                 scope = persistedScope,
                 finalizerNodeIds = orderedFinalizerNodeIds,
+                continueAfterFailure = continueAfterFailure,
                 scopeSha256 = capturedScope.sha256,
                 carrierSha256 = capturedCarrier.sha256,
                 contextSha256 = evidence.contextSha256,
@@ -508,6 +512,7 @@ internal object RunReportWriter {
         append(",\"scope\":").append(executionScopeJson(closure.scope).trim())
         append(",\"finalizerNodeIds\":")
         appendJsonStringArray(this, closure.finalizerNodeIds)
+        append(",\"continueAfterFailure\":").append(closure.continueAfterFailure)
         append(",\"scopeSha256\":").append(jsonString(closure.scopeSha256))
         append(",\"carrierSha256\":").append(jsonString(closure.carrierSha256))
         append(",\"contextSha256\":")
@@ -524,13 +529,11 @@ internal object RunReportWriter {
             throw IllegalArgumentException("invalid attempt closure: ${e.message}", e)
         }
         val version = obj["version"]
-        require(version == 2L || version == ATTEMPT_CLOSURE_VERSION.toLong()) {
-            "invalid attempt closure: unsupported version"
-        }
-        val expectedKeys = if (version == 2L) {
-            ATTEMPT_CLOSURE_V2_KEYS
-        } else {
-            ATTEMPT_CLOSURE_KEYS
+        val expectedKeys = when (version) {
+            2L -> ATTEMPT_CLOSURE_V2_KEYS
+            3L -> ATTEMPT_CLOSURE_V3_KEYS
+            ATTEMPT_CLOSURE_VERSION.toLong() -> ATTEMPT_CLOSURE_KEYS
+            else -> throw IllegalArgumentException("invalid attempt closure: unsupported version")
         }
         require(obj.keys == expectedKeys) {
             "invalid attempt closure: unknown or missing fields"
@@ -573,11 +576,22 @@ internal object RunReportWriter {
             }
             parsedFinalizers
         }
+        // Versions before 4 predate continue-after-failure closures, so they
+        // keep the strict rule: nothing but a finalizer runs after a failure.
+        val continueAfterFailure = if (version == ATTEMPT_CLOSURE_VERSION.toLong()) {
+            obj["continueAfterFailure"] as? Boolean
+                ?: throw IllegalArgumentException(
+                    "invalid attempt closure: continueAfterFailure must be a boolean"
+                )
+        } else {
+            false
+        }
         return AttemptClosure(
             runId = runId,
             traceId = traceId,
             scope = scope,
             finalizerNodeIds = finalizerNodeIds,
+            continueAfterFailure = continueAfterFailure,
             scopeSha256 = requireSha256(obj["scopeSha256"], "scopeSha256"),
             carrierSha256 = requireSha256(obj["carrierSha256"], "carrierSha256"),
             contextSha256 = readEvidenceDigestMap(
@@ -647,6 +661,7 @@ internal object RunReportWriter {
             scope = expectedScope,
             traceId = closure.traceId,
             finalizerNodeIds = closure.finalizerNodeIds.toSet(),
+            continueAfterFailure = closure.continueAfterFailure,
             aggregateBudget = AggregateJsonStructureBudget(
                 MAX_AGGREGATE_JSON_STRUCTURAL_TOKENS
             ),
@@ -759,6 +774,7 @@ internal object RunReportWriter {
             traceId = capturedTraceId,
             selectedNodeId = selectedNodeId,
             finalizerNodeIds = closure.finalizerNodeIds.toSet(),
+            continueAfterFailure = closure.continueAfterFailure,
             aggregateBudget = aggregateBudget,
         )
         require(parent == null || evidence.firstContextJson == parent.selectedContextJson) {
@@ -804,6 +820,7 @@ internal object RunReportWriter {
         traceId: String,
         selectedNodeId: String? = null,
         finalizerNodeIds: Set<String> = emptySet(),
+        continueAfterFailure: Boolean = false,
         aggregateBudget: AggregateJsonStructureBudget,
     ): ClosedEvidenceSnapshot {
         val contextDirectory = runDir.toPath().resolve(CONTEXT_DIRECTORY)
@@ -900,13 +917,14 @@ internal object RunReportWriter {
                 aggregateBudget = aggregateBudget,
             )
             if (envelope.status == "passed") {
-                require(!observedNonPassingEnvelope || nodeId in finalizerNodeIds) {
+                require(!observedNonPassingEnvelope || continueAfterFailure || nodeId in finalizerNodeIds) {
                     "closed attempt envelope '$nodeId' passed after a non-passing " +
                             "ordinary node but is not a finalizer"
                 }
             } else {
                 require(
                     !observedNonPassingEnvelope ||
+                            continueAfterFailure ||
                             envelope.status == "skipped" ||
                             nodeId in finalizerNodeIds
                 ) {
@@ -2249,7 +2267,7 @@ internal object RunReportWriter {
     private const val EXECUTION_SCOPE_FILE = "execution-scope.json"
     private const val EXECUTION_SCOPE_VERSION = 3
     private const val ATTEMPT_CLOSURE_FILE = "attempt-closure.json"
-    private const val ATTEMPT_CLOSURE_VERSION = 3
+    private const val ATTEMPT_CLOSURE_VERSION = 4
     private const val TRACE_CARRIER_FILE = "trace-context.json"
     private const val CONTEXT_DIRECTORY = "context"
     private const val ENVELOPE_DIRECTORY = "envelope"
@@ -2275,12 +2293,14 @@ internal object RunReportWriter {
         "traceId",
         "scope",
         "finalizerNodeIds",
+        "continueAfterFailure",
         "scopeSha256",
         "carrierSha256",
         "contextSha256",
         "envelopeSha256",
     )
-    private val ATTEMPT_CLOSURE_V2_KEYS = ATTEMPT_CLOSURE_KEYS - "finalizerNodeIds"
+    private val ATTEMPT_CLOSURE_V3_KEYS = ATTEMPT_CLOSURE_KEYS - "continueAfterFailure"
+    private val ATTEMPT_CLOSURE_V2_KEYS = ATTEMPT_CLOSURE_V3_KEYS - "finalizerNodeIds"
     private val VALID_NODE_STATUSES = setOf("passed", "failed", "errored", "skipped")
     private val TRACE_ID = Regex("^[0-9a-f]{32}$")
     private val SHA256 = Regex("^[0-9a-f]{64}$")

@@ -13,6 +13,8 @@ it costs a subprocess-capable environment that `skt status` does not need, and
 """
 
 from .artifacts import (
+    EXIT_UNRESOLVED_ANCESTOR,
+    UnresolvedAncestor,
     Artifact,
     ArtifactError,
     ArtifactOutput,
@@ -48,6 +50,8 @@ __all__ = [
     "StaleReason",
     "StaleSurvey",
     "UnknownArtifact",
+    "UnresolvedAncestor",
+    "EXIT_UNRESOLVED_ANCESTOR",
     "build",
     "list_artifacts",
     "resolve_ids",

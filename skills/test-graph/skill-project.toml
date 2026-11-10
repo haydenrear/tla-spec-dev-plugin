@@ -34,7 +34,7 @@
 # refusal was wrong and has been replaced by a warning; the flag is still
 # accepted and does nothing.
 #
-# Coords are git-only (no registry is configured) and they name the REPO, not
+# Coords are git-only (github:/git+/file:) and they name the REPO, not
 # the installed unit — see skill-publisher's references/coords-and-distribution.md.
 
 [project]

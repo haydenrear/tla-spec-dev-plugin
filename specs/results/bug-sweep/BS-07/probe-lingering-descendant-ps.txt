@@ -1,0 +1,165 @@
+96180 96161       00:03 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:02 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:01 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:05 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:04 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:03 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:07 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:06 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:05 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:09 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:08 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:07 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:11 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:10 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:09 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:13 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:12 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:11 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:16 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:15 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:14 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:18 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:17 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:16 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:20 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:19 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:18 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:22 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:21 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:20 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:24 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:23 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:22 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:26 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:25 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:24 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:28 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:27 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:26 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:30 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:29 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:28 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:32 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:31 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:30 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:36 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:35 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:34 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:39 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:38 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:37 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:41 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:40 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:39 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:43 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:42 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:41 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:45 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:44 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:43 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:47 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:46 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:45 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:49 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:48 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:47 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:51 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:50 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:49 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:53 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:52 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:51 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:56 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:55 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:54 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       00:58 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:57 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:56 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:00 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       00:59 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       00:58 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:02 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:01 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:00 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:04 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:03 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:02 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:06 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:05 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:04 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:08 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:07 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:06 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:10 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:09 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:08 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:12 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:11 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:10 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:15 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:14 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:13 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:17 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:16 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:15 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:19 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:18 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:17 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:21 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:20 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:19 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:23 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:22 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:21 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:25 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:24 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:23 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:27 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96215 96180       01:26 /Users/hayde/.sdkman/candidates/java/current/bin/java -Xmx64m -Xms64m -Dorg.gradle.daemon=false -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.
+96325 96215       01:25 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:29 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96325     1       01:27 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav
+--
+96180 96161       01:31 /Users/hayde/.cache/uv/environments-v2/spec-workflow-failure-cleanup-probe-deb99818ebf45241/bin/python sources/spec_workflow_failure_cleanup_probe.py --nodeId=spec.workflow.fai
+96325     1       01:29 /Users/hayde/.sdkman/candidates/java/21-oracle/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/jav

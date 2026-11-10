@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-190-skt-sync/.skill-manager holds nothing that removing it would destroy

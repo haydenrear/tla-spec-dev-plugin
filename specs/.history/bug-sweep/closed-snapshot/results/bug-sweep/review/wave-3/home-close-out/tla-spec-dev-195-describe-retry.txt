@@ -1,0 +1,1 @@
+✓ /Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/.skill-manager holds nothing that removing it would destroy

@@ -74,7 +74,11 @@ def test_exactly_one_file_in_the_plugin_declares_the_floor():
     # ~200 MB: the first version of this test spent minutes in it before
     # reaching its first assertion.
     skipped = {".git", ".history", "__pycache__", "build", "node_modules",
-               ".skill-manager", ".gradle", ".venv", ".idea", "dist"}
+               ".skill-manager", ".gradle", ".venv", ".idea", "dist",
+               # gitignored install fan-out: skill-manager installs COPIES of
+               # this plugin (bootstrap-floor.toml included) into the checkout's
+               # own harness caches; same defect BS-08 fixed in tests/.
+               ".claude", ".codex", ".gemini"}
     scanned = 0
     declaring: list[str] = []
     for dirpath, dirnames, filenames in os.walk(PLUGIN_ROOT):

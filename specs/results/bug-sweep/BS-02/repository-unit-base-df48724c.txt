@@ -1,0 +1,1006 @@
+..EEEEE.....E.E.E...............s....F......F                            [100%]
+==================================== ERRORS ====================================
+________ ERROR at setup of test_the_real_ledger_loads_and_is_not_empty _________
+
+    @pytest.fixture(scope="module")
+    def rows() -> list[dict]:
+        """`CA-10-DF-06`. Resolve exactly as the script does, then load.
+    
+        This fixture used to call `D.load(LEDGER)` directly. `LEDGER` is inside
+        `desired_program_model/`, which the workflow close REMOVES, so all eight
+        tests below errored the moment the epic was actually closed -- `CA-09` gave
+        the SCRIPT a read fallback and left the SUITE without one. Going through
+        `resolve_ledger` means the demonstration reads the archived copy after a
+        close for the same reason and by the same rule the instrument does, rather
+        than being a second, more fragile opinion about where the ledger lives.
+        """
+>       return D.load(ledger_path())
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_disposition_requirement.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/base/specs/desired_program_model/deferred_findings.yaml')
+
+    def load(path: pathlib.Path) -> list[dict]:
+        """`read_rows`, with this script's refusals. Behaviour is unchanged."""
+        rows, faults = read_rows(path)
+        if not rows:
+            for fault in faults:
+                print(fault, file=sys.stderr)
+            if any("PyYAML" in f for f in faults):
+                raise SystemExit(f"{path}: PyYAML is required to read the ledger")
+            if any(f.startswith("STRUCTURAL") for f in faults):
+                raise SystemExit(
+                    f"{path}: {len(faults)} duplicate key(s) -- REFUSING to report a clause "
+                    f"verdict over input a parser has silently discarded (CA-05-DF-06)"
+                )
+>           raise SystemExit(f"{path}: no `findings` -- refusing to report 0 of 0")
+E           SystemExit: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/base/specs/desired_program_model/deferred_findings.yaml: no `findings` -- refusing to report 0 of 0
+
+skills/spec-double-2/scripts/disposition.py:259: SystemExit
+---------------------------- Captured stderr setup -----------------------------
+/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/base/specs/desired_program_model/deferred_findings.yaml: no `findings` -- 0 of 0 is not a clean result
+_________ ERROR at setup of test_every_row_carries_a_disposition_field _________
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x109ab9d00>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_every_row_carries_a_disposition_field>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+_ ERROR at setup of test_it_refuses_a_real_slice_that_contains_an_undisposed_row _
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x10b574cc0>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_it_refuses_a_real_slice_that_contains_an_undisposed_row>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+__ ERROR at setup of test_it_accepts_a_real_slice_whose_rows_are_all_disposed __
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x10b5756c0>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_it_accepts_a_real_slice_whose_rows_are_all_disposed>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+_______ ERROR at setup of test_the_ticket_that_shipped_the_rule_obeys_it _______
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x10b576020>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_the_ticket_that_shipped_the_rule_obeys_it>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+____ ERROR at setup of test_self_routing_passes_d3_and_this_ticket_does_it _____
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x109c92660>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_self_routing_passes_d3_and_this_ticket_does_it>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+____________ ERROR at setup of test_a_deferral_needs_no_note_at_all ____________
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x10b5749a0>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_a_deferral_needs_no_note_at_all>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+_________ ERROR at setup of test_the_real_ledger_has_no_duplicate_keys _________
+
+cls = <class '_pytest.runner.CallInfo'>
+func = <function call_and_report.<locals>.<lambda> at 0x10b574540>
+when = 'setup'
+reraise = (<class '_pytest.outcomes.Exit'>, <class 'KeyboardInterrupt'>)
+
+    @classmethod
+    def from_call(
+        cls,
+        func: Callable[[], TResult],
+        when: Literal["collect", "setup", "call", "teardown"],
+        reraise: type[BaseException] | tuple[type[BaseException], ...] | None = None,
+    ) -> CallInfo[TResult]:
+        """Call func, wrapping the result in a CallInfo.
+    
+        :param func:
+            The function to call. Called without arguments.
+        :type func: Callable[[], _pytest.runner.TResult]
+        :param when:
+            The phase in which the function is called.
+        :param reraise:
+            Exception or exceptions that shall propagate if raised by the
+            function, instead of being wrapped in the CallInfo.
+        """
+        excinfo = None
+        instant = timing.Instant()
+        try:
+>           result: TResult | None = func()
+                                     ^^^^^^
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:361: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:250: in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_caller.py:197: in __call__
+    return self._hookexec(
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/pluggy/_manager.py:183: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/logging.py:871: in pytest_runtest_setup
+    yield
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/capture.py:901: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/python.py:1801: in setup
+    self._request._fillfixtures()
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:877: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:701: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:797: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <FixtureDef argname='rows' scope='module' baseid='tests/test_disposition_requirement.py'>
+request = <SubRequest 'rows' for <Function test_the_real_ledger_has_no_duplicate_keys>>
+
+    def execute(self, request: SubRequest) -> FixtureValue:
+        """Return the value of this fixture, executing it if not cached."""
+        # Ensure that the dependent fixtures requested by this fixture are loaded.
+        # This needs to be done before checking if we have a cached value, since
+        # if a dependent fixture has their cache invalidated, e.g. due to
+        # parametrization, they finalize themselves and fixtures depending on it
+        # (which will likely include this fixture) setting `self.cached_result = None`.
+        # See #4871
+        requested_fixtures_that_should_finalize_us = []
+        for argname in self.argnames:
+            fixturedef = request._get_active_fixturedef(argname)
+            # Saves requested fixtures in a list so we later can add our finalizer
+            # to them, ensuring that if a requested fixture gets torn down we get torn
+            # down first. This is generally handled by SetupState, but still currently
+            # needed when this fixture is not parametrized but depends on a parametrized
+            # fixture.
+            requested_fixtures_that_should_finalize_us.append(fixturedef)
+    
+        # Check for (and return) cached value/exception.
+        if self.cached_result is not None:
+            request_cache_key = self.cache_key(request)
+            cache_key = self.cached_result[1]
+            try:
+                # Attempt to make a normal == check: this might fail for objects
+                # which do not implement the standard comparison (like numpy arrays -- #6497).
+                cache_hit = bool(request_cache_key == cache_key)
+            except (ValueError, RuntimeError):
+                # If the comparison raises, use 'is' as fallback.
+                cache_hit = request_cache_key is cache_key
+    
+            if cache_hit:
+                if self.cached_result[2] is not None:
+                    exc, exc_tb = self.cached_result[2]
+                    raise exc.with_traceback(exc_tb)
+                else:
+                    return self.cached_result[0]
+            # We have a previous but differently parametrized fixture instance
+            # so we need to tear it down before creating a new one.
+            self.finish(request)
+            assert self.cached_result is None
+    
+        # Add finalizer to requested fixtures we saved previously.
+        # We make sure to do this after checking for cached value to avoid
+        # adding our finalizer multiple times. (#12135)
+        finalizer = functools.partial(self.finish, request=request)
+        for parent_fixture in requested_fixtures_that_should_finalize_us:
+            parent_fixture.addfinalizer(finalizer)
+    
+        # Register the pytest_fixture_post_finalizer as the first finalizer,
+        # which is executed last.
+>       assert not self._finalizers
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError
+
+/Users/hayde/.cache/uv/archive-v0/SZgJyxqj2ij7oMqY/lib/python3.13/site-packages/_pytest/fixtures.py:1290: AssertionError
+=================================== FAILURES ===================================
+________________ test_history_marks_the_inverted_d5_attribution ________________
+
+st = <module 'score_tools_pa05' from '/private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/base/examples/validation/scorecards/score_tools.py'>
+capsys = <_pytest.capture.CaptureFixture object at 0x10b5f1590>
+
+    def test_history_marks_the_inverted_d5_attribution(st, capsys):
+        """PA-05-DF-01: PORTS-AS-ADAPTERS-EPIC.md section 6 says the best-ever
+        D5 = 4 'went to the control, not the treatment'. True of HP-06's sealed run;
+        false under the rerun, where it went to the TREATMENT and the control fell."""
+        st.main(["history", "--example", "ab_quota_ledger", "--root", str(SCORECARDS)])
+        out = capsys.readouterr().out
+        assert "best-d5-4-went-to-control" in out
+        assert "PA-05-N-10" in out
+        assert "the 4 went to the TREATMENT" in out
+        # and it is readable straight off the rows: control 4 in era 0, 3 in era 1
+>       assert out.index("20260804-hp06-Y-p1") < out.index("20260804-rerun-P-p1")
+E       AssertionError: assert 1988 < 1300
+E        +  where 1988 = <built-in method index of str object at 0xb81814000>('20260804-hp06-Y-p1')
+E        +    where <built-in method index of str object at 0xb81814000> = '# Scorecard history — `ab_quota_ledger`\n\nGenerated by `score_tools.py history --example ab_quota_ledger`. Reading r...the first subject with a real before and after and DECIDES it. Nothing before then may cite this row as stability.\n\n'.index
+E        +  and   1300 = <built-in method index of str object at 0xb81814000>('20260804-rerun-P-p1')
+E        +    where <built-in method index of str object at 0xb81814000> = '# Scorecard history — `ab_quota_ledger`\n\nGenerated by `score_tools.py history --example ab_quota_ledger`. Reading r...the first subject with a real before and after and DECIDES it. Nothing before then may cite this row as stability.\n\n'.index
+
+tests/test_score_tools.py:1943: AssertionError
+__ test_disposition_still_answers_after_the_workflow_it_reports_on_is_closed ___
+
+path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-236/test_disposition_still_answers0/subject/specs/desired_program_model/ticket_plan.yaml')
+
+    def _load_yaml(path: Path) -> dict[str, Any]:
+        skill_root = str(SKILL_ROOT)
+        if skill_root not in sys.path:
+            sys.path.insert(0, skill_root)
+        from scripts.extract_spec_manifest import load_manifest
+    
+        if not path.exists():
+            return {}
+        try:
+>           return load_manifest(path)
+                   ^^^^^^^^^^^^^^^^^^^
+
+skills/spec-double-2/scripts/close_tickets.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+skills/spec-double-2/scripts/extract_spec_manifest.py:658: in load_manifest
+    return parse_simple_yaml(path.read_text(encoding="utf-8"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+skills/spec-double-2/scripts/extract_spec_manifest.py:649: in parse_simple_yaml
+    parsed, index = _parse_block(rows, 0, rows[0][0])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+skills/spec-double-2/scripts/extract_spec_manifest.py:383: in _parse_block
+    return _parse_dict(rows, index, indent)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+skills/spec-double-2/scripts/extract_spec_manifest.py:550: in _parse_dict
+    result[key], index = _parse_list(rows, index, row_indent)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+skills/spec-double-2/scripts/extract_spec_manifest.py:602: in _parse_list
+    child, index = _parse_block(rows, index, rows[index][0])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+skills/spec-double-2/scripts/extract_spec_manifest.py:383: in _parse_block
+    return _parse_dict(rows, index, indent)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+skills/spec-double-2/scripts/extract_spec_manifest.py:550: in _parse_dict
+    result[key], index = _parse_list(rows, index, row_indent)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rows = [(0, 'version: 1'), (0, 'name: bug-sweep'), (0, "updated: '2026-11-07'"), (0, "purpose: 'Bug epic #199: restore reliab...d skt tooling; then evaluate (bugs proven,"), (2, "suite, graphs, evals, manual loop).'"), (0, 'planning_rules:'), ...]
+index = 66, indent = 2
+
+    def _parse_list(rows: list[tuple[int, str]], index: int, indent: int) -> tuple[list[Any], int]:
+        result: list[Any] = []
+        while index < len(rows):
+            row_indent, content = rows[index]
+            if row_indent < indent:
+                break
+            if row_indent > indent:
+>               raise ValueError(f"unexpected indentation at: {content!r}")
+E               ValueError: unexpected indentation at: 'goal: GOAL-BS-EVALS'
+
+skills/spec-double-2/scripts/extract_spec_manifest.py:563: ValueError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-236/test_disposition_still_answers0')
+
+    def test_disposition_still_answers_after_the_workflow_it_reports_on_is_closed(tmp_path: Path) -> None:
+        root = build_subject(tmp_path / "subject")
+        before = run_disposition(root)
+        assert before.returncode in {0, 1}, before.stderr
+    
+>       close(root)
+
+tests/test_workflow_close_keeps_the_ledger.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_workflow_close_keeps_the_ledger.py:115: in close
+    close_ticket_workflow(root, Path("specs"), dry_run=False, summary="R1 close over the real workflow")
+skills/spec-double-2/scripts/close_tickets.py:437: in close_ticket_workflow
+    validate_ticket_plan_closed(ticket_plan, repo_root=repo_root, workflow=workflow_name)
+skills/spec-double-2/scripts/close_tickets.py:259: in validate_ticket_plan_closed
+    plan = _load_yaml(ticket_plan)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-236/test_disposition_still_answers0/subject/specs/desired_program_model/ticket_plan.yaml')
+
+    def _load_yaml(path: Path) -> dict[str, Any]:
+        skill_root = str(SKILL_ROOT)
+        if skill_root not in sys.path:
+            sys.path.insert(0, skill_root)
+        from scripts.extract_spec_manifest import load_manifest
+    
+        if not path.exists():
+            return {}
+        try:
+            return load_manifest(path)
+        except ValueError as error:
+>           raise SystemExit(f"ERROR: {path}: {error}") from error
+E           SystemExit: ERROR: /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-236/test_disposition_still_answers0/subject/specs/desired_program_model/ticket_plan.yaml: unexpected indentation at: 'goal: GOAL-BS-EVALS'
+
+skills/spec-double-2/scripts/close_tickets.py:86: SystemExit
+=========================== short test summary info ============================
+FAILED tests/test_score_tools.py::test_history_marks_the_inverted_d5_attribution
+FAILED tests/test_workflow_close_keeps_the_ledger.py::test_disposition_still_answers_after_the_workflow_it_reports_on_is_closed
+2 failed, 34 passed, 1 skipped, 1854 deselected, 8 errors in 86.43s (0:01:26)

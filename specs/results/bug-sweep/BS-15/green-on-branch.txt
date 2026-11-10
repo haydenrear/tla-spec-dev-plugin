@@ -1,0 +1,21 @@
+# branch feature/148-epic-deferred-ledger (working tree on 1262f7e6 + BS-15 changes)
+....                                                                     [100%]
+4 passed in 3.84s
+skills/git-epic-workflow/scripts/tests/test_census.py::test_vacuum_empty_ledger_and_no_closures_is_not_green PASSED [  5%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_missing_ledger_is_its_own_red PASSED [ 11%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_reconciled_epic_passes PASSED [ 17%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_per_ticket_row_missing_from_the_ledger_fails PASSED [ 23%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_per_ticket_file_disagreeing_with_the_ledger_fails PASSED [ 29%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_unreadable_disposition_is_drift PASSED [ 35%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_open_row_already_fixed_in_a_merged_closure_fails[closed] PASSED [ 41%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_open_row_already_fixed_in_a_merged_closure_fails[review_closed] PASSED [ 47%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_open_row_already_fixed_in_a_merged_closure_fails[also] PASSED [ 52%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_closed_by_a_later_ticket_is_counted_and_named PASSED [ 58%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_duplicate_naming_no_recorded_original_fails PASSED [ 64%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_closure_naming_an_unrecorded_id_fails PASSED [ 70%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_force_reports_and_exits_zero[flag] PASSED [ 76%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_force_reports_and_exits_zero[env] PASSED [ 82%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_census_reads_the_closed_snapshot_plan_after_workflow_close PASSED [ 88%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_record_gives_ids_and_names_the_original_then_absorb_reconciles PASSED [ 94%]
+skills/git-epic-workflow/scripts/tests/test_census.py::test_record_without_per_ticket_backlog_writes_the_ledger PASSED [100%]
+============================== 17 passed in 1.61s ==============================

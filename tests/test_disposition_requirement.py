@@ -26,8 +26,23 @@ LEDGER = ROOT / D.LEDGER
 
 
 def ledger_path() -> pathlib.Path:
-    """The one address every read below goes through. See `rows`."""
-    return D.resolve_ledger(LEDGER, explicit=False)
+    """The one address every read below goes through. See `rows`.
+
+    BS-08: while an epic is OPEN, `desired_program_model/deferred_findings.yaml`
+    exists and is that epic's fresh inbox -- `findings: []` on bug-sweep's
+    branch -- so `resolve_ledger` returned it and `load` refused "0 of 0",
+    erroring all eight tests on every epic branch. These tests are about the
+    SEALED ledger (real slices, more than 200 rows), so an empty live inbox
+    falls through to the archive exactly as an absent one does.
+    """
+    path = D.resolve_ledger(LEDGER, explicit=False)
+    if path == LEDGER:
+        rows, _faults = D.read_rows(path)
+        if not rows:
+            archives = D.archived_ledgers(ROOT)
+            if archives:
+                return archives[-1]
+    return path
 
 
 @pytest.fixture(scope="module")

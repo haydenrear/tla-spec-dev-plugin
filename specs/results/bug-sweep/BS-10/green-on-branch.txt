@@ -1,0 +1,20 @@
+# branch feature/195-describe-retry, fix applied
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :pluginDescriptors UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+
+> Task :compileKotlin
+w: file:///Users/hayde/IdeaProjects/tla-spec-dev-195-describe-retry/skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/NodeDescribeLoader.kt:59:30 Parameter 'file' is never used
+
+> Task :compileJava NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar
+> Task :pluginUnderTestMetadata
+> Task :compileTestKotlin
+> Task :compileTestJava NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test
+
+BUILD SUCCESSFUL in 5s
+8 actionable tasks: 5 executed, 3 up-to-date

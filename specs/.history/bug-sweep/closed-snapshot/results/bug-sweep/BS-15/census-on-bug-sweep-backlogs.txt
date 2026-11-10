@@ -1,0 +1,11 @@
+$ census.py   # live repo, no ledger yet
+census: NO LEDGER at /Users/hayde/IdeaProjects/tla-spec-dev-148-epic-deferred-ledger/specs/results/bug-sweep/deferred-ledger.yaml (plan: /Users/hayde/IdeaProjects/tla-spec-dev-148-epic-deferred-ledger/specs/desired_program_model/ticket_plan.yaml); run `census.py init` at kickoff
+exit=2
+$ (scratch copy of specs/) census.py init; census.py absorb; census.py
+ledger created: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/real-bs15/specs/results/bug-sweep/deferred-ledger.yaml
+absorbed 32 row(s) into /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/real-bs15/specs/results/bug-sweep/deferred-ledger.yaml
+census: bug-sweep -- /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/real-bs15/specs/results/bug-sweep/deferred-ledger.yaml (plan: /private/tmp/claude-501/-Users-hayde-IdeaProjects-tla-spec-dev/9dfab727-6081-49c0-9374-481a317067b5/scratchpad/real-bs15/specs/desired_program_model/ticket_plan.yaml)
+census: 32 ledger rows, 0 closures, 32 per-ticket rows
+census: closed=0 review_closed=0 also=0 closed_by_later_ticket=0
+census: PASS
+exit=0

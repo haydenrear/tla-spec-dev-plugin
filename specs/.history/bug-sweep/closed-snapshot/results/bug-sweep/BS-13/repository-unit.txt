@@ -1,0 +1,5 @@
+# cmd: uvx --with pyyaml --with jinja2 pytest skills/test-graph/scripts/tests -q
+.......................................... [ 48%]
+............................................                             [100%]
+86 passed, 30 subtests passed in 275.69s (0:04:35)
+exit=0

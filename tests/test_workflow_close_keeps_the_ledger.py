@@ -86,19 +86,26 @@ def _findings(path: Path) -> list[dict]:
 
 
 def build_subject(dest: Path) -> Path:
-    """Copy this repository's real spec workflow into `dest` and return it."""
-    live_ledger = REPO / LIVE_LEDGER
+    """Copy this repository's real spec workflow into `dest` and return it.
+
+    BS-08: the model trees come from `cut-the-apparatus-epic`'s OWN sealed
+    snapshot, not from whatever `specs/desired_program_model` holds now. The
+    old source was the live tree, which was cut-the-apparatus's only while that
+    epic was open: on `main` (no live tree) every test here skipped, and on any
+    later epic branch the subject became THAT epic's plan closed against
+    cut-the-apparatus's receipts -- 22 "is not closed" refusals on bug-sweep.
+    The sealed snapshot is the same real workflow, frozen at its close, so the
+    subject is identical on every checkout.
+    """
     history = REPO / "specs" / ".history" / WORKFLOW
-    if not live_ledger.exists() or not history.is_dir():
-        pytest.skip(
-            f"no open workflow to close: {LIVE_LEDGER} or specs/.history/{WORKFLOW} is absent "
-            "(the epic these tests use as their subject has itself been closed)"
-        )
+    sealed = history / "closed-snapshot" / "snapshots"
+    if not (sealed / "desired_program_model" / LEDGER_NAME).is_file():
+        pytest.skip(f"specs/.history/{WORKFLOW} carries no sealed desired_program_model snapshot")
 
     (dest / "specs" / ".history" / WORKFLOW).mkdir(parents=True)
     (dest / "specs" / "results").mkdir(parents=True)
     for name in ("current", "desired_program_model", "program_model"):
-        shutil.copytree(REPO / "specs" / name, dest / "specs" / name)
+        shutil.copytree(sealed / name, dest / "specs" / name)
     receipts: dict[str, Path] = {}
     for entry in sorted(history.iterdir()):
         if entry.is_dir() and (match := RECEIPT.match(entry.name)):
@@ -189,17 +196,24 @@ def test_a_narrative_that_quotes_the_template_sentinel_is_not_blanked(tmp_path: 
     assert written["entries"][-1]["narrative"] == narrative
 
 
-def test_an_unfilled_template_narrative_is_recorded_as_rejected_and_the_close_proceeds(
+def test_an_unfilled_template_narrative_refuses_the_close_unless_forced(
     tmp_path: Path, capsys
 ) -> None:
-    """The ledger is advisory: the rejection is recorded, the close is not refused."""
+    """#134 (BS-01): a rejected input refuses the close by name; --force records
+    the rejection and closes. It used to proceed with one warning line, so the
+    check had no teeth."""
     root = build_subject(tmp_path / "subject")
     ledger_input = root / "specs" / "results" / "complexity_ledger_input.yaml"
     document = yaml.safe_load(ledger_input.read_text(encoding="utf-8"))
     document["narrative"] = "TODO"
     ledger_input.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
 
-    close(root)
+    with pytest.raises(SystemExit) as refused:
+        close(root)
+    assert "complexity ledger input is rejected" in str(refused.value)
+    assert not entry_dir(root).exists()
+
+    close_ticket_workflow(root, Path("specs"), dry_run=False, summary="forced", force=True)
 
     assert "complexity ledger input rejected" in capsys.readouterr().err
     assert entry_dir(root).is_dir()
