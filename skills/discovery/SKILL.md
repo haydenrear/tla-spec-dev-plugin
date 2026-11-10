@@ -55,6 +55,12 @@ and the test-graph skill (`<test-graph-skill>/scripts/scaffold.py <repo-root>`).
 If only some files are missing (for example no `External.tla`), that is a
 stop-and-reconcile checkpoint too — the baseline is incomplete, not merely
 differently shaped.
+The one exception is a **deliberate single-module model**: `spec_manifest.yaml`
+names one canonical module (for example `TlaSpecDevCli.tla`) and records why it is
+not split. That is a complete baseline. Read that module for steps 2–3 and its
+adapter mappings (`case_adapters.toml`, `production_adapters.py`) for step 4;
+the split files and `actions.yml`/`testgraph_bindings.yml` apply where the
+repository has them.
 
 The full expected tree, file by file, is `references/layout.md`.
 

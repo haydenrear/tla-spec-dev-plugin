@@ -30707,6 +30707,189 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "ticket",
+      "scope_id": "ESD-03",
+      "workflow": "evidence-sized-delivery",
+      "recorded_at_utc": "2026-11-10T14:02:14.596252+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 19,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result",
+          "skt_answer"
+        ],
+        "modularity": 0.00327538422776524,
+        "distinct_states": 36577,
+        "generated_states": 765259,
+        "depth": 17,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8"
+        ],
+        "tlc_report": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets/ESD-03/results/tlc-current.txt",
+        "tlc_run_complete": true,
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          },
+          "max_distinct_states": {
+            "cap": 500000,
+            "used": 36577,
+            "percent": 7.3,
+            "within_cap": true
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "ESD-02",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 19,
+            "after": 19,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 277830,
+            "after": 277830,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": 36577,
+            "after": 36577,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "generated_states": {
+            "before": 765259,
+            "after": 765259,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "depth": {
+            "before": 17,
+            "after": 17,
+            "delta": 0,
+            "percent": 0.0
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "No model delta: the ticket changes instructions/evidence only (user mandate #234: no new machinery).",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/results/evidence-sized-delivery/ESD-03/epic-close/tlc-before.txt",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/results/evidence-sized-delivery/ESD-03/epic-close/tlc-current.txt",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "pass",
+          "classification": "retained",
+          "evidence": "specs/results/evidence-sized-delivery/ESD-03/epic-close/spec-unit.txt",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "specs/tickets/ESD-03/desired is byte-identical to specs/current (no model delta)",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=pass (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply",
+        "measured": false,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": ""
+      },
+      "transition_diff": "",
+      "narrative": "No-op model result for ESD-03 (PR #257): instruction/evidence-only change; specs/current and the desired model are unchanged; TLC MCsmall green before and after. Known-red spec-unit base: 2 failures, no new failures.",
+      "tlc_findings": [
+        {
+          "level": "OK",
+          "message": "generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature."
+        }
+      ],
+      "notes": [
+        "OK: generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }

@@ -68,5 +68,5 @@ findings:
       named in spec_manifest.yaml is a complete baseline.
     skill_change: proposed(tla-spec-dev/discovery, "this row")
     blast_radius: "Instruction wording; affects every discovery run in single-module repositories."
-    disposition: pending
-    disposition_ticket: null
+    disposition: fixed
+    disposition_ticket: epic-agent wave-3 review (skills/discovery SKILL.md + references/layout.md)

@@ -130,5 +130,175 @@ findings:
     a complete baseline.
   skill_change: proposed(tla-spec-dev/discovery, "this row")
   blast_radius: Instruction wording; affects every discovery run in single-module repositories.
+  disposition: fixed
+  disposition_ticket: epic-agent wave-3 review (skills/discovery SKILL.md + references/layout.md)
+- found_by: ESD-03
+  id: ESD-03-DF-01
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: major
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node spec.workflow.cleanup: delete path from an absent context value'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/spec_workflow_cleanup.py
+    workflow: []
+  summary: 'spec.workflow.cleanup deletes `Path(ctx.get("spec.workflow.repo", "repoPath") or "")`. With
+    no published repoPath, that path is `Path("")` == `.`. A uv node''s working directory is the test_graph
+    project directory (UvExecutor sets `.directory(invocation.projectDir)`), so `shutil.rmtree(".")` deletes
+    test_graph/ itself. The node is a finalizer: it runs after an upstream failure once spec.workflow.repo
+    has executed, even if that node errored without publishing. Under --continue-after-failure it runs
+    unconditionally. This is the shape of the recorded incident "a failing graph node deleted 27 tracked
+    files of test_graph/ itself" (specs/results/epic-self-improvement-substrate/review/wave-3/review.md,
+    item 3). The fix recorded there changed the install path (tla_spec_dev_cli_install.py comment). The
+    delete guard is still absent at 3e57ea9e. Not reproduced here: reproducing it would delete the checkout''s
+    test_graph/.'
+  reproduction: Read test_graph/sources/spec_workflow_cleanup.py main(); python3 -c 'from pathlib import
+    Path; print(Path("") == Path("."))' prints True.
+  evidence:
+  - test_graph/sources/spec_workflow_cleanup.py
+  - skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt
+    (shouldRunAfterFailure)
+  - skills/test-graph/references/graph-architecture-review.md (rule E2, worked review)
+  why_out_of_scope: test_graph/sources/ is not in ESD-03's conflict keys, and the assignment forbids code
+    changes in this instruction-only ticket.
+  suggested_fix: Delete only when repoPath is non-empty and resolves under ctx.report_dir. Assert that
+    as a named assertion, so a refusal is a red with the path, not silent residue. Keep rerun(False).
+  skill_change: none
+  blast_radius: 'Destructive: the project''s own validation sources; every graph that composes the cleanup
+    node (specWorkflow, the probe''s nested graph).'
+  disposition: pending
+  disposition_ticket: null
+- found_by: ESD-03
+  id: ESD-03-DF-02
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node spec.workflow.failure_cleanup_probe: contract (kind, dependsOn, sideEffects,
+    budget)'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/spec_workflow_failure_cleanup_probe.py
+    - test_graph/build.gradle.kts
+    workflow: []
+  summary: The node behind ESD-01 rows RP-07-DF-01 and BS-07-DF-05 is an `assertion` that copies a Test
+    Graph project and runs a nested Gradle build. It declares only `fs:tmp`, although the registered `process:gradle`
+    exists for exactly this. It depends on spec.workflow.close but reads only spec.workflow.repo's sourceRepo.
+    It is tagged `finalizer`, so it runs after an upstream failure. Its fixed 180 s timeout bounds a cold
+    build-logic compile plus a 20 s drain. In specWorkflow it is listed before spec.reference.adapters_resolve,
+    which was skipped behind it in bug-sweep milestone 1.
+  reproduction: Read the NodeSpec in test_graph/sources/spec_workflow_failure_cleanup_probe.py and the
+    specWorkflow block in test_graph/build.gradle.kts.
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/inventory.yaml (rows RP-07-DF-01, BS-07-DF-05)
+  - skills/test-graph/references/graph-architecture-review.md (rules A1, A3, A4, D2; worked review)
+  why_out_of_scope: Node source and graph definition are outside ESD-03's conflict keys; instruction-only
+    ticket.
+  suggested_fix: Split the project copy into a fixture node. Declare process:gradle. Depend on spec.workflow.repo
+    only. Size the timeout from a recorded cold run. Place adapters_resolve so that it does not share
+    fate with the probe. Show the probe red on a planted residue before trusting it again.
+  skill_change: none
+  blast_radius: specWorkflow only; changes node metadata and order, not node ids.
+  disposition: pending
+  disposition_ticket: null
+- found_by: ESD-03
+  id: ESD-03-DF-03
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node skt.wrapper-installed: nested timeout >= node timeout'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/skt_wrapper_installed.py
+    - test_graph/support/skt_fixture.py
+    workflow: []
+  summary: 'skt.wrapper-installed has timeout 900s. Per pinned interpreter, its resolve_interpreter may
+    run `uv python find` (120 s), `uv python install` (900 s) and `uv python find` (120 s) again. On a
+    cold host, nested work alone can exceed the node budget, so the executor kills the node with cause
+    timeout. That is a cold-cache false red of the SM #295 shape (ESD-01 family F6). The graph is opt-in
+    (run-graphs.py OPT_IN), which limits exposure.'
+  reproduction: Compare SPEC.timeout in skt_wrapper_installed.py with the subprocess timeouts in support/skt_fixture.py
+    resolve_interpreter.
+  evidence:
+  - skills/test-graph/references/graph-architecture-review.md (rules C1, D2)
+  why_out_of_scope: Node source outside ESD-03's conflict keys.
+  suggested_fix: Provision the interpreter matrix in its own testbed with a budget above its nested bounds,
+    or lower the nested bounds below the node budget.
+  skill_change: none
+  blast_radius: sktSurface, sktHooks (opt-in).
+  disposition: pending
+  disposition_ticket: null
+- found_by: ESD-03
+  id: ESD-03-DF-04
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node skt.ticket-roundtrip: runtime identity fall-through'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/skt_ticket_roundtrip.py
+    workflow: []
+  summary: '_resolve_giw tries SKT_TG_GIW, then $SKILL_MANAGER_HOME, then the ROOT ~/.skill-manager, then
+    a shallow clone of an archived remote. It publishes giwSource, which is good, but it never refuses
+    when the copy it found is not the one under test. A root-home or clone hit is the BS-03-DF-01 / SI-25-DF-06
+    shape: a green against the wrong code.'
+  reproduction: Read _resolve_giw in test_graph/sources/skt_ticket_roundtrip.py.
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/inventory.yaml (rows BS-03-DF-01, 'missing-rung family
+    (REACH)')
+  - skills/test-graph/references/graph-architecture-review.md (rule B1)
+  why_out_of_scope: Node source outside ESD-03's conflict keys.
+  suggested_fix: Fail with a named precondition when the source is not the bound worktree/project home,
+    unless SKT_TG_GIW explicitly requests another copy.
+  skill_change: none
+  blast_radius: sktSurface (opt-in).
+  disposition: pending
+  disposition_ticket: null
+- found_by: ESD-03
+  id: ESD-03-DF-05
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: trivial
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node effect.providers.examples: evidence written into the checkout'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/effect_provider_examples.py
+    workflow: []
+  summary: The node writes its run's evidence to examples/effect_providers/evidence/validation-runs/<run_id>
+    in the checkout, not under ctx.report_dir. The path is gitignored, but it is outside the report directory
+    and accumulates across runs, which is the checker-scan-scope / leaked-state shape (SI-27-DF-06, DEF-OHV-010).
+    It also runs a whole external validation runner as one assertion under an 1800 s budget.
+  reproduction: Read main() in test_graph/sources/effect_provider_examples.py; git check-ignore -v examples/effect_providers/evidence/validation-runs/x.
+  evidence:
+  - skills/test-graph/references/graph-architecture-review.md (rules F1, A3)
+  why_out_of_scope: Node source and the examples runner are outside ESD-03's conflict keys.
+  suggested_fix: Point the runner's evidence root under ctx.report_dir (or declare and document the write),
+    and remove the run directory on exit.
+  skill_change: none
+  blast_radius: effectProviderExamples; disk use over many runs.
   disposition: pending
   disposition_ticket: null

@@ -1,0 +1,39 @@
+# No-op model result: instruction/evidence-only ticket (ESD-03, PR #257). specs/current unchanged.
+validated_refactor:
+  tlc_before:
+    status: "green"
+    evidence: "specs/results/evidence-sized-delivery/ESD-03/epic-close/tlc-before.txt"
+  tlc_after:
+    status: "green"
+    evidence: "specs/results/evidence-sized-delivery/ESD-03/epic-close/tlc-current.txt"
+  behavior_tests:
+    status: "pass"
+    evidence: "specs/results/evidence-sized-delivery/ESD-03/epic-close/spec-unit.txt"
+  descriptor_comparison:
+    status: "recorded"
+    evidence: "specs/tickets/ESD-03/desired is byte-identical to specs/current (no model delta)"
+retention:
+  kill_rate:
+    status: "not_run"
+    evidence: ""
+  effect_conformance:
+    status: "not_run"
+    evidence: ""
+  external_coverage:
+    status: "not_run"
+    evidence: ""
+coverage_audit:
+  status: "not_run"
+  report: ""
+  in_scope_gaps: null
+  scope_source: ""
+justification: "No model delta: the ticket changes instructions/evidence only (user mandate #234: no new machinery)."
+refinement:
+  searched: true
+  outcome: "none"
+  detail: "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply"
+  measured: false
+  applied: false
+  approved_by: ""
+transition_diff: ""
+narrative: "No-op model result for ESD-03 (PR #257): instruction/evidence-only change; specs/current and the desired model are unchanged; TLC MCsmall green before and after. Known-red spec-unit base: 2 failures, no new failures."

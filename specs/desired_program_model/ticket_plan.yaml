@@ -177,7 +177,7 @@ tickets:
     evidence: []
 - id: ESD-03
   title: Derive Test Graph architecture guidance from observed validation failures
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/237
   schedule_revision: 1
   depends_on:
