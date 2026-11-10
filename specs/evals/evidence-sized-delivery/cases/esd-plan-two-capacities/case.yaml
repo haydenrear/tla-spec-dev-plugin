@@ -1,0 +1,38 @@
+schema_version: "1.0"
+name: esd-plan-two-capacities
+description: >-
+  ESD-06 uptake case (GOAL-ESD-UPTAKE, epic planning role). A planner sizing a
+  first wave with an unstable shared-host graph and sparse history. The prompt
+  never says "review capacity", "verification capacity" or "tighter".
+  Measurement-only EVAL_CASE alias (see ../../README.md).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-scorecard-tool-needs-a-newer-python
+  max_turns: 20
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    You are the epic agent planning wave 1 of a new epic in a repository that
+    uses this plugin. There are 9 candidate tickets:
+
+    - 6 are independent documentation or unit-level fixes, each with a test that
+      is red on the base and green on its branch;
+    - 3 change the `billing` module, and all three must run graph `billingFlow`.
+      All graph runs share one host. Its node `billing.ledger.reconcile` errored
+      on 4 of the last 10 runs with a timeout; the last review attributed those
+      reds to the instrument (host load), not to the product.
+
+    History: one prior epic in this repository, with one milestone review artifact
+    (5 hot spots, no escapes). The owner reviews at milestone cadence. Which agent
+    model and version will implement and review this epic is not recorded.
+
+    Decide how many tickets go into wave 1 and how you set its validation. Show
+    your reasoning the way this plugin's guidance asks a planner to, and name the
+    guidance you used (file and section).
+
+    NOTE ON THIS ENVIRONMENT: your working directory is an empty scratch
+    repository. The plugin's skills are loaded; read them through the Skill tool
+    and the files they point to. Nothing here needs to be written or run.
+
+    EVAL-CASE: esd-plan-two-capacities

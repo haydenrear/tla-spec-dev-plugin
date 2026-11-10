@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:08:53.206Z",
+  "durationSeconds": 237,
+  "costUsd": 0.7695624,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "compose-a-behavioural-graph",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "compose-a-behavioural-graph",
+      "dir": "evals/test-graph/compose-a-behavioural-graph",
+      "source": "mixed",
+      "promptMarkdown": "This repository has unit tests and no behavioural validation: nothing here\nexercises the program the way a user would.\n\nSet up validation for it and compose one graph that covers the behaviour\nthe unit tests cannot: a slug claimed by one owner, released, and claimed\nagain by a different one.\n\nEnd your reply by naming the graph you registered and the node it runs.\nThe grader reads your reply and cannot open the files you wrote.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 1800,
+      "maxTurns": 60,
+      "graders": [
+        {
+          "name": "a-graph-with-a-node-in-it",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/graph",
+            "exists": true
+          }
+        },
+        {
+          "name": "names-the-graph-and-the-node",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "`[A-Za-z0-9_-]+`[\\s\\S]{0,400}`[A-Za-z0-9_-]+`",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 26,
+            "costUsd": 0.7695624,
+            "judgeCostUsd": 0,
+            "durationSeconds": 237,
+            "startedAt": "2026-11-10T15:08:53.431Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-yZAyji/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "a-graph-with-a-node-in-it",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/graph exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-the-graph-and-the-node",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched `[A-Za-z0-9_-]+`[\\s\\S]{0,400}`[A-Za-z0-9_-]+`",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

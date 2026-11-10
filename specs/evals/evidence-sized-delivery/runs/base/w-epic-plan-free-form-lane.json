@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:56:33.174Z",
+  "durationSeconds": 27,
+  "costUsd": 0.20580299999999999,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-epic-plan-free-form-lane",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-epic-plan-free-form-lane",
+      "dir": "evals/git-epic-workflow/w-epic-plan-free-form-lane",
+      "source": "mixed",
+      "promptMarkdown": "\nValidate the epic plan at cases/w-epic-plan-free-form-lane/ticket_plan.yaml\nbefore I dispatch it, and tell me whether the plan validator accepts it.\n\nReport what the validator printed; do not explain its output from the validator's source.\n\nEVAL-CASE: w-epic-plan-free-form-lane\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "leaves-the-lanes-alone",
+          "type": "file_exists",
+          "weight": 3,
+          "config": {
+            "path": ".eval/forbid-no-plan-edit",
+            "exists": true
+          }
+        },
+        {
+          "name": "reports-ready",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?![\\s\\S]*\\b([Nn]ot|NOT|n't) (accept|valid|pass))[\\s\\S]*\\b([Aa]ccept(s|ed)?|[Vv]alid|VALID|[Pp]asses|PASSES|OK)\\b",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "runs-the-validator",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/require-runs-the-validator",
+            "exists": true
+          }
+        },
+        {
+          "name": "within-budget",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/within-budget",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 8,
+            "costUsd": 0.20580299999999999,
+            "judgeCostUsd": 0,
+            "durationSeconds": 26,
+            "startedAt": "2026-11-10T14:56:33.603Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-WQV1q9/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "leaves-the-lanes-alone",
+                "passed": true,
+                "weight": 3,
+                "explanation": ".eval/forbid-no-plan-edit exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reports-ready",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^(?![\\s\\S]*\\b([Nn]ot|NOT|n't) (accept|valid|pass))[\\s\\S]*\\b([Aa]ccept(s|ed)?|[Vv]alid|VALID|[Pp]asses|PASSES|OK)\\b",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "runs-the-validator",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/require-runs-the-validator exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "within-budget",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/within-budget exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

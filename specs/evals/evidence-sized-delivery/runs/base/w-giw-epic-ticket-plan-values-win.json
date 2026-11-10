@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:58:32.775Z",
+  "durationSeconds": 57,
+  "costUsd": 0.32875740000000003,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-giw-epic-ticket-plan-values-win",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-giw-epic-ticket-plan-values-win",
+      "dir": "evals/git-issue-workflow/w-giw-epic-ticket-plan-values-win",
+      "source": "mixed",
+      "promptMarkdown": "\nPick up issue #141 (body: cases/w-giw-epic-ticket-plan-values-win/issue-141.md).\nThe canonical plan entry for its ticket is\ncases/w-giw-epic-ticket-plan-values-win/ticket_plan-CA-03.yaml. Do the first\nstep -- provision the worktree -- and then draft the `## Review input`\nsection the PR will carry.\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so the command\nwill fail with \"Operation not permitted\" however correct it is. That is\nexpected and is not yours to solve. Issue the command you would use, once,\nand report it. Do not probe for a writable location or try a different route.\n\nEVAL-CASE: w-giw-epic-ticket-plan-values-win\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "lists-the-mismatch",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran.\n\nTHIS GRADER READS THE FINAL RESPONSE ONLY -- not the workspace, not tool output.\n\nScore 1 if the response contains a Review input section (or equivalent PR\nsection) that names the conflict_keys disagreement between the issue\n(implementation/model) and the plan (production/adapters) and says the plan's\nvalues were used. Score 0 if it says the ticket must go back to the epic owner\nbefore work can start, or does not mention the mismatch.\n\nSaying the epic owner reconciles the mismatch AT REVIEW, or flagging other\nfacts it could not verify (refs, ancestry), is not sending the ticket back:\nscore 1 when both key sets are named and the plan's values are said to be\ntaken. A closing request for the owner's decision on things the environment lacks\n(a missing remote or epic branch) or on whether a plan key is stale is also not\nsending back, provided the reply says it proceeded on the plan's values. (Round 3 run 1 was failed by all three judges on a reply with exactly\nthat table under `## Review input`.)",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran.\n\nTHIS GRADER READS THE FINAL RESPONSE ONLY -- not the workspace, not tool output.\n\nScore 1 if the response contains a Review input section (or equivalent PR\nsection) that names the conflict_keys disagreement between the issue\n(implementation/model) and the plan (production/adapters) and says the plan's\nvalues were used. Score 0 if it says the ticket must go back to the epic owner\nbefore work can start, or does not mention the mismatch.\n\nSaying the epic owner reconciles the mismatch AT REVIEW, or flagging other\nfacts it could not verify (refs, ancestry), is not sending the ticket back:\nscore 1 when both key sets are named and the plan's values are said to be\ntaken. A closing request for the owner's decision on things the environment lacks\n(a missing remote or epic branch) or on whether a plan key is stale is also not\nsending back, provided the reply says it proceeded on the plan's values. (Round 3 run 1 was failed by all three judges on a reply with exactly\nthat table under `## Review input`.)",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "proceeds-to-provision",
+          "type": "file_exists",
+          "weight": 3,
+          "config": {
+            "path": ".eval/require-provisions",
+            "exists": true
+          }
+        },
+        {
+          "name": "within-budget",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/within-budget",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 8,
+            "costUsd": 0.32875740000000003,
+            "judgeCostUsd": 0.00102,
+            "durationSeconds": 57,
+            "startedAt": "2026-11-10T14:58:33.226Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-ZN6JrD/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "lists-the-mismatch",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Provisioning: the command failed in the sandbox, so no worktree exists\n\nThe issue contains the `git-epic-workflow:assignment` marker, so this is an epic ticket. Its PR goes to `epic/cut-the-apparatus`, not to the default branch. `command -v skt` found the `skt` tool on PATH, so I used it rather than setting things up by hand. I ran this once:\n\n```bash\ngit fetch origin && commit_oid=$(git rev-parse origin/epic/cut-the-apparatus) && skt ticket new 141-trim-adapter --base \"$commit_oid\" --path ../wt-141-trim-adapter\n```\n\nIt exited 72. `git` could not write its cache under `/var/folders/.../T` (\"Operation not permitted\"), so the command stopped at `git fetch` and `skt` never ran. As a result:\n- The worktree `../wt-141-trim-adapter` and the branch `feature/141-trim-adapter` do not exist.\n- No home was created for the worktree.\n- I haven't checked that `base_sha`, `plan_commit` and CA-01 are reachable from the epic branch.\n\nNone of the assignment fields required stopping. The PR base is the epic branch, the epic branch isn't `main`, and nothing showed another ticket owning the branch or worktree.\n\n## Draft `## Review input`\n\n```markdown\n## Review input\n\n### Hot spots\n- _Pending implementation._ Expected focus is `src/adapter.py`, the single production\n  conflict key. No other wave-2 ticket is known to touch it; confirm at wave merge.\n\n### Decisions and overrides\n- **Assignment ≠ canonical plan (`ticket_plan-CA-03.yaml`); proceeded on the plan's values:**\n  - `conflict_keys`: assignment declares `implementation: [src/adapter.py]`, `model: []`;\n    plan declares `production: [src/adapter.py]`, `adapters: [adapter]`. Used the plan's —\n    so the `adapter` adapter surface is in scope for this ticket, and the key category is\n    `production`, not `implementation`. The assignment omits the adapter key entirely.\n  - `schedule_revision`: assignment says `2`; the plan entry carries no revision. Cannot\n    confirm equality — epic owner please confirm revision 2 is current.\n  - `goals[]` (GOAL-1), `validation` matrix and `evidence_root: results/CA-03` appear only in\n    the assignment; the plan entry has no values for them, so the assignment's are used\n    as-is and not verified against the plan.\n  - Matched: `wave: 2`, `promotion_order: 30`, `promotion_predecessor: CA-01`,\n    `depends_on: [CA-01]`, `blocks: [CA-05]`.\n- `tlc` and `toolchain_spec_workflow` are `N/A` per the assignment (no TLA delta; repo is not\n  tla-spec-dev). No guardrails weakened so far.\n\n### Where I'd look for bugs\n- _Pending implementation._ Suspicion to carry in: GOAL-1 expects −120ms p99 from this\n  slice alone (412ms → <300ms needs −112ms); if `bench/read_path.py --quick` shows the\n  adapter isn't the dominant cost, that is a deferred finding, not scope growth.\n\n### Machinery friction\n- Provisioning blocked: `git fetch origin && … skt ticket new 141-trim-adapter --base\n  \"$commit_oid\" --path ../wt-141-trim-adapter` exited 72 — the sandbox denied git's xcrun\n  cache write under `/var/folders/.../T` (EPERM) before `skt` ran. Environment\n  restriction, not a defect in `skt`; no by-hand route was taken, and nothing was changed\n  in a Skill Manager home.\n```\n\nThe biggest point for review is the conflict-key mismatch. The plan puts the `adapter` surface in this ticket's scope, but the assignment leaves it out."
+              },
+              {
+                "name": "proceeds-to-provision",
+                "passed": true,
+                "weight": 3,
+                "explanation": ".eval/require-provisions exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "within-budget",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/within-budget exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

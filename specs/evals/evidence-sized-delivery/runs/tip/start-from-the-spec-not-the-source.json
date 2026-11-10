@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:50:25.208Z",
+  "durationSeconds": 92,
+  "costUsd": 0.6463228,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "start-from-the-spec-not-the-source",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "start-from-the-spec-not-the-source",
+      "dir": "evals/discovery/start-from-the-spec-not-the-source",
+      "source": "mixed",
+      "promptMarkdown": "You have just landed in this repository and have to explain what the\nprogram does before anyone changes it.\n\nWrite `DISCOVERY.md`: what this program is, the actions it can take, and\nwhat has to stay true while it takes them. Name the things you found by\nthe names this repository already gives them.\n\nEnd your reply by quoting the two or three names you consider most\nload-bearing, verbatim, and say where you got them. The grader reads your\nreply and cannot open the files you wrote.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 1200,
+      "maxTurns": 40,
+      "graders": [
+        {
+          "name": "anchored-in-the-model",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/grounded",
+            "exists": true
+          }
+        },
+        {
+          "name": "quotes-what-it-found",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "`[A-Z][A-Za-z0-9_]*`|\\b(Internal|External|Core)\\.tla\\b|specs/program_model",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 21,
+            "costUsd": 0.6463228,
+            "judgeCostUsd": 0,
+            "durationSeconds": 91,
+            "startedAt": "2026-11-10T14:50:26.378Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-UrzL3m/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "anchored-in-the-model",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/grounded exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "quotes-what-it-found",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched `[A-Z][A-Za-z0-9_]*`|\\b(Internal|External|Core)\\.tla\\b|specs/program_model",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

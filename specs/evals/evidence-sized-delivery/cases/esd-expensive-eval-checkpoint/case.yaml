@@ -1,0 +1,34 @@
+schema_version: "1.0"
+name: esd-expensive-eval-checkpoint
+description: >-
+  ESD-06 uptake case (GOAL-ESD-UPTAKE, epic planning role, cost side). Twelve
+  prose tickets, an expensive but stable eval, cheap reliable per-ticket checks,
+  and an owner proposing a full eval per ticket. The prompt never says
+  checkpoint, amortize, invalidation or final confirmation. Measurement-only
+  EVAL_CASE alias (see ../../README.md).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-scorecard-tool-needs-a-newer-python
+  max_turns: 20
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    You are the epic agent planning validation for an epic of 12 prose-only
+    tickets that edit this plugin's skill instructions. Each ticket's own checks
+    (documentation contracts and spec-unit) take about a minute and have been
+    reliable. The eval suite for the affected skills costs about $25 and 90
+    minutes per full run; it has been stable, with no instrument defects in its
+    last three rounds.
+
+    The owner proposes: "Run the full eval after every ticket, to be safe."
+
+    What validation cadence do you set, and what must stay in place whatever
+    cadence you choose? Answer as this plugin's guidance asks, and name the
+    guidance you used (file and section).
+
+    NOTE ON THIS ENVIRONMENT: your working directory is an empty scratch
+    repository. The plugin's skills are loaded; read them through the Skill tool
+    and the files they point to. Nothing here needs to be written or run.
+
+    EVAL-CASE: esd-expensive-eval-checkpoint
