@@ -132,6 +132,27 @@ If a trigger fires again, bring new evidence and compare alternatives again;
 check whether the chosen intervention changed the failure pattern. Keep
 acceptance criteria intact and preserve unresolved findings through a split.
 
+## Step size: two capacities, one batch
+
+The criteria above say when an increment is not converging. To size the next
+batch, use `references/step-sizing.md`, which turns them into a feedback policy:
+
+1. Summarize the starting revision: components, attribution, escapes, coverage,
+   validation-origin faults, coupling, and reviewer/verifier model and version.
+2. Estimate **review capacity** and **verification capacity** (including manual
+   reach) separately, as scope items, not lines or tickets.
+3. Choose a provisional batch within the tighter estimate, and compare candidate
+   batches by total cost per accepted increment, on distinct cadences.
+4. Write the decision into existing plan fields: `wave`, `depends_on`,
+   `validation`, `review_policy`, the evaluation ticket and `eval_budget`.
+5. At each review, **hold, increase by one bounded step, or decrease**. A
+   high-severity escape, a repeated validation fault, invalidated evidence, a
+   scope or coupling change, or a model change overrides an optimistic trend.
+
+Record each decision in the deeper review's delivery-velocity section. Sparse
+history starts small. A model change triggers recalibration, not an assumed
+gain.
+
 ## Across epics: user value and improving delivery capability
 
 At close, carry a short trend into the next epic's planning: accepted user

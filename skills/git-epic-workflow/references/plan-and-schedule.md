@@ -223,6 +223,13 @@ intermediate checks and valid targeted reruns. The planning agent recommends a
 split when the requested increment is likely to keep reopening validation;
 the epic owner carries that assessment into execution and subsequent reviews.
 
+Size the waves from two separate estimates, review capacity and verification
+capacity, and keep each wave within the tighter one (`references/step-sizing.md`
+§1-§5). Record the estimates, their evidence and their uncertainty in the
+planning conversation, and write the chosen batch into `wave`, `depends_on`,
+each ticket's `validation`, and the evaluation ticket with its `eval_budget`.
+With sparse history or an unknown reviewer/verifier model, start small (§7).
+
 ## 4. Scaffold the shared workflow once
 
 Choose stable ticket IDs before scaffolding. Use the first ticket only as the
@@ -372,6 +379,12 @@ missing and errors on a malformed one.
 
 Read `references/human-review.md` for what the artifact carries, how the diff is
 rendered, and what a review may and may not change.
+
+The cadence is also a step-size control. Each review point is where the batch is
+held, increased by one bounded step, or decreased (`references/step-sizing.md`
+§6). Choose `cadence: wave` or an early milestone when history is sparse or the
+model has changed. Expensive evals keep their own predeclared checkpoint in the
+evaluation ticket, not at every review point.
 
 ## 5. Validate the schedule
 
