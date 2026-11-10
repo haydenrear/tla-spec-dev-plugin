@@ -16,7 +16,15 @@ if gate:
   time.sleep(.01)
 if phase=='dot':print('digraph fixture { a -> b; }')
 if phase=='render':Path(sys.argv[sys.argv.index('-o')+1]).write_bytes(b'controlled fake PNG, not native rendering')
-raise SystemExit(int(os.environ.get('LOCK_EXIT','0')))
+code=int(os.environ.get('LOCK_EXIT','0'))
+# run.py reads its verdict from the sweep ledger its Gradle init script writes,
+# not from Gradle's exit code alone; record the events a real graph task emits.
+ledger=os.environ.get('TEST_GRAPH_SWEEP_LEDGER')
+if phase=='run' and ledger:
+ with open(ledger,'a')as f:
+  for event in ('scheduled','started'):f.write(json.dumps({'event':event,'task':'fixture','graph':True})+'\\n')
+  f.write(json.dumps({'event':'finished','task':'fixture','graph':True,'outcome':'passed' if code==0 else 'failed','runDirs':[]})+'\\n')
+raise SystemExit(code)
 '''
 
 @unittest.skipUnless(os.name=='posix','POSIX flock target; unsupported platform fails explicitly at execution')
@@ -69,7 +77,8 @@ class CanonicalProjectLock(unittest.TestCase):
  def test_run_blocks_discover_and_separate_project_proceeds(self):
   gate=self.base/'release';owner=self.launch('run.py',gates={'run':str(gate)});self.wait_phase('run');self.assert_busy(self.call('discover.py'));other=self.fixture('other');self.assertEqual(self.call('run.py',other).returncode,0);self.assertEqual(len(self.markers()),1);gate.touch();owner.communicate(timeout=5)
  def test_nonzero_and_error_release(self):
-  failed=self.call('run.py',exitcode=7);self.assertEqual(failed.returncode,7);self.assertEqual(self.call('run.py').returncode,0)
+  # run.py maps a failed graph to its 0/1/3 outcome codes rather than Gradle's raw exit code.
+  failed=self.call('run.py',exitcode=7);self.assertNotEqual(failed.returncode,0);self.assertNotIn('busy',failed.stderr.lower());self.assertEqual(self.call('run.py').returncode,0)
   wrapper=self.root/'gradlew';wrapper.chmod(0o600)
   try:self.assertNotEqual(self.call('run.py').returncode,0)
   finally:wrapper.chmod(0o700)
