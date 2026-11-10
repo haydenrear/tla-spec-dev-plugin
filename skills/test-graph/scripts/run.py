@@ -80,7 +80,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from _common import add_test_graph_root_arg, run_gradle, target_project_root
+from _common import (add_test_graph_root_arg, run_gradle, target_project_root,
+                     project_execution_lock, ProjectExecutionBusy)
 
 SWEEP_LEDGER_ENV = "TEST_GRAPH_SWEEP_LEDGER"
 SWEEP_INIT_SCRIPT = Path(__file__).resolve().parent / "sweep-ledger.init.gradle"
@@ -959,10 +960,20 @@ def main(argv: list[str] | None = None) -> int:
             parser.error(str(exc))
 
     argv_list = list(sys.argv[1:] if argv is None else argv)
+    if args.fail_fast and not (args.run_all or len(graphs) > 1 or args.keep_going):
+        parser.error("--fail-fast applies to a sweep (--all or more than one graph)")
+    root = target_project_root(args.test_graph_root)
+    args.test_graph_root = str(root)
+    try:
+        with project_execution_lock(root, 'run'):
+            return _run_locked(args, graphs, argv_list)
+    except ProjectExecutionBusy as error:
+        parser.exit(2, f"error: {error}\n")
+
+
+def _run_locked(args, graphs: list[str], argv_list: list[str]) -> int:
     if args.run_all or len(graphs) > 1 or args.keep_going:
         return run_invocation(args, graphs, sweep=True, argv=argv_list)
-    if args.fail_fast:
-        parser.error("--fail-fast applies to a sweep (--all or more than one graph)")
 
     # Single graph (or a resume of one): the same ledger, the same outcome.json
     # and the same 0/1/3 exit codes, without the sweep table.

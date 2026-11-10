@@ -26,6 +26,8 @@ from _common import (
     prepare_provider_bindings_or_warn,
     run_gradle,
     target_project_root,
+    project_execution_lock,
+    ProjectExecutionBusy,
 )
 
 
@@ -58,6 +60,16 @@ def main() -> int:
     add_test_graph_root_arg(parser)
     args = parser.parse_args()
 
+    root = target_project_root(args.test_graph_root)
+    args.test_graph_root = str(root)
+    try:
+        with project_execution_lock(root, 'discover'):
+            return _discover_locked(args)
+    except ProjectExecutionBusy as error:
+        parser.exit(2, f"error: {error}\n")
+
+
+def _discover_locked(args) -> int:
     if args.graph is None:
         return run_gradle(
             ["--console=plain", "-q", "validationListGraphs"],

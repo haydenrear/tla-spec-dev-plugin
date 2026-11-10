@@ -747,3 +747,22 @@ Before finalizing work that touches `sources/` or `build.gradle.kts`:
 - Plain stdout instead of structured `NodeResult`.
 - Copy-pasted infrastructure setup instead of shared dependency nodes.
 - Duplicating `sdk/`, `build-logic/`, or `standard-nodes/` edits inside consumer scaffolds.
+
+
+### Concurrent canonical commands
+
+`run.py` holds one nonblocking POSIX advisory lock for the canonical target
+project for the whole invocation, including sweeps/replay and final report
+aggregation. `discover.py` holds the same lock across both Gradle calls and
+DOT/PNG output. A concurrent command for that project fails busy before provider
+binding preparation or Gradle; alias paths contend, separate output roots do not.
+The ignored `build/.test-graph-execution.lock` inode remains after release. Its
+bounded PID/command text is diagnostic only; stale text is not lock authority.
+Unsupported platforms fail explicitly when executing, without making unrelated
+script imports/scaffolding depend on POSIX modules.
+
+Raw `gradlew` bypass is outside this protection. The parent canonical CLI owns
+the lock; interruption/death can release it while detached Gradle/node children
+remain. This normal-command serialization fix is not a detached-child cleanup
+proof. Preserve existing SDK supervisors; supported stronger profile cancellation
+and ownership requires its own contract.
