@@ -65,10 +65,11 @@ by a better finding**:
 **CATCH is the only one indexed by a failure.** The other three are the negative
 space, and they are the reason this page exists.
 
-**Four, and one that is missing on purpose.** §6a records a fifth direction —
-*a red that was never about the code it was charged to* — measured, named, and
-deliberately left without a schema, because nobody has run a round with one.
-It is BLIND's twin and it belongs on this list the moment somebody does.
+**Four, and one that turned out not to need a kind.** §6a records a fifth
+direction — *a red that was never about the code it was charged to* — and left
+it without a schema until a round had produced one. The bug-sweep round has,
+and its audited records showed the existing CATCH fields carry it (§6a,
+*Resolved*). What it needed was an **axis**, not a kind: §4.3.
 
 **And a CATCH does not require something to have caught it.** The `channel` may
 be in the `reading` class (§4.1) — a defect found by a person or an agent looking at the code, with
@@ -318,6 +319,36 @@ duplicate.
 > exists. The widening is recorded here rather than applied silently, and
 > `AT-04` scores the goal on its own text.
 
+### 4.3 Origin, channel, effect — three axes, never fused
+
+| axis | the question | where it is written |
+|---|---|---|
+| **origin** | where did the defect live — where does the fix go? | `area` (prose), anchored per §7a/§7d |
+| **channel** | what detected it? | `channel` (§4.1) |
+| **effect** | what did the signal say about its *subject*? | existing free text — `consequence:` (ESD-01's inventory precedent), `observed` or `channel_note` |
+
+The effect is said in words, not tokens: **faithful** (a red on a real defect in
+the subject, or a green that could have gone red), **false red** (§6a),
+**false green / blind** (§6), **skipped** (coverage that never ran because of
+this defect).
+
+- **An effect is never an origin.** *False red* and *false green* say what a
+  signal reported, not where a defect lived. ESD-01's seven-class list mixed the
+  two, and every class disagreement in its second reading sat on exactly that
+  boundary — 3 of 10, while origin *component* agreed 10 of 10
+  (`specs/results/evidence-sized-delivery/ESD-01/local-signal.md`, rows
+  `SI-27-DF-06`, `SI-19-DF-04`, `EL #163`). Classify origin by where the fix
+  went; write the effect beside it.
+- **A channel is never an origin.** `channel: test-graph` says a node went red,
+  not that Test Graph was wrong: ESD-01 confused the two in 0 of 10 rows only
+  because it kept them in separate fields.
+- **Origin is relative to the repository keeping the record.** `DEF-124` is a
+  validation defect to meta-harness (its spec-unit gate went green over zero
+  cases) and a product defect to this plugin, which ships that runner. Each
+  repository files it under its own origin.
+- A row holding several detection events (`BS-10-DF-01`, `CDC #390` in ESD-01)
+  names each channel in prose rather than picking the convenient one.
+
 ---
 
 ## 5. REACH — an invariant, and the surfaces it does not cover
@@ -419,7 +450,8 @@ Read as product quality, that number is not merely imprecise; it is inverted.
 
 So: **an `area` on an instrument defect names the instrument.**
 `"the eval harness's TMPDIR handling"`, not `"worktree creation"` — even though
-a worktree command is what went red.
+a worktree command is what went red. Its anchor is a validation bin (§7d),
+never the product action whose run went red.
 
 ### The red that was not a defect at all, which has no kind
 
@@ -443,7 +475,8 @@ second.
 
 **What that record would need is not obvious, and §3 governs the answer.** An
 absent input is UNDECIDED, never a PASS — so the honest state of this section
-is: **UNDECIDED, and named.** What is known:
+was, until a round produced real records: **UNDECIDED, and named.** What was
+known then:
 
 - it is not a BLIND: the case is red, and `could_not_have_caught` is the wrong
   question — the case caught something, just not in the code;
@@ -457,6 +490,49 @@ is: **UNDECIDED, and named.** What is known:
 schema for it.** A schema written from the armchair is a claim, and §3 says
 what this page does with claims. What this section fixes is the cheaper half:
 the reds are now *known* to be uncounted, instead of being counted.
+
+### Resolved from audited records: no new kind, no new field
+
+The bug-sweep epic produced the round, and ESD-01 audited it
+(`specs/results/evidence-sized-delivery/ESD-01/inventory.yaml`, row
+`BS-07-DF-05`): `spec.workflow.failure_cleanup_probe` errored in **13
+specWorkflow runs across 7 innocent tickets**. How that
+record was actually kept settles the shape:
+
+1. **The original observation stays where it was written.** Each ticket's red
+   is in its own evidence with its run id (`specs/results/bug-sweep/BS-12/specWorkflow/VERDICT.txt`,
+   `BS-02/README.md`). Nobody edits it once the cause is known.
+2. **The correction is one CATCH against the instrument**, written by whoever
+   established it — `BS-07-DF-05` in `specs/results/bug-sweep/deferred-ledger.yaml`.
+   Its `area`/`unit` names the probe and the executor's descendant check, its
+   anchor is a validation bin (`UNMODELED/test-graph-process-ownership`, §7d),
+   and its existing prose carries the effect (§4.3): *false red against
+   innocent tickets; `adapters_resolve` skipped behind it*. **The correction
+   lists the charged runs, so it points back to every original;** the originals
+   need not point forward.
+3. **The exoneration names its control.** What made 13 reds one instrument
+   finding rather than seven regressions: the node errored on the untouched base
+   too (`review/wave-3/review.md` §3), and the tickets' own records say the path
+   each one changed passed (BS-07's ledger row; BS-12's `VERDICT.txt`). With no
+   such control, the red stays charged to its subject, or the effect is
+   `UNDECIDED` — never quietly retracted.
+4. **Nothing is subtracted, because the product total never held it.** The
+   false red is one finding, in the instrument's area, with its recurrence
+   (`13 runs / 7 tickets`), and adds zero to any product anchor. If a product
+   CATCH had been filed first, it is **not deleted**: its disposition says
+   *superseded by `<id>`* and both rows stay — the precedent is `BS-10-DF-01`,
+   refuted by `BS-11-DF-03`, both still in that ledger. Conservation (§7b)
+   holds: the count is unchanged; the anchor moves with a carry-through line.
+5. **An inferred cause stays inferred.** `BS-07-DF-05`'s load hypothesis is
+   `cause_confidence: inferred` — the probe later passed at load 21–30
+   (`review/wave-5/review.md`) — and *"did not recur"* is not a fix. The finding
+   is attributed to the instrument; the mechanism stays open.
+
+**A new shape would be justified only by a red whose correction cannot name one
+instrument finding to file against** — two instruments, or none identifiable.
+None of the audited examples was one. Until one is, the entry is a CATCH whose
+origin is `UNDECIDED` with the effect written (§3, §7e example 5), not a kind
+built from the armchair.
 
 ---
 
@@ -584,6 +660,27 @@ findings before: N    findings after: N    (re-anchored: <id> -> <new anchor>, .
 **If the two numbers differ, the entry is wrong**, and it is wrong in a way that
 is visible without reading any of the prose around it.
 
+**The migration map, and what keeps identity.** A finding's id never changes;
+only its anchor does, and the entry names the model revision on each side so a
+later epic can compare across it:
+
+```
+model rev <sha-before> -> <sha-after>
+  rename  OldName -> NewName           every row carried; ids unchanged
+  split   A -> A1 + A2                 each row goes to ONE part (where its fix went),
+                                       the other named in prose; parts sum to A
+  merge   A + B -> AB                  rows add
+  absorb  UNMODELED/<bin> -> Action    rows whose ORIGIN is the new action move;
+                                       validation-origin rows stay in their bin
+findings before: N    findings after: N
+```
+
+The last line is the one to check. Were `UNMODELED/test-graph-resume` ever
+modeled as a resume action, ESD-01's `#226 / BS-HP-05` (a RunReportWriter bug)
+would move into it and `#233 fixture` (a test fixture's timestamps — validation
+origin, so its bin should name the fixture, §7d) would not — 2 before, 2 after,
+split by origin rather than by name.
+
 ### The corollary, which is the point of the whole loop
 
 A proposal that reduces an action's escape count **by removing the action** has
@@ -693,6 +790,80 @@ Conservation — §7b — does real work here for the first time. The bin's find
 and after are equal. **That is what proves the extension absorbed the history
 rather than restarting the count**, and it is the difference between extending
 the model and quietly opening a fresh one.
+
+## 7d. THE MODEL AS ANCHOR — what it names, and what it cannot prove
+
+**What the model is for here.** A stable architecture substrate: names that
+outlive file churn (§7a), the place where concurrency and resource ownership —
+who may hold a lock, a home, a process, a file — are stated and checked, the
+surface a complexity read counts findings against, and the key that lets one
+epic's findings be compared with the next. That is all it needs to be for
+attribution; it is not a transcript of the test suite.
+
+**The map a finding lands on.** Every repository names the same four things,
+whatever its files are called:
+
+| element | where it is named (this repository's files) | a finding uses it as |
+|---|---|---|
+| component | module and ports — `spec_manifest.yaml`, `TlaSpecDevCli.tla` | the coarse origin |
+| contract | an action and its invariants — `CloseTicket`, `SpecUnitTestsRequireMeasuredCorpus` | **the anchor** |
+| production binding | `case_adapters.toml`, `production_adapters.py` (and `testgraph_bindings.yml` where present) | where the fix went |
+| coverage | spec-unit cases and Test Graph node ids bound to the action | the **channel** — never the anchor |
+
+A finding maps origin → contract (or a bin), channel → a coverage element, pin →
+an assertion. A diagram that names the same four things serves the same purpose
+with less checking behind it.
+
+**Validation infrastructure has its own area.** Graph nodes, fixtures, probes,
+runners, eval harnesses, hosts and homes are validation, and their defects are
+anchored to a **validation bin named after the instrument** —
+`UNMODELED/test-graph-process-ownership`, `UNMODELED/eval-sandbox` — kept in
+§7c's bins like any other and counted apart from product anchors. **Do not model
+test actions** (`spec_manifest.yaml`'s
+`test_modeling_rule: do_not_model_tests_or_validation_harnesses_as_program_behavior`),
+do not stretch a product action to hold a validation defect, and do not invent
+program behavior so a validation bug has somewhere to attach. The exception is
+§4.3's relativity: where the instrument *is* the repository's product — this
+plugin ships Test Graph and the spec-unit runner — its defects are product
+origin there, anchored to the action if one exists (`RunSpecUnitTests`) or a
+product bin.
+
+**When an architecture change updates the model, and when the result is a
+no-op.** Update it when the change alters state, an action's guard or effect,
+an invariant, what may interleave, who owns a resource, or the External surface.
+The result is a **no-op** when the change is prose, evidence, validation
+infrastructure, a refactor behind an unchanged contract, or a fix that makes
+code match an action already modeled. **Record the no-op and its reason** — it
+is a result, and the next reader cannot tell an unrecorded one from a skipped
+one.
+
+**What TLC establishes, and what it does not.** It establishes that the model's
+invariants hold over the reachable states of the finite configuration, and which
+modeled interleavings exist. It does **not** establish that the implementation
+implements the model (that is the adapters' and Test Graph's job, as far as
+their bindings reach), that an oracle discriminates (only a demonstrated red
+does — §6), or anything outside the bound or the model. `SpecUnitTestsRequireMeasuredCorpus`
+holds under TLC; the shipped runner still went green over zero executed cases
+in meta-harness (`DEF-124`). A model or diagram alone proves neither
+implementation correctness nor oracle validity.
+
+## 7e. WORKED EXAMPLES — five shapes, each an ESD-01 row
+
+Rows are from `specs/results/evidence-sized-delivery/ESD-01/inventory.yaml`;
+each is filed in its own repository, which is what the origin is relative to.
+
+| # | shape | row | origin → anchor | channel | effect | what the record keeps |
+|---|---|---|---|---|---|---|
+| 1 | product failure caught by Test Graph | `ATTR-234-28` (CDC) | the CLI never reads the server-resolved edge set → `UNMODELED/server-fact-path` | `test-graph` (`cdcServerFactPath`) | faithful | one product CATCH; automated, so no pin |
+| 2 | defect in a graph node | `RP-07-DF-01` | the node's nested Gradle build × the executor's process-ownership contract → `UNMODELED/test-graph-process-ownership` | `test-graph` | false red | one instrument CATCH; 0 to product; the carried half (executor names what it reaps) stays open |
+| 3 | invalid red from the environment | `SM eval round 2026-09-07 (instrument rows, incl. EV-I-08 TMPDIR)` | the eval sandbox's unset `TMPDIR` → `UNMODELED/eval-sandbox` | `eval` | false red: *"the skill could not create a worktree"* | instrument CATCH; the product's worktree action is charged nothing (§6a) |
+| 4 | blind green | `DEF-110` (MH) | an errored turn returned as HTTP 200 `stop` → `UNMODELED/surface-parity` | `manual-final-testing` | 123,132 spec-unit + 3,724 external cases green | a product CATCH **and** a BLIND on the suites that could not see it (§6); neither replaces the other |
+| 5 | unresolved attribution | `OBS-EOF-HISTORICAL-UNRESOLVED / polymarket #49` | collector HTTP EOF, not reproduced in 100 requests → origin `UNDECIDED`, held in the finder's bin `UNMODELED/collector-metrics-http` | `test-graph` | `UNDECIDED` | one finding, counted in **neither** product nor instrument totals until evidence moves it, then re-anchored with a carry-through line (§7b) |
+
+**Conservation across all five:** five findings in, five out. Product-origin
+anchors hold 1 and 4; instrument bins hold 2 and 3; 5 is `UNDECIDED`. No
+retraction removed a row, and no false red was ever in a product total to be
+subtracted.
 
 ## 8. What this page deliberately does not do
 

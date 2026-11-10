@@ -1,0 +1,72 @@
+findings:
+  - id: ESD-02-DF-01
+    found_by: "ESD-02"
+    found_at_commit: "515f0af4"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: census
+    area: "ESD-01 evidence inventory: anchor of a validation-origin row"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/results/evidence-sized-delivery/ESD-01/inventory.yaml (row '#233 fixture')"]
+    summary: >-
+      ESD-01 anchors `#233 fixture` (a synthetic-timestamp defect in the PlanExecutorResumeHarnessTest
+      fixture) to `UNMODELED/test-graph-resume`. `#226 / BS-HP-05`, a RunReportWriter product bug, is
+      in the same bin. bug_attribution.md §7d now says a validation-origin defect anchors to a bin
+      named for the instrument. Under that rule, a later re-anchor of that bin would split the two
+      rows by origin (the §7b illustration), not move them together.
+    reproduction: "Read inventory.yaml rows '#226 / BS-HP-05' and '#233 fixture'."
+    evidence:
+      - "skills/spec-double-2/references/bug_attribution.md §7b (migration-map illustration), §7d"
+    why_out_of_scope: >-
+      ESD-01's evidence is a sealed record outside ESD-02's conflict keys, and history is not
+      rewritten to fit a later rule (§4.1's own precedent).
+    suggested_fix: >-
+      Nothing to edit. The ESD-03/ESD-06 readers apply §7d when they count validation-origin
+      families, and treat `#233 fixture` as validation-origin.
+    skill_change: none
+    blast_radius: "Classification only; one trivial row."
+    disposition: pending
+    disposition_ticket: null
+
+  - id: ESD-02-DF-02
+    found_by: "ESD-02"
+    found_at_commit: "515f0af4"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: operator-doing-the-work
+    area: "discovery skill: assumed spec layout vs this repository"
+    surface:
+      production: ["skills/discovery/SKILL.md", "skills/discovery/references/layout.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      The discovery sequence tells the agent to read `Core.tla`, `Internal.tla`, `External.tla`,
+      `actions.yml` and `testgraph_bindings.yml`. This repository's `specs/program_model` has none
+      of these files. It has a single `TlaSpecDevCli.tla`, plus `case_adapters.toml` and
+      `production_adapters.py`, and its spec_manifest.yaml records the deliberate non-decomposition
+      (MF-023, CD-10). Read literally, the skill's own stop rule ("If only some files are missing ...
+      that is a stop-and-reconcile checkpoint") would stop discovery of the plugin that ships the
+      skill.
+    reproduction: "ls specs/program_model in this repository; compare with the discovery skill's step 2-4 and layout.md."
+    evidence:
+      - "specs/program_model/spec_manifest.yaml (source_model comment: CD-10 removed Core/Internal/External references)"
+    why_out_of_scope: >-
+      The file is inside ESD-02's conflict keys, but the issue's scope is attribution and model
+      anchors, not discovery's file layout. ESD-02's new section names the four model elements
+      generically for that reason, without the layout.
+    suggested_fix: >-
+      In layout.md and step 2-4, mark the Core/Internal/External split and actions.yml /
+      testgraph_bindings.yml as "where the repository has them". Add that a single-module model
+      named in spec_manifest.yaml is a complete baseline.
+    skill_change: proposed(tla-spec-dev/discovery, "this row")
+    blast_radius: "Instruction wording; affects every discovery run in single-module repositories."
+    disposition: pending
+    disposition_ticket: null
