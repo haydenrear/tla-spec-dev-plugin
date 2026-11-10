@@ -1,0 +1,37 @@
+.......F...................F............................                 [100%]
+=================================== FAILURES ===================================
+_______________________ test_every_model_action_is_bound _______________________
+
+    def test_every_model_action_is_bound() -> None:
+        missing = model_actions() - binding_labels()
+>       assert not missing, (
+            f"model actions with no case_adapters.toml binding: {sorted(missing)} "
+            "-- the audit's G5 desync, reintroduced"
+        )
+E       AssertionError: model actions with no case_adapters.toml binding: ['SktCheck', 'SktStatus', 'SktTicketSweep'] -- the audit's G5 desync, reintroduced
+E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
+
+specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:99: AssertionError
+_______________ test_unfilled_ledger_template_refuses_the_close ________________
+
+tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-60/test_unfilled_ledger_template_0')
+
+    def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
+        """Silence is not an acceptable substitute for the record."""
+        adapters = load_adapters()
+        result = adapters.ComplexityLedgerCloseOutAdapter().apply(
+            tmp_path, spec_root="project_specs", ticket_id="CLI-141"
+        )
+    
+        assert result["template_scaffolded_with_sentinels"] is True
+        assert result["unfilled_template_refuses_close"] is True, (
+            "an unfilled ledger template must fail the close, not pass it silently"
+        )
+>       assert result["unfilled_names_refinement_and_narrative"] is True
+E       assert False is True
+
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+2 failed, 54 passed in 18.58s

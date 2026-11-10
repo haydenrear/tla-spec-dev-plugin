@@ -1,0 +1,68 @@
+findings:
+  - id: ESD-01-DF-01
+    found_by: "ESD-01"
+    found_at_commit: "9635bad239986a4e5e07745947273bc4480a82a2"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/.history/*/*/manifest.json (writer: spec-double-2 close path)"]
+    summary: >-
+      No record in any of the six audited repositories timestamps the START of ticket work.
+      Close-history manifests carry only `created_at_utc`, which is the close time. PRs are opened
+      after the work. The median PR open-to-merge time is 0.02-0.14 h. So implementation active
+      time is unknown everywhere, and GOAL-ESD-VELOCITY's "cost component share" cannot be
+      reconstructed retrospectively for implementation.
+    reproduction: >-
+      Read any specs/.history/*/*/manifest.json in this repo or in commit-diff-context-parent,
+      meta-harness, polymarket, effectful-learning or skill-manager. Each has `created_at_utc` and
+      no opened/dispatched/started field. Batched closes make close-to-close spacing meaningless:
+      attribute-the-catch closed 5 tickets in 48 s.
+    evidence:
+      - "specs/results/evidence-sized-delivery/ESD-01/cost.md (sections 0 and 4)"
+    why_out_of_scope: >-
+      ESD-01 is evidence-only. Its conflict keys cover only its evidence root, and the user
+      mandate forbids new machinery.
+    suggested_fix: >-
+      For ESD-06 / the owner: record a start time per ticket in prose where the work already
+      writes. The assignment's dispatch comment and the PR body are two such places. Or read agent
+      session transcripts for the ESD-06 pilot. Either supplies the missing denominator without a
+      new tool.
+    blast_radius: "Measurement only; no behaviour change."
+    disposition: pending
+    disposition_ticket: null
+
+  - id: ESD-01-DF-02
+    found_by: "ESD-01"
+    found_at_commit: "9635bad239986a4e5e07745947273bc4480a82a2"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: ["skills/test-graph/references/workflows.md", "skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:226"]
+      workflow: []
+    summary: >-
+      RP-07-DF-01 is still carried, and its general half recurred. The executor's message still
+      names only bare PIDs (Executors.kt:226), and `grep KotlinCompileDaemon
+      skills/test-graph/references/workflows.md` is empty at 9635bad2. In the bug-sweep, BS-07
+      again needed a hand `ps` sampler to identify the lingering process
+      (specs/results/bug-sweep/BS-07/probe-lingering-descendant-ps.txt). The same node errored 13
+      times across 7 tickets (BS-07-DF-05). This is recurrence evidence for a carried finding, not
+      a new defect.
+    reproduction: "grep -n 'live descendants' skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt"
+    evidence:
+      - "specs/results/deferred_findings_final.yaml:989-1061"
+      - "specs/results/bug-sweep/deferred-ledger.yaml:317-333"
+      - "specs/results/evidence-sized-delivery/ESD-01/failure-families.md (F1)"
+    why_out_of_scope: "test-graph skill and executor are outside ESD-01's conflict keys; runtime changes are out of this epic's scope."
+    suggested_fix: "As RP-07-DF-01: surviving-process command lines in the ProcessContractViolation message, plus daemon guidance in workflows.md. ESD-03 can cite F1 as a preflight review priority."
+    blast_radius: "Diagnostics and documentation only."
+    disposition: pending
+    disposition_ticket: null
