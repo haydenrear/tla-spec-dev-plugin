@@ -253,7 +253,7 @@ tickets:
     evidence: []
 - id: ESD-04
   title: Define model-conditioned review and verification step sizing with eval amortization
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/238
   schedule_revision: 1
   depends_on:
