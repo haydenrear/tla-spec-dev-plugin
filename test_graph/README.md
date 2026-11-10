@@ -10,9 +10,11 @@ python3 test_graph/run-graphs.py          # materialise bindings, run all three 
 python3 test_graph/run-graphs.py --list   # classification only; runs nothing
 ```
 
-Three graphs are registered and all three run here — `specWorkflow`,
-`cliWorkflow`, `effectProviderExamples`. None is opt-in and none is dead, and
-`--list` says so rather than leaving it to be inferred. Verdicts are read from
+Five graphs are registered. Three run by default — `specWorkflow`,
+`cliWorkflow`, `effectProviderExamples` — and two are opt-in, `sktSurface` and
+`sktHooks`, because their pinned-interpreter matrix may download CPython through
+uv (`net:external`). None is dead, and `--list` prints each classification and
+its reason rather than leaving it to be inferred. Verdicts are read from
 each run's own `summary.json`; a graph with no fresh report is UNDECIDED, not
 green. The command always exits 0: it reports, it does not gate.
 
@@ -76,6 +78,16 @@ The graph is intentionally external to the unit tests: it proves the CLI
 work when invoked from a real git-backed repository, including history movement,
 promotion, adapter/test merging, and cleanup after both passing and failing
 downstream graph paths.
+
+## Before changing a node: the architecture review
+
+A node is an oracle; change it with the care given to product code. The
+checklist and a worked review of *these* nodes — which ones are dangerous, who
+owns what, and the recommended changes, each tied to an observed failure — are
+in `skills/test-graph/references/graph-architecture-review.md` ("Worked review").
+The two nodes it ranks highest are `spec.workflow.failure_cleanup_probe` (below)
+and `spec.workflow.cleanup`, whose delete path is not yet guarded against an
+absent `repoPath` (`specs/results/deferred/ESD-03.yaml`, `ESD-03-DF-01`).
 
 ## The nested probe build must own every process it starts
 
