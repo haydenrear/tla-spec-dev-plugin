@@ -45,6 +45,10 @@ the final graph plus manual acceptance decides the delivered increment.
 Right-sizing includes the cost of reaching validated acceptance, not just the
 first full run. Use `validation-review.md` for loop diagnosis, review
 triggers, architectural alternatives and delivery-velocity trends across epics.
+Use `step-sizing.md` to size each batch from separate review and verification
+capacity estimates. A velocity goal counts accepted increments per elapsed time,
+with fixed, repair, repeat and waiting costs kept separate. A velocity gain is
+never claimed from running fewer checks.
 
 ## What counts as a goal
 
