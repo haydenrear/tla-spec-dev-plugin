@@ -61,5 +61,6 @@ findings:
     suggested_fix: "ESD-06: provision the tip arm's eval home from the epic tip checkout and record the plugin revision each arm loaded."
     skill_change: none
     blast_radius: "GOAL-ESD-UPTAKE measurement validity."
-    disposition: pending
+    disposition: consumed
     disposition_ticket: null
+    disposition_note: "consumed: ESD-06 ran the base arm from a main checkout (a1ff56cf) and the tip arm from the epic tip (epic finalization)"

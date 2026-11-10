@@ -30,8 +30,9 @@ findings:
       families, and treat `#233 fixture` as validation-origin.
     skill_change: none
     blast_radius: "Classification only; one trivial row."
-    disposition: pending
+    disposition: wontfix
     disposition_ticket: null
+    disposition_note: "wontfix: the sealed ESD-01 inventory is not rewritten; bug_attribution.md 7d governs future anchoring (epic finalization)"
 
   - id: ESD-02-DF-02
     found_by: "ESD-02"

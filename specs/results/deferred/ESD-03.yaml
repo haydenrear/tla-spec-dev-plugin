@@ -38,8 +38,10 @@ findings:
       named assertion, so a refusal is a red with the path, not silent residue. Keep rerun(False).
     skill_change: none
     blast_radius: "Destructive: the project's own validation sources; every graph that composes the cleanup node (specWorkflow, the probe's nested graph)."
-    disposition: pending
+    disposition: closed
     disposition_ticket: null
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/261 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/261
 
   - id: ESD-03-DF-02
     found_by: "ESD-03"
@@ -74,8 +76,10 @@ findings:
       share fate with the probe. Show the probe red on a planted residue before trusting it again.
     skill_change: none
     blast_radius: "specWorkflow only; changes node metadata and order, not node ids."
-    disposition: pending
+    disposition: closed
     disposition_ticket: null
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 
   - id: ESD-03-DF-03
     found_by: "ESD-03"
@@ -104,8 +108,10 @@ findings:
     suggested_fix: "Provision the interpreter matrix in its own testbed with a budget above its nested bounds, or lower the nested bounds below the node budget."
     skill_change: none
     blast_radius: "sktSurface, sktHooks (opt-in)."
-    disposition: pending
+    disposition: closed
     disposition_ticket: null
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 
   - id: ESD-03-DF-04
     found_by: "ESD-03"
@@ -134,8 +140,10 @@ findings:
     suggested_fix: "Fail with a named precondition when the source is not the bound worktree/project home, unless SKT_TG_GIW explicitly requests another copy."
     skill_change: none
     blast_radius: "sktSurface (opt-in)."
-    disposition: pending
+    disposition: closed
     disposition_ticket: null
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 
   - id: ESD-03-DF-05
     found_by: "ESD-03"
@@ -164,5 +172,7 @@ findings:
     suggested_fix: "Point the runner's evidence root under ctx.report_dir (or declare and document the write), and remove the run directory on exit."
     skill_change: none
     blast_radius: "effectProviderExamples; disk use over many runs."
-    disposition: pending
+    disposition: closed
     disposition_ticket: null
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262

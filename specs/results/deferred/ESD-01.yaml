@@ -64,5 +64,7 @@ findings:
     why_out_of_scope: "test-graph skill and executor are outside ESD-01's conflict keys; runtime changes are out of this epic's scope."
     suggested_fix: "As RP-07-DF-01: surviving-process command lines in the ProcessContractViolation message, plus daemon guidance in workflows.md. ESD-03 can cite F1 as a preflight review priority."
     blast_radius: "Diagnostics and documentation only."
-    disposition: pending
+    disposition: closed
     disposition_ticket: null
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262

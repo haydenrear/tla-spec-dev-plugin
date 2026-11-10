@@ -62,8 +62,10 @@ findings:
   suggested_fix: 'As RP-07-DF-01: surviving-process command lines in the ProcessContractViolation message,
     plus daemon guidance in workflows.md. ESD-03 can cite F1 as a preflight review priority.'
   blast_radius: Diagnostics and documentation only.
-  disposition: pending
+  disposition: closed
   disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 - found_by: ESD-02
   id: ESD-02-DF-01
   found_at_commit: 515f0af4
@@ -93,8 +95,9 @@ findings:
     families, and treat `#233 fixture` as validation-origin.
   skill_change: none
   blast_radius: Classification only; one trivial row.
-  disposition: pending
+  disposition: wontfix
   disposition_ticket: null
+  disposition_note: "wontfix: the sealed ESD-01 inventory is not rewritten; bug_attribution.md 7d governs future anchoring (epic finalization)"
 - found_by: ESD-02
   id: ESD-02-DF-02
   found_at_commit: 515f0af4
@@ -171,8 +174,10 @@ findings:
   skill_change: none
   blast_radius: 'Destructive: the project''s own validation sources; every graph that composes the cleanup
     node (specWorkflow, the probe''s nested graph).'
-  disposition: pending
+  disposition: closed
   disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/261 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/261
 - found_by: ESD-03
   id: ESD-03-DF-02
   found_at_commit: 3e57ea9e
@@ -208,8 +213,10 @@ findings:
     fate with the probe. Show the probe red on a planted residue before trusting it again.
   skill_change: none
   blast_radius: specWorkflow only; changes node metadata and order, not node ids.
-  disposition: pending
+  disposition: closed
   disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 - found_by: ESD-03
   id: ESD-03-DF-03
   found_at_commit: 3e57ea9e
@@ -240,8 +247,10 @@ findings:
     or lower the nested bounds below the node budget.
   skill_change: none
   blast_radius: sktSurface, sktHooks (opt-in).
-  disposition: pending
+  disposition: closed
   disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 - found_by: ESD-03
   id: ESD-03-DF-04
   found_at_commit: 3e57ea9e
@@ -271,8 +280,10 @@ findings:
     unless SKT_TG_GIW explicitly requests another copy.
   skill_change: none
   blast_radius: sktSurface (opt-in).
-  disposition: pending
+  disposition: closed
   disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 - found_by: ESD-03
   id: ESD-03-DF-05
   found_at_commit: 3e57ea9e
@@ -300,8 +311,10 @@ findings:
     and remove the run directory on exit.
   skill_change: none
   blast_radius: effectProviderExamples; disk use over many runs.
-  disposition: pending
+  disposition: closed
   disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
 - found_by: ESD-04
   id: ESD-04-DF-01
   found_at_commit: 847aa4a9
@@ -456,8 +469,9 @@ findings:
     plugin revision each arm loaded.'
   skill_change: none
   blast_radius: GOAL-ESD-UPTAKE measurement validity.
-  disposition: pending
+  disposition: consumed
   disposition_ticket: null
+  disposition_note: "consumed: ESD-06 ran the base arm from a main checkout (a1ff56cf) and the tip arm from the epic tip (epic finalization)"
 - found_by: ESD-06
   id: ESD-06-DF-01
   found_at_commit: 5404a3c1
@@ -497,6 +511,9 @@ findings:
   blast_radius: Every future evaluation ticket under the no-new-code mandate; uptake cases stay outside
     the suite.
   anchor: UNMODELED/eval-harness
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/263 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/263
 - found_by: ESD-06
   id: ESD-06-DF-02
   found_at_commit: 5404a3c1
@@ -536,6 +553,9 @@ findings:
   blast_radius: Two planners can derive different batches from the same facts; over-conservative halving
     on repair loops.
   anchor: UNMODELED/skill-instructions
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/264 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
 - found_by: ESD-06
   id: ESD-06-DF-03
   found_at_commit: 5404a3c1
@@ -570,6 +590,9 @@ findings:
   skill_change: tla-spec-dev/test-graph references/graph-architecture-review.md (prose)
   blast_radius: Reviewers applying the checklist will under-flag eval/CI/provider validation risk.
   anchor: UNMODELED/skill-instructions
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/264 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
 - found_by: ESD-06
   id: ESD-06-DF-04
   found_at_commit: 4f323cc6
@@ -611,3 +634,6 @@ findings:
   blast_radius: Guard comparisons report false regressions; any case with a Skill(args) call can trip
     within-budget.
   anchor: UNMODELED/eval-harness
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/263 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/263

@@ -34,6 +34,9 @@ findings:
     skill_change: "tla-spec-dev evals harness (evals/lib/place.sh, verify.sh) and plugin_evals.md §3 note"
     blast_radius: "Every future evaluation ticket under the no-new-code mandate; uptake cases stay outside the suite."
     anchor: UNMODELED/eval-harness
+    disposition: closed
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/263 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/263
 
   - id: ESD-06-DF-02
     found_by: "ESD-06"
@@ -73,6 +76,9 @@ findings:
     skill_change: "tla-spec-dev/git-epic-workflow references/step-sizing.md (prose)"
     blast_radius: "Two planners can derive different batches from the same facts; over-conservative halving on repair loops."
     anchor: UNMODELED/skill-instructions
+    disposition: closed
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/264 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
 
   - id: ESD-06-DF-03
     found_by: "ESD-06"
@@ -109,6 +115,9 @@ findings:
     skill_change: "tla-spec-dev/test-graph references/graph-architecture-review.md (prose)"
     blast_radius: "Reviewers applying the checklist will under-flag eval/CI/provider validation risk."
     anchor: UNMODELED/skill-instructions
+    disposition: closed
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/264 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
 
   - id: ESD-06-DF-04
     found_by: "ESD-06"
@@ -148,3 +157,6 @@ findings:
     skill_change: "tla-spec-dev evals harness; spec-double-2 references/plugin_evals.md (one line)"
     blast_radius: "Guard comparisons report false regressions; any case with a Skill(args) call can trip within-budget."
     anchor: UNMODELED/eval-harness
+    disposition: closed
+    disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/263 (epic finalization)"
+    filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/263
