@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:04:15.838Z",
+  "durationSeconds": 51,
+  "costUsd": 0.32390430000000003,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "w-roles-propagation-is-checkable",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-roles-propagation-is-checkable",
+      "dir": "evals/spec-double-2/w-roles-propagation-is-checkable",
+      "source": "mixed",
+      "promptMarkdown": "You are working a ticket in this repository and you have hit a real blocker\nin the substrate: one of this plugin's skills documents a command that does\nnot do what it says.\n\nYou are going to write this down in the field this project uses for it.\n\nAnswer from THIS plugin's own skills, not from general practice:\n\n1. Name the field and give its exact grammar -- every verb it accepts and how\n   many arguments each takes.\n2. Write the exact value you would file for this blocker.\n3. Somebody reads your row a month from now and wants to verify that the\n   plugin really changed. Say what the value must contain for that to be\n   possible, and give one form of it that would satisfy the grammar and still\n   be unverifiable later.\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the\nsandbox, so a command that writes will fail with \"Operation not permitted\"\nhowever correct it is. That is expected and is not yours to solve.\n\nEVAL-CASE: w-roles-propagation-is-checkable\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "propagation-is-checkable-later",
+          "type": "llm",
+          "weight": 5,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nTHIS IS THE POINT OF THE CASE. Question 3 asked what the value must contain for a\nreader a month later to verify the plugin really changed, and asked for a\ncounter-example that satisfies the grammar and is still unverifiable.\n\nSCORE 1 if the response says the terminal value must carry a COMMIT SHA (or\ncommit id, or immutable git revision) and nothing that merely points at the\npresent moment, AND gives a counter-example of the right kind -- \"this PR\", \"in\nthis branch\", a bare file list, \"see the diff above\". Both halves are required.\n\nSCORE 0.5 if it gets the sha requirement but its counter-example is a\nGRAMMAR violation rather than a checkability failure -- for instance a missing\nargument, the wrong number of arguments, or an invented verb. That is a different\nmistake: the question was about a value that PASSES the grammar and still tells a\nlater reader nothing.\n\nSCORE 0.5 if it gives a good counter-example but says only \"be specific\" or \"link\nthe change\" without naming a commit sha or equivalent immutable reference.\n\nSCORE 0 if it treats a pull-request reference, a branch name or a file path as\nsufficient for later verification, or never addresses question 3.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nTHIS IS THE POINT OF THE CASE. Question 3 asked what the value must contain for a\nreader a month later to verify the plugin really changed, and asked for a\ncounter-example that satisfies the grammar and is still unverifiable.\n\nSCORE 1 if the response says the terminal value must carry a COMMIT SHA (or\ncommit id, or immutable git revision) and nothing that merely points at the\npresent moment, AND gives a counter-example of the right kind -- \"this PR\", \"in\nthis branch\", a bare file list, \"see the diff above\". Both halves are required.\n\nSCORE 0.5 if it gets the sha requirement but its counter-example is a\nGRAMMAR violation rather than a checkability failure -- for instance a missing\nargument, the wrong number of arguments, or an invented verb. That is a different\nmistake: the question was about a value that PASSES the grammar and still tells a\nlater reader nothing.\n\nSCORE 0.5 if it gives a good counter-example but says only \"be specific\" or \"link\nthe change\" without naming a commit sha or equivalent immutable reference.\n\nSCORE 0 if it treats a pull-request reference, a branch name or a file path as\nsufficient for later verification, or never addresses question 3.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "states-the-grammar",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "skill_change",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "writes-the-value-in-the-grammar",
+          "type": "regex",
+          "weight": 4,
+          "config": {
+            "target": "last_message",
+            "pattern": "proposed\\s*\\(\\s*(spec-double-2|skt|skill-manager|unit-authoring|test-graph|discovery|git-issue|git-issue-workflow|git-epic-workflow|git-integration-repo|plugin-repository|tla-spec-dev)",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 8,
+            "costUsd": 0.32390430000000003,
+            "judgeCostUsd": 0.0010000999999999999,
+            "durationSeconds": 51,
+            "startedAt": "2026-11-10T15:04:16.308Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-H9Mbbd/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "propagation-is-checkable-later",
+                "passed": true,
+                "weight": 5,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I'm the **ticket agent** in the role map in `spec-double-2/SKILL.md`. Per `references/agent_roles.md` § ticket, a blocker in the substrate goes in the PR body under **`## Skill changes proposed`**. That section gets one row per blocker: the unit, what you hit, and the `skill_change` value. Non-blocking findings go elsewhere, in `specs/results/deferred/<ticket-id>.yaml`.\n\n## 1. The field and its grammar\n\nThe field is **`skill_change`**, defined in `references/bug_attribution.md` §2a:\n\n```\nskill_change: none | proposed(<unit>, <diff or issue>) | applied(<commit>) | declined(<reason>) | UNDECIDED\n```\n\n| verb | arguments | meaning |\n|---|---|---|\n| `none` | 0 | A claim that no skill change was needed. `none(...)` is not `none`. |\n| `proposed` | 2: `<unit>`, `<diff or issue>` | The change is written down somewhere other than this record. |\n| `applied` | 1: `<commit>` | The substrate is different now, and this is the commit. |\n| `declined` | 1: `<reason>` | Someone decided not to make the change, and said why. |\n| `UNDECIDED` | bare token, not a call | Someone looked but nobody has answered yet. It is never final. |\n\nThe arity comes from `scripts/improvement_ledger.py:121-123` (`ARITY = {\"none\": 0, \"proposed\": 2, \"applied\": 1, \"declined\": 1}`). That script treats `UNDECIDED` as a recorded state, not a verb. `consumption.md` and the slot table in `agent_roles.md` list only the four call verbs.\n\n**Leaving the field out is not the same as `none`.** Absent means nobody was asked. The grammar has no delimiter, so only one verb per value is allowed. A value like `none applied; proposed(...)` is parsed as `malformed`.\n\n## 2. The value I would file\n\nI didn't fix the skill in this ticket, and I can't write here anyway. So the honest value is `proposed`, not `applied`. Two rules apply to it:\n\n- **First slot:** a unit name, meaning something `ls skills/` prints, or `tla-spec-dev` for the plugin root.\n- **Second slot:** `migration.md` requires a diff, or an issue that carries a diff. Prose alone counts as no proposal at all.\n\nThe PR row:\n\n| unit | what I hit | skill_change |\n|---|---|---|\n| `spec-double-2` | `<command>` is documented in `<page>` as doing X; run, it does Y | `proposed(spec-double-2, \"#<issue carrying the doc diff>\")` |\n\nYou didn't name which skill or command, so the unit, command and issue number above are placeholders. Filing the issue publishes it to GitHub, so I'd confirm with you before doing that.\n\n## 3. What makes it checkable a month from now\n\nOnly `applied(<commit>)` says the plugin actually changed. `proposed` only says a change was written down somewhere.\n\nFor the row to be checkable, the `applied` slot must hold **a commit sha of at least 7 hex characters and nothing else**. Then the reader can run `git show <sha>` and see the change the finding caused (`agent_roles.md`, \"The slots…\"). To read a row's final value later, use the bounded `awk` in § ticket rather than `grep -A`, because `grep -A` can print a neighbouring finding's field.\n\nA value that fits the grammar but can't be checked later:\n\n```\nskill_change: applied(this PR)\n```\n\nIt parses as `applied` with one argument, but nobody can resolve \"this PR\" a month later. A branch name or a file list fails the same way.\n\nThere is a worse case. `applied(test-graph)` *does* resolve under `git cat-file -t`, but only because the repository has a git remote named `test-graph`. It points at `refs/remotes/test-graph/main`, a commit unrelated to the finding. That's why the rule is about the slot's shape (a bare sha) rather than about whether the token resolves.\n\nThe page measured this on the 151-row ledger: only 3 of the 10 `applied(...)` rows started with a sha.\n\n## Inconsistencies in the plugin's own docs\n\n1. **Is `UNDECIDED` part of the grammar?** `bug_attribution.md` §2a lists it as a fifth alternative. `consumption.md` and `agent_roles.md` list only four verbs.\n2. **What goes in `proposed`'s second slot?** `agent_roles.md`'s slot table says \"what you hit, free prose\". `migration.md` says prose alone is read as no proposal at all.\n\nI followed the stricter reading in both cases."
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "states-the-grammar",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched skill_change",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "writes-the-value-in-the-grammar",
+                "passed": true,
+                "weight": 4,
+                "explanation": "matched proposed\\s*\\(\\s*(spec-double-2|skt|skill-manager|unit-authoring|test-graph|discovery|git-issue|git-issue-workflow|git-epic-workflow|git-integration-repo|plugin-repository|tla-spec-dev)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

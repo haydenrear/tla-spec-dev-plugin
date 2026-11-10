@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:52:32.710Z",
+  "durationSeconds": 55,
+  "costUsd": 0.3747654,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "epic-mode-is-not-main",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "epic-mode-is-not-main",
+      "dir": "evals/git-epic-workflow/epic-mode-is-not-main",
+      "source": "mixed",
+      "promptMarkdown": "`ISSUE.md` is a ticket somebody has handed you to implement in this\nrepository.\n\nWrite `PLAN.md`: where you would branch from, what you would run, where the\npull request goes, and where you stop. Be specific about branch names.\n\nEnd your reply by naming the branch your pull request would target, and\nwhether you would merge it yourself. The grader reads your reply and cannot\nopen the file you wrote.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 30,
+      "graders": [
+        {
+          "name": "names-the-base-branch",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "epic/shortlink-hardening",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reads-the-assignment",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/epic-mode",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 10,
+            "costUsd": 0.3747654,
+            "judgeCostUsd": 0,
+            "durationSeconds": 54,
+            "startedAt": "2026-11-10T14:52:33.960Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-kDHHpu/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-the-base-branch",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched epic/shortlink-hardening",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reads-the-assignment",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/epic-mode exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

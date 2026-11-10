@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:07:40.301Z",
+  "durationSeconds": 58,
+  "costUsd": 0.40320839999999997,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-sdc-attribution-before-close",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-sdc-attribution-before-close",
+      "dir": "evals/spec-double-2/w-sdc-attribution-before-close",
+      "source": "mixed",
+      "promptMarkdown": "Ticket T-7 is finished: its spec-unit tests are green and the plan entry is\nmarked done. While working it, a spec-unit test caught that checkout accepted\na negative quantity. Follow this project's close-out process for T-7.\nThe spec root is cases/w-sdc-attribution-before-close/specs.\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so writes and commands\nthat write will fail with \"Operation not permitted\". That is expected. Issue\nwhat you would, once each, and report what you did in order.\n\nEVAL-CASE: w-sdc-attribution-before-close\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 30,
+      "graders": [
+        {
+          "name": "attribution-reported-before-close",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran.\n\nThis grader reads the agent's FINAL RESPONSE ONLY. It cannot see the\nworkspace, the transcript, or which commands actually ran.\n\nScore 1 if the response reports recording a bug attribution (a catch/finding\nfor the negative-quantity defect, in an attribution record) as a step that\ncame BEFORE closing, or attempting to close, ticket T-7. A close the tool refused still counts as the close step; score on the reported order. Score 0 if attribution is not mentioned, is\nmentioned only as optional or future work, or is reported after the close.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran.\n\nThis grader reads the agent's FINAL RESPONSE ONLY. It cannot see the\nworkspace, the transcript, or which commands actually ran.\n\nScore 1 if the response reports recording a bug attribution (a catch/finding\nfor the negative-quantity defect, in an attribution record) as a step that\ncame BEFORE closing, or attempting to close, ticket T-7. A close the tool refused still counts as the close step; score on the reported order. Score 0 if attribution is not mentioned, is\nmentioned only as optional or future work, or is reported after the close.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "closed-ticket",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/require-closed-ticket",
+            "exists": true
+          }
+        },
+        {
+          "name": "consulted-attribution",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/require-consulted-attribution",
+            "exists": true
+          }
+        },
+        {
+          "name": "wrote-attribution",
+          "type": "file_exists",
+          "weight": 3,
+          "config": {
+            "path": ".eval/require-wrote-attribution",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 12,
+            "costUsd": 0.40320839999999997,
+            "judgeCostUsd": 0.000564,
+            "durationSeconds": 58,
+            "startedAt": "2026-11-10T15:07:40.539Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-vS1iKT/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "attribution-reported-before-close",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I closed T-7 and recorded where the bug came from first, as the project's process requires.\n\n**Steps, in order:**\n\n1. **Read the ticket's files.** The plan already marks T-7 `done`, and `results/README.md` shows 14 spec-unit tests passing. The ticket's model, `desired/Cart.tla`, only has a `Next` step that does nothing. There is no checkout action in it.\n\n2. **Recorded the defect** in `specs/tickets/T-7/results/attribution.yaml`. This spec root has no shared findings file, so the record lives with the ticket for now:\n   - **Defect:** checkout accepted a negative item quantity.\n   - **What caught it:** a spec-unit test. These run through the `test_graph` project, so I filed the channel as `test-graph`, which counts as automated. The test that caught it is enough to catch it again, so I didn't add a separate one.\n   - **Where it happened:** `UNMODELED/checkout`. The model has no checkout action, and the rules say not to stretch `Next` to cover it. I marked it as a gap that could be modelled today: a `Checkout` action plus a rule that quantities must be positive would cover it.\n\n3. **First close attempt failed:** I put the `--spec-root` flag in the wrong place and got a usage error. Nothing was written.\n\n4. **Second close attempt succeeded.** It used a summary naming the defect and attached the README and the attribution file as evidence. It:\n   - copied the ticket's model into `specs/current`\n   - added a permanent history entry at `specs/.history/cart-workflow/ticket-000-T-7`\n\n   It also warned that the complexity numbers weren't recorded, because there's no TLC report or `.cfg` file next to `Cart.tla`. That doesn't block anything, and the ticket is closed, so I didn't run the close again.\n\nThe sandbox allowed these writes, so all of the above was actually written to disk. I haven't committed anything. The tool suggests adding the history entry, `specs/current` and `specs/desired_program_model` to git. When you open the PR, its description should mention this defect and that it happened in checkout, which the model doesn't cover yet (`UNMODELED/checkout`)."
+              },
+              {
+                "name": "closed-ticket",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/require-closed-ticket exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "consulted-attribution",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/require-consulted-attribution exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "wrote-attribution",
+                "passed": true,
+                "weight": 3,
+                "explanation": ".eval/require-wrote-attribution exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:55:31.904Z",
+  "durationSeconds": 39,
+  "costUsd": 0.295043,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-epic-merged-by-is-epic-owner",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-epic-merged-by-is-epic-owner",
+      "dir": "evals/git-epic-workflow/w-epic-merged-by-is-epic-owner",
+      "source": "mixed",
+      "promptMarkdown": "\nOn epic cut-the-apparatus I am going to merge the ticket PRs into the epic\nbranch myself. Show me the plan's review_policy block and the `review:`\nblock of ticket CA-03's rendered assignment, as they should read now.\n\nThere is no plan file in this workspace; answer from how git-epic-workflow says these blocks read.\n\nEVAL-CASE: w-epic-merged-by-is-epic-owner\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "assignment-keeps-epic-owner",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": "last_message",
+            "pattern": "merged_by:\\s*\"?epic-owner",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "plan-records-human",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "merges:\\s*\"?human",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "stays-cheap",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/within-budget",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 13,
+            "costUsd": 0.295043,
+            "judgeCostUsd": 0,
+            "durationSeconds": 38,
+            "startedAt": "2026-11-10T14:55:32.783Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-EyxlOq/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "assignment-keeps-epic-owner",
+                "passed": true,
+                "weight": 3,
+                "explanation": "matched merged_by:\\s*\"?epic-owner",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan-records-human",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched merges:\\s*\"?human",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "stays-cheap",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/within-budget exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

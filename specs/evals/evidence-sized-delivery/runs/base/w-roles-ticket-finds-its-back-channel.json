@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:06:45.671Z",
+  "durationSeconds": 34,
+  "costUsd": 0.1926415,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-roles-ticket-finds-its-back-channel",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-roles-ticket-finds-its-back-channel",
+      "dir": "evals/spec-double-2/w-roles-ticket-finds-its-back-channel",
+      "source": "mixed",
+      "promptMarkdown": "You have just been handed one GitHub issue to implement in this repository.\nYou have your own feature branch and worktree, and you will open a PR when\nyou are done. You have read nothing else yet.\n\nWhile working it you hit friction in the substrate itself: one of this\nplugin's own skills told you to do something that did not work.\n\nAnswer from THIS plugin's own skills, not from general practice:\n\n1. Which of this plugin's named agent roles are you, and what is the reading\n   path for that role? Name the file and the section.\n2. At the end of that path, where does what you learned about the substrate\n   go?\n3. What command would you run LATER to find out whether the plugin actually\n   changed because of it?\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the\nsandbox, so a command that writes will fail with \"Operation not permitted\"\nhowever correct it is. That is expected and is not yours to solve.\n\nEVAL-CASE: w-roles-ticket-finds-its-back-channel\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "names-the-destination",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": "last_message",
+            "pattern": "Skill changes proposed|specs/results/deferred|deferred_findings_final",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "names-the-role-map",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": "last_message",
+            "pattern": "agent_roles|agent roles\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "routes-by-role-and-closes-the-loop",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nThe prompt described a situation and never named a role, a file, or a section.\n\nSCORE 1 if the response does all three of these:\n  (a) identifies itself as the TICKET agent (that word, or \"ticket-agent\"\n      role) rather than answering generically;\n  (b) names a reading path as a file plus a section, not just a skill name; and\n  (c) answers question 3 with a way of looking up what became of the finding\n      LATER -- a command, or a named file plus what to read in it. It does not\n      have to reproduce the exact command.\n\nSCORE 0.5 if it gets (a) and (b) but treats question 3 as \"open a PR and wait\",\n\"ask the epic agent\", or \"check the review\" without naming anything a reader\ncould actually run or open. Reporting with no way to see the outcome is the\nwrite-only channel this routing exists to fix, so a half is the honest score.\n\nSCORE 0 if it answers from general software practice -- file an issue, open a\ndiscussion, add a TODO -- or names no role at all.\n\nA response that also proposes improvements to the substrate still scores on the\nthree clauses above; extra correct material does not lower it.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nThe prompt described a situation and never named a role, a file, or a section.\n\nSCORE 1 if the response does all three of these:\n  (a) identifies itself as the TICKET agent (that word, or \"ticket-agent\"\n      role) rather than answering generically;\n  (b) names a reading path as a file plus a section, not just a skill name; and\n  (c) answers question 3 with a way of looking up what became of the finding\n      LATER -- a command, or a named file plus what to read in it. It does not\n      have to reproduce the exact command.\n\nSCORE 0.5 if it gets (a) and (b) but treats question 3 as \"open a PR and wait\",\n\"ask the epic agent\", or \"check the review\" without naming anything a reader\ncould actually run or open. Reporting with no way to see the outcome is the\nwrite-only channel this routing exists to fix, so a half is the honest score.\n\nSCORE 0 if it answers from general software practice -- file an issue, open a\ndiscussion, add a TODO -- or names no role at all.\n\nA response that also proposes improvements to the substrate still scores on the\nthree clauses above; extra correct material does not lower it.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 5,
+            "costUsd": 0.1926415,
+            "judgeCostUsd": 0.0007483,
+            "durationSeconds": 32,
+            "startedAt": "2026-11-10T15:06:47.193Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-ATLuhZ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-the-destination",
+                "passed": true,
+                "weight": 3,
+                "explanation": "matched Skill changes proposed|specs/results/deferred|deferred_findings_final",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-the-role-map",
+                "passed": true,
+                "weight": 3,
+                "explanation": "matched agent_roles|agent roles\\.md",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "routes-by-role-and-closes-the-loop",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "These answers come from `skills/spec-double-2/SKILL.md`, whose **Role map** section points to `skills/spec-double-2/references/agent_roles.md`. That page has one section per role.\n\n**1. Role and reading path**\n\nI'm the **ticket agent**. The table in `agent_roles.md` (\"How you know which one you are\", lines 47–52) matches what I have: one issue to implement, my own feature branch and worktree, and a PR to open. The page also says an evaluation ticket is still worked by a ticket agent.\n\nThe path is in **`references/agent_roles.md` § `ticket` → `### You read`** (lines 67–79):\n1. `skills/git-issue-workflow/SKILL.md`. Only its first section, the worktree front door, is needed before I have a checkout.\n2. If the issue carries `<!-- git-epic-workflow:assignment:start -->`, read `skills/git-issue-workflow/references/epic-ticket.md` and stop there. Otherwise read `references/provision.md`.\n3. The one row of `skills/spec-double-2/SKILL.md`'s **Reference map** that matches my task, and none of the other rows.\n4. At close-out, `skills/git-issue-workflow/references/complete.md`, for the PR body.\n\n**2. Where the substrate lesson goes**\n\nThis is in **§ `ticket` → `### You write`** (lines 81–88). A skill telling me to do something that didn't work is a blocker, so it goes in **`## Skill changes proposed`** in my PR body. That section gets one row per blocker: the unit, what I hit, and the `skill_change` value. If I meet no blockers, I still write `none met`, because a missing section is read differently from \"none\".\n\nFindings that aren't blockers go in my own inbox file, **`specs/results/deferred/<MY-TICKET-ID>.yaml`**, one file per ticket. I never write them to the final ledger.\n\n**3. Checking later whether the plugin changed**\n\nThis is in **§ `ticket` → `### The return leg`** (lines 90–114). After the wave merges and the epic agent absorbs my inbox, I run:\n\n```bash\nawk -v id=<MY-FINDING-ID> '\n  $0 == \"  - id: \" id {f=1; next}\n  f && /^  - id: / {exit}\n  f && /^    skill_change:/ {print; found=1; exit}\n  END {if (!f) print \"no such finding id in the ledger\"\n       else if (!found) print \"that row carries no skill_change -- nobody has been asked\"}\n' specs/results/deferred_findings_final.yaml\n```\n\nWhat the result means:\n- **`applied(<sha>)`**: the plugin did change, and `git show <sha>` shows the change my finding caused.\n- **`proposed(...)`**: nobody has acted on it yet, and that wave's `review.md` §3.4 says so.\n- The command can also report that the id isn't in the ledger, or that the row has no `skill_change`.\n\nThe page says to use this `awk` rather than `grep -A<n>`. In a ledger row, `skill_change` can sit 58 lines below the `id`, so a short window prints nothing and a long one reads into the next finding."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

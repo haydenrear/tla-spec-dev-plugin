@@ -84,4 +84,17 @@ reverse capacity (verification exceeding review); graph-origin defects detected 
 
 ## Amendments
 
-(none yet)
+Appended after the runs; nothing above was edited.
+
+1. **Declaration time.** The header's "14:55Z" was a typo; the authoritative time is the commit
+   `4f323cc6` (pushed before the first billed run at 14:48:19Z).
+2. **Tip arm ran with `SI10_ALLOW_DIRTY=1`.** The delegated ARCH/CAPACITY readers were writing
+   untracked files under `specs/results/evidence-sized-delivery/goals/` while the runs started, and
+   run.sh refuses any dirty tree. The view is `git archive HEAD`, so untracked files never enter
+   it; HEAD (`4f323cc6`) was pushed, so the tip score is reproducible from a remote sha despite
+   the record's "not reproducible" flag.
+3. **Base uptake commit** is `14e3247c` (= `a1ff56cf` + `specs/evals/evidence-sized-delivery/cases/**`), local only.
+4. **Execution order.** One tip uptake run (`esd-ticket-red-not-mine`) ran first as the lane
+   check (14:48Z, passed, trace read); it is the counted tip run for that case, not a re-run.
+5. **Spent:** 46 billed runs (23 per arm), $15.64 agent + $0.03 judge = **$15.67**. No run was
+   repeated; 2 runs of budget unused. No harness refusal occurred.

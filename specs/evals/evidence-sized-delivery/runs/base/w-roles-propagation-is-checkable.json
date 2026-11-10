@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:03:36.787Z",
+  "durationSeconds": 48,
+  "costUsd": 0.30128820000000006,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-roles-propagation-is-checkable",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-roles-propagation-is-checkable",
+      "dir": "evals/spec-double-2/w-roles-propagation-is-checkable",
+      "source": "mixed",
+      "promptMarkdown": "You are working a ticket in this repository and you have hit a real blocker\nin the substrate: one of this plugin's skills documents a command that does\nnot do what it says.\n\nYou are going to write this down in the field this project uses for it.\n\nAnswer from THIS plugin's own skills, not from general practice:\n\n1. Name the field and give its exact grammar -- every verb it accepts and how\n   many arguments each takes.\n2. Write the exact value you would file for this blocker.\n3. Somebody reads your row a month from now and wants to verify that the\n   plugin really changed. Say what the value must contain for that to be\n   possible, and give one form of it that would satisfy the grammar and still\n   be unverifiable later.\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the\nsandbox, so a command that writes will fail with \"Operation not permitted\"\nhowever correct it is. That is expected and is not yours to solve.\n\nEVAL-CASE: w-roles-propagation-is-checkable\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "propagation-is-checkable-later",
+          "type": "llm",
+          "weight": 5,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nTHIS IS THE POINT OF THE CASE. Question 3 asked what the value must contain for a\nreader a month later to verify the plugin really changed, and asked for a\ncounter-example that satisfies the grammar and is still unverifiable.\n\nSCORE 1 if the response says the terminal value must carry a COMMIT SHA (or\ncommit id, or immutable git revision) and nothing that merely points at the\npresent moment, AND gives a counter-example of the right kind -- \"this PR\", \"in\nthis branch\", a bare file list, \"see the diff above\". Both halves are required.\n\nSCORE 0.5 if it gets the sha requirement but its counter-example is a\nGRAMMAR violation rather than a checkability failure -- for instance a missing\nargument, the wrong number of arguments, or an invented verb. That is a different\nmistake: the question was about a value that PASSES the grammar and still tells a\nlater reader nothing.\n\nSCORE 0.5 if it gives a good counter-example but says only \"be specific\" or \"link\nthe change\" without naming a commit sha or equivalent immutable reference.\n\nSCORE 0 if it treats a pull-request reference, a branch name or a file path as\nsufficient for later verification, or never addresses question 3.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nTHIS IS THE POINT OF THE CASE. Question 3 asked what the value must contain for a\nreader a month later to verify the plugin really changed, and asked for a\ncounter-example that satisfies the grammar and is still unverifiable.\n\nSCORE 1 if the response says the terminal value must carry a COMMIT SHA (or\ncommit id, or immutable git revision) and nothing that merely points at the\npresent moment, AND gives a counter-example of the right kind -- \"this PR\", \"in\nthis branch\", a bare file list, \"see the diff above\". Both halves are required.\n\nSCORE 0.5 if it gets the sha requirement but its counter-example is a\nGRAMMAR violation rather than a checkability failure -- for instance a missing\nargument, the wrong number of arguments, or an invented verb. That is a different\nmistake: the question was about a value that PASSES the grammar and still tells a\nlater reader nothing.\n\nSCORE 0.5 if it gives a good counter-example but says only \"be specific\" or \"link\nthe change\" without naming a commit sha or equivalent immutable reference.\n\nSCORE 0 if it treats a pull-request reference, a branch name or a file path as\nsufficient for later verification, or never addresses question 3.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "states-the-grammar",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "skill_change",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "writes-the-value-in-the-grammar",
+          "type": "regex",
+          "weight": 4,
+          "config": {
+            "target": "last_message",
+            "pattern": "proposed\\s*\\(\\s*(spec-double-2|skt|skill-manager|unit-authoring|test-graph|discovery|git-issue|git-issue-workflow|git-epic-workflow|git-integration-repo|plugin-repository|tla-spec-dev)",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.9166666666666666,
+            "passed": false,
+            "turns": 9,
+            "costUsd": 0.30128820000000006,
+            "judgeCostUsd": 0.0009641999999999999,
+            "durationSeconds": 48,
+            "startedAt": "2026-11-10T15:03:37.406Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-CJLUgl/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "propagation-is-checkable-later",
+                "passed": true,
+                "weight": 5,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The field is **`skill_change`**. I got all three answers from `spec-double-2`: `references/bug_attribution.md` §2a, `references/agent_roles.md`, and the parser in `scripts/improvement_ledger.py`.\n\n## 1. The field and its grammar\n\n```\nskill_change: none\n            | proposed(<unit>, <what>)\n            | applied(<commit>)\n            | declined(<reason>)\n```\n\n| verb | args | meaning |\n|---|---|---|\n| `none` | 0 (`none(anything)` is malformed) | a claim that no skill change was needed |\n| `proposed` | 2 | the change is written down somewhere other than this record |\n| `applied` | 1 | the substrate is different now, and here is the commit |\n| `declined` | 1 | someone decided not to change it, and said why |\n\nThe parser sets this out as `ARITY = {\"none\": 0, \"proposed\": 2, \"applied\": 1, \"declined\": 1}` (`improvement_ledger.py:123`). Only `applied` and `declined` close the loop.\n\nTwo edge cases:\n- **`UNDECIDED`** means \"asked, not yet answered\". It is recorded and counted separately, but it is not a verb of the grammar and never closes the loop.\n- **A blank value is not `none`.** Blank means nobody was asked; `none` is a claim someone made.\n\nAs a ticket agent, I put the value in a row of the PR body's `## Skill changes proposed` section: unit, what I hit, and the `skill_change` value.\n\n## 2. The value I'd file\n\nA blocker I hit mid-ticket hasn't been fixed yet, so the verb is `proposed`, not `applied`:\n\n```\nproposed(spec-double-2, the documented `<command>` in references/<page>.md is said to <X>; running it actually does <Y> — observed: <exit code / output>)\n```\n\nReplace `spec-double-2` with whichever unit actually documents the bad command.\n\n- **First slot:** a unit name, meaning something `ls skills/` prints (or `tla-spec-dev` for the plugin root). Not a file path, not a sentence, and not \"no unit change: …\".\n- **Second slot:** free prose about what I hit.\n- **One verb only.** The grammar has no delimiter, so a value like `none applied; proposed(...)` parses as malformed.\n\n## 3. Making it verifiable a month later\n\nA reader can only confirm the plugin changed once the row reads **`applied(<sha>)`**. The slot must hold a commit sha of at least 7 hex characters **and nothing else**. Then the reader can run `git show <sha>` and see the change the finding caused. A `proposed(...)` row only shows that somebody wrote the problem down.\n\nForms that pass the arity check but can't be verified:\n- `applied(this PR)`\n- `applied(feature/TICKET-123)` (a branch name)\n- `applied(skills/spec-double-2/SKILL.md)` (a file list)\n- The subtle one, `applied(test-graph)`: it resolves under `git cat-file -t` because this repo has a remote named `test-graph`. It silently points at `refs/remotes/test-graph/main`, a commit with nothing to do with the finding. That's why the documented rule is about the slot's shape, not about whether the value resolves.\n\nOn the ledger measured on 2026-09-26, only 3 of the 10 `applied(...)` rows started with a sha. Nothing enforces any of this: `improvement_ledger.py` only warns and has no exit-code path."
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": false,
+                "weight": 1,
+                "explanation": "Skill called 0x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "states-the-grammar",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched skill_change",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "writes-the-value-in-the-grammar",
+                "passed": true,
+                "weight": 4,
+                "explanation": "matched proposed\\s*\\(\\s*(spec-double-2|skt|skill-manager|unit-authoring|test-graph|discovery|git-issue|git-issue-workflow|git-epic-workflow|git-integration-repo|plugin-repository|tla-spec-dev)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.9166666666666666,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.9166666666666666,
+    "overallPassRate": 0
+  }
+}

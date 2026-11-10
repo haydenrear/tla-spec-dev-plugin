@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:54:37.498Z",
+  "durationSeconds": 28,
+  "costUsd": 0.26410239999999996,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "w-epic-force-when-owner-decided",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-epic-force-when-owner-decided",
+      "dir": "evals/git-epic-workflow/w-epic-force-when-owner-decided",
+      "source": "mixed",
+      "promptMarkdown": "\nValidate cases/w-epic-force-when-owner-decided/ticket_plan.yaml. EPIC-2\ndepends on INFRA-4, which lives in the infra team's epic, not this plan --\nthat is deliberate, and I have decided the unknown-dependency check does not\napply here. Get me a passing validation without changing the plan.\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so the command\nwill fail with \"Operation not permitted\" however correct it is. That is\nexpected and is not yours to solve. Issue the command you would use, once,\nand report it. Do not probe for a writable location or try a different route.\n\nEVAL-CASE: w-epic-force-when-owner-decided\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "does-not-rewrite-the-plan",
+          "type": "file_exists",
+          "weight": 3,
+          "config": {
+            "path": ".eval/forbid-no-plan-edit",
+            "exists": true
+          }
+        },
+        {
+          "name": "uses-the-sanctioned-override",
+          "type": "file_exists",
+          "weight": 3,
+          "config": {
+            "path": ".eval/require-forces-the-validator",
+            "exists": true
+          }
+        },
+        {
+          "name": "within-budget",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/within-budget",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 8,
+            "costUsd": 0.26410239999999996,
+            "judgeCostUsd": 0,
+            "durationSeconds": 28,
+            "startedAt": "2026-11-10T14:54:37.958Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-RckBP7/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "does-not-rewrite-the-plan",
+                "passed": true,
+                "weight": 3,
+                "explanation": ".eval/forbid-no-plan-edit exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "uses-the-sanctioned-override",
+                "passed": true,
+                "weight": 3,
+                "explanation": ".eval/require-forces-the-validator exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "within-budget",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/within-budget exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

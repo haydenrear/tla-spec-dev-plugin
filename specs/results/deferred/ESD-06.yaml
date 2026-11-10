@@ -1,0 +1,150 @@
+findings:
+  - id: ESD-06-DF-01
+    found_by: "ESD-06"
+    found_at_commit: "5404a3c1"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: operator-doing-the-work
+    area: "eval harness: a declarative case cannot be added without new dispatch code"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["evals/lib/place.sh", "evals/lib/verify.sh", "tests/test_agent_integration_harness.py"]
+    summary: >-
+      evals/lib/place.sh and lib/verify.sh dispatch on EVAL_CASE; place.sh's `*)` arm exits 2
+      ("unknown EVAL_CASE") and tests/test_agent_integration_harness.py requires an arm in both scripts
+      for every case under evals/ and EVAL_CASE == directory name. So the "declarative case" the plugin's
+      own eval guidance describes is not declarative: every new case needs two new shell case-arms
+      even when it ships no fixture and is graded from the response only. ESD-06 (no-new-code mandate)
+      had to place its five uptake cases outside evals/ and alias EVAL_CASE to an existing no-fixture
+      arm (w-sdc-scorecard-tool-needs-a-newer-python), run with --eval-dir. A side effect: the
+      SessionStart hook prints the alias's name into the agent's context.
+    reproduction: "grep -n '^  \\*)' -A2 evals/lib/place.sh; grep -n 'test_the_hooks_handle_every_case_that_exists' -A10 tests/test_agent_integration_harness.py"
+    evidence:
+      - "specs/results/evidence-sized-delivery/ESD-06/declaration.md (Harness constraint)"
+      - "specs/evals/evidence-sized-delivery/README.md"
+    why_out_of_scope: "evals/lib is harness code; ESD-06's conflict key is new case directories only and the mandate forbids new executable code."
+    suggested_fix: >-
+      A default arm for response-graded cases with no fixture/ and no expect.json (place: git_init only;
+      verify: verify_from_expect), and the dispatch test relaxed to require an arm only for cases that
+      ship a fixture or expect.json. Separate ticket; it is harness code.
+    skill_change: "tla-spec-dev evals harness (evals/lib/place.sh, verify.sh) and plugin_evals.md §3 note"
+    blast_radius: "Every future evaluation ticket under the no-new-code mandate; uptake cases stay outside the suite."
+    anchor: UNMODELED/eval-harness
+
+  - id: ESD-06-DF-02
+    found_by: "ESD-06"
+    found_at_commit: "5404a3c1"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: eval
+    area: "skill instructions: step-sizing.md rules underdetermined on held-out replay"
+    surface:
+      production: ["skills/git-epic-workflow/references/step-sizing.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      Blind held-out replay of step-sizing.md (4 episodes) produced both estimates and a defensible
+      decision in 4/4, but agreement with outcome was 1 agree / 2 partly / 1 disagree. The disagreement
+      (effectful-learning epic-10 rev 72) came from §6 "fix or isolate the instrument before expanding"
+      read literally (one fix per run) with no tie-break against §4 amortization; the batched run was
+      better. Other ambiguities: the halving unit is undefined for one-ticket or whole-milestone
+      batches; no rule for an irreducible group larger than the tighter bound; "alone or in a small
+      batch" underdetermined; counting a shared host as an interacting pair makes every pair interact on
+      a one-host epic; escapes with unrecorded severity; commit trailers (which name the model in CDC)
+      missing from §1's identity sources; "two consecutive review points" undefined inside repair loops;
+      §9 worked examples reuse the held-out episodes, so future replays on those repos are contaminated.
+    reproduction: "read specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/holdout-replay.md § Page ambiguities"
+    evidence:
+      - "specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/holdout-replay.md"
+      - "specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/README.md"
+    why_out_of_scope: "An evaluation ticket never repairs what it measures; step-sizing.md is ESD-04's page."
+    suggested_fix: >-
+      Prose: a tie-break sentence (instrument fixes that touch disjoint nodes may share one validation
+      run when §4 shows the run is the dominant fixed cost); define the batch unit for halving; add
+      commit trailers to §1's identity sources; state that unrecorded severity counts as `major` for the
+      override; mark §9 examples as non-held-out.
+    skill_change: "tla-spec-dev/git-epic-workflow references/step-sizing.md (prose)"
+    blast_radius: "Two planners can derive different batches from the same facts; over-conservative halving on repair loops."
+    anchor: UNMODELED/skill-instructions
+
+  - id: ESD-06-DF-03
+    found_by: "ESD-06"
+    found_at_commit: "5404a3c1"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: eval
+    area: "skill instructions: graph-architecture-review.md does not reach non-node instruments"
+    surface:
+      production: ["skills/test-graph/references/graph-architecture-review.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      Blind hold-out application (n = 48 validation-origin rows ESD-03 did not use): 10 F / 24 P / 14 M;
+      0 F of the 27 defects that live outside a graph node (eval harnesses/graders, sandboxes, pytest
+      suites, CLIs, providers/homes, CI triggers, sweep aggregation). Independent re-score of 12 of
+      ESD-03's own rows agreed 8/12; the three F disagreements were all downgrades (EA-DF-15, DEF-503,
+      DEF-124), confirming the self-applied table's bias toward "flagged". Uncaught patterns: verdict
+      arithmetic/parsing; stale behavioural assertions after a contract change (only an un-numbered
+      preamble sentence); instruments that can never go green (no green-control rule); questions above
+      one node; inter-node/fixture coupling; telemetry noise.
+    reproduction: "read specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/holdout-application.md"
+    evidence:
+      - "specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/holdout-application.md"
+      - "specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/README.md"
+    why_out_of_scope: "An evaluation ticket never repairs what it measures."
+    suggested_fix: >-
+      Either state the page's scope (graph nodes only) and route non-node instruments to plugin_evals.md /
+      bug_attribution.md §6a, or generalize C1/C2/H4/D2/B1 to "any instrument"; add numbered rules for
+      a green control and for re-running assertions after a contract change.
+    skill_change: "tla-spec-dev/test-graph references/graph-architecture-review.md (prose)"
+    blast_radius: "Reviewers applying the checklist will under-flag eval/CI/provider validation risk."
+    anchor: UNMODELED/skill-instructions
+
+  - id: ESD-06-DF-04
+    found_by: "ESD-06"
+    found_at_commit: "4f323cc6"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: eval
+    area: "eval instruments: three false-red shapes on the guard set, plus a binary judge under 0.5 rubrics"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["evals/lib/verify.sh", "evals/lib/checks/expect.py", "evals/lib/checks/epic_plan.py"]
+    summary: >-
+      All three guard cases that passed on base and failed on tip were the instrument, read from traces:
+      (1) compose-a-behavioural-graph: verify.sh checks for test_graph/ relative to the Stop-hook cwd,
+      which was test_graph/sources because the agent left its shell there -> "no test_graph/ directory"
+      on a workspace that has one; (2) w-epic-assignment-no-force-on-blocking: the session transcript
+      holds duplicated tool_use entries with the same id (first Skill call carried args) and expect.py
+      counts entries, so 3 Bash calls scored as 4 > max_calls 3; (3) epic-mode-is-not-main: epic_plan.py
+      reads "I will not: run `gh pr merge` or self-merge" as a self-merge proposal (BS-17 already saw
+      this case red on main as a grader false negative). Separately, the `llm` grader votes PASS/FAIL,
+      so a rubric's 0.5 tier collapses to FAIL (esd-plan-two-capacities base).
+    reproduction: "specs/evals/evidence-sized-delivery/README.md §A; kept sandboxes /private/tmp/e-uqJN40, /private/tmp/e-j4nzkI, /private/tmp/e-br5OUk"
+    evidence:
+      - "specs/evals/evidence-sized-delivery/runs/tip/compose-a-behavioural-graph.json"
+      - "specs/evals/evidence-sized-delivery/runs/tip/w-epic-assignment-no-force-on-blocking.json"
+      - "specs/evals/evidence-sized-delivery/runs/tip/epic-mode-is-not-main.json"
+    why_out_of_scope: "Harness code; an evaluation ticket never repairs what it measures."
+    suggested_fix: >-
+      verify.sh: resolve test_graph/ from the workspace root (CLAUDE_PROJECT_DIR or the transcript's first
+      cwd, as it already does for the publish dir); expect.py: deduplicate tool calls by tool_use id;
+      epic_plan.py: ignore merge mentions inside a negated list ("will not", "do not"); plugin_evals.md:
+      note that llm rubric half-tiers are not representable.
+    skill_change: "tla-spec-dev evals harness; spec-double-2 references/plugin_evals.md (one line)"
+    blast_radius: "Guard comparisons report false regressions; any case with a Skill(args) call can trip within-budget."
+    anchor: UNMODELED/eval-harness

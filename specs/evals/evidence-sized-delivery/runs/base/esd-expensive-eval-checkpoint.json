@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:19:16.551Z",
+  "durationSeconds": 50,
+  "costUsd": 0.38397310000000007,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "esd-expensive-eval-checkpoint",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "esd-expensive-eval-checkpoint",
+      "dir": "specs/evals/evidence-sized-delivery/cases/esd-expensive-eval-checkpoint",
+      "source": "mixed",
+      "promptMarkdown": "You are the epic agent planning validation for an epic of 12 prose-only\ntickets that edit this plugin's skill instructions. Each ticket's own checks\n(documentation contracts and spec-unit) take about a minute and have been\nreliable. The eval suite for the affected skills costs about $25 and 90\nminutes per full run; it has been stable, with no instrument defects in its\nlast three rounds.\n\nThe owner proposes: \"Run the full eval after every ticket, to be safe.\"\n\nWhat validation cadence do you set, and what must stay in place whatever\ncadence you choose? Answer as this plugin's guidance asks, and name the\nguidance you used (file and section).\n\nNOTE ON THIS ENVIRONMENT: your working directory is an empty scratch\nrepository. The plugin's skills are loaded; read them through the Skill tool\nand the files they point to. Nothing here needs to be written or run.\n\nEVAL-CASE: esd-expensive-eval-checkpoint\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "amortize-and-keep-final",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does BOTH:\n (a) keeps the cheap per-ticket checks and runs the expensive eval at a\n     predeclared shared checkpoint (once for the coherent increment, or at a\n     milestone/evaluation ticket) instead of after every ticket, with a reason\n     tied to its cost and stability; AND\n (b) keeps a final integrated confirmation / acceptance (the eval or manual\n     acceptance is not dropped), or states what would invalidate the shared\n     result and force an earlier or repeated run.\n\nSCORE 0.5 if it does (a) only, or (b) only.\n\nSCORE 0 if it adopts a full eval after every ticket without addressing cost, or\ndrops the eval altogether.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does BOTH:\n (a) keeps the cheap per-ticket checks and runs the expensive eval at a\n     predeclared shared checkpoint (once for the coherent increment, or at a\n     milestone/evaluation ticket) instead of after every ticket, with a reason\n     tied to its cost and stability; AND\n (b) keeps a final integrated confirmation / acceptance (the eval or manual\n     acceptance is not dropped), or states what would invalidate the shared\n     result and force an earlier or repeated run.\n\nSCORE 0.5 if it does (a) only, or (b) only.\n\nSCORE 0 if it adopts a full eval after every ticket without addressing cost, or\ndrops the eval altogether.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "names-step-sizing",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "step-sizing",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.8333333333333334,
+            "passed": false,
+            "turns": 11,
+            "costUsd": 0.38397310000000007,
+            "judgeCostUsd": 0.0009785000000000002,
+            "durationSeconds": 50,
+            "startedAt": "2026-11-10T15:19:16.642Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-UESgQV/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "amortize-and-keep-final",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "## Recommendation: don't run the full eval after every ticket\n\nRunning it after all 12 tickets would cost about $300 and 18 hours of eval time. The plugin's guidance puts that money in a few planned places instead:\n\n| When | What runs | Why |\n|---|---|---|\n| **Kickoff**, on the new epic branch before any ticket lands | Full eval, as the **baseline** | A baseline taken after the first ticket merges compares the epic with itself. |\n| **Every ticket** | Its own checks (documentation contracts and spec-unit, about a minute), **plus the specific eval cases that test the instructions it changes** | Ticket checks cover the changed slice. A changed contract reruns every instrument that tests it, so only the affected cases need to run, not all of them. |\n| **Every wave boundary** | Review artifact and gate, with a short note on whether validation is converging. No full eval by default. | Wave reviews check evidence and whether the work matches the plan. They don't require a full run. |\n| **Optional middle checkpoint**, after a named wave (e.g. halfway) | One full eval | Catches interactions between prose changes before finalization. Worth it here because 12 tickets edit the same skills. |\n| **Finalization** | Full eval from a fresh start on the integrated epic branch, through the evaluation ticket, then the one manual phase | This run decides the goals. It is reported as baseline → measured → target. |\n\nThat comes to 2 or 3 full runs (about $50–75) instead of 12. The suite's stable record supports this: with no instrument defects in three rounds, running it more often mostly buys repetition, not information. If the owner still wants more runs, that's their decision, and it goes on record in `review_policy` in the plan.\n\n## What stays in place whatever the cadence\n\n1. **Every ticket passes its required checks, including every eval case that tests the contract it changes.** Changing the cadence never thins this.\n2. **The baseline is taken at kickoff**, before any ticket lands.\n3. **The full run at the end on the integrated branch, from a fresh start**, plus one manual product-testing phase. The integrated result decides acceptance; per-ticket passes are only evidence for each slice.\n4. **The escalation triggers work regardless of cadence.** They fire when repairs keep replacing old failures with new ones, a defect family comes back, one fix breaks other areas, or manual testing finds bugs where checks are green. At a trigger, automatic reruns stop and a deeper review happens. A less frequent cadence doesn't waive this.\n5. **A short review before each rerun:** what changed, what the run is meant to tell apart, and the smallest valid rerun. Retrying with nothing changed needs a specific transient-failure explanation.\n6. **Honest reporting.** Report the run that happened: no rerunning selected cases until a number passes, and no editing targets to fit results.\n7. **The cadence is a recorded decision** in `ticket_plan.yaml` (`review_policy`), and the epic PR says which cadence was in force.\n\n## Guidance used\n\nAll files are under `skills/git-epic-workflow/` unless shown with their own skill path.\n\n- `references/validation-review.md`:\n  - \"A changed contract reruns every instrument that asserts it\"\n  - \"Short review: before each repair/rerun and at ticket handoff\" (smallest valid rerun; keep the final integrated confirmation)\n  - \"Deeper review: wave boundary, before final validation, and on a trigger\" (triggers aren't waived by cadence)\n- `references/goals-and-evaluation.md`:\n  - \"One epic, one bounded product increment\" (ticket validation covers the slice; the full run belongs at the end)\n  - \"Baselines\" (never after the first behavioural ticket)\n  - \"What the evaluation ticket does\" (fresh run on the integrated branch; report the run that happened)\n- `references/human-review.md`:\n  - §1, the paragraph that says wave reviews need no full sweep at every boundary\n  - §1, the `scripts/milestone.py` section on running a named checkpoint\n  - §2 \"When the review happens\" and \"The user changes the cadence, and the change is on the record\"\n- `SKILL.md`: load-bearing rules 8 (only finalization runs the full integrated check), 13 (wave review gate) and 15 (choose increments whose validation can converge)"
+              },
+              {
+                "name": "names-step-sizing",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.8333333333333334,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.8333333333333334,
+    "overallPassRate": 0
+  }
+}
