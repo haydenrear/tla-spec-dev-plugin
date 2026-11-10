@@ -416,7 +416,12 @@ The PR body must contain:
   (`references/complete.md` §5a); and
 - a `## Review input` section, written for a human who has ten minutes and did not
   read the ticket. Four short lists, evidence-cited, no padding — the epic owner
-  composes the wave review from these rather than re-deriving them from the diff:
+  composes the wave review from these rather than re-deriving them from the diff.
+  Open it with the delivery line `started_at: <UTC>; agent: <model and version>,
+  <harness and version>; scope items: <n>` (`unknown` where unknown), and keep each
+  red's origin, channel and effect apart, with its repair cost as product or
+  validation (git-epic-workflow `references/epic-ticket.md` §7 is the canonical
+  contract):
   - **Hot spots** — what you changed that carries the most risk or the most
     meaning, with paths. Say when you wrote a file another ticket in your wave
     also touches;
@@ -560,8 +565,9 @@ things change, and the full contract is "The evaluation ticket" in
       one-line summary, or `None`)
 - [ ] PR body carries `## Skill changes proposed` (unit / what was hit / proposed
       change, one row per blocker met, or `none met`) — advisory, never a gate
-- [ ] PR body carries `## Review input` — hot spots, decisions and overrides,
-      where I'd look for bugs, machinery friction — each evidence-cited
+- [ ] PR body carries `## Review input` — opened by the delivery line, then hot
+      spots, decisions and overrides, where I'd look for bugs, machinery
+      friction — each evidence-cited
 - [ ] `home close-out` run as a read-only gate and its verdict stated in the PR
       body; any skill edit published with `unit publish`; no `home sync` into the
       project home; worktree left standing for the epic agent to reconcile and

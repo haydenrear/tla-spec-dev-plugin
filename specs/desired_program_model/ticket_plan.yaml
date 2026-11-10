@@ -336,7 +336,7 @@ tickets:
     evidence: []
 - id: ESD-05
   title: Route evidence and graph-risk review into planning, ticket, review and epic close
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/239
   schedule_revision: 1
   depends_on:
