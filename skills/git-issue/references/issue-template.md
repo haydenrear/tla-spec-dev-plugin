@@ -29,6 +29,9 @@ explicitly rather than deleting it — the implementer relies on the shape.
 ## Discovery notes
 <what you learned scanning the repo: entry points, invariants, adjacent code,
 open questions the implementer should resolve first>
+Risk evidence: <findings already anchored to the touched actions/bins and graph
+nodes, by ID; graph nodes this change must not trust blindly; or "none found">
+(spec-double-2 `references/agent_roles.md` § *Evidence routing*)
 
 ## Worktree & branch
 Create the worktree AND its own Skill Manager home with ONE command, from the

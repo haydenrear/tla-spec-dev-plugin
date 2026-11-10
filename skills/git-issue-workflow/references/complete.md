@@ -75,6 +75,7 @@ git push -u origin feature/<ticket>
 gh pr create --fill --body "Closes #<n>
 
 Graphs run: <named graphs incl. specWorkflow>. Reports attached to the spec ticket.
+started_at: <UTC>; agent: <model and version>, <harness and version>; scope items: <n>
 
 ## Goal contribution
 
@@ -83,6 +84,12 @@ Graphs run: <named graphs incl. specWorkflow>. Reports attached to the spec tick
 | <goal> | direct | <expected effect> | <value + classification> — <evidence path> | <evaluation issue, or this issue's own harness run> |"
 gh pr merge --rebase
 ```
+
+The `started_at` line is the only record of when work began and which model did
+it; write `unknown` for a part you do not know rather than dropping the line.
+Batch sizing and velocity read it (git-epic-workflow `references/step-sizing.md`
+§1). A finding or red you report keeps origin, channel and effect apart
+(spec-double-2 `references/bug_attribution.md` §4.3).
 
 One row per goal the issue declared, including any whose signal was
 `N/A: <reason>`; `None declared` when the issue declared none, so a reader can

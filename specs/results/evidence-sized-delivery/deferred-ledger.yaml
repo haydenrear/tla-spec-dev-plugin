@@ -30,8 +30,8 @@ findings:
     writes. The assignment''s dispatch comment and the PR body are two such places. Or read agent session
     transcripts for the ESD-06 pilot. Either supplies the missing denominator without a new tool.'
   blast_radius: Measurement only; no behaviour change.
-  disposition: pending
-  disposition_ticket: null
+  disposition: fixed
+  disposition_ticket: ESD-05
 - found_by: ESD-01
   id: ESD-01-DF-02
   found_at_commit: 9635bad239986a4e5e07745947273bc4480a82a2
@@ -333,7 +333,7 @@ findings:
   skill_change: tla-spec-dev/git-epic-workflow human-review.md; tla-spec-dev/git-issue-workflow complete.md
     (prose line)
   blast_radius: Capacity calibration across model changes stays unmeasurable.
-  disposition: pending
+  disposition: fixed
   disposition_ticket: ESD-05
 - found_by: ESD-04
   id: ESD-04-DF-02
@@ -361,7 +361,7 @@ findings:
     a review -> references/step-sizing.md".'
   skill_change: tla-spec-dev/git-epic-workflow SKILL.md (one row)
   blast_radius: Uptake (GOAL-ESD-UPTAKE) only.
-  disposition: pending
+  disposition: fixed
   disposition_ticket: ESD-05
 - found_by: ESD-04
   id: ESD-04-DF-03
@@ -390,5 +390,5 @@ findings:
     the line to human-review.md's artifact list.
   skill_change: none
   blast_radius: GOAL-ESD-CAPACITY calibration.
-  disposition: pending
+  disposition: fixed
   disposition_ticket: ESD-05

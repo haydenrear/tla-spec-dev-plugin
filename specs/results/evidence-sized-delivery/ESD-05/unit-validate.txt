@@ -1,0 +1,8 @@
+## git-epic-workflow
+✓ git-epic-workflow (skill): manifest parsed, no markdown skill-import violations
+## spec-double-2
+✓ spec-double-2 (skill): manifest parsed, no markdown skill-import violations
+## git-issue-workflow
+✓ git-issue-workflow (skill): manifest parsed, no markdown skill-import violations
+## git-issue
+✓ git-issue (skill): manifest parsed, no markdown skill-import violations

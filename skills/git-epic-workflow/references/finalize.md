@@ -327,6 +327,16 @@ this phase for the deeper options review before another repair/rerun begins.
 Include the cumulative cost, decision record and cross-epic velocity trend in
 the final PR and carry the chosen improvement into the next epic's planning.
 
+Close the capacity loop in the same PR, under **Next epic's starting
+estimate**: the planning estimates (`plan-and-schedule.md` §7) against what each
+wave's *Delivery velocity and step size* block recorded; recurrence of the
+attributed families; REACH and BLIND on the affected components; acceptance
+results. Then write the starting review and verification estimate for the next
+epic, keyed to repository, component and reviewer/verifier model and version,
+and name what stays uncertain. This is the record the next epic's planning
+reads (`plan-and-schedule.md` §3; `validation-review.md`, *Across epics*). It
+changes nothing above: the full integrated run and the manual phase stay.
+
 ## 3. Pass the external semantic-review gate
 
 Push the fully integrated, still-open workflow state and open or update a draft
@@ -395,6 +405,7 @@ tip and the close commit changed workflow artifacts only. Its body includes:
   regression pins or automation limits, repair tickets and final rerun evidence;
 - the goal table from step 2a — baseline, measured, target, and verdict per
   goal, with the user's recorded acceptance for any missed goal;
+- the *Next epic's starting estimate* from §2c;
 - the workflow closed-snapshot path;
 - the deferred-findings disposition: tickets opened, `wontfix` reasons, and
   issues carried to the default branch;

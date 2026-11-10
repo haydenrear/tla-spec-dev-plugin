@@ -33,8 +33,8 @@ findings:
       session transcripts for the ESD-06 pilot. Either supplies the missing denominator without a
       new tool.
     blast_radius: "Measurement only; no behaviour change."
-    disposition: pending
-    disposition_ticket: null
+    disposition: fixed
+    disposition_ticket: ESD-05
 
   - id: ESD-01-DF-02
     found_by: "ESD-01"

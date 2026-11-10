@@ -182,6 +182,16 @@ Graph graphs, and any dashboards or saved baselines. That inventory is the raw
 material for the goals agreed in step 3a — goals are cheapest when an existing
 harness already decides them.
 
+Then retrieve a **bounded evidence slice**, only for the affected actions, bins
+and graph nodes: the findings already anchored to them, the instrument faults
+and nodes the graph checklist flags (the **dangerous validation boundaries**),
+and the previous epic's *Next epic's starting estimate* (`finalize.md` §2c).
+spec-double-2's `references/agent_roles.md` § *Evidence routing*, row *epic:
+planning*, names the one
+source for each; do not load the whole ledger. Carry what applies to each
+ticket into its assignment's *Evidence slice* bullet (`epic-ticket.md`), so the
+ticket agent does not reread the ledger.
+
 ## 3a. Agree the epic goals
 
 Before scaffolding the workflow, ask the user what should be measurably better
@@ -647,6 +657,12 @@ and a schedule such as:
 
 | Issue | Spec ticket | Start dependencies | Wave | Promote after | Goals | State |
 | --- | --- | --- | --- | --- | --- | --- |
+
+Under the schedule, state in a few lines: the review and verification capacity
+estimates (separately), the batch and the cadences chosen, the confidence, the
+cold-start gaps written as `unknown`, and the expensive-eval cost and budget
+(`step-sizing.md` §1–§5, §7). The first review artifact repeats them, so the wave
+owner compares against the same numbers.
 
 An issue is ready to hand off only when every dependency PR is merged into the
 remote epic branch. An open or green PR is not a satisfied dependency.

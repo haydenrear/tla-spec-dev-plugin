@@ -87,6 +87,15 @@ result. Do not encode the cadence in `mode`.
   integrated epic. Run `local_signal` before close, record the number under the
   evidence root, and report it against `expected_effect` — including "no
   measurable movement".
+- **Evidence slice:** <the findings anchored to this ticket's actions, bins and
+  graph nodes, by ID; the dangerous validation boundaries it crosses; the valid
+  targeted reruns; repository-specific instructions — or `none found`>. Read
+  these instead of the whole ledger. When you change a graph node, answer the
+  five questions in test-graph's `references/graph-architecture-review.md`
+  (*A graph change is a product change*) in `## Review input`. When evidence
+  shows the planned batch or validation will not hold, say so there; do not
+  widen scope or drop a REQUIRED entry. (spec-double-2
+  `references/agent_roles.md` § *Evidence routing*, row *ticket*.)
 - Start the worktree from the latest `origin/epic/<slug>` after all
   `depends_on` PRs are merged.
 - Run `tla-spec-dev --spec-root specs open ticket <stable-ticket-id>`; never
@@ -128,6 +137,10 @@ result. Do not encode the cadence in `mode`.
   decisions you made that nobody asked for, any guardrail you had to override,
   where you would look for bugs in your own change, and what about the tooling
   or skills slowed you down. You are the only one who still knows the last two.
+  Open it with the delivery line `started_at: <UTC>; agent: <model and
+  version>, <harness and version>; scope items: <n>` (`unknown` where unknown),
+  and give each red's origin, channel and effect and whether its repair was
+  product or validation (git-epic-workflow `references/epic-ticket.md` §7).
 - Push the sealed ticket branch and open its PR with base `epic/<slug>` and
   `Refs #<issue-number>`. Stop there. The epic owner merges this PR into the
   epic branch; you do not merge it, do not merge to the default branch, and do
@@ -580,7 +593,13 @@ The PR body contains:
 - a `## Review input` section, written for a human who has ten minutes and did
   not read the ticket. Four short lists, evidence-cited, no padding — the epic
   owner composes the wave review from these rather than re-deriving them from
-  the diff (`human-review.md` §3):
+  the diff (`human-review.md` §3). Open it with one **delivery line**:
+  `started_at: <UTC>; agent: <model and version>, <harness and version>; scope
+  items: <n>` (`unknown` where you do not know). Per finding in
+  `## Deferred findings` and per red you met, keep origin, channel and effect
+  apart (`bug_attribution.md` §4.3), and give its cost as product repair or
+  validation repair. The wave owner sizes the next batch from these
+  (`step-sizing.md` §1, §6).
   - **Hot spots** — what you changed that carries the most risk or the most
     meaning, with paths. Say when you wrote a file another ticket in your wave
     also touches;
