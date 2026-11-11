@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:14:55.866Z",
+  "durationSeconds": 72,
+  "costUsd": 0.4702913999999999,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "esd-plan-two-capacities",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "esd-plan-two-capacities",
+      "dir": "specs/evals/evidence-sized-delivery/cases/esd-plan-two-capacities",
+      "source": "mixed",
+      "promptMarkdown": "You are the epic agent planning wave 1 of a new epic in a repository that\nuses this plugin. There are 9 candidate tickets:\n\n- 6 are independent documentation or unit-level fixes, each with a test that\n  is red on the base and green on its branch;\n- 3 change the `billing` module, and all three must run graph `billingFlow`.\n  All graph runs share one host. Its node `billing.ledger.reconcile` errored\n  on 4 of the last 10 runs with a timeout; the last review attributed those\n  reds to the instrument (host load), not to the product.\n\nHistory: one prior epic in this repository, with one milestone review artifact\n(5 hot spots, no escapes). The owner reviews at milestone cadence. Which agent\nmodel and version will implement and review this epic is not recorded.\n\nDecide how many tickets go into wave 1 and how you set its validation. Show\nyour reasoning the way this plugin's guidance asks a planner to, and name the\nguidance you used (file and section).\n\nNOTE ON THIS ENVIRONMENT: your working directory is an empty scratch\nrepository. The plugin's skills are loaded; read them through the Skill tool\nand the files they point to. Nothing here needs to be written or run.\n\nEVAL-CASE: esd-plan-two-capacities\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "names-step-sizing",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "step-sizing",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "two-estimates-tighter-binds",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does ALL of:\n (a) gives TWO SEPARATE estimates -- one for how much REVIEW can absorb and one\n     for how much the VALIDATION / VERIFICATION instruments can discriminate --\n     not a single combined \"risk\" judgement;\n (b) sizes the batch by the tighter of the two, identifying validation of the\n     billing tickets on the unstable shared-host graph as the binding limit; AND\n (c) does NOT run the three billingFlow tickets concurrently as-is: it serializes\n     them (depends_on / separate waves), or fixes or isolates the flaky node\n     first, while the independent proven tickets may go wide.\n\nSCORE 0.5 if it reaches (c) but without separate review and verification\nestimates, OR gives separate estimates but puts all three billing tickets into\none concurrent wave.\n\nSCORE 0 if it puts all 9 tickets in wave 1 with no constraint on billingFlow,\nor answers without addressing the graph's instability.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does ALL of:\n (a) gives TWO SEPARATE estimates -- one for how much REVIEW can absorb and one\n     for how much the VALIDATION / VERIFICATION instruments can discriminate --\n     not a single combined \"risk\" judgement;\n (b) sizes the batch by the tighter of the two, identifying validation of the\n     billing tickets on the unstable shared-host graph as the binding limit; AND\n (c) does NOT run the three billingFlow tickets concurrently as-is: it serializes\n     them (depends_on / separate waves), or fixes or isolates the flaky node\n     first, while the independent proven tickets may go wide.\n\nSCORE 0.5 if it reaches (c) but without separate review and verification\nestimates, OR gives separate estimates but puts all three billing tickets into\none concurrent wave.\n\nSCORE 0 if it puts all 9 tickets in wave 1 with no constraint on billingFlow,\nor answers without addressing the graph's instability.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.16666666666666666,
+            "passed": false,
+            "turns": 17,
+            "costUsd": 0.4702913999999999,
+            "judgeCostUsd": 0.0011902,
+            "durationSeconds": 72,
+            "startedAt": "2026-11-10T15:14:55.957Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-4npCYA/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-step-sizing",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "two-estimates-tighter-binds",
+                "passed": false,
+                "weight": 4,
+                "explanation": "judge votes: FAIL FAIL FAIL",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  false,
+                  false,
+                  false
+                ],
+                "evidence": "I read the plugin guidance through the `git-epic-workflow` skill and the files it points to. **Recommendation: wave 1 gets the 6 independent tickets, and none of the 3 billing tickets.** If you agree, I'd also add one new instrument ticket for `billingFlow`'s shared host.\n\nOne thing first: I searched the loaded skills and found no section that talks about two \"capacities.\" The reasoning below uses the sections that do exist, cited exactly. I haven't invented a heading to match the question.\n\n## Guidance used\n\n| Guidance | File § section |\n|---|---|\n| Two tickets can share a wave only if neither depends on the other and their conflict keys don't overlap | `git-epic-workflow/SKILL.md` § Scheduling model; `references/plan-and-schedule.md` §5 *Validate the schedule* |\n| Choose increments whose validation can settle; check whether a red can be pinned on a small change | `SKILL.md` rule 15; `references/validation-review.md` § *During planning: choose an increment that can converge* |\n| A plain retry needs a concrete \"this failure is transient\" hypothesis; shared setup that makes small changes expensive should be fixed in the harness | `validation-review.md` § *Short review* and § *During planning* |\n| Schedule a wave-1 harness+baseline ticket when the harness doesn't exist; give tickets only the graphs they affect plus their dependencies | `plan-and-schedule.md` §3a *Agree the epic goals* |\n| A changed contract reruns every graph that checks it | `validation-review.md` § *A changed contract reruns every instrument that asserts it* |\n| Reds caused by the test setup are recorded with an `area` that names the test setup, not the product | `spec-double-2/references/bug_attribution.md` §6a |\n| Missing attribution is uncertainty; unknown baselines stay unknown | `validation-review.md` § *Deeper review* and § *Across epics* |\n| Milestone review cadence; deep-review triggers apply whatever the cadence | `plan-and-schedule.md` §4b; `human-review.md` §2; `validation-review.md` § *Deeper review* |\n| Split the backlog per ticket when a wave has more than one ticket | `plan-and-schedule.md` §4a |\n\n## Reasoning\n\n**1. The 3 billing tickets can't share a wave with each other.** All three change `billing` (overlapping conflict keys) and all run `billingFlow`. So whatever else happens, they run one per wave, in a fixed merge order.\n\n**2. Each billing ticket's validation can't currently settle.** `billing.ledger.reconcile` errored 4 times in the last 10 runs. That means about 60% of runs come back clean even on unchanged code, so a red tells you nothing about the change. The guidance asks whether failures can be pinned on a small change, and here they can't. It also says a plain rerun needs a real \"this is transient\" hypothesis, and \"host load\" can't be distinguished from a real fault by simply repeating the run. Putting a billing ticket in wave 1 would set up the self-repeating repair-and-rerun loop the guidance warns about.\n\n**3. The fix belongs in the test setup, not in a retry policy.** The guidance says to fix expensive shared setup in the harness, and to schedule a wave-1 harness+baseline ticket when the harness isn't good enough. So I'd propose a 7th ticket scoped to the `billingFlow` host or timeout. Its deliverable would be a measured error rate for `reconcile` on unchanged code, brought under an agreed threshold. It only touches the test-graph conflict key, so it doesn't overlap the other six. Adding scope means a new ticket, so this needs your approval. If you decline, wave 1 is just the six, and the first billing ticket waits until the setup problem is dealt with some other way.\n\n**4. The six independent tickets are the ones whose validation does settle.** Each has a test that is red on the base and green on its branch. That gives a cheap local result that decides the ticket on its own, and none of them needs the shared host. The overlap and dependency rules allow all six together.\n\n**5. Two things I'm deliberately not using to size the wave:**\n- **History.** One prior epic, one review, 5 hot spots, no escapes. That's a single data point. \"No escapes\" isn't evidence that the code is sound, so I'm not treating it as a velocity baseline.\n- **Implementer and reviewer.** Which model and version will implement and review this epic isn't recorded, so their throughput is unknown and stays unknown. I won't estimate it. I'll record it as unknown in the plan so a later epic can compare.\n\nNeither one makes wave 1 bigger. Six cheap tickets that settle on their own are safe whatever those unknowns turn out to be.\n\n## How wave 1's validation is set\n\n- **Six independent tickets:** each one's validation is its red→green test, plus only the graphs it affects and their dependencies (none of which is `billingFlow`). The full integrated graph and the manual product test stay at finalization.\n- **Proposed instrument ticket:** its validation is repeated `billingFlow` runs on the unchanged base, with the reconcile error rate measured before and after. Graph runs are serialized through `scripts/milestone.py`'s single lock, because all graph runs share one host.\n- **Billing tickets, waves 2–4, one per wave:** each ticket's validation includes every graph that touches the actions it changes, not just `billingFlow`. Any further `reconcile` timeout is recorded with an `area` naming the host, not billing. If validation keeps failing in new ways, the deep-review triggers stop automatic reruns.\n- **Backlog:** set `per_ticket_backlog`, since wave 1 has more than one ticket.\n- **Review:** the milestone cadence is recorded as your decision (`cadence: milestone`, with the milestones named). The deep-review triggers still apply between milestones.\n\n## Needs your decision before anything is set up\n\nThe plugin treats these as yours to decide, not mine to default:\n- the epic's measurable goals (with baselines);\n- how ticket agents handle problems outside their ticket;\n- confirming the review cadence and naming the milestones;\n- whether to add the proposed instrument ticket.\n\nNothing was written or run."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.16666666666666666,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.16666666666666666,
+    "overallPassRate": 0
+  }
+}

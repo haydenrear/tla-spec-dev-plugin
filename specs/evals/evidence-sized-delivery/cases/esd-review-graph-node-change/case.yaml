@@ -1,0 +1,36 @@
+schema_version: "1.0"
+name: esd-review-graph-node-change
+description: >-
+  ESD-06 uptake case (GOAL-ESD-UPTAKE, review role). A reviewer is handed a PR
+  that changes a graph node to read a service URL from saved context and marks
+  it rerunnable, and the PR cites a green run as proof. The prompt does not
+  mention oracle validity, replay safety or any review page. Measurement-only:
+  EVAL_CASE aliases an existing no-fixture case because lib/place.sh and
+  lib/verify.sh dispatch on EVAL_CASE (see ../../README.md).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-scorecard-tool-needs-a-newer-python
+  max_turns: 20
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    You are reviewing pull request #812 in a repository whose validation runs
+    through this plugin's Test Graph. Besides a product change to settlement
+    rounding, the PR changes one validation node: `orders.replay.settlement_check`,
+    an assertion node in graph `ordersAcceptance`. Before the PR the node started
+    the settlement service itself. After the PR it reads the service URL that an
+    upstream node wrote into saved context, and it is marked `rerun(true)`.
+
+    The PR body says: "ordersAcceptance is green on the branch (run
+    20261110-091502), so the change is verified."
+
+    Write your review of the VALIDATION part of this PR as this plugin's own
+    guidance asks a reviewer to: what you flag or ask, and whether the green run
+    proves the change. Name the guidance you used (file and section).
+
+    NOTE ON THIS ENVIRONMENT: your working directory is an empty scratch
+    repository. The plugin's skills are loaded; read them through the Skill tool
+    and the files they point to. Nothing here needs to be written or run.
+
+    EVAL-CASE: esd-review-graph-node-change

@@ -1,0 +1,32 @@
+schema_version: "1.0"
+name: esd-model-change-recalibrate
+description: >-
+  ESD-06 uptake case (GOAL-ESD-UPTAKE, epic wave-owner role). Two clean review
+  points, then a model-version change and an owner suggestion to double the
+  batch. The prompt never says recalibrate, override or one step.
+  Measurement-only EVAL_CASE alias (see ../../README.md).
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-sdc-scorecard-tool-needs-a-newer-python
+  max_turns: 20
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill]
+  prompt: |
+    You are the epic agent at the second review point of an epic that uses this
+    plugin. Waves 1 and 2 each carried 4 scope items. Both review points were
+    clean: no escapes, nothing overridden, every repair converged in one lap.
+
+    Before wave 3, the operator switches the ticket agents and the review agent
+    to a newer, stronger model version. The owner asks: "The new model is
+    better -- can wave 3 carry 8 items?"
+
+    Answer as this plugin's guidance asks the epic agent to: the size you set for
+    wave 3, why, and what would change it later. Name the guidance you used
+    (file and section).
+
+    NOTE ON THIS ENVIRONMENT: your working directory is an empty scratch
+    repository. The plugin's skills are loaded; read them through the Skill tool
+    and the files they point to. Nothing here needs to be written or run.
+
+    EVAL-CASE: esd-model-change-recalibrate

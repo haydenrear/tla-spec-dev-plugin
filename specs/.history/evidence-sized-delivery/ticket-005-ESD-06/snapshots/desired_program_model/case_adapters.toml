@@ -1,0 +1,59 @@
+# Map generated program-model action labels to production adapters.
+#
+# CD-09 (coverage-audit run 2, gap G5): this file binds EXACTLY the model's
+# @command action set -- all 16 actions of TlaSpecDevCli.tla, nothing else
+# (AC-01 added AnalyzeArchitecture and 2026-08-04 removed it with the scanners;
+# RC-01 added GenerateCases and CloseTicketWeakened -- MF-026 G-6 and the
+# guard-weakening flag decision).
+# The audit found 11 bindings for 14 actions plus `ValidateTestGraphCli`,
+# which is not a model action (it was a Test Graph CLI probe label; the
+# TestGraphCliAdapter class remains available to the test graph, unbound
+# here). `Stutter` is deliberately NOT bound: it carries no @command
+# annotation -- it is the stuttering frame condition, not an observable
+# command. specs tests prove label set == action set both ways
+# (test_tla_spec_dev_binding_reconciliation.py).
+
+[adapters.BuildSkillCli]
+adapter = "production_adapters:BuildSkillCliAdapter"
+
+[adapters.InstallLocalCli]
+adapter = "production_adapters:InstallLocalCliAdapter"
+
+[adapters.ScaffoldProject]
+adapter = "production_adapters:ScaffoldProjectAdapter"
+
+[adapters.RecordBudgets]
+adapter = "production_adapters:RecordBudgetsAdapter"
+
+[adapters.ScaffoldWorkflow]
+adapter = "production_adapters:ScaffoldWorkflowAdapter"
+
+[adapters.OpenTicket]
+adapter = "production_adapters:OpenTicketAdapter"
+
+[adapters.UpdateTicketDesired]
+adapter = "production_adapters:UpdateTicketDesiredAdapter"
+
+[adapters.UpdateTicketCurrent]
+adapter = "production_adapters:UpdateTicketCurrentAdapter"
+
+[adapters.AnalyzeComplexity]
+adapter = "production_adapters:AnalyzeComplexityAdapter"
+
+[adapters.AnalyzeCorpus]
+adapter = "production_adapters:AnalyzeCorpusAdapter"
+
+[adapters.RunEffectConformance]
+adapter = "production_adapters:RunEffectConformanceAdapter"
+
+[adapters.RunSpecUnitTests]
+adapter = "production_adapters:RunSpecUnitTestsAdapter"
+
+[adapters.CloseTicket]
+adapter = "production_adapters:CloseTicketAdapter"
+
+[adapters.GenerateCases]
+adapter = "production_adapters:GenerateCasesAdapter"
+
+[adapters.CloseTicketWeakened]
+adapter = "production_adapters:CloseTicketWeakenedAdapter"

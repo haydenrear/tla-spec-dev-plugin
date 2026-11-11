@@ -1,0 +1,1837 @@
+# ESD-01 finding inventory -- one row per finding/defect (deduplicated; recurrence kept in `recurrence`).
+#
+# Scope, sampling frame and revisions: README.md beside this file. SAMPLE, not census.
+# This is a hand-written evidence document. It is not a schema; nothing reads it mechanically.
+#
+# Field meanings (prose, not a schema):
+#   origin            where the defect actually lived (component), written from the primary record
+#   anchor            TLA+ action when the record names one, else UNMODELED/<bin> (bug_attribution.md 7a/7c)
+#   channel           what DETECTED it (bug_attribution.md 4.1 tokens, plus `eval`, `ci`,
+#                     `manual-final-testing`). A channel of test-graph says nothing about the origin.
+#   class             product bug | graph orchestration/node/fixture defect |
+#                     package/provider/environment fault | invalid assertion | false green |
+#                     false red | unresolved   (the seven classes named by #235)
+#   consequence       optional: the signal effect (false red / false green / skipped coverage) when
+#                     the class names the origin. local-signal.md explains why both are needed.
+#   cause_confidence  confirmed = the record shows root cause + fix/controlled reproduction;
+#                     inferred = attribution argued but not demonstrated
+#   evidence          paths are relative to the row's repo; line ranges at the revisions in README.md
+#   disposition       state at the audited revision (2026-11-10), not at filing time
+#
+# Rows 1-45 were read from primary records by the ESD-01 author. Rows 46-117 (consumer repos)
+# were extracted by two delegated read-only readers and spot-checked (README.md "Method").
+rows:
+  # ---------------------------------------------------------------- tla-spec-dev-plugin
+  - id: RP-07-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "test-graph executor process-ownership contract x Kotlin Gradle plugin default `daemon` compile strategy, reached through the nested Gradle build in node spec.workflow.failure_cleanup_probe"
+    anchor: UNMODELED/test-graph-process-ownership
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    severity: minor
+    cause_confidence: confirmed   # three-arm controlled A/B in RP-07 diagnosis
+    graph_node: "specWorkflow / spec.workflow.failure_cleanup_probe @ b2d3a35"
+    environment: "macOS, Gradle + Kotlin Gradle plugin (KotlinCompileDaemon --daemon-autoshutdownIdleSeconds=7200), uv-run node launcher"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml:989-1061
+      - test_graph/README.md:79-110
+    disposition: "carried. Local node fixed (in-process strategy pinned, README section). The general half -- executor message naming surviving command lines, and daemon guidance in the test-graph skill -- is NOT landed: `grep KotlinCompileDaemon skills/test-graph/references/workflows.md` returns nothing at 9635bad2. Executors.kt:226 still reports bare PIDs."
+    recurrence: "1 recorded; same family as BS-07-DF-05 (different daemon, same contract)"
+
+  - id: BS-07-DF-05
+    repo: tla-spec-dev-plugin
+    origin: "specWorkflow node spec.workflow.failure_cleanup_probe: nested gradlew (-Dorg.gradle.daemon=false) forks a single-use Gradle daemon that is reparented and outlives the probe's drain window; executor descendant check"
+    anchor: UNMODELED/test-graph-process-ownership
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    consequence: "false red against innocent tickets; spec.reference.adapters_resolve never ran in milestone 1 (skipped behind the probe)"
+    severity: "not recorded (wave-3 review treats it as the main GOAL-BS-GRAPHS risk)"
+    cause_confidence: inferred    # load hypothesis never controlled; see counterexamples
+    graph_node: "specWorkflow / spec.workflow.failure_cleanup_probe on epic/bug-sweep 2026-11-07 (runs 20261107-173107, -175029, -175652, -180244, -180730, -180959 ...)"
+    environment: "10-core macOS host, load average 28-47 with ~19 concurrent ticket agents; Gradle 'live descendants' and one 'node timed out after 180s'"
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml:317-333
+      - specs/results/bug-sweep/BS-07/probe-lingering-descendant-ps.txt
+      - specs/results/bug-sweep/BS-07/specWorkflow-graph.txt
+      - specs/results/bug-sweep/BS-02/README.md
+      - specs/results/bug-sweep/BS-12/specWorkflow/VERDICT.txt
+      - specs/results/bug-sweep/review/wave-3/review.md ("Where the bugs probably are")
+      - specs/results/bug-sweep/review/wave-5/review.md ("symptom did not recur")
+    disposition: "deferred (batched). Did not recur on 2f3e85c4 (wave-5 sanity, load 21-30). No root-cause fix recorded."
+    recurrence: "13 errored specWorkflow runs across 7 tickets (BS-01 x2, BS-02 x3, BS-07 x4, BS-08 x1, BS-12 x1, BS-15 x1, BS-21 x1); passed at kickoff baseline (20261107-170338, quiet host) and on the wave-5 tip"
+
+  - id: "#226 / BS-HP-05"
+    repo: tla-spec-dev-plugin
+    origin: "test-graph build-logic RunReportWriter: no attempt closure written under TESTGRAPH_CONTINUE_AFTER_FAILURE=1; the throw hidden as a suppressed exception"
+    anchor: UNMODELED/test-graph-resume
+    channel: operator-doing-the-work   # found by the skill-manager honest-pins epic (#411) close-out
+    class: product bug
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "any graph run with continue-after-failure, then run.py --resume"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml:846-856
+      - specs/results/deferred/attribution/attribution.yaml:603-610 (BLIND)
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/231
+    disposition: "fixed ffd83da9 (BS-26, PR #231), pinned by RunReportWriterTraceTest.continueAfterFailureAttemptIsClosedAndReplayableFromThePersistedMode; issue #226 closed by #250"
+    recurrence: 1
+
+  - id: "#195 / BS-10"
+    repo: tla-spec-dev-plugin
+    origin: "test-graph build-logic: node describe failure reported as a node failure; no retry"
+    anchor: UNMODELED/test-graph-reporting
+    channel: UNDECIDED   # carried from #138's describe item; the original catch is not in the read record
+    class: product bug
+    consequence: "false red classification (a runner/describe fault read as a node FAIL)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "all graphs (describe phase)"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/BS-10/red-on-base.txt
+      - specs/results/bug-sweep/BS-10/green-on-branch.txt
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/209
+    disposition: "fixed 02375b14 (PR #209); issue closed by #250"
+    recurrence: 1
+
+  - id: BS-10-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "the finding record itself: claimed describe runs at Gradle CONFIGURATION time"
+    anchor: UNMODELED/test-graph-reporting
+    channel: independent-review   # refuted by BS-11's reading of RunTestGraphTask.kt:178
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: confirmed   # BS-11-DF-03 cites the line that refutes it
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml (BS-10-DF-01, BS-11-DF-03)
+    disposition: "superseded by BS-11-DF-03; both batched"
+    recurrence: 1
+
+  - id: "#185 / BS-11"
+    repo: tla-spec-dev-plugin
+    origin: "test-graph run.py: no machine-readable outcome; passed/failed/errored/not_run conflated in exit codes"
+    anchor: UNMODELED/test-graph-reporting
+    channel: operator-doing-the-work
+    class: product bug
+    consequence: "false red / ambiguous red for every graph consumer (agents read an errored graph as failed)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "all graphs"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/BS-11/regression-red-on-base.txt
+      - specs/results/bug-sweep/BS-11/graph-cliWorkflow-outcome.json
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/216
+    disposition: "fixed d9c20ee4 (PR #216); BS-11-DF-01/02 (timeout bound null, wrapper message as failure) batched"
+    recurrence: 1
+
+  - id: "#175 / BS-03"
+    repo: tla-spec-dev-plugin
+    origin: "test-graph run.py: a dead runner (Gradle/daemon death) reported as a node failure"
+    anchor: UNMODELED/test-graph-reporting
+    channel: operator-doing-the-work
+    class: product bug
+    consequence: "false red (environment death charged to a node)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: cliWorkflow
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/BS-03/base-red.txt
+      - specs/results/bug-sweep/BS-03/README.md
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/176
+    disposition: "fixed 5748dcc6 (PR #176, opened 2026-11-05, retargeted to the epic)"
+    recurrence: 1
+
+  - id: "#186 / BS-13"
+    repo: tla-spec-dev-plugin
+    origin: "test-graph run.py: no `--resume <report>` front door; chained resumes required hand-spelled build/node paths"
+    anchor: UNMODELED/test-graph-resume
+    channel: operator-doing-the-work
+    class: product bug
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "all graphs (repair loop)"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/BS-13/red-on-base.txt
+      - specs/results/bug-sweep/BS-13/resume-on-cliWorkflow.txt
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/220
+    disposition: "fixed 54ec4a34 (PR #220). Residual BS-13-DF-02 (macOS /var vs /private/var lexical refusal) and BS-13-DF-01 (run-only log dir) open, low"
+    recurrence: 1
+
+  - id: "#194 / BS-09"
+    repo: tla-spec-dev-plugin
+    origin: "repo test_graph build bound to the in-repo test-graph copy rather than the installed one (owner request)"
+    anchor: UNMODELED/test-graph-binding
+    channel: operator-doing-the-work
+    class: graph orchestration/node/fixture defect
+    consequence: "after the fix, graphs read the INSTALLED skill, so a branch's test-graph change is not under test until it reaches a home: tickets had to use the in-repo runner (wave-3 review), and the doc-smoke/onboarding graphs stay red until release (wave-5 review)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "all graphs in test_graph/"
+    environment: "installed home vs worktree branch skew"
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/BS-09/layout-tests-red-on-base.txt
+      - specs/results/bug-sweep/review/wave-3/review.md (guardrails row "in-repo runner")
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/204
+    disposition: "fixed acba8ad2 (PR #204); the version-skew consequence is unresolved"
+    recurrence: 1
+
+  - id: BS-01-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "spec-double-2 extract_spec_manifest.load_manifest cannot parse YAML anchors written by the epic plan generator"
+    anchor: UNMODELED/yaml-parser
+    channel: the-suite
+    class: product bug
+    severity: major
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml:22-45
+      - specs/results/bug-sweep/BS-01/repository-unit-base.txt
+    disposition: "plan side fixed 933bfcad (plan rewritten without anchors); loader unchanged"
+    recurrence: "1 here; same yaml-parser bin as #298/#307 named in bug_attribution.md 4.1"
+
+  - id: BS-07-DF-04
+    repo: tla-spec-dev-plugin
+    origin: "tests/test_source_citations.py: 48 stale LINE citations in three spec_manifest.yaml files after unrelated wave merges"
+    anchor: UNMODELED/source-citations
+    channel: the-suite
+    class: invalid assertion
+    consequence: "red on innocent merges (line numbers move whenever cited files change)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml (BS-07-DF-04)
+      - specs/results/bug-sweep/baseline/README.md (test_source_citations in the 9 base failures)
+    disposition: "repaired by BS-08 (comment-only citation repairs, wave-3 review section 4)"
+    recurrence: "2 recorded (on 350b9ab4 base and again at 02375b14)"
+
+  - id: "BS-08 checkout-dependent test"
+    repo: tla-spec-dev-plugin
+    origin: "tests/test_ticket_retirement::test_repository_canonical_delivered_plan_has_matching_close_receipts picks the newest closed snapshot by mtime"
+    anchor: UNMODELED/test-determinism
+    channel: the-suite
+    class: false red
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "checkout mtimes"
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/baseline/README.md
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/221
+    disposition: "fixed in BS-08 (PR #221, 45575a43)"
+    recurrence: 1
+
+  - id: BS-08-DF-02
+    repo: tla-spec-dev-plugin
+    origin: "tests/test_architecture_tags.py::test_the_same_tag_control_holds -- a deliberately red control (RM-06-DF-01)"
+    anchor: UNMODELED/architecture-tags
+    channel: the-suite
+    class: unresolved
+    consequence: "GOAL-BS-SUITE missed by exactly this test; owner kept it red"
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/review/wave-3/owner-decisions.md
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/250
+    disposition: "kept red by owner decision 2026-11-07"
+    recurrence: "persistent"
+
+  - id: BS-08-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "TlaSpecDevCli.tla @command actions SktStatus/SktCheck/SktTicketSweep added without case_adapters binding"
+    anchor: "TlaSpecDevCli.SktStatus / SktCheck / SktTicketSweep"
+    channel: the-suite
+    class: unresolved
+    consequence: "one of the 2 known spec-unit reds on the evidence-sized-delivery base"
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml (BS-08-DF-01)
+      - specs/results/evidence-sized-delivery/baseline/README.md
+    disposition: "batched; still red at 9635bad2"
+    recurrence: "persistent since 2026-09-24"
+
+  - id: BS-08-DF-03
+    repo: tla-spec-dev-plugin
+    origin: "close_tickets.py truncates the ledger-refusal message to the first issue at 120 chars"
+    anchor: UNMODELED/close-path
+    channel: the-suite
+    class: product bug
+    consequence: "the other known spec-unit red on the evidence-sized-delivery base"
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml (BS-08-DF-03)
+      - specs/results/evidence-sized-delivery/baseline/README.md
+    disposition: "batched; still red at 9635bad2"
+    recurrence: persistent
+
+  - id: BS-03-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "session PATH: `command -v skt` resolves to the ROOT home's skt (11 commits behind) while SessionStart reports the project home"
+    anchor: UNMODELED/home-tier-resolution
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "agent session PATH, root vs project Skill Manager home"
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml:4-12
+      - specs/evals/bug-sweep/tip.json (8 voided eval runs, reason "agent could have run the root home's skt")
+    disposition: "declined to successor (wave-3 review skill-changes table)"
+    recurrence: "1 finding + 8 voided eval runs in BS-17 traced to the same cause"
+
+  - id: "BS-03-DF-02 / BS-05-DF-03"
+    repo: tla-spec-dev-plugin
+    origin: "agent auto-mode permission classifier refused `skill-manager home close-out` for ticket agents"
+    anchor: UNMODELED/agent-sandbox
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "Claude Code auto mode"
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml:13-21
+      - specs/results/bug-sweep/review/wave-3/owner-decisions.md
+    disposition: "epic agent ran close-out for all 19 homes (rc=0); classifier block remains"
+    recurrence: "2 tickets reported; 19 homes affected"
+
+  - id: BS-21-DF-02
+    repo: tla-spec-dev-plugin
+    origin: "spec_evolution.snapshot_results copies results by basename; collisions silently overwrite"
+    anchor: UNMODELED/close-path
+    channel: independent-review
+    class: product bug
+    consequence: "evidence capture can silently lose a report (affects every close-record cost reconstruction)"
+    severity: low
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml (BS-21-DF-02)
+    disposition: batched
+    recurrence: 1
+
+  - id: "BS-HP-02"
+    repo: tla-spec-dev-plugin
+    origin: "skt ticket sweep: squash-merged tickets never recognised as landed"
+    anchor: UNMODELED/worktree-retirement
+    channel: operator-doing-the-work
+    class: product bug
+    consequence: "BLIND: test_ticket_sweep fixtures used real merges; this repo squashes every PR"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "sktSurface has no sweep node (attribution.yaml BLIND row)"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/bug-sweep/deferred-ledger.yaml:813-823
+      - specs/results/deferred/attribution/attribution.yaml:579-601
+    disposition: "fixed 4ace6307 (BS-25, PR #232)"
+    recurrence: "1; I157-DF-01 / SI-20-DF-06 are earlier sweep-membership defects in the same verb"
+
+  - id: "BS-27 / DEF-HP9-002"
+    repo: tla-spec-dev-plugin
+    origin: "this plugin's skill text, asserted by skill-manager's doc-smoke and onboarding graphs (cross-repo assertion)"
+    anchor: UNMODELED/cross-repo-doc-contract
+    channel: test-graph   # in skill-manager
+    class: product bug
+    consequence: "BLIND here: this repository's tests stay green when the text changes"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "skill-manager doc-smoke / onboarding"
+    environment: "installed home must carry the new text before the graph can go green"
+    model: unknown
+    evidence:
+      - specs/results/deferred/attribution/attribution.yaml:621-635
+      - specs/results/bug-sweep/review/wave-5/review.md
+    disposition: "fixed 2f3e85c4 (PR #230); full graphs red until release"
+    recurrence: 1
+
+  - id: "#245"
+    repo: tla-spec-dev-plugin
+    origin: "evals/lib/checks/epic_plan.py grader: negator searched only on the same line"
+    anchor: UNMODELED/eval-graders
+    channel: eval
+    class: invalid assertion
+    consequence: "false red on a correct plan (epic-mode-is-not-main)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "eval case epic-mode-is-not-main"
+    environment: "skill-manager 0.29.0 eval pin"
+    model: unknown
+    evidence:
+      - specs/evals/bug-sweep/README.md
+      - https://github.com/haydenrear/tla-spec-dev-plugin/issues/245
+    disposition: open
+    recurrence: 1
+
+  - id: "#246"
+    repo: tla-spec-dev-plugin
+    origin: "eval sandbox blocks git and /dev/fd"
+    anchor: UNMODELED/eval-sandbox
+    channel: eval
+    class: package/provider/environment fault
+    consequence: "false red: w-giw-wt-refusal-quotes-subject scores 0.75 with base and tip skt alike"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "eval case w-giw-wt-refusal-quotes-subject"
+    environment: "claude plugin eval sandbox"
+    model: unknown
+    evidence:
+      - https://github.com/haydenrear/tla-spec-dev-plugin/issues/246
+    disposition: open
+    recurrence: 1
+
+  - id: "#247"
+    repo: tla-spec-dev-plugin
+    origin: "eval case w-sdc-complexity-ledger-is-advisory ships no fixture"
+    anchor: UNMODELED/eval-fixtures
+    channel: eval
+    class: graph orchestration/node/fixture defect
+    consequence: false red
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "eval case w-sdc-complexity-ledger-is-advisory"
+    environment: n/a
+    model: unknown
+    evidence:
+      - https://github.com/haydenrear/tla-spec-dev-plugin/issues/247
+    disposition: open
+    recurrence: 1
+
+  - id: "#248"
+    repo: tla-spec-dev-plugin
+    origin: "evals/setup-eval-home.sh: offline uv wheels (.toolchain/uv-wheels) are per worktree; absent wheels fail silently as reds"
+    anchor: UNMODELED/eval-toolchain
+    channel: eval
+    class: package/provider/environment fault
+    consequence: "false red; 4 BS-17 runs voided ($1.20, 289 s)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "eval lane setup"
+    environment: "uv offline wheels, per-worktree .toolchain"
+    model: unknown
+    evidence:
+      - specs/evals/bug-sweep/tip.json (voided)
+      - https://github.com/haydenrear/tla-spec-dev-plugin/issues/248
+    disposition: open
+    recurrence: "4 voided runs"
+
+  - id: "BS-17 budget-only fails"
+    repo: tla-spec-dev-plugin
+    origin: "three eval cases failed on the tool-call budget only (w-epic-force-when-owner-decided, w-skt-check-record-disagrees-with-checkout, w-skt-ticket-new-needs-a-project-home)"
+    anchor: UNMODELED/eval-graders
+    channel: eval
+    class: unresolved
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "3 eval cases"
+    environment: "skill-manager 0.29.0"
+    model: unknown
+    evidence:
+      - specs/evals/bug-sweep/README.md
+    disposition: "explained without comparison; no base measurement"
+    recurrence: 3
+
+  - id: "BS-17 catch-the-drift"
+    repo: tla-spec-dev-plugin
+    origin: "eval case catch-the-drift: tip .8 .2 .6 then .6 1 .8 vs base .8 .8 .8"
+    anchor: UNMODELED/eval-noise
+    channel: eval
+    class: unresolved
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "eval case catch-the-drift"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/evals/bug-sweep/README.md
+      - specs/evals/bug-sweep/compare.json
+    disposition: "inconclusive"
+    recurrence: "6 tip runs"
+
+  - id: SI-14-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "claude plugin eval (Claude Code CLI 2.1.276): a case declaring `plugins:` silently drops the target plugin's hooks"
+    anchor: UNMODELED/eval-harness
+    channel: operator-running-own-instrument
+    class: false green
+    severity: major
+    cause_confidence: confirmed   # 4-run controlled probe, $0.26
+    graph_node: "any eval case with plugins:"
+    environment: "Claude Code CLI 2.1.276"
+    model: unknown
+    evidence:
+      - specs/results/deferred/attribution/attribution.yaml:377-399
+      - specs/results/deferred_findings_final.yaml (SI-14-DF-01)
+    disposition: "still-true upstream; refused locally by tests/test_eval_toolchain_pin.py"
+    recurrence: 1
+
+  - id: SI-27-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "git-issue-workflow bootstrap-home.sh: `verified: N skill(s) servable` counts its own writes, never stats link targets"
+    anchor: UNMODELED/home-projection
+    channel: operator-doing-the-work
+    class: false green
+    consequence: "downstream sktHooks PASSED -> ERRORED, skt.wrapper-installed errored with zero assertions"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "sktHooks / skt.wrapper-installed"
+    environment: "rebuilt worktree home with dangling agent-dir symlinks"
+    model: unknown
+    evidence:
+      - specs/results/deferred/attribution/attribution.yaml:401-428
+    disposition: still-true
+    recurrence: "2 (the counter lied once before, empty-directory case)"
+
+  - id: "missing-rung family (REACH)"
+    repo: tla-spec-dev-plugin
+    origin: "home-anchored resolvers that name only the standalone rung <home>/skills/<unit>, not <home>/plugins/*/skills/<unit>"
+    anchor: UNMODELED/skill-composition
+    channel: "mixed (operator-doing-the-work, test-graph, the-suite)"
+    class: product bug
+    consequence: "three recurrences broke the worktree front door; SI-25-DF-06 made skt.ticket-roundtrip test the wrong code (false green)"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "sktSurface / skt.ticket-roundtrip (SI-25-DF-06)"
+    environment: "plugin-contained skill layout after the one-unit migration"
+    model: unknown
+    evidence:
+      - specs/results/deferred/attribution/attribution.yaml:53-86
+    disposition: "guard written after the 5th recurrence; several instances fixed, some still-true"
+    recurrence: "9 (SIS-W2-F-05, SI-04-DF-03, SI-06-DF-02, SI-11-DF-01, SI-11-DF-02, SI-11-DF-04, SI-15-DF-04, SI-08-DF-03, SI-25-DF-06)"
+
+  - id: "SI-12-DF-05 / SI-13-DF-01"
+    repo: tla-spec-dev-plugin
+    origin: "test_graph/settings.gradle.kts includeBuild of build-logic through symlinks into the installed skill: bare `./gradlew <graph>` fails in a fresh ticket worktree"
+    anchor: UNMODELED/test-graph-binding
+    channel: operator-doing-the-work
+    class: graph orchestration/node/fixture defect
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "specWorkflow, cliWorkflow, effectProviderExamples"
+    environment: "fresh ticket worktree"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-12-DF-05, SI-13-DF-01)
+    disposition: "fixed (run via run.py which prepares bindings); SI-12-DF-05's broader claim corrected by SI-13-DF-01"
+    recurrence: 1
+
+  - id: SI-25-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "four tracked gradle wrappers pin org.gradle.java.home to one operator's sdkman path"
+    anchor: UNMODELED/toolchain-pinning
+    channel: census
+    class: package/provider/environment fault
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "all Gradle-backed graphs"
+    environment: "/Users/<operator>/.sdkman/candidates/java/current"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-25-DF-01)
+    disposition: still-true
+    recurrence: "4 files"
+
+  - id: "SI-27-DF-06 / verify.sh BLIND"
+    repo: tla-spec-dev-plugin
+    origin: "checkers that walk the checkout (citation resolver, card tripwire, verify.sh) count build output and per-checkout agent homes as repository content"
+    anchor: UNMODELED/checker-scan-scope
+    channel: the-suite
+    class: false red
+    consequence: "running the graphs then the suite -- the ordinary order -- turned five checks red on a clean tree; verify.sh reported 297 imports, zero tracked"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "checkout after test_graph runs (73k-328k-entry build dirs)"
+    model: unknown
+    evidence:
+      - specs/results/deferred/attribution/attribution.yaml:351-375
+      - specs/results/deferred_findings_final.yaml (SI-27-DF-06, SI-25-DF-08)
+    disposition: "SI-27-DF-06 fixed; SI-25-DF-08 (verify.sh) still-true"
+    recurrence: "3 fixed one instance at a time (RD-01-DF-02, HP-01-DF-01, SI-27) + verify.sh"
+
+  - id: SI-19-DF-04
+    repo: tla-spec-dev-plugin
+    origin: "tests/test_eval_toolchain_pin.py::test_the_view_excludes_the_materialised_toolchain red in a fresh worktree -- a statement about the machine"
+    anchor: UNMODELED/eval-toolchain
+    channel: the-suite
+    class: false red
+    severity: major
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "materialised eval toolchain present/absent per worktree"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-19-DF-04)
+    disposition: fixed
+    recurrence: 1
+
+  - id: SI-19-DF-05
+    repo: tla-spec-dev-plugin
+    origin: "OpenTelemetry OTLP exporter in graph runs with no collector: 14+ Java stack traces per green run"
+    anchor: UNMODELED/test-graph-telemetry
+    channel: test-graph
+    class: package/provider/environment fault
+    consequence: "noise that obscures real failures in run logs; not a verdict error"
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: "every graph"
+    environment: "no OTLP collector at localhost"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-19-DF-05)
+    disposition: still-true
+    recurrence: "every run"
+
+  - id: SI-19-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "test-graph scaffold.py prints next steps whose `run.py smoke` is red on a fresh scaffold"
+    anchor: UNMODELED/test-graph-onboarding
+    channel: operator-doing-the-work
+    class: product bug
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "scaffolded smoke graph"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-19-DF-01)
+    disposition: still-true
+    recurrence: 1
+
+  - id: SI-18-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "skill-manager home-leak oracle watches .claude/skills/synced/, which the Claude Code client rewrites ~every 4 min"
+    anchor: UNMODELED/oracle-stability
+    channel: test-graph
+    class: false red
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: "skill-manager home-leak oracle"
+    environment: "operator's live agent home"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-18-DF-01)
+    disposition: still-true
+    recurrence: "intermittent"
+
+  - id: EA-DF-15
+    repo: tla-spec-dev-plugin
+    origin: "`uv run --script` skill scripts resolve deps at invocation; sandboxed eval run has empty HOME cache and no network"
+    anchor: UNMODELED/eval-toolchain
+    channel: eval
+    class: package/provider/environment fault
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "every eval case invoking a uv script"
+    environment: "claude plugin eval sandbox, uv"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (EA-DF-15)
+    disposition: "fixed (offline wheels) -- whose per-worktree placement then produced #248"
+    recurrence: "1, successor defect #248"
+
+  - id: EA-DF-09
+    repo: tla-spec-dev-plugin
+    origin: "content grader of w-skt-is-a-plugin-not-a-skill asserts an answer its own fixture makes false"
+    anchor: UNMODELED/eval-graders
+    channel: eval
+    class: invalid assertion
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: "eval case w-skt-is-a-plugin-not-a-skill"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (EA-DF-09)
+    disposition: fixed
+    recurrence: 1
+
+  - id: EA-DF-17
+    repo: tla-spec-dev-plugin
+    origin: "eval fixture teaches a view-qualified adapter binding that makes ticket validation vacuous; agent copies it"
+    anchor: UNMODELED/eval-fixtures
+    channel: eval
+    class: false green
+    severity: data-loss-adjacent
+    cause_confidence: confirmed
+    graph_node: "ticket spec-unit validation"
+    environment: n/a
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (EA-DF-17)
+    disposition: still-true
+    recurrence: 1
+
+  - id: "SI-15-DF-05 / EA-DF-08"
+    repo: tla-spec-dev-plugin
+    origin: "six eval cases need a real branched home fixture (~41,000 entries) against the CLI's 20,000-entry ceiling; UNDECIDED verdict did not reach the score"
+    anchor: UNMODELED/eval-harness
+    channel: eval
+    class: unresolved
+    consequence: "6 cases UNDECIDED in every lane since, incl. BS-17"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "6 eval cases"
+    environment: "claude plugin eval workspace ceiling"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_final.yaml (SI-15-DF-05, EA-DF-08)
+      - specs/evals/bug-sweep/README.md
+    disposition: "EA-DF-08 fixed (UNDECIDED now reaches the score); capacity limit still-true"
+    recurrence: "every lane"
+
+  - id: SI-08-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "improvement_ledger.py run under an interpreter without PyYAML skips both backlogs and prints a complete-looking table"
+    anchor: UNMODELED/ledger-readers
+    channel: operator-doing-the-work
+    class: false green
+    severity: major
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "Homebrew python3.14 without PyYAML vs uv --with pyyaml"
+    model: unknown
+    evidence:
+      - specs/results/deferred/attribution/attribution.yaml:449-466
+    disposition: still-true
+    recurrence: "1 (36 vs 121 records)"
+
+  - id: HP-01-DF-01
+    repo: tla-spec-dev-plugin
+    origin: "every ticket's acceptance command `uv run ... pytest tests` red at the epic tip because of the worktree convention (checkers walk agent homes)"
+    anchor: UNMODELED/checker-scan-scope
+    channel: the-suite
+    class: false red
+    severity: major
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "ticket worktree with its own .skill-manager"
+    model: unknown
+    evidence:
+      - specs/results/deferred_findings_hexagonal_prompting.yaml (HP-01-DF-01)
+    disposition: carried
+    recurrence: "part of the checker-scan-scope family"
+
+  - id: "R4-DF-03 / DEF-001"
+    repo: tla-spec-dev-plugin
+    origin: "effect-fuzz replay commands not self-contained (PYTHONPATH not recorded; ephemeral uv interpreter path); replay resolves a venv interpreter symlink and loses deps"
+    anchor: UNMODELED/replay-environment
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "effectProviderExamples replay"
+    environment: "uv ephemeral environments, venv symlinks"
+    model: unknown
+    evidence:
+      - specs/results/epic-close/deferred_findings_final.yaml (DEF-001)
+      - specs/results/finalization/deferred_findings_final.yaml (R4-DF-03)
+    disposition: "R4-DF-03 fixed-inline; DEF-001 ticketed"
+    recurrence: 2
+
+  - id: "#241 (polymarket#115)"
+    repo: tla-spec-dev-plugin
+    origin: "test-graph canonical run/discover commands: concurrent invocations enter the same project output tree and race on Gradle reports"
+    anchor: UNMODELED/test-graph-concurrency
+    channel: operator-doing-the-work   # reported from polymarket#115
+    class: graph orchestration/node/fixture defect
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "any graph, concurrent agents on one project"
+    environment: "several agents sharing one checkout's test_graph/build"
+    model: unknown
+    evidence:
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/241
+    disposition: "fixed a1ff56cf (nonblocking advisory lock); validated with fake gradlew children only -- no real Gradle ran"
+    recurrence: "1; plausibly related to BS-07-DF-05's concurrency (inferred, not shown)"
+
+  - id: "#233 fixture"
+    repo: tla-spec-dev-plugin
+    origin: "new executor resume test emitted synthetic January timestamps outside the executor's interval"
+    anchor: UNMODELED/test-graph-resume
+    channel: the-suite
+    class: graph orchestration/node/fixture defect
+    severity: trivial
+    cause_confidence: confirmed
+    graph_node: "PlanExecutorResumeHarnessTest"
+    environment: n/a
+    model: unknown
+    evidence:
+      - https://github.com/haydenrear/tla-spec-dev-plugin/pull/233
+    disposition: "fixed in-PR before merge"
+    recurrence: 1
+  # ---------------------------------------------------------------- commit-diff-context-parent (CDC)
+  # RA = specs/results/mvp-stabilization/red-attribution.yaml ; AT = specs/results/cdc-index-successor/attribution.yaml
+  - id: M2-LOAD-01A
+    repo: commit-diff-context-parent
+    origin: "test_graph harness persister_cost_summary summed every cold base of a persister as one"
+    anchor: UNMODELED/harness-measurement
+    channel: test-graph   # cdcOverlayLoadTest 20261023-090702
+    class: invalid assertion
+    severity: "milestone-blocking red (inferred from RA context)"
+    cause_confidence: confirmed
+    graph_node: "cdcOverlayLoadTest 20261023-090702; defect introduced 518cbfc2 (MS-011)"
+    environment: n/a
+    model: unknown
+    evidence: ["RA:5-40"]
+    disposition: "fixed MS-016 (#491)"
+    recurrence: 1
+  - id: M2B-LOAD-01
+    repo: commit-diff-context-parent
+    origin: "harness onboard_reference never created the base-reference scratch dir; first misattributed to step references because the report cut PARITY lines at 400 chars"
+    anchor: UNMODELED/harness-measurement
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "cdcOverlayLoadTest 20261023-181408 (red -212718, green -214624)"
+    environment: n/a
+    model: unknown
+    evidence: ["RA:105-127"]
+    disposition: "fixed MS-017"
+    recurrence: "2 (present in M2, misattributed)"
+  - id: M2-BEAM-02
+    repo: commit-diff-context-parent
+    origin: "GradleLibrarySources archive-wide byte bound (aws-java-sdk-bundle 277 MB)"
+    anchor: UNMODELED/library-sources
+    channel: manual-final-testing   # Beam full lifecycle
+    class: product bug
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "Beam full lifecycle (scripts/cdc_full_lifecycle_run.py)"
+    environment: "real Apache Beam repository"
+    model: unknown
+    evidence: ["RA:51-58"]
+    disposition: "fixed MS-016"
+    recurrence: 1
+  - id: M2B-BEAM-02
+    repo: commit-diff-context-parent
+    origin: "LanguageServerPool slice-then-check recycle; gate cdcClientMemoryRealRepository allowed bound + 128 MiB sampling tolerance"
+    anchor: UNMODELED/language-server-pool
+    channel: manual-final-testing
+    class: product bug
+    consequence: "the gate was a false green for this defect"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "cdcClientMemoryRealRepository (red 20261023-220713, green -230047)"
+    environment: "real repository"
+    model: unknown
+    evidence: ["RA:128-146"]
+    disposition: "fixed MS-017"
+    recurrence: 1
+  - id: "SM402-ISOLATION family"
+    repo: commit-diff-context-parent
+    origin: "upstream Skill Manager whole-home sync / bounded close (skill-manager#402, MS-012-DF-07) -- not CDC code"
+    anchor: UNMODELED/env-skill-manager
+    channel: test-graph   # cdcWorktreeOverlayIsolation
+    class: package/provider/environment fault
+    consequence: "false red on the isolation gate"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "cdcWorktreeOverlayIsolation: 15 runs/14 red (#234), 26/13 (#394), 10/6 (#462)"
+    environment: "Skill Manager home sync"
+    model: unknown
+    evidence: ["RA:97-104 and later rows", "specs/results/mvp-stabilization/deferred-ledger.yaml (MS-012-DF-07)"]
+    disposition: "open, deferred upstream"
+    recurrence: "12 RA rows"
+  - id: "CDC #262"
+    repo: commit-diff-context-parent
+    origin: "cdcWorktreeOverlayIsolation fixture parented its test home on the operator's real ~/.skill-manager; an install overwrote root shims"
+    anchor: UNMODELED/fixture-isolation
+    channel: operator-doing-the-work
+    class: graph orchestration/node/fixture defect
+    severity: "major (inferred)"
+    cause_confidence: confirmed
+    graph_node: "cdcWorktreeOverlayIsolation run 20260914-123718 @ ff6c689b"
+    environment: "operator root home"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/commit-diff-context-parent/issues/262"]
+    disposition: open
+    recurrence: "1 here; same class as skill-manager #378 / DEF-OHV-011"
+  - id: "GO-PERSISTER-TIMEOUT family"
+    repo: commit-diff-context-parent
+    origin: "go/persister suite length near its 20-minute timeout on a loaded host"
+    anchor: UNMODELED/fixed-budget-vs-scaling-cost
+    channel: the-suite
+    class: package/provider/environment fault
+    consequence: "false red: timed out at 1,200 s three times on code that ran 877 s"
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: "go persister unit suite"
+    environment: "host load 13-63"
+    model: unknown
+    evidence: ["RA:147ff", "deferred-ledger MS-017-RV-DF-06"]
+    disposition: "deferred/open"
+    recurrence: 6
+  - id: "HOST-LOAD family"
+    repo: commit-diff-context-parent
+    origin: "shared host load or disk floor (matrix restart, publish flush, Java RSS, query latency)"
+    anchor: UNMODELED/host-contention
+    channel: "test-graph / the-suite"
+    class: package/provider/environment fault
+    severity: "mixed"
+    cause_confidence: "mostly confirmed"
+    graph_node: "MS018R-MATRIX-RESTART, MS019-RESTART-LAST-PUBLISH-FLUSH, MS-024-RV-JAVA-RSS, MS-026-RESUME-R3-QUERY-LATENCY, MS028-RV-RESTART-01, MS029-RV-SERVED-01, ..."
+    environment: "shared macOS host"
+    model: unknown
+    evidence: ["RA rows whose class mentions load"]
+    disposition: mixed
+    recurrence: 14
+  - id: MS-031-review-matrix-start-progress
+    repo: commit-diff-context-parent
+    origin: "test asserting a 1-second cadence under host load"
+    anchor: UNMODELED/fixed-budget-vs-scaling-cost
+    channel: the-suite
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: n/a
+    environment: "host load"
+    model: unknown
+    evidence: ["RA:1400"]
+    disposition: "not read"
+    recurrence: 1
+  - id: MS-027-ENV-TOOLCHAIN-PIN
+    repo: commit-diff-context-parent
+    origin: "provision.sh `skt sync` floated tla-spec-dev to tip 9c924dcf instead of lock 1374c883"
+    anchor: UNMODELED/toolchain-pinning
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "preflight"
+    environment: "skt / skill-manager pins"
+    model: unknown
+    evidence: ["RA:1069-1076"]
+    disposition: "environment fix, no code"
+    recurrence: "1; same pin-drift class as polymarket OBS-EVAL-MANAGER-LOCK-001"
+  - id: MS020-RV-03
+    repo: commit-diff-context-parent
+    origin: "fleet intellij_step_time_verdict({}) == (True, [], 0) -- empty input passes"
+    anchor: UNMODELED/vacuous-gate
+    channel: independent-review
+    class: false green
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "fleet step-time verdict"
+    environment: n/a
+    model: unknown
+    evidence: ["RA:447-453"]
+    disposition: "fixed MS-020 review"
+    recurrence: "1; AT header names this pattern 5 times in waves 4-5"
+  - id: FINAL2-LOAD-01
+    repo: commit-diff-context-parent
+    origin: "persister killed by a signal whose sender was recorded nowhere"
+    anchor: UNMODELED/host-contention
+    channel: test-graph
+    class: unresolved
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "cdcOverlayLoadTest 20261028-063923"
+    environment: "suspected environment, not proven"
+    model: unknown
+    evidence: ["RA:475"]
+    disposition: unresolved
+    recurrence: 1
+  - id: ATTR-234-07
+    repo: commit-diff-context-parent
+    origin: "test_graph _git_output flat timeout=10 s over a 26,237-file plugin tree"
+    anchor: UNMODELED/fixed-budget-vs-scaling-cost
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    consequence: "intermittent false red on tlaSpecStatic"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: tlaSpecStatic
+    environment: "large installed plugin tree"
+    model: unknown
+    evidence: ["AT:145"]
+    disposition: fixed
+    recurrence: "intermittent"
+  - id: ATTR-234-18
+    repo: commit-diff-context-parent
+    origin: "merkle gates: two of three PASSED while 8,728 of 8,728 leaves were resent"
+    anchor: UNMODELED/vacuous-gate
+    channel: operator-doing-the-work   # reading receipts
+    class: false green
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "merkle gates"
+    environment: n/a
+    model: unknown
+    evidence: ["AT:378"]
+    disposition: "not read"
+    recurrence: 1
+  - id: ATTR-234-25
+    repo: commit-diff-context-parent
+    origin: "graph coverage: exactly one of 32 test graphs reached the server fact path"
+    anchor: UNMODELED/graph-coverage
+    channel: census
+    class: graph orchestration/node/fixture defect
+    severity: blocking
+    cause_confidence: confirmed
+    graph_node: "32 graphs"
+    environment: n/a
+    model: unknown
+    evidence: ["AT:520"]
+    disposition: "led to the cdcServerFactPath gate (see ATTR-234-28)"
+    recurrence: 1
+  - id: ATTR-234-28
+    repo: commit-diff-context-parent
+    origin: "CLI never reads the server-resolved edge set"
+    anchor: UNMODELED/server-fact-path
+    channel: test-graph   # new gate cdcServerFactPath
+    class: product bug
+    severity: blocking
+    cause_confidence: confirmed
+    graph_node: "cdcServerFactPath (20 runs / 1 red in #394)"
+    environment: n/a
+    model: unknown
+    evidence: ["AT:617"]
+    disposition: resolved
+    recurrence: 1
+  - id: ATTR-234-36
+    repo: commit-diff-context-parent
+    origin: "step retraction gate flipped FAIL -> PASS vacuously: retracted 0 edges from 0 source paths"
+    anchor: UNMODELED/vacuous-gate
+    channel: operator-doing-the-work
+    class: false green
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "step retraction gate"
+    environment: n/a
+    model: unknown
+    evidence: ["AT:818"]
+    disposition: "not read"
+    recurrence: 1
+  - id: ATTR-234-49
+    repo: commit-diff-context-parent
+    origin: "cdcCliQuery dummy fixture never built the index; 6 assertions never ran"
+    anchor: UNMODELED/vacuous-gate
+    channel: UNDECIDED
+    class: false green
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: cdcCliQuery
+    environment: n/a
+    model: unknown
+    evidence: ["AT:1046"]
+    disposition: open
+    recurrence: 1
+  - id: "ATTR-234-03/04/39"
+    repo: commit-diff-context-parent
+    origin: "spec-model conjuncts tautological in TLC (EdgeInvalidation assigns the field from the constant)"
+    anchor: "EdgeInvalidation / reconciliation"
+    channel: operator-running-own-instrument
+    class: invalid assertion
+    severity: "major/minor"
+    cause_confidence: confirmed
+    graph_node: tlc
+    environment: n/a
+    model: unknown
+    evidence: ["AT:86ff"]
+    disposition: fixed
+    recurrence: "3 (+3 pins)"
+  - id: "ATTR-234-26/27"
+    repo: commit-diff-context-parent
+    origin: "k3d monitoring cluster crash-looping / k3d-cdc-index-local exited"
+    anchor: UNMODELED/cluster-transport
+    channel: test-graph
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "telemetry_reached_a_live_collector"
+    environment: "local k3d"
+    model: unknown
+    evidence: ["AT:571"]
+    disposition: "26 resolved, 27 open"
+    recurrence: 2
+  - id: "CDC #390"
+    repo: commit-diff-context-parent
+    origin: "OTLP collector absence, clean-filter race, fresh-worktree prerequisites, IntelliJ bound"
+    anchor: UNMODELED/fresh-worktree-prerequisites
+    channel: test-graph
+    class: package/provider/environment fault
+    consequence: "false reds: each such red reads as a regression"
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "several"
+    environment: "fresh worktree, no collector"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/commit-diff-context-parent/issues/390"]
+    disposition: open
+    recurrence: "several"
+  # ---------------------------------------------------------------- meta-harness (MH)
+  # L1 = specs/.history/meta-harness-mvp/closed-snapshot/deferred_findings.yaml ; L2 = specs/.history/meta-harness-loop/closed-snapshot/deferred_findings.yaml ; AB = specs/results/epic-meta-harness-loop/attribution.yaml
+  - id: "DEF-124 (with DEF-032, DEF-112)"
+    repo: meta-harness
+    origin: "tla-spec-dev `run spec-unit-tests --ticket` (plugin CLI): green, exit 0, in six seconds, zero generated cases executed"
+    anchor: UNMODELED/spec-unit-runner
+    channel: operator-doing-the-work
+    class: false green
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "spec-unit @ 7baac73"
+    environment: "ticket view adapters"
+    model: unknown
+    evidence: ["L2:287", "L2:679"]
+    disposition: "promoted upstream to tla-spec-dev-plugin"
+    recurrence: "3 records, 3 routes"
+  - id: DEF-156
+    repo: meta-harness
+    origin: "ticket corpus generated with the project projector, blind to the ticket's own new field"
+    anchor: UNMODELED/spec-unit-runner
+    channel: operator-doing-the-work
+    class: false green
+    severity: blocking
+    cause_confidence: confirmed
+    graph_node: "62,492 ticket cases @ bcf600c"
+    environment: n/a
+    model: unknown
+    evidence: ["L2:1482"]
+    disposition: "promoted; MH-30 guard protects 2 graph nodes only (DEF-271)"
+    recurrence: 1
+  - id: "DEF-310 / DEF-411"
+    repo: meta-harness
+    origin: "all specs/* views bind specs.program_model.adapters; current/desired adapters never imported"
+    anchor: UNMODELED/spec-unit-runner
+    channel: independent-review
+    class: false green
+    severity: "blocking/major"
+    cause_confidence: confirmed
+    graph_node: "spec-unit conformance"
+    environment: n/a
+    model: unknown
+    evidence: ["L2 (DEF-310, DEF-411)"]
+    disposition: "fixed MH-38 (PR #93); proof: MH-38 turned `current` RED where it had been green"
+    recurrence: "2; same class as plugin EA-DF-17"
+  - id: DEF-154
+    repo: meta-harness
+    origin: "two concurrent wave tickets saturate the machine: spec_unit ~70 min alone, projected ~20 h under contention"
+    anchor: UNMODELED/host-contention
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: major
+    cause_confidence: confirmed
+    graph_node: spec_unit
+    environment: "single shared host"
+    model: unknown
+    evidence: ["L2:1363"]
+    disposition: "promoted; serial dispatch rule"
+    recurrence: 1
+  - id: "DEF-017 / DEF-126"
+    repo: meta-harness
+    origin: "worktree home shims point at another home; nohup-detached graph run loses SKILL_MANAGER_HOME and uses the root toolchain"
+    anchor: UNMODELED/home-tier-resolution
+    channel: test-graph
+    class: package/provider/environment fault
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "detached graph runs"
+    environment: "Skill Manager home tiers"
+    model: unknown
+    evidence: ["L1:857", "L2:802"]
+    disposition: "carried/promoted"
+    recurrence: 2
+  - id: "DEF-021 / MH #56"
+    repo: meta-harness
+    origin: "CI cannot install test-graph (private transitive dependency deploy-cdc)"
+    anchor: UNMODELED/ci-provisioning
+    channel: ci
+    class: package/provider/environment fault
+    consequence: "CI never runs graphs; prints NO GRAPH RAN"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "all graphs in CI"
+    environment: "GitHub Actions"
+    model: unknown
+    evidence: ["L1:1092", "https://github.com/haydenrear/meta-harness/issues/56"]
+    disposition: open
+    recurrence: persistent
+  - id: DEF-110
+    repo: meta-harness
+    origin: "OpenAI frontend returns an errored turn as HTTP 200 'stop'"
+    anchor: UNMODELED/surface-parity
+    channel: manual-final-testing
+    class: product bug
+    consequence: "123,132 spec-unit + 3,724 external cases all green (AB BLIND)"
+    severity: blocking
+    cause_confidence: confirmed
+    graph_node: "none caught it"
+    environment: n/a
+    model: unknown
+    evidence: ["L1:3246", "AB"]
+    disposition: "fixed-inline 8699212"
+    recurrence: 1
+  - id: DEF-302
+    repo: meta-harness
+    origin: "batch spec-step deadlock; unit tests fed a Cursor, which can never withhold a line"
+    anchor: UNMODELED/spec-step-io
+    channel: operator-doing-the-work
+    class: product bug
+    consequence: "unit tests were a false green (fixture shape)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "corpus run hung"
+    environment: n/a
+    model: unknown
+    evidence: ["L2:3765"]
+    disposition: repaired
+    recurrence: 1
+  - id: DEF-393
+    repo: meta-harness
+    origin: "test_graph sse_events instrument: one readline after a terminal SSE frame"
+    anchor: UNMODELED/test-graph-instrument
+    channel: test-graph
+    class: invalid assertion
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "sse_events @ a681ec3"
+    environment: n/a
+    model: unknown
+    evidence: ["L2:5067"]
+    disposition: "repaired MH-38"
+    recurrence: 1
+  - id: DEF-352
+    repo: meta-harness
+    origin: "events?follow=true never ends on a finished execution"
+    anchor: UNMODELED/event-stream
+    channel: test-graph
+    class: product bug
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "events follow"
+    environment: n/a
+    model: unknown
+    evidence: ["L2 (DEF-352)"]
+    disposition: "fixed MH-38"
+    recurrence: 1
+  - id: DEF-412
+    repo: meta-harness
+    origin: "test_graph home_skill() path stale after skills moved into the plugin (556fcaa)"
+    anchor: UNMODELED/skill-composition
+    channel: test-graph
+    class: package/provider/environment fault
+    consequence: "CI green throughout; it never runs graphs"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "@ 4b7eb3f"
+    environment: "plugin-contained skill layout"
+    model: unknown
+    evidence: ["L2:5786"]
+    disposition: fixed
+    recurrence: "1; same family as the plugin's missing-rung REACH row"
+  - id: DEF-502
+    repo: meta-harness
+    origin: "metaHarnessDeploy mh.deploy.lifecycle asserted the pre-MH-43 restart contract"
+    anchor: UNMODELED/stale-assertion
+    channel: test-graph
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "finalization sweep 20261104-104400"
+    environment: n/a
+    model: unknown
+    evidence: ["L2:6576", "specs/results/epic-meta-harness-loop/finalization/README.md"]
+    disposition: "red at finalization round 1"
+    recurrence: 1
+  - id: DEF-503
+    repo: meta-harness
+    origin: "ticket worktree symlinked target/ to the main checkout; cargo bakes worktree paths into binaries"
+    anchor: UNMODELED/shared-build-output
+    channel: test-graph
+    class: package/provider/environment fault
+    consequence: "false red; a false green is equally possible (stale binary from another checkout)"
+    severity: minor
+    cause_confidence: confirmed
+    graph_node: "Smoke/Court @ d2842f5"
+    environment: "shared cargo target/"
+    model: unknown
+    evidence: ["L2:6601-6625"]
+    disposition: "carried to tla-spec-dev-plugin#171 (fixed by BS-06 at ticket new)"
+    recurrence: 1
+  - id: DEF-504
+    repo: meta-harness
+    origin: "driver.rs:393-407 discards the set_config_option(model) result"
+    anchor: UNMODELED/harness-config
+    channel: manual-final-testing
+    class: product bug
+    consequence: "BLIND: the echo agent never exercises model config, so every graph was blind"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "none caught it"
+    environment: "claude-agent-acp 0.33.1"
+    model: "CLAUDE_sonnet (finalization tester)"
+    evidence: ["L2:6626"]
+    disposition: "fixed MH-49 (PR #114)"
+    recurrence: 1
+  - id: DEF-520
+    repo: meta-harness
+    origin: "in-image episode greets a model claude refuses after the DEF-504 fix"
+    anchor: UNMODELED/eval-fixtures
+    channel: ci
+    class: graph orchestration/node/fixture defect
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "images job run 41846946625"
+    environment: "container image"
+    model: unknown
+    evidence: ["L2:6681"]
+    disposition: fixed
+    recurrence: 1
+  - id: "DEF-282/283/360/402"
+    repo: meta-harness
+    origin: "skill-manager 0.26.0: token copied into homes, absolute wrapper paths, reanchor on path string, CLI version never enforced"
+    anchor: UNMODELED/env-skill-manager
+    channel: UNDECIDED
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "skill-manager 0.26.0"
+    model: unknown
+    evidence: ["L2 (DEF-282, 283, 360, 402)"]
+    disposition: "carried/fixed/contained"
+    recurrence: 4
+  - id: "DEF-054/070/071/093 / MH #52"
+    repo: meta-harness
+    origin: "graph instruments assert a property holds but not that it discriminates"
+    anchor: UNMODELED/vacuous-gate
+    channel: UNDECIDED
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "several"
+    environment: n/a
+    model: unknown
+    evidence: ["L1:2183", "https://github.com/haydenrear/meta-harness/issues/52"]
+    disposition: open
+    recurrence: 4
+  # ---------------------------------------------------------------- polymarket
+  - id: E02-EVAL-FORWARD-CAUSAL
+    repo: polymarket
+    origin: "evaluation frozen.py evaluate_pair accepted forward predictions observed after entry/outcome evidence"
+    anchor: UNMODELED/forward-causal-order
+    channel: test-graph
+    class: product bug
+    severity: blocking
+    cause_confidence: confirmed
+    graph_node: "epic02Acceptance walkthrough 20261108-223228, graph 20261108-223559"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/deferred_findings_final.yaml:273"]
+    disposition: "fixed E02-R3 (PR #105)"
+    recurrence: "2 records (E02-R3-FORWARD-CAUSAL)"
+  - id: "E02-R2-MODEL-TARGET / E02-R5-ACCEPTED-MODEL-TARGET"
+    repo: polymarket
+    origin: "graph pe04.model selected an archived ticket path as its TLC target"
+    anchor: UNMODELED/validation.model-target-lifecycle
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "pe04.model 20261108-194458; replay -200200 and fresh -200325 passed"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/E02-R2/validation.json", "specs/results/deferred/E02-R5.yaml"]
+    disposition: resolved
+    recurrence: 2
+  - id: E02-R6-FIXTURE-PATH-ENV
+    repo: polymarket
+    origin: "fixture execution contract: child environment and private runtime paths; six harness tests passed while mirroring report layout"
+    anchor: UNMODELED/validation.fixture-execution-contract
+    channel: census   # upfront owner CI resource/setup audit
+    class: false green
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "six harness tests"
+    environment: "CI child env"
+    model: unknown
+    evidence: ["specs/results/E02-R6/attribution.yaml"]
+    disposition: "resolved PR #110; review then found 2 more"
+    recurrence: "1 + 2 follow-ons"
+  - id: "E02-R11 / polymarket #115"
+    repo: polymarket
+    origin: "test-graph runner: concurrent writes to build/reports/problems/problems-report.html (FileAlreadyExistsException)"
+    anchor: UNMODELED/test-graph-concurrency
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "pe16Model concurrency red (specs/results/E02-R5/run-pe16Model-concurrency-red.txt)"
+    environment: "concurrent agents, one project"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/polymarket/issues/115"]
+    disposition: "closed 2026-11-09; lock upstreamed as tla-spec-dev a1ff56cf (PR #241)"
+    recurrence: 1
+  - id: E02-R13-DF-04
+    repo: polymarket
+    origin: "diagnostics journal canonicalisation (float vs int); the fake writer seam was blind"
+    anchor: UNMODELED/diagnostics-journal
+    channel: test-graph
+    class: product bug
+    consequence: "previous fake-seam tests were a false green"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: e02.product_walkthrough
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/deferred_findings_final.yaml:621"]
+    disposition: "fixed"
+    recurrence: 1
+  - id: E02-R13-DF-03
+    repo: polymarket
+    origin: "permission-counter fixture: Darwin adds EPERM beyond the two seeded"
+    anchor: UNMODELED/test-fixture-permission-counter
+    channel: test-graph   # standing harness node
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "standing harness node"
+    environment: "macOS Darwin"
+    model: unknown
+    evidence: ["specs/results/deferred_findings_final.yaml:603"]
+    disposition: fixed
+    recurrence: 1
+  - id: "polymarket full-sweep triage 20261109-003240"
+    repo: polymarket
+    origin: "25 graphs started, 10 passed, 15 errored: 7 deferred-Kubernetes-fixture, 4 inherited tool/formal/scaffold precondition, 2 formal coverage limit/model timeout, 1 deployed scaling failure (origin unproven), 1 obsolete OBS scaffold node"
+    anchor: UNMODELED/graph-portfolio-staleness
+    channel: test-graph
+    class: package/provider/environment fault
+    consequence: "mostly reds not about the change under test"
+    severity: "not recorded"
+    cause_confidence: "inferred (triage, not root-caused)"
+    graph_node: "full sweep 20261109-003240"
+    environment: "no local Kubernetes"
+    model: unknown
+    evidence: ["specs/results/E02/ci-reliability/audit/baseline-triage.md"]
+    disposition: "triaged, partial sweep cancelled"
+    recurrence: 15
+  - id: OBS-METRIC-SCOPE-001
+    repo: polymarket
+    origin: "observability correlation harness: an unrelated SDK counter sharing the trace id satisfies the assertion"
+    anchor: UNMODELED/observability-correlation-harness
+    channel: independent-review
+    class: false green
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "OBS correlation"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/deferred_findings_final.yaml:34"]
+    disposition: "resolved OBS02 (22 wrong-source controls)"
+    recurrence: 1
+  - id: "OBS-EOF-HISTORICAL-UNRESOLVED / polymarket #49"
+    repo: polymarket
+    origin: "collector metrics HTTP EOF; did not reproduce in 100 requests"
+    anchor: UNMODELED/collector-metrics-http
+    channel: test-graph
+    class: unresolved
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "pe17.packages trial 20261101-233430"
+    environment: "local collector"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/polymarket/issues/49"]
+    disposition: "open/carried"
+    recurrence: 1
+  - id: OBS-EVAL-MANAGER-LOCK-001
+    repo: polymarket
+    origin: "skill-manager 0.28.2 `sync --lock` dropped the pinned SHA"
+    anchor: UNMODELED/toolchain-pinning
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: n/a
+    environment: "skill-manager 0.28.2"
+    model: unknown
+    evidence: ["specs/results/deferred_findings_final.yaml:152"]
+    disposition: "carried to skill-manager#406"
+    recurrence: 1
+  - id: E02-ADVISORY-READER-01
+    repo: polymarket
+    origin: "tla-spec-dev closeout advisory YAML reader falsely counts duplicate keys"
+    anchor: UNMODELED/yaml-parser
+    channel: operator-doing-the-work
+    class: false red
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "close-out advisory"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/deferred_findings_final.yaml:634"]
+    disposition: "carried to tla-spec-dev-plugin#243"
+    recurrence: "1; yaml-parser bin also holds plugin BS-01-DF-01"
+  - id: "*-HOME-CUSTODY (R1, R2, R4, R5, R6, R8)"
+    repo: polymarket
+    origin: "Skill Manager home custody during repair tickets"
+    anchor: UNMODELED/tooling.home-custody
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: n/a
+    environment: "Skill Manager homes"
+    model: unknown
+    evidence: ["specs/results/deferred/E02-R*.yaml"]
+    disposition: deferred_by_user
+    recurrence: 6
+  # ---------------------------------------------------------------- effectful-learning
+  - id: E10-OWNER-GRAPH-STARTUP-001
+    repo: effectful-learning
+    origin: "fresh Gradle + serial describe of 250 sources before the first node runs"
+    anchor: UNMODELED/test-graph-planning-cost
+    channel: operator-doing-the-work
+    class: graph orchestration/node/fixture defect
+    consequence: "13 accepted roots spent 22 m 33 s before the first node; median 93.4 s per launch"
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "all graphs"
+    environment: "cold Gradle per launch"
+    model: unknown
+    evidence: ["specs/results/epic-10/review/finalization/validation-timing-audit.json"]
+    disposition: "carried to effectful-learning#95"
+    recurrence: "every launch"
+  - id: E10-NAV-OWNER-BLIND-001
+    repo: effectful-learning
+    origin: "home audit overlapping a receipt observer (resource contention)"
+    anchor: UNMODELED/host-contention
+    channel: test-graph
+    class: unresolved
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "run08 failed, run12 passed"
+    environment: "concurrent validation"
+    model: unknown
+    evidence: ["specs/bug-attribution.yaml (E10-NAV-OWNER-BLIND-001)"]
+    disposition: "both runs preserved; cause unproven"
+    recurrence: 1
+  - id: "EL #143"
+    repo: effectful-learning
+    origin: "native HTTP fixture port release/rebind race (AddrInUse 48)"
+    anchor: UNMODELED/fixture-port-allocation
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    consequence: "flaky false red (364 pass / 1 fail)"
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "Post11 workspace36"
+    environment: n/a
+    model: unknown
+    evidence: ["https://github.com/haydenrear/effectful-learning/issues/143"]
+    disposition: open
+    recurrence: intermittent
+  - id: "EL #163 / #170 / #105"
+    repo: effectful-learning
+    origin: "graph fixtures relied on implicit agent activation / legacy /input / missing provider setup"
+    anchor: UNMODELED/stale-assertion
+    channel: test-graph
+    class: invalid assertion
+    consequence: "\"This is a validation instrument defect\" (#170); 4 of 8 controlled graphs failed (#105)"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "releasePackaging 20261030-115304, streamOrganization 20261030-162932"
+    environment: n/a
+    model: unknown
+    evidence: ["https://github.com/haydenrear/effectful-learning/issues/163", "https://github.com/haydenrear/effectful-learning/issues/170", "https://github.com/haydenrear/effectful-learning/issues/105"]
+    disposition: open
+    recurrence: 3
+  - id: "EL-NOTEBOOK-WEB-01 OBSERVER rows"
+    repo: effectful-learning
+    origin: "browser-observer and fixture code (29 OBSERVER rows of 87): fixture pre-incremented its sequence, expected manifest order, 316 MB report timeouts"
+    anchor: UNMODELED/browser-observer
+    channel: "test-graph + independent-review"
+    class: invalid assertion
+    severity: "mixed"
+    cause_confidence: "confirmed per row (as recorded)"
+    graph_node: "notebook web graphs (runs up to Source152 / full122)"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/deferred/EL-NOTEBOOK-WEB-01.yaml"]
+    disposition: mixed
+    recurrence: "29 rows; dozens of reruns without durations"
+  - id: EL-NOTEBOOK-WEB-01 PREP-010
+    repo: effectful-learning
+    origin: "ambient PATH resolved to the global skill-manager CLI"
+    anchor: UNMODELED/home-tier-resolution
+    channel: test-graph
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "notebook web prep"
+    environment: "agent PATH"
+    model: unknown
+    evidence: ["specs/results/deferred/EL-NOTEBOOK-WEB-01.yaml (PREP-010)"]
+    disposition: "not read"
+    recurrence: "1; same class as plugin BS-03-DF-01"
+  - id: "E10-FINAL-HISTORY-DF-001 / E10-FINAL-VIEW-INTENT-DF-001"
+    repo: effectful-learning
+    origin: "product: notebook history and view intent"
+    anchor: UNMODELED/notebook-guidance
+    channel: test-graph   # final evaluation graphs
+    class: product bug
+    severity: major
+    cause_confidence: confirmed
+    graph_node: "final evaluation graphs"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/results/deferred/notebook-guidance-imports.yaml"]
+    disposition: ticketed
+    recurrence: 2
+  # ---------------------------------------------------------------- skill-manager
+  - id: "SM eval round 2026-09-07 (product rows)"
+    repo: skill-manager
+    origin: "skt / skill-manager CLIs: front door not on PATH, `--base <sha>` remedy not followable, skt ticket usage shape, ticket new --help flat parser"
+    anchor: UNMODELED/agent-cli-path
+    channel: eval
+    class: product bug
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "eval case epic-provisions-a-ticket-worktree, 14 runs"
+    environment: "Claude Code 2.1.263"
+    model: unknown
+    evidence: ["specs/evals/results/2026-09-07-epic-provisions-a-ticket-worktree.md"]
+    disposition: "fixed (EV-P rows)"
+    recurrence: 4
+  - id: "SM eval round 2026-09-07 (instrument rows, incl. EV-I-08 TMPDIR)"
+    repo: skill-manager
+    origin: "eval harness: hooks, dirty fixture tree, PATH/TMPDIR/jbang/allowRead//tmp aliasing; eight consecutive runs died in git worktree add on unset TMPDIR"
+    anchor: UNMODELED/eval-sandbox
+    channel: eval
+    class: package/provider/environment fault
+    consequence: "false red: the score said the skill could not create a worktree"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "same case"
+    environment: "claude plugin eval sandbox (only PATH reaches it)"
+    model: unknown
+    evidence: ["specs/evals/results/2026-09-07-epic-provisions-a-ticket-worktree.md:210-236", "specs/evals/results/attribution.yaml (meta: product 11 / instrument 18 over 09-07..09-10)"]
+    disposition: "fixed in the harness"
+    recurrence: "~12 in the round; 8 runs on TMPDIR alone"
+  - id: EV-I-12
+    repo: skill-manager
+    origin: "eval harness: guaranteed red on every REPLAY=no case"
+    anchor: UNMODELED/eval-harness
+    channel: eval
+    class: false red
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "REPLAY=no cases"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/evals/results/attribution.yaml (EV-I-12)"]
+    disposition: fixed
+    recurrence: "every such case"
+  - id: EV-I-02
+    repo: skill-manager
+    origin: "eval extractor rejected spellings the docs teach"
+    anchor: UNMODELED/eval-graders
+    channel: eval
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "extractor"
+    environment: n/a
+    model: unknown
+    evidence: ["specs/evals/results/attribution.yaml (EV-I-02)"]
+    disposition: fixed
+    recurrence: 4
+  - id: "SM #295"
+    repo: skill-manager
+    origin: "node gateway.python.venv.ready: 180 s x 3 timeout on a cold uv cache"
+    anchor: UNMODELED/cold-setup
+    channel: test-graph
+    class: package/provider/environment fault
+    consequence: "errored=1, skipped=46; warm rerun BUILD SUCCESSFUL in 4m 50s; uv cache purged 92 GB -> 7.9 GB"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "gateway.python.venv.ready, sweep 2026-09-03"
+    environment: "cold uv cache"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/295"]
+    disposition: open
+    recurrence: 1
+  - id: DEF-OUN-023
+    repo: skill-manager
+    origin: "Gradle stops at the first failing graph; the local sweep count came from stale reports"
+    anchor: UNMODELED/graph-aggregation
+    channel: ci
+    class: false green
+    consequence: "every local '24 of 25' sweep was wrong and hid a real regression in home.integrity.damaged.home.is.repairable"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "CI run 34759605784"
+    environment: n/a
+    model: unknown
+    evidence: ["results/epic-one-unit-one-name/deferred/backlog.yaml (DEF-OUN-023)"]
+    disposition: "fixed (CI per-graph matrix)"
+    recurrence: "every local sweep"
+  - id: "SM #344"
+    repo: skill-manager
+    origin: "shared node home.fixpoint.law binds to the exit code of a defect the fixture plants on purpose"
+    anchor: UNMODELED/fixture-planted-defects
+    channel: ci
+    class: invalid assertion
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: home.fixpoint.law
+    environment: n/a
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/344"]
+    disposition: open
+    recurrence: 1
+  - id: "SM #297"
+    repo: skill-manager
+    origin: "home.cloned.into.project digest changed during clone"
+    anchor: UNMODELED/home-clone
+    channel: ci   # nightly, 3 consecutive days
+    class: unresolved
+    severity: "not recorded"
+    cause_confidence: inferred
+    graph_node: "5 graphs red @ 4423b806"
+    environment: n/a
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/297"]
+    disposition: open
+    recurrence: 3
+  - id: "SM #293"
+    repo: skill-manager
+    origin: "graphs suspended on push/PR, hiding HOME_MISMATCH exit 79 in onboard.completed on main since 2026-08-21"
+    anchor: UNMODELED/graph-scheduling
+    channel: ci
+    class: product bug
+    consequence: "late detection caused by switched-off graphs"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: onboard.completed
+    environment: n/a
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/293"]
+    disposition: open
+    recurrence: 1
+  - id: "SM #292 / DEF-HBR-003"
+    repo: skill-manager
+    origin: "uninstall does not prune the artifact census"
+    anchor: UNMODELED/artifact-census
+    channel: test-graph   # artifact-dag
+    class: product bug
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "artifact-dag (stable, not flaky)"
+    environment: n/a
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/292"]
+    disposition: open
+    recurrence: "stable red"
+  - id: DEF-OHV-140
+    repo: skill-manager
+    origin: "CLI OTLP export blocked 14 s on a hung Docker port 4318"
+    anchor: UNMODELED/test-graph-telemetry
+    channel: operator-running-own-instrument
+    class: package/provider/environment fault
+    consequence: "home-verdicts graph 18 min instead of ~2 min; --version 14.15 s -> 1 s after restart"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: home-verdicts
+    environment: "local Docker OTLP collector"
+    model: unknown
+    evidence: ["results/epic-one-home-one-verdict/tickets/OHV-8/deferred.yaml (DEF-OHV-140)"]
+    disposition: "not read"
+    recurrence: 1
+  - id: "DEF-OHV-010 / SM #294"
+    repo: skill-manager
+    origin: "unit suite and test_graph leak temp homes (35k dirs / 41 GiB)"
+    anchor: UNMODELED/fixture-cleanup
+    channel: operator-doing-the-work
+    class: graph orchestration/node/fixture defect
+    consequence: "ENOSPC; eval wide round 1 had 27 of 46 runs fail with ENOSPC"
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "unit suite + test_graph"
+    environment: "disk"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/294"]
+    disposition: "carried (#372)"
+    recurrence: "2 (35k dirs; 57 dirs)"
+  - id: "SM #378 / DEF-OHV-011 / DEF-OHV-180"
+    repo: skill-manager
+    origin: "a test graph in another repo wrote through to the operator's root shims"
+    anchor: UNMODELED/fixture-isolation
+    channel: operator-doing-the-work
+    class: graph orchestration/node/fixture defect
+    severity: "blocking/major"
+    cause_confidence: confirmed
+    graph_node: "consumer repo graph (see CDC #262)"
+    environment: "operator root home"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/378"]
+    disposition: "not read"
+    recurrence: "2 (08:41 and 11:31 on 2026-09-14)"
+  - id: DEF-OHV-121
+    repo: skill-manager
+    origin: "a node deletes pm/ inside the shared fixture home, so results depend on graph order"
+    anchor: UNMODELED/shared-fixture-state
+    channel: test-graph
+    class: graph orchestration/node/fixture defect
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "shared fixture home"
+    environment: n/a
+    model: unknown
+    evidence: ["results/epic-one-home-one-verdict/tickets/OHV-2/deferred.yaml (DEF-OHV-121)"]
+    disposition: "not read"
+    recurrence: 1
+  - id: "SM #386 / #102"
+    repo: skill-manager
+    origin: "bundled uv 0.4.18 rewrites lockfiles; testgraphsdk missing EnvironmentRepository so a graph cannot run"
+    anchor: UNMODELED/toolchain-pinning
+    channel: operator-doing-the-work
+    class: package/provider/environment fault
+    severity: "not recorded"
+    cause_confidence: confirmed
+    graph_node: "SMVENV-001 closed without its graph"
+    environment: "uv 0.4.18; testgraphsdk version skew"
+    model: unknown
+    evidence: ["https://github.com/haydenrear/skill-manager/issues/386", "https://github.com/haydenrear/skill-manager/issues/102"]
+    disposition: open
+    recurrence: 2

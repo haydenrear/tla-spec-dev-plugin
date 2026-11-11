@@ -1,0 +1,589 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/ESD-02",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/evidence-sized-delivery/ticket-001-ESD-02 specs/current specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for ESD-02'",
+    "message": "It is recommended to commit this history directory now: specs/.history/evidence-sized-delivery/ticket-001-ESD-02"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 19,
+        "before": 19,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 17,
+        "before": 17,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 36577,
+        "before": 36577,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 765259,
+        "before": 765259,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "ESD-01"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 19,
+          "before": 19,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 17,
+          "before": 17,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 36577,
+          "before": 36577,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 765259,
+          "before": 765259,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "ESD-01"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/ESD-02/results/complexity_ledger.yaml",
+    "justification": "No model delta: the ticket changes instructions/evidence only (user mandate #234: no new machinery).",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 19,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result",
+        "skt_answer"
+      ],
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 7.3,
+          "used": 36577,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": 17,
+      "distinct_states": 36577,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8"
+      ],
+      "generated_states": 765259,
+      "modularity": 0.00327538422776524,
+      "tlc_report": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets/ESD-02/results/tlc-current.txt",
+      "tlc_run_complete": true,
+      "variables": 9
+    },
+    "narrative": "No-op model result for ESD-02 (PR #256): instruction/evidence-only change; specs/current and the desired model are unchanged; TLC MCsmall green before and after. Known-red spec-unit base: 2 failures, no new failures.",
+    "notes": [
+      "OK: generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-11-10T13:46:13.858957+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "ESD-02",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/results/evidence-sized-delivery/ESD-02/epic-close/spec-unit.txt",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/ESD-02/desired is byte-identical to specs/current (no model delta)",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/results/evidence-sized-delivery/ESD-02/epic-close/tlc-current.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/results/evidence-sized-delivery/ESD-02/epic-close/tlc-before.txt",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "evidence-sized-delivery"
+  },
+  "created_at_utc": "2026-11-10T13:46:13.942677+00:00",
+  "deferred_ledger": {
+    "marked": [],
+    "performed": false,
+    "skipped": "no closure at specs/tickets/ESD-02/closure.yaml",
+    "unknown": []
+  },
+  "desired_carry": {
+    "already_matching": [],
+    "base": "project current/ before this close promoted",
+    "conflicts": [],
+    "followed": [],
+    "merged": [],
+    "performed": false,
+    "removed": []
+  },
+  "desired_only": true,
+  "entry_name": "ticket-001-ESD-02",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "forced_mutation_paths": [],
+  "git": {
+    "branch": "epic/evidence-sized-delivery",
+    "commit": "dd1124fd",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "force": false,
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/ESD-02/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/ESD-02/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/ESD-02/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/ESD-02/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/ESD-02/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/ESD-02/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/ESD-02/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/ESD-02/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/ESD-02/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "kept_current": [],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/ESD-02/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/ESD-02"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/results/tlc-current.txt",
+      "source": "specs/results/evidence-sized-delivery/ESD-02/epic-close/tlc-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/results/spec-unit.txt",
+      "source": "specs/results/evidence-sized-delivery/ESD-02/epic-close/spec-unit.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": null,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "pruned": [],
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/ticket",
+      "source": "specs/tickets/ESD-02"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "ESD-02 (#236, PR #256): TLA+ architecture anchors, origin/channel/effect axes, false-red record, worked attribution examples in bug_attribution.md and discovery; no-op model result.",
+  "three_way_carry": null,
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Origin area and detection channel stay distinct in every worked example.",
+        "The false-red case preserves the original observation and its correction without charging product totals.",
+        "Worked examples cite ESD-01 rows; any new record shape is justified by observed examples and adds no parser.",
+        "Doc-contract tests stay green (no new failures).",
+        "No-op model result recorded: specs/current is unchanged by this ticket."
+      ],
+      "commands": [
+        "uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests -q"
+      ],
+      "evidence": []
+    },
+    "blocks": [
+      "ESD-03",
+      "ESD-04",
+      "ESD-05",
+      "ESD-06"
+    ],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [
+        "skills/spec-double-2/references/bug_attribution.md",
+        "skills/discovery/SKILL.md",
+        "skills/discovery/references/"
+      ],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "specs/results/evidence-sized-delivery/ESD-02/"
+      ]
+    },
+    "covers": [
+      "#236"
+    ],
+    "depends_on": [
+      "ESD-01"
+    ],
+    "desired_actions": [],
+    "feature_branch": "feature/236-attribution-anchors",
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/236",
+    "goals": [
+      {
+        "contribution": "enabling",
+        "expected_effect": "none \u2014 enabling only; gives validation infrastructure an explicit attribution area so ESD-03 guidance and ESD-04 sizing do not count instrument faults as product risk",
+        "goal": "GOAL-ESD-ARCH",
+        "local_signal": "Trace each worked example back to an ESD-01 row; record origin/channel separation and before/after finding conservation by hand"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "must not regress existing eval cases for the skills it edits; measured only by ESD-06",
+        "goal": "GOAL-ESD-UPTAKE",
+        "local_signal": "N/A: the eval lane runs only in ESD-06"
+      }
+    ],
+    "id": "ESD-02",
+    "implementation_scope": [
+      "skills/spec-double-2/references/bug_attribution.md",
+      "skills/discovery/SKILL.md",
+      "skills/discovery/references/",
+      "specs/results/evidence-sized-delivery/ESD-02/"
+    ],
+    "objective": "Refine bug_attribution.md and discovery so TLA+ is the stable architecture map for attribution; give validation infrastructure an explicit attribution boundary; resolve \u00a76a's false-red recording with audited examples; worked examples for the five cases; conservation through action rename/split/merge; state what TLA+ can and cannot establish. No model delta expected: record a no-op model result.",
+    "promotion_order": 20,
+    "promotion_predecessor": "ESD-01",
+    "role": "implementation",
+    "schedule_revision": 1,
+    "status": "closed",
+    "title": "Clarify TLA+ architecture anchors and attribution of validation defects",
+    "validation": {
+      "evidence_root": "specs/results/evidence-sized-delivery/ESD-02",
+      "graphs": [],
+      "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests -q",
+      "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)",
+      "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+      "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+      "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)"
+    },
+    "wave": 2,
+    "worktree": "/Volumes/dev/tla-spec-dev-plugin-236-attribution-anchors"
+  },
+  "ticket_id": "ESD-02",
+  "ticket_index": 1,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "pruned": [],
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/evidence-sized-delivery/ticket-001-ESD-02/ticket",
+    "source": "specs/tickets/ESD-02"
+  },
+  "workflow_name": "evidence-sized-delivery"
+}

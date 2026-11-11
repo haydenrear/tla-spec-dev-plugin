@@ -2615,3 +2615,55 @@ Every finding must become a ticket or PR against spec-double-compiler / tla-spec
 
 Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
 Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+## Close-out workflow evidence-sized-delivery
+
+- close_scope: workflow
+- close_id: evidence-sized-delivery
+- workflow: evidence-sized-delivery
+- closed_at: 2026-11-11T23:45:04+00:00
+- summary: Epic #234 evidence-sized delivery: ESD-01..07 delivered as instruction/attribution/architecture/test-graph guidance; no-op model result
+- feedback_status: items-recorded
+
+Set `feedback_status` to `none-found` or `items-recorded`, then record findings as `### SF-NNN` blocks below using the field list above.
+Every finding must become a ticket or PR against spec-double-compiler / tla-spec-dev; put its URL in `recommendation:` and set `status: filed`.
+
+### SF-ESD-01 — census rejects a cross-epic duplicate; `--surface` writes only to production
+- category: tool-defect
+- target: skills/git-epic-workflow/scripts/census.py (lines ~203, ~349, ~394); references/deferment.md:151
+- observed_on: tla-spec-dev @ epic #234 manual pass (MAN-01, MAN-02)
+- evidence: specs/results/evidence-sized-delivery/finalization/README.md §5a
+- severity: wrong-result
+- root_cause: tool
+- recommendation: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
+- status: filed
+
+### SF-ESD-02 — validate_assignment accepts leftover template placeholders
+- category: tool-defect
+- target: skills/git-epic-workflow/scripts/validate_assignment.py
+- observed_on: tla-spec-dev @ epic #234 manual pass (MAN-03)
+- evidence: specs/results/evidence-sized-delivery/finalization/README.md §5a
+- severity: missed-check
+- root_cause: tool
+- recommendation: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
+- status: filed
+
+### SF-ESD-03 — spec.workflow.cleanup guard is always true; can delete the test_graph project
+- category: graph-node-defect
+- target: test_graph spec_workflow_cleanup.py:35 (`bool(str(repo))`); GraphModel.kt ordering (MAN-05)
+- observed_on: tla-spec-dev @ epic #234 review and manual pass (MAN-04, MAN-05)
+- evidence: specs/results/evidence-sized-delivery/finalization/README.md §5a
+- severity: destructive
+- root_cause: instrument
+- recommendation: https://github.com/haydenrear/tla-spec-dev-plugin/issues/261 ; https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
+- status: filed
+
+### SF-ESD-04 — step-sizing and graph-review changes need a blind re-measure
+- category: budget-and-metric
+- target: skills/git-epic-workflow/references/step-sizing.md; skills/test-graph/references/graph-architecture-review.md
+- observed_on: tla-spec-dev @ ESD-07 (#270), after evaluation ticket ESD-06
+- evidence: specs/results/evidence-sized-delivery/ESD-07/README.md
+- severity: unmeasured
+- root_cause: process
+- recommendation: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
+- status: filed

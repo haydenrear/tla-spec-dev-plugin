@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:17:41.294Z",
+  "durationSeconds": 76,
+  "costUsd": 0.33786839999999996,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "esd-plan-two-capacities",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "esd-plan-two-capacities",
+      "dir": "specs/evals/evidence-sized-delivery/cases/esd-plan-two-capacities",
+      "source": "mixed",
+      "promptMarkdown": "You are the epic agent planning wave 1 of a new epic in a repository that\nuses this plugin. There are 9 candidate tickets:\n\n- 6 are independent documentation or unit-level fixes, each with a test that\n  is red on the base and green on its branch;\n- 3 change the `billing` module, and all three must run graph `billingFlow`.\n  All graph runs share one host. Its node `billing.ledger.reconcile` errored\n  on 4 of the last 10 runs with a timeout; the last review attributed those\n  reds to the instrument (host load), not to the product.\n\nHistory: one prior epic in this repository, with one milestone review artifact\n(5 hot spots, no escapes). The owner reviews at milestone cadence. Which agent\nmodel and version will implement and review this epic is not recorded.\n\nDecide how many tickets go into wave 1 and how you set its validation. Show\nyour reasoning the way this plugin's guidance asks a planner to, and name the\nguidance you used (file and section).\n\nNOTE ON THIS ENVIRONMENT: your working directory is an empty scratch\nrepository. The plugin's skills are loaded; read them through the Skill tool\nand the files they point to. Nothing here needs to be written or run.\n\nEVAL-CASE: esd-plan-two-capacities\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "names-step-sizing",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "step-sizing",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "two-estimates-tighter-binds",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does ALL of:\n (a) gives TWO SEPARATE estimates -- one for how much REVIEW can absorb and one\n     for how much the VALIDATION / VERIFICATION instruments can discriminate --\n     not a single combined \"risk\" judgement;\n (b) sizes the batch by the tighter of the two, identifying validation of the\n     billing tickets on the unstable shared-host graph as the binding limit; AND\n (c) does NOT run the three billingFlow tickets concurrently as-is: it serializes\n     them (depends_on / separate waves), or fixes or isolates the flaky node\n     first, while the independent proven tickets may go wide.\n\nSCORE 0.5 if it reaches (c) but without separate review and verification\nestimates, OR gives separate estimates but puts all three billing tickets into\none concurrent wave.\n\nSCORE 0 if it puts all 9 tickets in wave 1 with no constraint on billingFlow,\nor answers without addressing the graph's instability.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does ALL of:\n (a) gives TWO SEPARATE estimates -- one for how much REVIEW can absorb and one\n     for how much the VALIDATION / VERIFICATION instruments can discriminate --\n     not a single combined \"risk\" judgement;\n (b) sizes the batch by the tighter of the two, identifying validation of the\n     billing tickets on the unstable shared-host graph as the binding limit; AND\n (c) does NOT run the three billingFlow tickets concurrently as-is: it serializes\n     them (depends_on / separate waves), or fixes or isolates the flaky node\n     first, while the independent proven tickets may go wide.\n\nSCORE 0.5 if it reaches (c) but without separate review and verification\nestimates, OR gives separate estimates but puts all three billing tickets into\none concurrent wave.\n\nSCORE 0 if it puts all 9 tickets in wave 1 with no constraint on billingFlow,\nor answers without addressing the graph's instability.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 7,
+            "costUsd": 0.33786839999999996,
+            "judgeCostUsd": 0.0014974,
+            "durationSeconds": 76,
+            "startedAt": "2026-11-10T15:17:41.366Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-dr39Jm/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-step-sizing",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched step-sizing",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "two-estimates-tighter-binds",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Wave 1 plan: 4 tickets, with the billing work held back\n\n**Decision:** Wave 1 holds **4 tickets**. Three come from the six independent fixes. The fourth is a new ticket that fixes or isolates the flaky `billing.ledger.reconcile` timeout. All three billing tickets wait for later waves, each on its own, behind that fix. The owner reviews right after wave 1, and that review gates wave 2.\n\nIf you don't want the extra ticket, wave 1 becomes 4 of the independent fixes and the billing tickets wait until the timeout is dealt with some other way. The cap is 4 either way, and no billing ticket goes into wave 1.\n\n## Guidance used\n- **`git-epic-workflow/references/step-sizing.md`** is the main page:\n  - §1: summarize the starting point\n  - §2: estimate review and verification capacity separately\n  - §3: choose a batch within the tighter estimate\n  - §4: compare the cost of candidate batches\n  - §5: write the decision into existing plan fields\n  - §6: rules for holding, increasing or decreasing the batch\n  - §7: starting with little history\n  - §8: final confirmation stays\n  - §9: worked decisions 2 (flaky check), 3 (coupled change) and 4 (little history)\n- **`git-epic-workflow/references/plan-and-schedule.md`**: §3a (size waves from the two estimates, start small when history is sparse or the model is unknown), §4b (review cadence is also a batch-size control), §7 (the planning record under the schedule).\n- **`SKILL.md`** rules 6, 12, 13 and 15, plus the Scheduling model section (tickets share a wave only if their conflict keys don't overlap).\n\n## 1. Starting point (§1)\n| Input | Summary |\n|---|---|\n| Affected components | 6 separate doc or unit fixes. The `billing` module and graph `billingFlow`, touched by 3 tickets. |\n| Past bug sources | One prior epic and one review artifact. Not enough to show where defects cluster. |\n| Severity and escapes | 5 hot spots, 0 escapes, from one review. |\n| Coverage (REACH/BLIND) | `unknown` for `billing`. Zero escapes with unknown coverage means \"not looked at\", not \"safe\" (§7). |\n| Failures caused by the checks themselves | `billing.ledger.reconcile` timed out on 4 of 10 runs, blamed on host load. That lowers **verification** capacity. It says nothing about how risky the product change is (§1). |\n| Coupling | The 3 billing tickets share a module, a graph and the one host. That makes 3 interacting pairs. The 6 independent tickets have none. |\n| Who implements and reviews | **`unknown`** (model and version not recorded). Past evidence is only a starting guess. |\n\n## 2. The two capacities (§2)\nCapacity is counted in scope items, not tickets. Each pair of items that interacts counts as one extra item.\n- **Independent fixes:** 6 items with no interactions. Each has its own red-on-base, green-on-branch test, so they are cheap to review and their checks are trustworthy.\n- **Billing tickets:** 3 items plus 3 interacting pairs, so **6 items** of review and checking.\n\n**Review capacity: 4–6 independent items, or about 2 coupled ones.** Low confidence. It rests on one review point (5 hot spots, no escapes) and an unknown reviewer. Reviewing at milestone cadence means a larger batch read in less depth.\n\n**Verification capacity: 4–6 independent items, and 0–1 billing items until the timeout is fixed.** Medium confidence for the independent fixes, low for billing.\n- The independent tickets have their own tests and don't need the shared host.\n- Each `billingFlow` run has about a 40% chance of a false failure. With three billing tickets, the chance that at least one gets a false failure is about 1 − 0.6³ ≈ **78%**.\n- Running them at the same time on one host adds load, which is the suspected cause. Every false failure costs a diagnosis, and diagnoses don't run well in parallel.\n\n## 3. Choose the batch (§3, §7)\n- Verification is the tighter limit for billing, and it is close to zero. For the independent fixes both ranges run 4–6.\n- With low confidence, fewer than two comparable review points, and an unknown model, §3.1 and §7 say to use the lower bound. That gives **4**.\n- The billing items are coupled and high-risk, so they go alone, serialized (§3.2, §9.3). Their shared conflict keys (`production: billing`, `test_graph: billingFlow`) mean they can't share a wave anyway.\n- §9.2 applies to the flaky check: hold the batch and give the fix its own ticket, or a `depends_on` link, ahead of the tickets that need it. I put that fix in wave 1 because it decides when billing can run at all. It uses one of the 4 slots and doesn't compete with the unit tickets for the host.\n\n## 4. Cost comparison (§4)\n- **Adding billing to wave 1:** the cost of repairs and reruns climbs fast because of the ~78% false-failure chance and the shared-host load. A false failure also sends people chasing tickets that did nothing wrong.\n- **4 versus 6 independent fixes:** 6 would spread the fixed cost of one review over more work, and owner wait time usually dominates elapsed time. But 6 sits at the top of a low-confidence range with an unknown reviewer.\n- **Choice:** take 4 now. The two fixes left over can join a billing wave as low-risk filler, since they don't touch billing's conflict keys.\n- **Unknowns:** implementation time is `unknown`, and I am not dividing by it. Expensive eval cost is `unknown` and no `eval_budget` is set yet, because none of the goals call for one.\n\n## 5. How validation is set (§4 table, §5)\n**Independent fixes** (`tickets[].validation.repository_unit`)\n- Run only each ticket's own red→green test plus the doc and contract checks.\n- No graph runs and no use of the shared host.\n\n**Timeout-fix ticket**\n- First run `billingFlow` on the untouched base, as the control check in `bug_attribution.md` §6a.\n- Then measure the timeout rate after the fix.\n- Conflict keys: `test_graph: [billingFlow]` plus the host.\n- Graph runs are serialized under one lock (`scripts/milestone.py`).\n- How the attribution could be wrong (§9.2): if the check passes on the base and fails on a branch, that failure was the product, not the host.\n\n**Billing tickets** (waves 2 and later)\n- Each `depends_on` the timeout fix, plus a chain between the three so they promote one at a time.\n- `validation.graphs: [billingFlow + dependency closure]`, one run on the host at a time.\n- Add one intermediate contract assertion at each boundary (§9.3).\n\n**Merging a wave:** run the affected graphs once on the merged epic tip. For wave 1 that is only `billingFlow`, for the timeout fix.\n\n**`planning_rules.validation_acceleration_rule`:** \"unit-subset per ticket; billingFlow only for tickets bound to it, serialized on the shared host; full graph only at finalization.\"\n\n**Review policy:**\n```yaml\nreview_policy: {cadence: milestone, milestones: [1, …], gate: true, merges: owner, walkthrough: required}\n```\nThis keeps your milestone cadence but adds a review right after wave 1, as §7 asks for a cold start.\n\n**Finalization is unchanged (§8):** the full integrated graph run and the manual acceptance pass both stay.\n\n## 6. What would change the batch (§6)\n- **Increase:** only after two review points in a row with no override, trustworthy checks on the new items, and repairs settling within two rounds per layer. The step is one extra wave-sized group or about 50% more items, whichever is smaller.\n- **Decrease or hold:** any serious escape, repeated failures caused by the same check, a change in model or toolchain, or a change in scope or coupling.\n- **Not a trigger:** one failure blamed on the check goes in that check's ledger and doesn't move the batch size.\n- **Record now:** the reviewer and implementer model is `unknown`. When it is identified later, that counts as a change and means recalibrating with a batch no larger than this one (§9.5).\n\n## Before scaffolding\nThese are required decisions to ask you about, not defaults I can fill in:\n1. **Goals:** what should be measurably better, recorded with metric, harness, baseline and target (rule 12, §3a). This includes whether you accept the new timeout-fix ticket as an enabling ticket.\n2. **Deferment policy:** how ticket agents handle defects they find outside their own slice (§4a).\n3. **Review cadence:** confirm the wave-1 review gate above (§4b)."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

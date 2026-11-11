@@ -1,0 +1,66 @@
+findings:
+  - id: ESD-05-DF-01
+    found_by: "ESD-05"
+    found_at_commit: "54241b36"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: operator-doing-the-work
+    area: "skill instructions: the epic-ticket PR-body contract is stated in two files"
+    surface:
+      production: ["skills/git-issue-workflow/references/epic-ticket.md"]
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: []
+    summary: >-
+      The list of what an epic ticket's PR body carries (Goal contribution, Deferred findings, Skill
+      changes proposed, Review input with its four lists) is written in full in both
+      git-epic-workflow/references/epic-ticket.md §7 and git-issue-workflow/references/epic-ticket.md §7.
+      The ticket agent's reading path (agent_roles.md § ticket, step 2) is the git-issue-workflow copy.
+      ESD-05 added the delivery line (started_at, agent model and version, scope items) and the
+      origin/channel/effect + repair-cost instruction to the git-epic-workflow copy and to the rendered
+      assignment bullet, which every ticket agent reads; the git-issue-workflow copy, outside ESD-05's
+      conflict keys, does not carry them, so the two copies now differ by those lines.
+    reproduction: "grep -n 'started_at' skills/git-epic-workflow/references/epic-ticket.md skills/git-issue-workflow/references/epic-ticket.md (matches only the first)"
+    evidence:
+      - "specs/results/evidence-sized-delivery/ESD-05/README.md (reconciliation)"
+    why_out_of_scope: "skills/git-issue-workflow/references/epic-ticket.md is not in ESD-05's conflict keys."
+    suggested_fix: >-
+      Keep one home: replace the git-issue-workflow §7 list with a pointer to git-epic-workflow
+      epic-ticket.md §7 (or add the two lines). Prose only; it reduces the ticket path by ~40 lines.
+    skill_change: "proposed(git-issue-workflow, epic-ticket.md §7 duplicates the PR-body contract owned by git-epic-workflow epic-ticket.md §7)"
+    blast_radius: "Ticket agents that skip the rendered assignment bullet miss the delivery line."
+    disposition: fixed
+    disposition_ticket: epic-agent wave-5 review (delivery line added to git-issue-workflow epic-ticket.md §7)
+
+  - id: ESD-05-DF-02
+    found_by: "ESD-05"
+    found_at_commit: "54241b36"
+    schedule_revision: 1
+    severity: minor
+    blocking: false
+    channel: operator-doing-the-work
+    area: "eval setup: installed homes carry main, not the epic's routed references"
+    surface:
+      production: []
+      tla: []
+      adapters: []
+      test_graph: []
+      workflow: ["specs/evals/evidence-sized-delivery"]
+    summary: >-
+      ~/.skill-manager/plugins/tla-spec-dev, the plugin-marketplace copy and this worktree's home are
+      byte-identical to main a1ff56cf for every file on the role paths (build caches aside).
+      step-sizing.md and graph-architecture-review.md do not exist there, and none of ESD-02..05's
+      routing is present. An ESD-06 uptake case run in an eval home provisioned from the installed
+      plugin measures main for both arms.
+    reproduction: "ls ~/.skill-manager/plugins/tla-spec-dev/skills/git-epic-workflow/references/step-sizing.md (absent)"
+    evidence:
+      - "specs/results/evidence-sized-delivery/ESD-05/README.md (reconciliation)"
+    why_out_of_scope: "Eval provisioning belongs to ESD-06."
+    suggested_fix: "ESD-06: provision the tip arm's eval home from the epic tip checkout and record the plugin revision each arm loaded."
+    skill_change: none
+    blast_radius: "GOAL-ESD-UPTAKE measurement validity."
+    disposition: consumed
+    disposition_ticket: null
+    disposition_note: "consumed: ESD-06 ran the base arm from a main checkout (a1ff56cf) and the tip arm from the epic tip (epic finalization)"

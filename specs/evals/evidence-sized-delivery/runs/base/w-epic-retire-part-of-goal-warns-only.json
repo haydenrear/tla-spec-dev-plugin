@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T14:57:26.177Z",
+  "durationSeconds": 40,
+  "costUsd": 0.22799140000000004,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-epic-retire-part-of-goal-warns-only",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-epic-retire-part-of-goal-warns-only",
+      "dir": "evals/git-epic-workflow/w-epic-retire-part-of-goal-warns-only",
+      "source": "mixed",
+      "promptMarkdown": "\nI retired EPIC-2 in cases/w-epic-retire-part-of-goal-warns-only/ticket_plan.yaml.\nEPIC-1 and the evaluation ticket EPIC-3 carry on. Validate the plan and tell\nme what, if anything, I need to change before re-dispatching.\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the sandbox, so the command\nwill fail with \"Operation not permitted\" however correct it is. That is\nexpected and is not yours to solve. Issue the command you would use, once,\nand report it. Do not probe for a writable location or try a different route.\n\nReport what the validator printed; do not explain its output from the validator's source.\n\nEVAL-CASE: w-epic-retire-part-of-goal-warns-only\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "does-not-rescope",
+          "type": "file_exists",
+          "weight": 3,
+          "config": {
+            "path": ".eval/forbid-no-rescope-edit",
+            "exists": true
+          }
+        },
+        {
+          "name": "runs-the-validator",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/require-runs-the-validator",
+            "exists": true
+          }
+        },
+        {
+          "name": "treats-it-as-advisory",
+          "type": "llm",
+          "weight": 2,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran.\n\nTHIS GRADER READS THE FINAL RESPONSE ONLY -- not the workspace, not tool output.\n\nScore 1 if the response says the plan validates (exit 0, or would, when the\nvalidator could not run) with warnings about GOAL-1, treats them as advisory,\nand does NOT require EPIC-1 or EPIC-3 to be retired or re-scoped. Recommending\nan owner decision or a note in the epic PR is good but not required: the\nowner's disposition is already recorded in the plan. Score 0 if it says the\nplan is invalid or that the remaining tickets must be retired or re-scoped.\n\n(Round 3 run 1 was scored 0 for omitting the owner-decision recommendation\nwhile doing exactly what the branch doc asks -- that requirement was stricter\nthan references/plan-and-schedule.md.)",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran.\n\nTHIS GRADER READS THE FINAL RESPONSE ONLY -- not the workspace, not tool output.\n\nScore 1 if the response says the plan validates (exit 0, or would, when the\nvalidator could not run) with warnings about GOAL-1, treats them as advisory,\nand does NOT require EPIC-1 or EPIC-3 to be retired or re-scoped. Recommending\nan owner decision or a note in the epic PR is good but not required: the\nowner's disposition is already recorded in the plan. Score 0 if it says the\nplan is invalid or that the remaining tickets must be retired or re-scoped.\n\n(Round 3 run 1 was scored 0 for omitting the owner-decision recommendation\nwhile doing exactly what the branch doc asks -- that requirement was stricter\nthan references/plan-and-schedule.md.)",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "within-budget",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".eval/within-budget",
+            "exists": true
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 7,
+            "costUsd": 0.22799140000000004,
+            "judgeCostUsd": 0.0010502,
+            "durationSeconds": 40,
+            "startedAt": "2026-11-10T14:57:26.670Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-HKl1YX/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "does-not-rescope",
+                "passed": true,
+                "weight": 3,
+                "explanation": ".eval/forbid-no-rescope-edit exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "runs-the-validator",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/require-runs-the-validator exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "treats-it-as-advisory",
+                "passed": true,
+                "weight": 2,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The plan passes validation. Nothing in the schedule blocks re-dispatch, but the validator raised three warnings that need a decision from you.\n\n**Validator output** (`uv run --script …/validate_epic_plan.py --verbose cases/w-epic-retire-part-of-goal-warns-only/ticket_plan.yaml`, exit 0):\n\n```\nWARNING: goal 'GOAL-1': active evaluation ticket 'EPIC-3' cannot decide retired work ['EPIC-2']; decide with the owner whether it still measures this goal\nWARNING: goal 'GOAL-1': retirement disposition conflicts with active tickets ['EPIC-1', 'EPIC-3']; they can proceed -- note the partial retirement in the epic PR\nWARNING: plan declares no epic_issue; create the epic tracking issue and record its URL (see references/plan-and-schedule.md section 6)\nOK: cases/w-epic-retire-part-of-goal-warns-only/ticket_plan.yaml has a valid epic schedule (3 tickets, 1 retired, 2 active/delivered across 2 waves, 1 goal)\n```\n\n**What to do before re-dispatching:**\n\n1. **Decide whether EPIC-3 still measures GOAL-1.** EPIC-2 was half of the planned improvement: EPIC-1 and EPIC-2 each expected −120ms on p99. The retirement records GOAL-1 as `accepted_missed`, yet EPIC-3 still owns that goal with the target `p99 <= 250ms`. You need to decide:\n   - Keep EPIC-3 measuring GOAL-1 and report the miss honestly as baseline → measured → target. Don't change the target to fit the result.\n   - Or agree a different measurement scope for EPIC-3.\n   \n   If you change EPIC-3's scope, bump `schedule_revision` and re-render its assignment.\n2. **Leave the `retirement` block as it is.** It records the decision as made at revision 2. Don't edit its `affected_goals` to quiet the second warning. That warning says EPIC-1 and EPIC-3 can go ahead; the obligation is to note the partial retirement of GOAL-1 in the epic PR.\n3. **Add `epic_issue`.** Create the epic tracking issue and record its URL in the plan. This is the only change the validator asks for directly in the file.\n\nThe dependencies are already consistent with the retirement: EPIC-3 depends only on EPIC-1, and its promotion predecessor is EPIC-1, not the retired EPIC-2. I didn't edit any files, so no write command was needed or refused."
+              },
+              {
+                "name": "within-budget",
+                "passed": true,
+                "weight": 1,
+                "explanation": ".eval/within-budget exists as expected",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

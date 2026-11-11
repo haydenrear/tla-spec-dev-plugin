@@ -1,0 +1,27 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 60 and seed 721886084114645880 with 10 workers on 10 cores with 16384MB heap and 64MB offheap memory [pid: 46302] (Mac OS X 26.6.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file /Volumes/dev/wt-epic-evidence-sized-delivery/specs/current/TlaSpecDevCli.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/TLC.tla
+Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module TlaSpecDevCli
+Starting... (2026-11-10 10:57:14)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-10 10:57:15.
+Progress(15) at 2026-11-10 10:57:18: 6,285,849 states generated (6,285,849 s/min), 530,745 distinct states found (530,745 ds/min), 261,014 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 1.4E-5
+  based on the actual fingerprints:  val = 2.7E-7
+85131915 states generated, 3041105 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 27.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 29 and the 95th percentile is 9).
+Finished in 28s at (2026-11-10 10:57:43)

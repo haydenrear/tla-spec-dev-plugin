@@ -1,0 +1,78 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+..................................F..................................... [ 11%]
+........................................................................ [ 14%]
+........................................................................ [ 18%]
+........................................................................ [ 22%]
+........................................................................ [ 25%]
+........................................................................ [ 29%]
+...........s............................................................ [ 33%]
+........................................................................ [ 36%]
+........................................................................ [ 40%]
+........................................................................ [ 44%]
+........................................................................ [ 47%]
+........................................................................ [ 51%]
+........................................................................ [ 55%]
+........................................................................ [ 59%]
+........................................................................ [ 62%]
+........................................................................ [ 66%]
+........................................................................ [ 70%]
+........................................................................ [ 73%]
+........................................................................ [ 77%]
+........................................................................ [ 81%]
+........................................................................ [ 84%]
+........................................................................ [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 95%]
+........................................................................ [ 99%]
+........                                                                 [100%]
+=================================== FAILURES ===================================
+_______________________ test_the_same_tag_control_holds ________________________
+
+at = <module 'architecture_tags_rd05' from '/Volumes/dev/wt-epic-evidence-sized-delivery/examples/validation/scorecards/architecture_tags.py'>
+world = {'subjects': {'arm_b': {'name': 'arm_b', 'example': 'ab_quota_ledger', 'scope': ['specs/results/scorecards/ports-as-ad...ful-vs-ports-and-adapters', 'axis': 'effect_boundary', 'example': 'eval_toolchain', 'dimension': 'D2', ...}, ...], ...}
+
+    def test_the_same_tag_control_holds(at, world) -> None:
+        """Without it any two artifacts pass, because any two differ in something.
+    
+        **THIS TEST IS DELIBERATELY RED (`RM-06`, group 2). DO NOT MAKE IT GREEN.**
+    
+        It is not pinned to a count the corpus grew. It is a CONTROL, it is now
+        reporting a real result, and the result is unflattering: nine same-tag pairs
+        separate — eight on D2 and one on D5 — every one of them a before-tree
+        scoring disjointly from an after-tree at the SAME derived value. RD-06's
+        three revision pairs gave this control its first within-value TREATMENT
+        difference and it cannot tell that apart from a difference in architecture
+        (`RD-03-DF-12`).
+    
+        The two repairs that would clear it were both rejected. Scoping the control
+        to the dimension the separation is claimed on (D3, where it still holds)
+        would make it a check about the row rather than about the axis. Excluding
+        revision pairs from the population would remove exactly the evidence the
+        control exists to see. Either one converts a measurement into a tautology,
+        which is the failure this epic family exists to prevent.
+    
+        Filed as `RM-06-DF-01`. It goes green when the axis can distinguish
+        treatment from architecture, or when the epic decides it cannot and says so.
+        """
+    
+        controls = at.same_tag_controls(world["rows"], world["derived"], world["subjects"])
+        assert controls, "no same-tag control is available; the separation is uncontrolled"
+        failed = [c for c in controls if c["separates"]]
+>       assert failed == [], (
+            f"{len(failed)} same-tag pair(s) separate: "
+            f"{[(c['dimension'], c['a'], c['b']) for c in failed]}. "
+            f"EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control "
+            f"is reporting a real result and may not be narrowed to silence it."
+        )
+E       AssertionError: 9 same-tag pair(s) separate: [('D2', 'arm_a', 'rd06_artifact_D'), ('D2', 'arm_a', 'rd06_artifact_M'), ('D2', 'arm_c', 'rd06_artifact_D'), ('D2', 'arm_c', 'rd06_artifact_M'), ('D2', 'rd06_artifact_D', 'rd06_artifact_N'), ('D2', 'rd06_artifact_D', 'rd06_artifact_Z'), ('D5', 'rd06_artifact_E', 'rd06_artifact_F'), ('D2', 'rd06_artifact_M', 'rd06_artifact_N'), ('D2', 'rd06_artifact_M', 'rd06_artifact_Z')]. EXPECTED RED -- see this test's docstring and RM-06-DF-01. The control is reporting a real result and may not be narrowed to silence it.
+E       assert [{'example': ...l', ...}, ...] == []
+E         
+E         Left contains 9 more items, first extra item: {'example': 'ab_quota_ledger', 'a': 'arm_a', 'b': 'rd06_artifact_D', 'value': 'effectful', ...}
+E         Use -v to get more diff
+
+tests/test_architecture_tags.py:477: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_architecture_tags.py::test_the_same_tag_control_holds - Ass...
+1 failed, 1950 passed, 1 skipped in 2552.34s (0:42:32)
+uvx --with pyyaml --with jinja2 pytest tests -q -rf -p no:cacheprovider  729.93s user 794.80s system 59% cpu 42:33.59 total

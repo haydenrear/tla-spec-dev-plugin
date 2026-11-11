@@ -1,0 +1,5 @@
+specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
+FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
+2 failed, 54 passed in 26.81s

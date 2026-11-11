@@ -1,0 +1,586 @@
+{
+  "accept_new": false,
+  "accept_new_promotion": null,
+  "active_ticket_dir": "specs/tickets/ESD-07",
+  "commit_recommendation": {
+    "git_add": "git add specs/.history/evidence-sized-delivery/ticket-006-ESD-07 specs/current specs/results/complexity_ledger.json",
+    "git_commit": "git commit -m 'record spec history for ESD-07'",
+    "message": "It is recommended to commit this history directory now: specs/.history/evidence-sized-delivery/ticket-006-ESD-07"
+  },
+  "complexity_delta": {
+    "direction": "zero",
+    "metrics": {
+      "actions": {
+        "after": 19,
+        "before": 19,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "bound": {
+        "after": 277830,
+        "before": 277830,
+        "bound_complete_after": false,
+        "bound_complete_before": false,
+        "comparable": false,
+        "delta": 0,
+        "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+        "percent": 0.0
+      },
+      "depth": {
+        "after": 17,
+        "before": 17,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "distinct_states": {
+        "after": 36577,
+        "before": 36577,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "generated_states": {
+        "after": 765259,
+        "before": 765259,
+        "delta": 0,
+        "percent": 0.0
+      },
+      "variables": {
+        "after": 9,
+        "before": 9,
+        "delta": 0,
+        "percent": 0.0
+      }
+    },
+    "previous_scope_id": "ESD-06"
+  },
+  "complexity_ledger": {
+    "coverage_audit": {
+      "in_scope_gaps": null,
+      "passing": false,
+      "report": "",
+      "scope_source": "",
+      "status": "not_run"
+    },
+    "delta": {
+      "direction": "zero",
+      "metrics": {
+        "actions": {
+          "after": 19,
+          "before": 19,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "bound": {
+          "after": 277830,
+          "before": 277830,
+          "bound_complete_after": false,
+          "bound_complete_before": false,
+          "comparable": false,
+          "delta": 0,
+          "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model",
+          "percent": 0.0
+        },
+        "depth": {
+          "after": 17,
+          "before": 17,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "distinct_states": {
+          "after": 36577,
+          "before": 36577,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "generated_states": {
+          "after": 765259,
+          "before": 765259,
+          "delta": 0,
+          "percent": 0.0
+        },
+        "variables": {
+          "after": 9,
+          "before": 9,
+          "delta": 0,
+          "percent": 0.0
+        }
+      },
+      "previous_scope_id": "ESD-06"
+    },
+    "errors": [],
+    "input_path": "specs/tickets/ESD-07/results/complexity_ledger.yaml",
+    "justification": "No model delta: the ticket changes instructions/evidence only (user mandate #234: no new machinery).",
+    "ledger_path": "specs/results/complexity_ledger.json",
+    "metrics": {
+      "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+      "actions": 19,
+      "actions_from_fallback_heuristic": false,
+      "bound": 277830,
+      "bound_complete": false,
+      "bound_resolved_variables": 6,
+      "bound_unresolved_variables": [
+        "lastCommand",
+        "result",
+        "skt_answer"
+      ],
+      "budget_utilization": {
+        "max_distinct_states": {
+          "cap": 500000,
+          "percent": 7.3,
+          "used": 36577,
+          "within_cap": true
+        },
+        "max_state_space_bound": {
+          "bound_complete": false,
+          "cap": 1000000,
+          "caveat": "the bound is a product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything",
+          "percent": null,
+          "percent_lower_bound": 27.8,
+          "used": 277830,
+          "within_cap": null
+        }
+      },
+      "depth": 17,
+      "distinct_states": 36577,
+      "gate_passed": false,
+      "gate_violations": [
+        "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+        "component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6",
+        "component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8"
+      ],
+      "generated_states": 765259,
+      "modularity": 0.00327538422776524,
+      "tlc_report": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets/ESD-07/results/tlc-current.txt",
+      "tlc_run_complete": true,
+      "variables": 9
+    },
+    "narrative": "No-op model result for ESD-07 (PR #271): instruction/evidence-only change; specs/current and the desired model are unchanged; TLC MCsmall green before and after. Known-red spec-unit base: 2 failures, no new failures.",
+    "notes": [
+      "OK: generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature.",
+      "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+    ],
+    "recorded_at_utc": "2026-11-11T21:23:35.886116+00:00",
+    "refinement": {
+      "applied": false,
+      "approved_by": "",
+      "detail": "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply",
+      "measured": false,
+      "outcome": "none",
+      "searched": true
+    },
+    "retention": {
+      "effect_conformance": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "external_coverage": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      },
+      "kill_rate": {
+        "classification": "unverified",
+        "evidence": "",
+        "status": "not_run",
+        "value": null
+      }
+    },
+    "retention_summary": [
+      "kill_rate=not_run (UNVERIFIED)",
+      "effect_conformance=not_run (UNVERIFIED)",
+      "external_coverage=not_run (UNVERIFIED)"
+    ],
+    "schema_version": 1,
+    "scope": "ticket",
+    "scope_id": "ESD-07",
+    "tlc_findings": [
+      {
+        "level": "OK",
+        "message": "generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature."
+      }
+    ],
+    "transition_diff": "",
+    "validated_refactor": {
+      "behavior_tests": {
+        "classification": "retained",
+        "evidence": "specs/results/evidence-sized-delivery/ESD-07/epic-close/spec-unit.txt",
+        "status": "pass",
+        "value": null
+      },
+      "descriptor_comparison": {
+        "classification": "retained",
+        "evidence": "specs/tickets/ESD-07/desired is byte-identical to specs/current (no model delta)",
+        "status": "recorded",
+        "value": null
+      },
+      "tlc_after": {
+        "classification": "retained",
+        "evidence": "specs/results/evidence-sized-delivery/ESD-07/epic-close/tlc-current.txt",
+        "status": "green",
+        "value": null
+      },
+      "tlc_before": {
+        "classification": "retained",
+        "evidence": "specs/results/evidence-sized-delivery/ESD-07/epic-close/tlc-before.txt",
+        "status": "green",
+        "value": null
+      }
+    },
+    "validated_refactor_summary": [
+      "tlc_before=green (retained)",
+      "tlc_after=green (retained)",
+      "behavior_tests=pass (retained)",
+      "descriptor_comparison=recorded (retained)"
+    ],
+    "verdict": "recorded",
+    "workflow": "evidence-sized-delivery"
+  },
+  "created_at_utc": "2026-11-11T21:23:36.221034+00:00",
+  "deferred_ledger": {
+    "marked": [],
+    "performed": false,
+    "skipped": "no closure at specs/tickets/ESD-07/closure.yaml",
+    "unknown": []
+  },
+  "desired_carry": {
+    "already_matching": [],
+    "base": "project current/ before this close promoted",
+    "conflicts": [],
+    "followed": [],
+    "merged": [],
+    "performed": false,
+    "removed": []
+  },
+  "desired_only": true,
+  "entry_name": "ticket-006-ESD-07",
+  "feedback_filed": false,
+  "feedback_filed_where": [],
+  "forced_mutation_paths": [],
+  "git": {
+    "branch": "epic/evidence-sized-delivery",
+    "commit": "f37b87c4",
+    "inside_work_tree": "true"
+  },
+  "guard_weakening": {
+    "bypassed": [],
+    "flags": [],
+    "force": false,
+    "model_action": "CloseTicket",
+    "note": "RC-01: a close taken under a guard-weakening flag is a different modeled state from one taken under the guard. Recorded, never refused.",
+    "weakened": false
+  },
+  "history_policy": "append-only by convention; existing entries are not overwritten and filesystem permissions remain git-friendly",
+  "kind": "ticket",
+  "promotion": {
+    "destination": "specs",
+    "merged": [
+      {
+        "destination": "specs/current",
+        "files": [
+          {
+            "destination": "specs/current/MC.cfg",
+            "relative": "MC.cfg",
+            "source": "specs/tickets/ESD-07/desired/MC.cfg"
+          },
+          {
+            "destination": "specs/current/MCsmall.cfg",
+            "relative": "MCsmall.cfg",
+            "source": "specs/tickets/ESD-07/desired/MCsmall.cfg"
+          },
+          {
+            "destination": "specs/current/README.md",
+            "relative": "README.md",
+            "source": "specs/tickets/ESD-07/desired/README.md"
+          },
+          {
+            "destination": "specs/current/TlaSpecDevCli.tla",
+            "relative": "TlaSpecDevCli.tla",
+            "source": "specs/tickets/ESD-07/desired/TlaSpecDevCli.tla"
+          },
+          {
+            "destination": "specs/current/adapter_case_runtime.py",
+            "relative": "adapter_case_runtime.py",
+            "source": "specs/tickets/ESD-07/desired/adapter_case_runtime.py"
+          },
+          {
+            "destination": "specs/current/case_adapters.toml",
+            "relative": "case_adapters.toml",
+            "source": "specs/tickets/ESD-07/desired/case_adapters.toml"
+          },
+          {
+            "destination": "specs/current/production_adapters.py",
+            "relative": "production_adapters.py",
+            "source": "specs/tickets/ESD-07/desired/production_adapters.py"
+          },
+          {
+            "destination": "specs/current/spec_manifest.yaml",
+            "relative": "spec_manifest.yaml",
+            "source": "specs/tickets/ESD-07/desired/spec_manifest.yaml"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_analyze_adapter.py",
+            "relative": "tests/test_tla_spec_dev_analyze_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_analyze_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_binding_reconciliation.py",
+            "relative": "tests/test_tla_spec_dev_binding_reconciliation.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_binding_reconciliation.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_budgets_adapter.py",
+            "relative": "tests/test_tla_spec_dev_budgets_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_budgets_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_case_execution_run.py",
+            "relative": "tests/test_tla_spec_dev_case_execution_run.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_case_execution_run.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_cli_adapter.py",
+            "relative": "tests/test_tla_spec_dev_cli_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_cli_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "relative": "tests/test_tla_spec_dev_close_promotion_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_close_promotion_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "relative": "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_complexity_ledger_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_corpus_adapter.py",
+            "relative": "tests/test_tla_spec_dev_corpus_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_corpus_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "relative": "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_effect_conformance_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_generation_adapter.py",
+            "relative": "tests/test_tla_spec_dev_generation_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_generation_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_run_adapter.py",
+            "relative": "tests/test_tla_spec_dev_run_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_run_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_scaffold_adapter.py",
+            "relative": "tests/test_tla_spec_dev_scaffold_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_scaffold_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "relative": "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_skill_feedback_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_test_graph_adapter.py",
+            "relative": "tests/test_tla_spec_dev_test_graph_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_test_graph_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_ticket_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_ticket_adapter.py"
+          },
+          {
+            "destination": "specs/current/tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "relative": "tests/test_tla_spec_dev_update_ticket_adapter.py",
+            "source": "specs/tickets/ESD-07/desired/tests/test_tla_spec_dev_update_ticket_adapter.py"
+          }
+        ],
+        "kept_current": [],
+        "operation": "promote ticket desired onto project current, preserving unseeded current-only paths",
+        "preserved": [
+          "tests/test_current_ticket_workflow.py"
+        ],
+        "removed": [],
+        "role": "current",
+        "seed_basis": "seed manifest recorded at open; removing only seeded paths the ticket dropped",
+        "seed_recorded": true,
+        "source": "specs/tickets/ESD-07/desired"
+      }
+    ],
+    "operation": "replace project current with ticket desired and merge ticket artifacts into project specs",
+    "source": "specs/tickets/ESD-07"
+  },
+  "refinement_record": {
+    "applied": false,
+    "approved_by": "",
+    "detail": "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply",
+    "measured": false,
+    "outcome": "none",
+    "searched": true
+  },
+  "results": [
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/results/tlc-current.txt",
+      "source": "specs/results/evidence-sized-delivery/ESD-07/epic-close/tlc-current.txt"
+    },
+    {
+      "exists": true,
+      "role": "result",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/results/spec-unit.txt",
+      "source": "specs/results/evidence-sized-delivery/ESD-07/epic-close/spec-unit.txt"
+    }
+  ],
+  "retention_evidence": {
+    "effect_conformance": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "external_coverage": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    },
+    "kill_rate": {
+      "classification": "unverified",
+      "evidence": "",
+      "status": "not_run",
+      "value": null
+    }
+  },
+  "schema_version": 1,
+  "skill_feedback": null,
+  "snapshots": [
+    {
+      "exists": true,
+      "role": "program_model",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/snapshots/program_model",
+      "source": "specs/program_model"
+    },
+    {
+      "exists": true,
+      "role": "desired_program_model",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/snapshots/desired_program_model",
+      "source": "specs/desired_program_model"
+    },
+    {
+      "exists": true,
+      "role": "current",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/snapshots/current",
+      "source": "specs/current"
+    },
+    {
+      "exists": true,
+      "moved": true,
+      "pruned": [],
+      "role": "ticket_workdir",
+      "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/ticket",
+      "source": "specs/tickets/ESD-07"
+    }
+  ],
+  "spec_root": "specs",
+  "summary": "No-op model result: owner final-review amendment (prose): batch-favoring step sizing, advisory checks, pre-run graph review, resume-first reruns",
+  "three_way_carry": null,
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Both new pages state that nothing in them blocks and how to override a refusing tool once, with a reason.",
+        "The default batch for independent items with proof is the upper bound of the tighter estimate; instrument repairs batch with dependent work; halving only follows a product escape.",
+        "The pre-run review covers existing nodes and non-node instruments; major flags become fix-ahead tickets that do not hold the product batch.",
+        "Resume from the failed node is the default rerun; a full fresh run needs a stated reason (stale context) plus the final confirmation.",
+        "No-op model result recorded: specs/current is unchanged by this ticket."
+      ],
+      "commands": [],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [
+        "skills/test-graph/references/graph-architecture-review.md"
+      ],
+      "tla": [],
+      "workflow": [
+        "skills/git-epic-workflow/references/step-sizing.md",
+        "skills/git-epic-workflow/references/validation-review.md",
+        "skills/git-epic-workflow/references/plan-and-schedule.md",
+        "skills/spec-double-2/references/agent_roles.md",
+        "specs/results/evidence-sized-delivery/ESD-07/"
+      ]
+    },
+    "covers": [
+      "#270"
+    ],
+    "depends_on": [
+      "ESD-06"
+    ],
+    "desired_actions": [],
+    "feature_branch": "feature/270-batch-favoring-sizing",
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/270",
+    "goals": [
+      {
+        "contribution": "direct",
+        "expected_effect": "Owner amendment after evaluation: the guidance chooses the larger batch the held-out outcomes supported (E1, E2, E3) without losing E4's caution. Not re-measured by ESD-06 (post-evaluation, eval run budget 46/48 spent); the CAPACITY verdict is recorded as invalidated for the changed sections (step-sizing.md \u00a78).",
+        "goal": "GOAL-ESD-CAPACITY",
+        "local_signal": "Re-derive the four held-out decisions (holdout-replay.md E1-E4) by the amended rules alone; count agree/partly/disagree against the recorded outcomes (leakage noted)"
+      },
+      {
+        "contribution": "direct",
+        "expected_effect": "The pre-run review applies the five questions to every instrument the affected graphs execute, not only changed graph nodes, closing the 0-of-27 non-node gap by scope; unmeasured blind.",
+        "goal": "GOAL-ESD-ARCH",
+        "local_signal": "Count the ESD-06 hold-out rows whose instrument class is now inside the page's stated scope (before vs after)"
+      }
+    ],
+    "id": "ESD-07",
+    "implementation_scope": [
+      "skills/git-epic-workflow/references/step-sizing.md",
+      "skills/git-epic-workflow/references/validation-review.md",
+      "skills/git-epic-workflow/references/plan-and-schedule.md",
+      "skills/test-graph/references/graph-architecture-review.md",
+      "skills/spec-double-2/references/agent_roles.md",
+      "specs/results/evidence-sized-delivery/ESD-07/"
+    ],
+    "objective": "Owner final-review amendment (#270): make step sizing favor larger batches where the held-out replay showed over-caution, keep every check advisory with a recorded override, add a pre-run review of existing graph nodes and instruments with fix-ahead tickets for major flags, make resume-from-the-failed-node the default rerun, route recurring validation-origin families to a skill change, and correct the review routing row (MAN-06). No new script, gate or field.",
+    "promotion_order": 70,
+    "promotion_predecessor": "ESD-06",
+    "role": "implementation",
+    "schedule_revision": 2,
+    "status": "closed",
+    "title": "Batch-favoring step sizing, advisory checks, pre-run graph review and resume-first reruns",
+    "validation": {
+      "evidence_root": "specs/results/evidence-sized-delivery/ESD-07",
+      "graphs": [],
+      "repository_unit": "uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests -q",
+      "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)",
+      "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+      "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+      "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)"
+    },
+    "wave": 7,
+    "worktree": "/Volumes/dev/tla-spec-dev-plugin-270-batch-favoring-sizing"
+  },
+  "ticket_id": "ESD-07",
+  "ticket_index": 6,
+  "ticket_plan": "specs/desired_program_model/ticket_plan.yaml",
+  "ticket_status": "closed",
+  "ticket_workdir": {
+    "exists": true,
+    "moved": true,
+    "pruned": [],
+    "role": "ticket_workdir",
+    "snapshot": "specs/.history/evidence-sized-delivery/ticket-006-ESD-07/ticket",
+    "source": "specs/tickets/ESD-07"
+  },
+  "workflow_name": "evidence-sized-delivery"
+}

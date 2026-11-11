@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:16:28.447Z",
+  "durationSeconds": 65,
+  "costUsd": 0.6521302,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "esd-ticket-red-not-mine",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "esd-ticket-red-not-mine",
+      "dir": "specs/evals/evidence-sized-delivery/cases/esd-ticket-red-not-mine",
+      "source": "mixed",
+      "promptMarkdown": "You are the ticket agent on ticket T-31 of an epic (fix rounding in\n`invoice.total`). Your required validation includes graph `invoiceFlow`.\n\nOn your branch `invoiceFlow` went red: node `invoice.cleanup_probe` errored\nwith \"live descendants remain after drain\" (a Gradle daemon outlived it).\nYour changed node `invoice.total.rounding` passed. The same probe also errored\non the untouched epic base this morning, and two other tickets in this wave\nreported the same probe red. The host was heavily loaded at the time.\n\nUsing this plugin's guidance: how do you record this red, against what, and\ndoes it count against your change? Give the record you would write (its\nfields), what you do about your required validation, and name the guidance\nyou used (file and section).\n\nNOTE ON THIS ENVIRONMENT: your working directory is an empty scratch\nrepository. The plugin's skills are loaded; read them through the Skill tool\nand the files they point to. Nothing here needs to be written or run.\n\nEVAL-CASE: esd-ticket-red-not-mine\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "names-the-attribution-sections",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "4\\.3|6a",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "origin-is-not-channel",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does ALL of:\n (a) attributes the defect's ORIGIN to the instrument (the probe node / test\n     graph executor / host), kept separate from WHAT DETECTED it (the graph\n     run), and does NOT charge it to T-31's product change;\n (b) justifies that with a control: the probe was also red on the untouched base\n     and/or the node T-31 changed passed;\n (c) records it as a finding against the instrument (a deferred finding, CATCH\n     or ledger row naming the probe, ideally listing the affected runs/tickets)\n     rather than silently ignoring or deleting the red; AND\n (d) does not drop or downgrade the REQUIRED validation to get green.\n\nSCORE 0.5 if it gets (a) and (c) but gives no control for (b), or gets (a) and\n(b) but writes no finding, or keeps the cause certain where the facts only\nsuggest load (still 0.5 at most if (d) is violated).\n\nSCORE 0 if it charges the red to T-31's product change, or simply re-runs until\ngreen with no record, or skips the required graph.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response does ALL of:\n (a) attributes the defect's ORIGIN to the instrument (the probe node / test\n     graph executor / host), kept separate from WHAT DETECTED it (the graph\n     run), and does NOT charge it to T-31's product change;\n (b) justifies that with a control: the probe was also red on the untouched base\n     and/or the node T-31 changed passed;\n (c) records it as a finding against the instrument (a deferred finding, CATCH\n     or ledger row naming the probe, ideally listing the affected runs/tickets)\n     rather than silently ignoring or deleting the red; AND\n (d) does not drop or downgrade the REQUIRED validation to get green.\n\nSCORE 0.5 if it gets (a) and (c) but gives no control for (b), or gets (a) and\n(b) but writes no finding, or keeps the cause certain where the facts only\nsuggest load (still 0.5 at most if (d) is violated).\n\nSCORE 0 if it charges the red to T-31's product change, or simply re-runs until\ngreen with no record, or skips the required graph.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 15,
+            "costUsd": 0.6521302,
+            "judgeCostUsd": 0.0018394,
+            "durationSeconds": 65,
+            "startedAt": "2026-11-10T15:16:28.535Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-SoTpwF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-the-attribution-sections",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched 4\\.3|6a",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "origin-is-not-channel",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "The plugin's answer: this is an **errored** run, not a **failed** one. It goes on record as a defect in the test setup (the probe or the host), not in `invoice.total`. It doesn't count against my rounding change. But it does leave a required graph red, and I may not call that green, skip it, or work around it myself. I read all of this from the skill files; nothing was run or written, as the task said.\n\n## 1. What kind of red this is\n\nFrom `test-graph/references/workflows.md`, the status table and *\"Read `outcome.json`, not the log\"*:\n\n- **FAILED** (`cause: assertion`) means a node finished and a check was red, so you investigate the code.\n- **ERRORED** means the run didn't finish cleanly, so you retry or fix the environment.\n\nA Gradle daemon that outlived the probe, giving \"live descendants remain after drain\", is an **ERRORED** run (`crash` or `runner_died`), not an assertion. That table also says to check the `load_avg_*` fields before suspecting the code. Here:\n- My changed node `invoice.total.rounding` **passed**.\n- The same probe went red on the untouched epic base.\n- Two other tickets saw the same red.\n- The host was heavily loaded.\n\nSo the red is against the test setup, not my change.\n\n## 2. Against what, and does it count\n\n**Scope** (`git-epic-workflow/references/deferment.md`, *Scope classification*): out of scope. \"Flaky infrastructure\" and \"untouched surfaces\" are named there as out of scope, and the fix would touch nothing in my conflict keys. So I don't fix it in this ticket.\n\n**Is it blocking?** Yes. The same page defines blocking as \"the REQUIRED validation matrix cannot pass without touching an out-of-scope surface.\" `invoiceFlow` is required, and its red has nothing to do with my code.\n\n**Attribution** (`spec-double-2/references/bug_attribution.md`):\n- **§6a**, *\"The red that was not a defect at all, which has no kind\"*: this is the red \"never about the code it was charged to.\" It is neither a BLIND (the check is red) nor a normal CATCH (my code is clean). The schema for it is UNDECIDED, so I don't invent one.\n- **§6a**, *\"The instrument's defects are CATCHes\"*: the setup defect itself is a CATCH, and its `area` must name the instrument, not \"invoice\".\n- **§7a / §7c**: it fits no TLA+ action in my model, so it anchors to `UNMODELED/<bin>` rather than stretching an action to cover it.\n\n## 3. The record\n\nFiled in my own per-ticket backlog file (`specs/results/deferred/T-31.yaml`, via `census.py record`). Fields follow `deferment.md` *Backlog format* plus the extra CATCH fields from `bug_attribution.md` §4:\n\n```yaml\n- id: T-31-DF-01\n  duplicate_of: <earlier wave ticket's DF id, if one exists>   # census.py record --duplicate-of\n  found_by: T-31\n  found_at_commit: <ticket head sha>\n  schedule_revision: <from plan>\n  severity: blocking            # REQUIRED graph invoiceFlow cannot go green inside my keys\n  surface:\n    production: []\n    tla: []\n    adapters: []\n    test_graph: [\"invoice.cleanup_probe\"]\n  summary: \"invoice.cleanup_probe ERRORED: 'live descendants remain after drain' -- a Gradle daemon outlived the probe\"\n  reproduction: \"run.py invoiceFlow on the T-31 branch AND on the untouched epic base; observed ERRORED (cause crash/runner_died, not assertion) under high load_avg; expected passed\"\n  evidence: [\"<evidence root>/invoiceFlow/outcome.json\", \"<report_dir>/report.md\", \"load_avg_start/end from outcome.json\"]\n  why_out_of_scope: \"test-graph probe / daemon lifecycle / host load; no T-31 conflict key; red on the base before my change\"\n  suggested_fix: \"unknown -- probe drain vs. Gradle daemon lifetime under load\"\n  blast_radius: \"every ticket whose matrix includes invoiceFlow (2 others in this wave already red)\"\n  disposition: pending\n  channel: test-graph                      # automated; the node reported it\n  area: \"the test-graph cleanup probe's daemon-drain check under host load (instrument, not invoice.total)\"\n  anchor: UNMODELED/test-graph-process-lifecycle   # bin disposition UNDECIDED (§7c)\n  pin_note: \"automated catch; the probe itself is the pin\"\n  attribution_of_red: \"red not charged to T-31: invoice.total.rounding passed; same probe red on the untouched base and on 2 sibling tickets. Kind per bug_attribution.md §6a: UNDECIDED\"\n  skill_change: proposed(test-graph, \"probe should separate daemon-outlived-drain from a product defect / record load\")\n```\n\n## 4. What I do about the required validation\n\n1. **At most one targeted rerun**, and only with a stated reason. `git-epic-workflow/references/validation-review.md` (*Short review*) says a repeat run needs \"a concrete transient-failure hypothesis.\" Mine is that host load kept the daemon alive. The method is `test-graph/references/workflows.md`'s smart failure loop: rerun the one node from its saved context, then the whole graph from a fresh start. I record the run that happened, not the best of several.\n2. **If it's still red, escalate** (`deferment.md`, *Escalation*):\n   - stop at the current commit and file the row above as `severity: blocking`;\n   - push the branch without opening the promotion PR;\n   - report the finding, the ticket it blocks, the surfaces a fix would touch, and which sibling tickets share them.\n   The epic owner then decides: insert a repair ticket, rescope, or accept the red. I don't make that call.\n3. **Flag the recurrence.** The same red on the base and on three tickets is the recurrence trigger in `validation-review.md` (*Deeper review*). It goes to the epic owner as a test-setup defect; nobody keeps retrying it ticket by ticket.\n4. **What I never do** (`deferment.md`, end of *Ticket-agent behavior*): weaken the required entry, mark the probe skipped or N/A, or report `invoiceFlow` green. If a PR is opened later, the red appears in:\n   - `## Deferred findings` (T-31-DF-01, blocking);\n   - `## Review input` → *Decisions and overrides*, and → *Machinery friction* (the probe);\n   - a `## Skill changes proposed` row against test-graph (`git-issue-workflow/references/epic-ticket.md` §7).\n\n**Guidance used:**\n- `test-graph/references/workflows.md`: the status table and *\"Read `outcome.json`, not the log\"*.\n- `spec-double-2/references/bug_attribution.md`: §6a, plus §4 / §4.1 (CATCH fields and the `channel` list), §2a (`skill_change`), §7a / §7c (`UNMODELED` bins).\n- `git-epic-workflow/references/deferment.md`: *Scope classification*, *Backlog format*, *Escalation*, *Ticket-agent behavior*.\n- `git-epic-workflow/references/validation-review.md`: *Short review*, *Deeper review*.\n- `git-issue-workflow/references/epic-ticket.md`: §4 (validation loop) and §7 (PR body)."
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 2x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

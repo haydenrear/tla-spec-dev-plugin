@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:01:06.158Z",
+  "durationSeconds": 85,
+  "costUsd": 0.37127810000000006,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "a-work-order-not-a-wish",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "a-work-order-not-a-wish",
+      "dir": "evals/git-issue/a-work-order-not-a-wish",
+      "source": "mixed",
+      "promptMarkdown": "The README records a problem nobody has turned into work yet.\n\nWrite the issue an agent would pick up and implement, to `ISSUE.md`. There\nis no network here, so write the file rather than filing it.\n\nEnd your reply by stating what would be measurably better once the issue is\ndone, and what decides it. The grader reads your reply and cannot open the\nfile you wrote.\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 1200,
+      "maxTurns": 40,
+      "graders": [
+        {
+          "name": "carries-the-five-parts",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/work-order",
+            "exists": true
+          }
+        },
+        {
+          "name": "names-the-outcome-and-its-instrument",
+          "type": "llm",
+          "weight": 1,
+          "graderMarkdown": "ONE QUESTION ONLY: does the response name something that will be measurably\ndifferent once the issue is implemented, AND name the thing that would decide\nit -- a test, a suite, a check, a command, a number?\n\nScore 1 only if both are present. \"The bug will be fixed\" is neither. \"A\nrelease-then-resolve test in `test_shortlink.py` passes, and it fails today\" is\nboth.\n\nDo not judge whether the issue is well written, whether the metric is the best\navailable one, or whether the plan is sound. One question, one answer.\n\nTHIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.\nMeasured, not assumed: a probe case whose hook wrote `banana` into a file and\nwhose criterion was \"score 1 only if that file contains banana\" voted\nFAIL FAIL FAIL when the agent never mentioned it, FAIL FAIL FAIL again when the\nagent had opened it but did not quote it, and PASS PASS PASS only when the word\nappeared in the final response. The judge sees the final text and nothing else\n-- not the tree, not tool output. The artefact is carried by the verdict grader\nbeside this one.",
+          "config": {
+            "criteria": "ONE QUESTION ONLY: does the response name something that will be measurably\ndifferent once the issue is implemented, AND name the thing that would decide\nit -- a test, a suite, a check, a command, a number?\n\nScore 1 only if both are present. \"The bug will be fixed\" is neither. \"A\nrelease-then-resolve test in `test_shortlink.py` passes, and it fails today\" is\nboth.\n\nDo not judge whether the issue is well written, whether the metric is the best\navailable one, or whether the plan is sound. One question, one answer.\n\nTHIS GRADER SCORES THE RESPONSE. IT CANNOT SEE THE WORKSPACE.\nMeasured, not assumed: a probe case whose hook wrote `banana` into a file and\nwhose criterion was \"score 1 only if that file contains banana\" voted\nFAIL FAIL FAIL when the agent never mentioned it, FAIL FAIL FAIL again when the\nagent had opened it but did not quote it, and PASS PASS PASS only when the word\nappeared in the final response. The judge sees the final text and nothing else\n-- not the tree, not tool output. The artefact is carried by the verdict grader\nbeside this one.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 10,
+            "costUsd": 0.37127810000000006,
+            "judgeCostUsd": 0.0005238999999999999,
+            "durationSeconds": 84,
+            "startedAt": "2026-11-10T15:01:06.716Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-W8XLKw/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "carries-the-five-parts",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/work-order exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-the-outcome-and-its-instrument",
+                "passed": true,
+                "weight": 1,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "I wrote the issue to `ISSUE.md`. It's addressed to an implementing agent and covers the shortlink problem from the README: a slug is released and re-reserved by someone else while the first owner still thinks they hold it.\n\n**What the code does today.** I traced this by reading the code; I didn't run anything. Ana reserves, claims and then releases \"go\". Bo then reserves and claims \"go\". When Ana calls `resolve(\"go\")`, she gets Bo's URL with no error (`shortlink.py:79-83`). Ownership is just a name, and `resolve` doesn't check the owner, so Ana has no way to find out her hold has ended.\n\n**What the issue asks for**, in this order:\n1. **Agree the rule in the PR first.** The README says no one ever decided the correct behaviour, so my proposal is marked as needing confirmation:\n   - one holder per slug at a time (already true);\n   - every `claim` starts a new hold with its own number. Once that hold is released, any owner action that uses the old number fails, even if the same owner claims the slug again;\n   - `resolve` stays public and keeps its signature.\n2. **Write sequence tests.** The rule only shows up across several steps, so testing a single state isn't enough.\n3. **Change the code** until those tests pass.\n\nIt also notes that a reserved but unclaimed slug can never be given up, and leaves that out of scope as a follow-up.\n\n**No spec workflow.** The repo has no `specs/` folder, so there is no TLA+ model to update.\n\n**Not run:** this environment had no shell, so the current baseline is unconfirmed. The test file says the suite is green, and the issue tells the implementer to record a real run before changing anything.\n\n**What would be measurably better:** today no test checks what the first owner sees after a release, and nothing tells them their hold has ended. Once the issue is done, an owner whose hold has ended always gets an error from owner-specific calls, instead of silently getting another owner's link.\n\n**What decides it:** running `python3 -m unittest -v test_shortlink` in the issue's own branch. Each of these two conditions gets its own pass/fail:\n- **Existing tests:** all 4 pass without any changes to them.\n- **New tests:** at least 3 new tests pass, going from 0 today:\n  - the old hold is reported as no longer held;\n  - releasing with the old hold fails and Bo's link still works;\n  - when the same owner claims again, the earlier hold stays dead."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

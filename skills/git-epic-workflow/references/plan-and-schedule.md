@@ -182,6 +182,21 @@ Graph graphs, and any dashboards or saved baselines. That inventory is the raw
 material for the goals agreed in step 3a — goals are cheapest when an existing
 harness already decides them.
 
+Then retrieve a **bounded evidence slice**, only for the affected actions, bins
+and graph nodes: the findings already anchored to them, the instrument faults
+and nodes the graph checklist flags (the **dangerous validation boundaries**),
+and the previous epic's *Next epic's starting estimate* (`finalize.md` §2c). To
+find it, search the merged epic PRs:
+`gh pr list --state merged --search "\"Next epic's starting estimate\" in:body"`.
+Also run test-graph's *pre-run review* (`graph-architecture-review.md`) over the
+nodes and instruments the affected graphs execute, and schedule its fix-ahead
+tickets in the first wave.
+spec-double-2's `references/agent_roles.md` § *Evidence routing*, row *epic:
+planning*, names the one
+source for each; do not load the whole ledger. Carry what applies to each
+ticket into its assignment's *Evidence slice* bullet (`epic-ticket.md`), so the
+ticket agent does not reread the ledger.
+
 ## 3a. Agree the epic goals
 
 Before scaffolding the workflow, ask the user what should be measurably better
@@ -222,6 +237,14 @@ bug attribution, choose the short/deep review cadence, and identify faster
 intermediate checks and valid targeted reruns. The planning agent recommends a
 split when the requested increment is likely to keep reopening validation;
 the epic owner carries that assessment into execution and subsequent reviews.
+
+Size the waves from two separate estimates, review capacity and verification
+capacity, and keep each wave within the tighter one (`references/step-sizing.md`
+§1-§5). Record the estimates, their evidence and their uncertainty in the
+planning conversation, and write the chosen batch into `wave`, `depends_on`,
+each ticket's `validation`, and the evaluation ticket with its `eval_budget`.
+With sparse history or an unknown reviewer/verifier model, keep the §3 batch and
+review at the first wave (§7). The default leans to batching.
 
 ## 4. Scaffold the shared workflow once
 
@@ -372,6 +395,12 @@ missing and errors on a malformed one.
 
 Read `references/human-review.md` for what the artifact carries, how the diff is
 rendered, and what a review may and may not change.
+
+The cadence is also a step-size control. Each review point is where the batch is
+held, increased by one bounded step, or decreased (`references/step-sizing.md`
+§6). Choose `cadence: wave` or an early milestone when history is sparse or the
+model has changed. Expensive evals keep their own predeclared checkpoint in the
+evaluation ticket, not at every review point.
 
 ## 5. Validate the schedule
 
@@ -634,6 +663,12 @@ and a schedule such as:
 
 | Issue | Spec ticket | Start dependencies | Wave | Promote after | Goals | State |
 | --- | --- | --- | --- | --- | --- | --- |
+
+Under the schedule, state in a few lines: the review and verification capacity
+estimates (separately), the batch and the cadences chosen, the confidence, the
+cold-start gaps written as `unknown`, and the expensive-eval cost and budget
+(`step-sizing.md` §1–§5, §7). The first review artifact repeats them, so the wave
+owner compares against the same numbers.
 
 An issue is ready to hand off only when every dependency PR is merged into the
 remote epic branch. An open or green PR is not a satisfied dependency.

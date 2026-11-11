@@ -1,0 +1,639 @@
+version: 1
+epic: evidence-sized-delivery
+findings:
+- found_by: ESD-01
+  id: ESD-01-DF-01
+  found_at_commit: 9635bad239986a4e5e07745947273bc4480a82a2
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - 'specs/.history/*/*/manifest.json (writer: spec-double-2 close path)'
+  summary: No record in any of the six audited repositories timestamps the START of ticket work. Close-history
+    manifests carry only `created_at_utc`, which is the close time. PRs are opened after the work. The
+    median PR open-to-merge time is 0.02-0.14 h. So implementation active time is unknown everywhere,
+    and GOAL-ESD-VELOCITY's "cost component share" cannot be reconstructed retrospectively for implementation.
+  reproduction: 'Read any specs/.history/*/*/manifest.json in this repo or in commit-diff-context-parent,
+    meta-harness, polymarket, effectful-learning or skill-manager. Each has `created_at_utc` and no opened/dispatched/started
+    field. Batched closes make close-to-close spacing meaningless: attribute-the-catch closed 5 tickets
+    in 48 s.'
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/cost.md (sections 0 and 4)
+  why_out_of_scope: ESD-01 is evidence-only. Its conflict keys cover only its evidence root, and the user
+    mandate forbids new machinery.
+  suggested_fix: 'For ESD-06 / the owner: record a start time per ticket in prose where the work already
+    writes. The assignment''s dispatch comment and the PR body are two such places. Or read agent session
+    transcripts for the ESD-06 pilot. Either supplies the missing denominator without a new tool.'
+  blast_radius: Measurement only; no behaviour change.
+  disposition: fixed
+  disposition_ticket: ESD-05
+- found_by: ESD-01
+  id: ESD-01-DF-02
+  found_at_commit: 9635bad239986a4e5e07745947273bc4480a82a2
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - skills/test-graph/references/workflows.md
+    - skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt:226
+    workflow: []
+  summary: RP-07-DF-01 is still carried, and its general half recurred. The executor's message still names
+    only bare PIDs (Executors.kt:226), and `grep KotlinCompileDaemon skills/test-graph/references/workflows.md`
+    is empty at 9635bad2. In the bug-sweep, BS-07 again needed a hand `ps` sampler to identify the lingering
+    process (specs/results/bug-sweep/BS-07/probe-lingering-descendant-ps.txt). The same node errored 13
+    times across 7 tickets (BS-07-DF-05). This is recurrence evidence for a carried finding, not a new
+    defect.
+  reproduction: grep -n 'live descendants' skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/Executors.kt
+  evidence:
+  - specs/results/deferred_findings_final.yaml:989-1061
+  - specs/results/bug-sweep/deferred-ledger.yaml:317-333
+  - specs/results/evidence-sized-delivery/ESD-01/failure-families.md (F1)
+  why_out_of_scope: test-graph skill and executor are outside ESD-01's conflict keys; runtime changes
+    are out of this epic's scope.
+  suggested_fix: 'As RP-07-DF-01: surviving-process command lines in the ProcessContractViolation message,
+    plus daemon guidance in workflows.md. ESD-03 can cite F1 as a preflight review priority.'
+  blast_radius: Diagnostics and documentation only.
+  disposition: closed
+  disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
+- found_by: ESD-02
+  id: ESD-02-DF-01
+  found_at_commit: 515f0af4
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: census
+  area: 'ESD-01 evidence inventory: anchor of a validation-origin row'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - specs/results/evidence-sized-delivery/ESD-01/inventory.yaml (row '#233 fixture')
+  summary: ESD-01 anchors `#233 fixture` (a synthetic-timestamp defect in the PlanExecutorResumeHarnessTest
+    fixture) to `UNMODELED/test-graph-resume`. `#226 / BS-HP-05`, a RunReportWriter product bug, is in
+    the same bin. bug_attribution.md §7d now says a validation-origin defect anchors to a bin named for
+    the instrument. Under that rule, a later re-anchor of that bin would split the two rows by origin
+    (the §7b illustration), not move them together.
+  reproduction: Read inventory.yaml rows '#226 / BS-HP-05' and '#233 fixture'.
+  evidence:
+  - skills/spec-double-2/references/bug_attribution.md §7b (migration-map illustration), §7d
+  why_out_of_scope: ESD-01's evidence is a sealed record outside ESD-02's conflict keys, and history is
+    not rewritten to fit a later rule (§4.1's own precedent).
+  suggested_fix: Nothing to edit. The ESD-03/ESD-06 readers apply §7d when they count validation-origin
+    families, and treat `#233 fixture` as validation-origin.
+  skill_change: none
+  blast_radius: Classification only; one trivial row.
+  disposition: wontfix
+  disposition_ticket: null
+  disposition_note: "wontfix: the sealed ESD-01 inventory is not rewritten; bug_attribution.md 7d governs future anchoring (epic finalization)"
+- found_by: ESD-02
+  id: ESD-02-DF-02
+  found_at_commit: 515f0af4
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'discovery skill: assumed spec layout vs this repository'
+  surface:
+    production:
+    - skills/discovery/SKILL.md
+    - skills/discovery/references/layout.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: The discovery sequence tells the agent to read `Core.tla`, `Internal.tla`, `External.tla`,
+    `actions.yml` and `testgraph_bindings.yml`. This repository's `specs/program_model` has none of these
+    files. It has a single `TlaSpecDevCli.tla`, plus `case_adapters.toml` and `production_adapters.py`,
+    and its spec_manifest.yaml records the deliberate non-decomposition (MF-023, CD-10). Read literally,
+    the skill's own stop rule ("If only some files are missing ... that is a stop-and-reconcile checkpoint")
+    would stop discovery of the plugin that ships the skill.
+  reproduction: ls specs/program_model in this repository; compare with the discovery skill's step 2-4
+    and layout.md.
+  evidence:
+  - 'specs/program_model/spec_manifest.yaml (source_model comment: CD-10 removed Core/Internal/External
+    references)'
+  why_out_of_scope: The file is inside ESD-02's conflict keys, but the issue's scope is attribution and
+    model anchors, not discovery's file layout. ESD-02's new section names the four model elements generically
+    for that reason, without the layout.
+  suggested_fix: In layout.md and step 2-4, mark the Core/Internal/External split and actions.yml / testgraph_bindings.yml
+    as "where the repository has them". Add that a single-module model named in spec_manifest.yaml is
+    a complete baseline.
+  skill_change: proposed(tla-spec-dev/discovery, "this row")
+  blast_radius: Instruction wording; affects every discovery run in single-module repositories.
+  disposition: fixed
+  disposition_ticket: epic-agent wave-3 review (skills/discovery SKILL.md + references/layout.md)
+- found_by: ESD-03
+  id: ESD-03-DF-01
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: major
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node spec.workflow.cleanup: delete path from an absent context value'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/spec_workflow_cleanup.py
+    workflow: []
+  summary: 'spec.workflow.cleanup deletes `Path(ctx.get("spec.workflow.repo", "repoPath") or "")`. With
+    no published repoPath, that path is `Path("")` == `.`. A uv node''s working directory is the test_graph
+    project directory (UvExecutor sets `.directory(invocation.projectDir)`), so `shutil.rmtree(".")` deletes
+    test_graph/ itself. The node is a finalizer: it runs after an upstream failure once spec.workflow.repo
+    has executed, even if that node errored without publishing. Under --continue-after-failure it runs
+    unconditionally. This is the shape of the recorded incident "a failing graph node deleted 27 tracked
+    files of test_graph/ itself" (specs/results/epic-self-improvement-substrate/review/wave-3/review.md,
+    item 3). The fix recorded there changed the install path (tla_spec_dev_cli_install.py comment). The
+    delete guard is still absent at 3e57ea9e. Not reproduced here: reproducing it would delete the checkout''s
+    test_graph/.'
+  reproduction: Read test_graph/sources/spec_workflow_cleanup.py main(); python3 -c 'from pathlib import
+    Path; print(Path("") == Path("."))' prints True.
+  evidence:
+  - test_graph/sources/spec_workflow_cleanup.py
+  - skills/test-graph/project_sdk_sources/build-logic/src/main/kotlin/com/hayden/testgraphsdk/exec/PlanExecutor.kt
+    (shouldRunAfterFailure)
+  - skills/test-graph/references/graph-architecture-review.md (rule E2, worked review)
+  why_out_of_scope: test_graph/sources/ is not in ESD-03's conflict keys, and the assignment forbids code
+    changes in this instruction-only ticket.
+  suggested_fix: Delete only when repoPath is non-empty and resolves under ctx.report_dir. Assert that
+    as a named assertion, so a refusal is a red with the path, not silent residue. Keep rerun(False).
+  skill_change: none
+  blast_radius: 'Destructive: the project''s own validation sources; every graph that composes the cleanup
+    node (specWorkflow, the probe''s nested graph).'
+  disposition: closed
+  disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/261 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/261
+- found_by: ESD-03
+  id: ESD-03-DF-02
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node spec.workflow.failure_cleanup_probe: contract (kind, dependsOn, sideEffects,
+    budget)'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/spec_workflow_failure_cleanup_probe.py
+    - test_graph/build.gradle.kts
+    workflow: []
+  summary: The node behind ESD-01 rows RP-07-DF-01 and BS-07-DF-05 is an `assertion` that copies a Test
+    Graph project and runs a nested Gradle build. It declares only `fs:tmp`, although the registered `process:gradle`
+    exists for exactly this. It depends on spec.workflow.close but reads only spec.workflow.repo's sourceRepo.
+    It is tagged `finalizer`, so it runs after an upstream failure. Its fixed 180 s timeout bounds a cold
+    build-logic compile plus a 20 s drain. In specWorkflow it is listed before spec.reference.adapters_resolve,
+    which was skipped behind it in bug-sweep milestone 1.
+  reproduction: Read the NodeSpec in test_graph/sources/spec_workflow_failure_cleanup_probe.py and the
+    specWorkflow block in test_graph/build.gradle.kts.
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/inventory.yaml (rows RP-07-DF-01, BS-07-DF-05)
+  - skills/test-graph/references/graph-architecture-review.md (rules A1, A3, A4, D2; worked review)
+  why_out_of_scope: Node source and graph definition are outside ESD-03's conflict keys; instruction-only
+    ticket.
+  suggested_fix: Split the project copy into a fixture node. Declare process:gradle. Depend on spec.workflow.repo
+    only. Size the timeout from a recorded cold run. Place adapters_resolve so that it does not share
+    fate with the probe. Show the probe red on a planted residue before trusting it again.
+  skill_change: none
+  blast_radius: specWorkflow only; changes node metadata and order, not node ids.
+  disposition: closed
+  disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
+- found_by: ESD-03
+  id: ESD-03-DF-03
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node skt.wrapper-installed: nested timeout >= node timeout'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/skt_wrapper_installed.py
+    - test_graph/support/skt_fixture.py
+    workflow: []
+  summary: 'skt.wrapper-installed has timeout 900s. Per pinned interpreter, its resolve_interpreter may
+    run `uv python find` (120 s), `uv python install` (900 s) and `uv python find` (120 s) again. On a
+    cold host, nested work alone can exceed the node budget, so the executor kills the node with cause
+    timeout. That is a cold-cache false red of the SM #295 shape (ESD-01 family F6). The graph is opt-in
+    (run-graphs.py OPT_IN), which limits exposure.'
+  reproduction: Compare SPEC.timeout in skt_wrapper_installed.py with the subprocess timeouts in support/skt_fixture.py
+    resolve_interpreter.
+  evidence:
+  - skills/test-graph/references/graph-architecture-review.md (rules C1, D2)
+  why_out_of_scope: Node source outside ESD-03's conflict keys.
+  suggested_fix: Provision the interpreter matrix in its own testbed with a budget above its nested bounds,
+    or lower the nested bounds below the node budget.
+  skill_change: none
+  blast_radius: sktSurface, sktHooks (opt-in).
+  disposition: closed
+  disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
+- found_by: ESD-03
+  id: ESD-03-DF-04
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node skt.ticket-roundtrip: runtime identity fall-through'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/skt_ticket_roundtrip.py
+    workflow: []
+  summary: '_resolve_giw tries SKT_TG_GIW, then $SKILL_MANAGER_HOME, then the ROOT ~/.skill-manager, then
+    a shallow clone of an archived remote. It publishes giwSource, which is good, but it never refuses
+    when the copy it found is not the one under test. A root-home or clone hit is the BS-03-DF-01 / SI-25-DF-06
+    shape: a green against the wrong code.'
+  reproduction: Read _resolve_giw in test_graph/sources/skt_ticket_roundtrip.py.
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/inventory.yaml (rows BS-03-DF-01, 'missing-rung family
+    (REACH)')
+  - skills/test-graph/references/graph-architecture-review.md (rule B1)
+  why_out_of_scope: Node source outside ESD-03's conflict keys.
+  suggested_fix: Fail with a named precondition when the source is not the bound worktree/project home,
+    unless SKT_TG_GIW explicitly requests another copy.
+  skill_change: none
+  blast_radius: sktSurface (opt-in).
+  disposition: closed
+  disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
+- found_by: ESD-03
+  id: ESD-03-DF-05
+  found_at_commit: 3e57ea9e
+  schedule_revision: 1
+  severity: trivial
+  blocking: false
+  channel: independent-review
+  area: 'test_graph node effect.providers.examples: evidence written into the checkout'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/sources/effect_provider_examples.py
+    workflow: []
+  summary: The node writes its run's evidence to examples/effect_providers/evidence/validation-runs/<run_id>
+    in the checkout, not under ctx.report_dir. The path is gitignored, but it is outside the report directory
+    and accumulates across runs, which is the checker-scan-scope / leaked-state shape (SI-27-DF-06, DEF-OHV-010).
+    It also runs a whole external validation runner as one assertion under an 1800 s budget.
+  reproduction: Read main() in test_graph/sources/effect_provider_examples.py; git check-ignore -v examples/effect_providers/evidence/validation-runs/x.
+  evidence:
+  - skills/test-graph/references/graph-architecture-review.md (rules F1, A3)
+  why_out_of_scope: Node source and the examples runner are outside ESD-03's conflict keys.
+  suggested_fix: Point the runner's evidence root under ctx.report_dir (or declare and document the write),
+    and remove the run directory on exit.
+  skill_change: none
+  blast_radius: effectProviderExamples; disk use over many runs.
+  disposition: closed
+  disposition_ticket: null
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/262 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/262
+- found_by: ESD-04
+  id: ESD-04-DF-01
+  found_at_commit: 847aa4a9
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'workflow records: reviewer/verifier model and harness identity is not recorded'
+  surface:
+    production:
+    - skills/git-epic-workflow/references/human-review.md
+    - skills/git-issue-workflow/references/complete.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: 'step-sizing.md §1/§6 make the reviewer and verifier model+version an input and a recalibration
+    override, but no existing record carries it: ESD-01 found a named model in one record only (meta-harness
+    finalization). All four ESD-04 replays had model `unknown`, so the recalibration rule cannot be exercised
+    retrospectively. This is the twin of ESD-01-DF-01 (no start timestamps).'
+  reproduction: 'grep -c ''model: unknown'' specs/results/evidence-sized-delivery/ESD-01/inventory.yaml'
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/README.md (model/version recorded for almost no finding)
+  - specs/results/evidence-sized-delivery/ESD-04/local-signal.md (summary table)
+  why_out_of_scope: The PR-body / review-artifact conventions live in human-review.md, complete.md and
+    epic-ticket.md, which are ESD-05's conflict keys.
+  suggested_fix: 'ESD-05: one line in the PR-body and review-artifact conventions -- "agent model + version,
+    harness version" -- next to the start-time convention it may route for ESD-01-DF-01. Prose only.'
+  skill_change: tla-spec-dev/git-epic-workflow human-review.md; tla-spec-dev/git-issue-workflow complete.md
+    (prose line)
+  blast_radius: Capacity calibration across model changes stays unmeasurable.
+  disposition: fixed
+  disposition_ticket: ESD-05
+- found_by: ESD-04
+  id: ESD-04-DF-02
+  found_at_commit: 847aa4a9
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'skill entry point: step-sizing.md not routed from git-epic-workflow SKILL.md'
+  surface:
+    production:
+    - skills/git-epic-workflow/SKILL.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: The new reference skills/git-epic-workflow/references/step-sizing.md is linked from validation-review.md,
+    goals-and-evaluation.md and plan-and-schedule.md §3a/§4b, but not from SKILL.md's reference map, so
+    an agent that does not open those pages will not find it.
+  reproduction: grep -n step-sizing skills/git-epic-workflow/SKILL.md (no match)
+  evidence:
+  - skills/git-epic-workflow/references/step-sizing.md
+  why_out_of_scope: SKILL.md is ESD-05's conflict key (entry-point routing).
+  suggested_fix: 'ESD-05: one reference-map row -- "Sizing a wave or deciding hold/increase/decrease at
+    a review -> references/step-sizing.md".'
+  skill_change: tla-spec-dev/git-epic-workflow SKILL.md (one row)
+  blast_radius: Uptake (GOAL-ESD-UPTAKE) only.
+  disposition: fixed
+  disposition_ticket: ESD-05
+- found_by: ESD-04
+  id: ESD-04-DF-03
+  found_at_commit: 847aa4a9
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'workflow records: batch scope (items per batch) is not recorded'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: 'Capacity is counted in scope items (behavior x boundary, plus interacting pairs), but no audited
+    record states how many items a batch held. CDC''s #394/#462 retrospective gives per-batch phase hours
+    with no item count, which is why replay R3 is UNDECIDED. Without it, per-item review or verification
+    cost cannot be measured.'
+  reproduction: Read specs/results/evidence-sized-delivery/ESD-04/local-signal.md R3.
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-01/cost.md (C17, C18)
+  why_out_of_scope: A recording convention for review artifacts; human-review.md belongs to ESD-05.
+  suggested_fix: The review artifact's delivery-velocity section lists the batch's scope items (validation-review.md
+    Deeper review already hosts the section; step-sizing.md §6 names the observations). ESD-05 may add
+    the line to human-review.md's artifact list.
+  skill_change: none
+  blast_radius: GOAL-ESD-CAPACITY calibration.
+  disposition: fixed
+  disposition_ticket: ESD-05
+- found_by: ESD-05
+  id: ESD-05-DF-01
+  found_at_commit: 54241b36
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'skill instructions: the epic-ticket PR-body contract is stated in two files'
+  surface:
+    production:
+    - skills/git-issue-workflow/references/epic-ticket.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: The list of what an epic ticket's PR body carries (Goal contribution, Deferred findings, Skill
+    changes proposed, Review input with its four lists) is written in full in both git-epic-workflow/references/epic-ticket.md
+    §7 and git-issue-workflow/references/epic-ticket.md §7. The ticket agent's reading path (agent_roles.md
+    § ticket, step 2) is the git-issue-workflow copy. ESD-05 added the delivery line (started_at, agent
+    model and version, scope items) and the origin/channel/effect + repair-cost instruction to the git-epic-workflow
+    copy and to the rendered assignment bullet, which every ticket agent reads; the git-issue-workflow
+    copy, outside ESD-05's conflict keys, does not carry them, so the two copies now differ by those lines.
+  reproduction: grep -n 'started_at' skills/git-epic-workflow/references/epic-ticket.md skills/git-issue-workflow/references/epic-ticket.md
+    (matches only the first)
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-05/README.md (reconciliation)
+  why_out_of_scope: skills/git-issue-workflow/references/epic-ticket.md is not in ESD-05's conflict keys.
+  suggested_fix: 'Keep one home: replace the git-issue-workflow §7 list with a pointer to git-epic-workflow
+    epic-ticket.md §7 (or add the two lines). Prose only; it reduces the ticket path by ~40 lines.'
+  skill_change: proposed(git-issue-workflow, epic-ticket.md §7 duplicates the PR-body contract owned by
+    git-epic-workflow epic-ticket.md §7)
+  blast_radius: Ticket agents that skip the rendered assignment bullet miss the delivery line.
+  disposition: fixed
+  disposition_ticket: epic-agent wave-5 review (delivery line added to git-issue-workflow epic-ticket.md
+    §7)
+- found_by: ESD-05
+  id: ESD-05-DF-02
+  found_at_commit: 54241b36
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'eval setup: installed homes carry main, not the epic''s routed references'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - specs/evals/evidence-sized-delivery
+  summary: ~/.skill-manager/plugins/tla-spec-dev, the plugin-marketplace copy and this worktree's home
+    are byte-identical to main a1ff56cf for every file on the role paths (build caches aside). step-sizing.md
+    and graph-architecture-review.md do not exist there, and none of ESD-02..05's routing is present.
+    An ESD-06 uptake case run in an eval home provisioned from the installed plugin measures main for
+    both arms.
+  reproduction: ls ~/.skill-manager/plugins/tla-spec-dev/skills/git-epic-workflow/references/step-sizing.md
+    (absent)
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-05/README.md (reconciliation)
+  why_out_of_scope: Eval provisioning belongs to ESD-06.
+  suggested_fix: 'ESD-06: provision the tip arm''s eval home from the epic tip checkout and record the
+    plugin revision each arm loaded.'
+  skill_change: none
+  blast_radius: GOAL-ESD-UPTAKE measurement validity.
+  disposition: consumed
+  disposition_ticket: null
+  disposition_note: "consumed: ESD-06 ran the base arm from a main checkout (a1ff56cf) and the tip arm from the epic tip (epic finalization)"
+- found_by: ESD-06
+  id: ESD-06-DF-01
+  found_at_commit: 5404a3c1
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: operator-doing-the-work
+  area: 'eval harness: a declarative case cannot be added without new dispatch code'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - evals/lib/place.sh
+    - evals/lib/verify.sh
+    - tests/test_agent_integration_harness.py
+  summary: 'evals/lib/place.sh and lib/verify.sh dispatch on EVAL_CASE; place.sh''s `*)` arm exits 2 ("unknown
+    EVAL_CASE") and tests/test_agent_integration_harness.py requires an arm in both scripts for every
+    case under evals/ and EVAL_CASE == directory name. So the "declarative case" the plugin''s own eval
+    guidance describes is not declarative: every new case needs two new shell case-arms even when it ships
+    no fixture and is graded from the response only. ESD-06 (no-new-code mandate) had to place its five
+    uptake cases outside evals/ and alias EVAL_CASE to an existing no-fixture arm (w-sdc-scorecard-tool-needs-a-newer-python),
+    run with --eval-dir. A side effect: the SessionStart hook prints the alias''s name into the agent''s
+    context.'
+  reproduction: grep -n '^  \*)' -A2 evals/lib/place.sh; grep -n 'test_the_hooks_handle_every_case_that_exists'
+    -A10 tests/test_agent_integration_harness.py
+  evidence:
+  - specs/results/evidence-sized-delivery/ESD-06/declaration.md (Harness constraint)
+  - specs/evals/evidence-sized-delivery/README.md
+  why_out_of_scope: evals/lib is harness code; ESD-06's conflict key is new case directories only and
+    the mandate forbids new executable code.
+  suggested_fix: 'A default arm for response-graded cases with no fixture/ and no expect.json (place:
+    git_init only; verify: verify_from_expect), and the dispatch test relaxed to require an arm only for
+    cases that ship a fixture or expect.json. Separate ticket; it is harness code.'
+  skill_change: tla-spec-dev evals harness (evals/lib/place.sh, verify.sh) and plugin_evals.md §3 note
+  blast_radius: Every future evaluation ticket under the no-new-code mandate; uptake cases stay outside
+    the suite.
+  anchor: UNMODELED/eval-harness
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/263 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/263
+- found_by: ESD-06
+  id: ESD-06-DF-02
+  found_at_commit: 5404a3c1
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: eval
+  area: 'skill instructions: step-sizing.md rules underdetermined on held-out replay'
+  surface:
+    production:
+    - skills/git-epic-workflow/references/step-sizing.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: 'Blind held-out replay of step-sizing.md (4 episodes) produced both estimates and a defensible
+    decision in 4/4, but agreement with outcome was 1 agree / 2 partly / 1 disagree. The disagreement
+    (effectful-learning epic-10 rev 72) came from §6 "fix or isolate the instrument before expanding"
+    read literally (one fix per run) with no tie-break against §4 amortization; the batched run was better.
+    Other ambiguities: the halving unit is undefined for one-ticket or whole-milestone batches; no rule
+    for an irreducible group larger than the tighter bound; "alone or in a small batch" underdetermined;
+    counting a shared host as an interacting pair makes every pair interact on a one-host epic; escapes
+    with unrecorded severity; commit trailers (which name the model in CDC) missing from §1''s identity
+    sources; "two consecutive review points" undefined inside repair loops; §9 worked examples reuse the
+    held-out episodes, so future replays on those repos are contaminated.'
+  reproduction: read specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/holdout-replay.md §
+    Page ambiguities
+  evidence:
+  - specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/holdout-replay.md
+  - specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/README.md
+  why_out_of_scope: An evaluation ticket never repairs what it measures; step-sizing.md is ESD-04's page.
+  suggested_fix: 'Prose: a tie-break sentence (instrument fixes that touch disjoint nodes may share one
+    validation run when §4 shows the run is the dominant fixed cost); define the batch unit for halving;
+    add commit trailers to §1''s identity sources; state that unrecorded severity counts as `major` for
+    the override; mark §9 examples as non-held-out.'
+  skill_change: tla-spec-dev/git-epic-workflow references/step-sizing.md (prose)
+  blast_radius: Two planners can derive different batches from the same facts; over-conservative halving
+    on repair loops.
+  anchor: UNMODELED/skill-instructions
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/264 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
+- found_by: ESD-06
+  id: ESD-06-DF-03
+  found_at_commit: 5404a3c1
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: eval
+  area: 'skill instructions: graph-architecture-review.md does not reach non-node instruments'
+  surface:
+    production:
+    - skills/test-graph/references/graph-architecture-review.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow: []
+  summary: 'Blind hold-out application (n = 48 validation-origin rows ESD-03 did not use): 10 F / 24 P
+    / 14 M; 0 F of the 27 defects that live outside a graph node (eval harnesses/graders, sandboxes, pytest
+    suites, CLIs, providers/homes, CI triggers, sweep aggregation). Independent re-score of 12 of ESD-03''s
+    own rows agreed 8/12; the three F disagreements were all downgrades (EA-DF-15, DEF-503, DEF-124),
+    confirming the self-applied table''s bias toward "flagged". Uncaught patterns: verdict arithmetic/parsing;
+    stale behavioural assertions after a contract change (only an un-numbered preamble sentence); instruments
+    that can never go green (no green-control rule); questions above one node; inter-node/fixture coupling;
+    telemetry noise.'
+  reproduction: read specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/holdout-application.md
+  evidence:
+  - specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/holdout-application.md
+  - specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/README.md
+  why_out_of_scope: An evaluation ticket never repairs what it measures.
+  suggested_fix: Either state the page's scope (graph nodes only) and route non-node instruments to plugin_evals.md
+    / bug_attribution.md §6a, or generalize C1/C2/H4/D2/B1 to "any instrument"; add numbered rules for
+    a green control and for re-running assertions after a contract change.
+  skill_change: tla-spec-dev/test-graph references/graph-architecture-review.md (prose)
+  blast_radius: Reviewers applying the checklist will under-flag eval/CI/provider validation risk.
+  anchor: UNMODELED/skill-instructions
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/264 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/264
+- found_by: ESD-06
+  id: ESD-06-DF-04
+  found_at_commit: 4f323cc6
+  schedule_revision: 1
+  severity: minor
+  blocking: false
+  channel: eval
+  area: 'eval instruments: three false-red shapes on the guard set, plus a binary judge under 0.5 rubrics'
+  surface:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - evals/lib/verify.sh
+    - evals/lib/checks/expect.py
+    - evals/lib/checks/epic_plan.py
+  summary: 'All three guard cases that passed on base and failed on tip were the instrument, read from
+    traces: (1) compose-a-behavioural-graph: verify.sh checks for test_graph/ relative to the Stop-hook
+    cwd, which was test_graph/sources because the agent left its shell there -> "no test_graph/ directory"
+    on a workspace that has one; (2) w-epic-assignment-no-force-on-blocking: the session transcript holds
+    duplicated tool_use entries with the same id (first Skill call carried args) and expect.py counts
+    entries, so 3 Bash calls scored as 4 > max_calls 3; (3) epic-mode-is-not-main: epic_plan.py reads
+    "I will not: run `gh pr merge` or self-merge" as a self-merge proposal (BS-17 already saw this case
+    red on main as a grader false negative). Separately, the `llm` grader votes PASS/FAIL, so a rubric''s
+    0.5 tier collapses to FAIL (esd-plan-two-capacities base).'
+  reproduction: specs/evals/evidence-sized-delivery/README.md §A; kept sandboxes /private/tmp/e-uqJN40,
+    /private/tmp/e-j4nzkI, /private/tmp/e-br5OUk
+  evidence:
+  - specs/evals/evidence-sized-delivery/runs/tip/compose-a-behavioural-graph.json
+  - specs/evals/evidence-sized-delivery/runs/tip/w-epic-assignment-no-force-on-blocking.json
+  - specs/evals/evidence-sized-delivery/runs/tip/epic-mode-is-not-main.json
+  why_out_of_scope: Harness code; an evaluation ticket never repairs what it measures.
+  suggested_fix: 'verify.sh: resolve test_graph/ from the workspace root (CLAUDE_PROJECT_DIR or the transcript''s
+    first cwd, as it already does for the publish dir); expect.py: deduplicate tool calls by tool_use
+    id; epic_plan.py: ignore merge mentions inside a negated list ("will not", "do not"); plugin_evals.md:
+    note that llm rubric half-tiers are not representable.'
+  skill_change: tla-spec-dev evals harness; spec-double-2 references/plugin_evals.md (one line)
+  blast_radius: Guard comparisons report false regressions; any case with a Skill(args) call can trip
+    within-budget.
+  anchor: UNMODELED/eval-harness
+  disposition: closed
+  disposition_note: "carried out of the epic as https://github.com/haydenrear/tla-spec-dev-plugin/issues/263 (epic finalization)"
+  filed_as: https://github.com/haydenrear/tla-spec-dev-plugin/issues/263

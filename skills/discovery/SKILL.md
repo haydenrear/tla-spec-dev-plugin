@@ -19,6 +19,9 @@ skill-imports:
   - unit: tla-spec-dev
     path: skills/test-graph/references/workflows.md
     reason: How to discover, plan, and read reports from the repository test_graph project during discovery.
+  - unit: tla-spec-dev
+    path: skills/spec-double-2/references/bug_attribution.md
+    reason: How findings anchor to model actions or UNMODELED bins, keep origin, channel and effect apart, and survive model changes.
 ---
 
 # discovery
@@ -52,6 +55,12 @@ and the test-graph skill (`<test-graph-skill>/scripts/scaffold.py <repo-root>`).
 If only some files are missing (for example no `External.tla`), that is a
 stop-and-reconcile checkpoint too — the baseline is incomplete, not merely
 differently shaped.
+The one exception is a **deliberate single-module model**: `spec_manifest.yaml`
+names one canonical module (for example `TlaSpecDevCli.tla`) and records why it is
+not split. That is a complete baseline. Read that module for steps 2–3 and its
+adapter mappings (`case_adapters.toml`, `production_adapters.py`) for step 4;
+the split files and `actions.yml`/`testgraph_bindings.yml` apply where the
+repository has them.
 
 The full expected tree, file by file, is `references/layout.md`.
 
@@ -110,8 +119,10 @@ Shape the output to the scenario that triggered it:
 - **Starting an issue/ticket** (with `git-issue-workflow`): the spec slice the
   ticket touches — which actions, variables and invariants change; whether the
   External view changes; which `testgraph_bindings.yml` entries and graph nodes
-  cover it; and which history entries carry prior related work. This becomes the
-  ticket's `desired/` starting point.
+  cover it; which history entries carry prior related work; and which earlier
+  findings are anchored to those actions or bins. This becomes the ticket's
+  `desired/` starting point — or an explicit **no-op model result** with its
+  reason, when the work changes no action (below).
 - **Discovery for creating issues** (with `git-issue`): a References section
   pointing at concrete files — spec modules and actions by name, adapter
   bindings, graph node ids, history entry paths — so the implementing agent
@@ -120,6 +131,31 @@ Shape the output to the scenario that triggered it:
   state, actions, invariants, public surface, validation coverage — plus explicit
   gaps where the spec and the code appear to disagree. A spec/code disagreement
   is a finding to report, not to silently resolve.
+
+## The model is the architecture anchor, not a test transcript
+
+Read the model as the stable map of components, contracts (actions and
+invariants), production bindings and coverage. It is where concurrency and
+resource ownership are checked, where findings are counted against actions over
+time, and the key for comparing one epic's findings with the next.
+
+- **Update the model** when the work changes state, a guard or effect, an
+  invariant, what may interleave, who owns a resource, or the External surface.
+  Prose, evidence, validation infrastructure, a refactor behind an unchanged
+  contract, or code brought into line with an existing action is a **no-op model
+  result** — record it with its reason; do not invent a state-machine change.
+- **Do not model tests or validation harnesses** (`spec_manifest.yaml`'s
+  `test_modeling_rule`), and do not invent program behavior so a validation bug
+  has an action to attach to. A defect in a node, fixture, runner or host goes to
+  a validation bin named for the instrument (`UNMODELED/<bin>`), kept honestly.
+- **A finding's origin, its detection channel and its signal effect are three
+  different answers.** A red Test Graph node says what detected something, not
+  where the defect lived — the product, the node, or the host.
+- **A green TLC run is a statement about the model.** It does not show the code
+  implements the model or that a test oracle can fail.
+
+The full rules and five worked examples are spec-double-2
+`references/bug_attribution.md` §4.3, §6a and §7b–§7e.
 
 ## When this skill's own instruction did not work
 
@@ -156,3 +192,4 @@ extra run, and it is never a gate on anything.
 | Selecting the smallest executable contract as context | spec-double-2 `references/ai_retrieval.md` |
 | How `specs/.history` entries are structured and searched | spec-double-2 `references/spec_evolution.md` |
 | Discovering, planning and reading test_graph reports | test-graph `references/workflows.md` |
+| Anchoring a finding to the model, or a model change that moves findings | spec-double-2 `references/bug_attribution.md` §7b–§7e |

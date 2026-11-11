@@ -1,0 +1,586 @@
+# Canonical plan for epic/evidence-sized-delivery (#234). Issues mirror it; they never replace it.
+version: 1
+name: evidence-sized-delivery
+updated: '2026-11-10'
+purpose: 'Epic #234: choose the largest evidence-supported increment agents can review and validate reliably, through instructions,
+  attribution, TLA+ architecture and Test Graph design guidance only. No new scripts, controller, runner, framework, CLI,
+  schema validator or automatic gate.'
+planning_rules:
+  current_model_rule: Update specs/current after each production slice lands as a whole-program working copy of specs/program_model,
+    not a ticket projection.
+  unit_validation_rule: Run current-model TLC and adapter/unit tests before adding graph execution.
+  graph_rule: Add graph or integration nodes only after current-model validation passes.
+  semantic_model_rule: Do not add test graph nodes, pytest jobs, CI workflow steps, integration harnesses, or validation scripts
+    as TLA+ program state/actions.
+  evidence_rule: Record tests and graph runs as evidence for semantic program actions in manifests or ticket status.
+  desired_sync_rule: Update this file and spec_manifest.yaml whenever scope, order, acceptance checks, or status changes.
+  promotion_rule: When specs/current equals specs/desired_program_model, promote the converged model to specs/program_model.
+  model_ownership_rule: The epic agent owns the model. Ticket agents run no `open ticket`, `close ticket`, `close_tickets.py`
+    or `--accept-new`. Every ticket here is instruction/evidence-only with a no-op model result; the epic agent opens and
+    closes each spec ticket at wave merge.
+  no_new_machinery_rule: 'User mandate (#234): no new Python or other scripts, controller service, runner, framework, CLI,
+    schema validator or automatic gate. Evidence goes to existing result destinations; examples are prose.'
+  validation_acceleration_rule: 'Prose tickets run only the doc-contract subset in validation.repository_unit and the spec-unit
+    suite (known red: 2 failures on the base, see baseline). No runtime graph is ticket-local proof of prose uptake; ESD-06
+    owns the one integrated eval comparison.'
+status:
+  workflow: evidence-sized-delivery
+  active_ticket: ESD-01
+  active_ticket_title: Audit cross-repository attribution and the actual cost of validation
+  desired_module: TlaSpecDevCli
+  phase: dispatch-wave-1
+service_catalog:
+  existing_boundaries: []
+  desired_boundaries: []
+  adapter_boundaries: []
+  known_gaps: []
+tickets:
+- id: ESD-01
+  title: Audit cross-repository attribution and the actual cost of validation
+  status: closed
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/235
+  schedule_revision: 1
+  depends_on: []
+  blocks:
+  - ESD-02
+  - ESD-03
+  - ESD-04
+  - ESD-06
+  wave: 1
+  promotion_order: 10
+  promotion_predecessor: null
+  role: implementation
+  conflict_keys:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - specs/results/evidence-sized-delivery/ESD-01/
+  goals:
+  - goal: GOAL-ESD-ARCH
+    contribution: enabling
+    expected_effect: none — enabling only; supplies the confirmed validation-origin failure families ESD-03 turns into review
+      priorities
+    local_signal: A second reading of a 10-row random sample of the inventory reproduces origin/channel classification (record
+      agreement count)
+  - goal: GOAL-ESD-VELOCITY
+    contribution: enabling
+    expected_effect: none — enabling only; establishes the retrospective cost baseline (or names it unmeasured) that ESD-06
+      reports against
+    local_signal: Every cost row cites a primary timestamp source or is marked unknown (count rows of each)
+  feature_branch: feature/235-evidence-audit
+  worktree: /Volumes/dev/tla-spec-dev-plugin-235-evidence-audit
+  covers:
+  - '#235'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: 'N/A: evidence-only ticket; no instruction, code or test change'
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-01
+  objective: 'Build a source-linked inventory of validation findings and validation cost across this plugin and the consumer
+    repositories (commit-diff-context-parent, polymarket, effectful-learning, skill-manager, meta-harness, the IdeaProjects
+    tla-spec-dev checkout), separating origin from detection channel and confirmed from inferred causes. Rank failure families
+    with candidate interventions. Sample vs census is explicit. No model delta expected: record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - specs/results/evidence-sized-delivery/ESD-01/
+  acceptance:
+    commands: []
+    assertions:
+    - Inventory scope (repositories, revisions, windows, inaccessible sources) is explicit; a sample is never called a census.
+    - Origin area and detection channel are separate columns for every row.
+    - Cost rows separate implementation/review/setup/graph/eval/repair/wait where records allow; missing timestamps are 'unknown'.
+    - Each ranked failure family names concrete finding IDs and includes counterexamples and reliable-graph observations.
+    - No new script, crawler or analysis program is committed.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: ESD-02
+  title: Clarify TLA+ architecture anchors and attribution of validation defects
+  status: closed
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/236
+  schedule_revision: 1
+  depends_on:
+  - ESD-01
+  blocks:
+  - ESD-03
+  - ESD-04
+  - ESD-05
+  - ESD-06
+  wave: 2
+  promotion_order: 20
+  promotion_predecessor: ESD-01
+  role: implementation
+  conflict_keys:
+    production:
+    - skills/spec-double-2/references/bug_attribution.md
+    - skills/discovery/SKILL.md
+    - skills/discovery/references/
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - specs/results/evidence-sized-delivery/ESD-02/
+  goals:
+  - goal: GOAL-ESD-ARCH
+    contribution: enabling
+    expected_effect: none — enabling only; gives validation infrastructure an explicit attribution area so ESD-03 guidance
+      and ESD-04 sizing do not count instrument faults as product risk
+    local_signal: Trace each worked example back to an ESD-01 row; record origin/channel separation and before/after finding
+      conservation by hand
+  - goal: GOAL-ESD-UPTAKE
+    contribution: guard
+    expected_effect: must not regress existing eval cases for the skills it edits; measured only by ESD-06
+    local_signal: 'N/A: the eval lane runs only in ESD-06'
+  feature_branch: feature/236-attribution-anchors
+  worktree: /Volumes/dev/tla-spec-dev-plugin-236-attribution-anchors
+  covers:
+  - '#236'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py
+      tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-02
+  objective: 'Refine bug_attribution.md and discovery so TLA+ is the stable architecture map for attribution; give validation
+    infrastructure an explicit attribution boundary; resolve §6a''s false-red recording with audited examples; worked examples
+    for the five cases; conservation through action rename/split/merge; state what TLA+ can and cannot establish. No model
+    delta expected: record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/spec-double-2/references/bug_attribution.md
+  - skills/discovery/SKILL.md
+  - skills/discovery/references/
+  - specs/results/evidence-sized-delivery/ESD-02/
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py
+      tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    assertions:
+    - Origin area and detection channel stay distinct in every worked example.
+    - The false-red case preserves the original observation and its correction without charging product totals.
+    - Worked examples cite ESD-01 rows; any new record shape is justified by observed examples and adds no parser.
+    - Doc-contract tests stay green (no new failures).
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: ESD-03
+  title: Derive Test Graph architecture guidance from observed validation failures
+  status: closed
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/237
+  schedule_revision: 1
+  depends_on:
+  - ESD-01
+  - ESD-02
+  blocks:
+  - ESD-04
+  - ESD-05
+  - ESD-06
+  wave: 3
+  promotion_order: 30
+  promotion_predecessor: ESD-02
+  role: implementation
+  conflict_keys:
+    production:
+    - skills/test-graph/SKILL.md
+    - skills/test-graph/references/
+    tla: []
+    adapters: []
+    test_graph:
+    - test_graph/README.md
+    workflow:
+    - specs/results/evidence-sized-delivery/ESD-03/
+  goals:
+  - goal: GOAL-ESD-ARCH
+    contribution: direct
+    expected_effect: the review checklist flags most confirmed validation-origin failure families from ESD-01 at authoring/review
+      time; each miss named
+    local_signal: Apply the checklist to spec.workflow.failure_cleanup_probe and audited consumer nodes; tabulate flagged
+      vs missed historical failures
+  - goal: GOAL-ESD-UPTAKE
+    contribution: guard
+    expected_effect: must not regress existing eval cases for the skills it edits; measured only by ESD-06
+    local_signal: 'N/A: the eval lane runs only in ESD-06'
+  feature_branch: feature/237-graph-architecture
+  worktree: /Volumes/dev/tla-spec-dev-plugin-237-graph-architecture
+  covers:
+  - '#237'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py
+      tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-03
+  objective: 'Turn ESD-01''s confirmed failure families into graph-author architecture and review guidance using existing
+    node kinds, Context/NodeResult, sideEffects/cacheable/rerun metadata; readiness, retries, timeouts, process ownership,
+    cleanup, recovery contracts; annotated good/bad node-contract examples in docs; a repo-specific worked review naming actual
+    dangerous nodes. No model delta expected: record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/test-graph/SKILL.md
+  - skills/test-graph/references/
+  - test_graph/README.md
+  - specs/results/evidence-sized-delivery/ESD-03/
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py
+      tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    assertions:
+    - Every recommendation cites an observed failure or is labeled a hypothesis, with its cost/tradeoff.
+    - The worked review names real graph nodes in this repository and their ownership boundaries.
+    - No new node framework, SDK/runner change, executable example or script.
+    - Doc-contract tests stay green (no new failures).
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: ESD-04
+  title: Define model-conditioned review and verification step sizing with eval amortization
+  status: closed
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/238
+  schedule_revision: 1
+  depends_on:
+  - ESD-01
+  - ESD-02
+  - ESD-03
+  blocks:
+  - ESD-05
+  - ESD-06
+  wave: 4
+  promotion_order: 40
+  promotion_predecessor: ESD-03
+  role: implementation
+  conflict_keys:
+    production:
+    - skills/git-epic-workflow/references/validation-review.md
+    - skills/git-epic-workflow/references/goals-and-evaluation.md
+    - skills/git-epic-workflow/references/plan-and-schedule.md (§3a and §4b only)
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - specs/results/evidence-sized-delivery/ESD-04/
+  goals:
+  - goal: GOAL-ESD-CAPACITY
+    contribution: direct
+    expected_effect: an agent can produce separate review and verification capacity estimates, a provisional batch within
+      the tighter one, and a hold/increase/decrease rule, for any audited episode
+    local_signal: Replay decisions against ESD-01 episodes using only information available at the decision point; inspect
+      holdout outcomes without retrofitting thresholds
+  - goal: GOAL-ESD-VELOCITY
+    contribution: direct
+    expected_effect: 'directional: fixed setup/review/eval cost amortized over larger safe batches where evidence supports
+      it; no speed claim from fewer checks'
+    local_signal: Worked cost comparison for the five scenarios cites ESD-01 cost rows or marks inputs unknown
+  - goal: GOAL-ESD-UPTAKE
+    contribution: guard
+    expected_effect: must not regress existing eval cases for the skills it edits; measured only by ESD-06
+    local_signal: 'N/A: the eval lane runs only in ESD-06'
+  feature_branch: feature/238-step-sizing
+  worktree: /Volumes/dev/tla-spec-dev-plugin-238-step-sizing
+  covers:
+  - '#238'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py
+      tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-04
+  objective: 'Extend validation-review.md into an agent-operated feedback policy: separate REVIEW and VERIFICATION capacity
+    estimates, provisional batch within the tighter, candidate batch cost comparison, distinct review/integration/eval/deployment
+    cadences, cold-start fallback, bounded hold/increase/decrease updates with overrides, model-version recalibration; worked
+    decisions for the five named scenarios; written into existing plan/review controls. No model delta expected: record a
+    no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/git-epic-workflow/references/validation-review.md
+  - skills/git-epic-workflow/references/goals-and-evaluation.md
+  - skills/git-epic-workflow/references/plan-and-schedule.md
+  - specs/results/evidence-sized-delivery/ESD-04/
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py
+      tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    assertions:
+    - Two explicit capacity estimates and a selection rule within the tighter constraint.
+    - Decisions are expressed through existing controls (review_policy, waves, depends_on, validation matrix, evaluation ticket);
+      no new schema/controller.
+    - Unknown-data fallback and override conditions are explicit; speed is never claimed from fewer checks alone.
+    - Doc-contract tests stay green (no new failures).
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: ESD-05
+  title: Route evidence and graph-risk review into planning, ticket, review and epic close
+  status: closed
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/239
+  schedule_revision: 1
+  depends_on:
+  - ESD-02
+  - ESD-03
+  - ESD-04
+  blocks:
+  - ESD-06
+  wave: 5
+  promotion_order: 50
+  promotion_predecessor: ESD-04
+  role: implementation
+  conflict_keys:
+    production:
+    - skills/spec-double-2/references/agent_roles.md
+    - skills/git-epic-workflow/SKILL.md
+    - skills/git-epic-workflow/references/human-review.md
+    - skills/git-epic-workflow/references/finalize.md
+    - skills/git-epic-workflow/references/epic-ticket.md
+    - skills/git-epic-workflow/references/plan-and-schedule.md (outside §3a/§4b)
+    - skills/git-issue-workflow/references/complete.md
+    - skills/git-issue/references/issue-template.md
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - specs/results/evidence-sized-delivery/ESD-05/
+  goals:
+  - goal: GOAL-ESD-UPTAKE
+    contribution: direct
+    expected_effect: each role reaches the bounded ESD-02/03/04 guidance from its existing entry point; incremental mandatory
+      reading kept small and measured
+    local_signal: Walk one finding through planning, ticket PR, review disposition and next-epic reuse; record the exact entry-point
+      links followed and the added line count per role path
+  - goal: GOAL-ESD-CAPACITY
+    contribution: enabling
+    expected_effect: none — enabling only; puts the capacity estimate into the plan/review/close records ESD-06 inspects
+    local_signal: 'N/A: decided by ESD-06 uptake cases'
+  feature_branch: feature/239-role-routing
+  worktree: /Volumes/dev/tla-spec-dev-plugin-239-role-routing
+  covers:
+  - '#239'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py
+      tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-05
+  objective: 'Make ESD-02/03/04 reachable through existing role paths with brief triggers and one canonical source per concern;
+    a role -> trigger -> minimum evidence -> decision -> output -> next consumer table; measure incremental reading burden;
+    no new mandatory role, checklist wall, approval round, script or unconsumed artifact. No model delta expected: record
+    a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - skills/spec-double-2/references/agent_roles.md
+  - skills/git-epic-workflow/SKILL.md
+  - skills/git-epic-workflow/references/human-review.md
+  - skills/git-epic-workflow/references/finalize.md
+  - skills/git-epic-workflow/references/epic-ticket.md
+  - skills/git-epic-workflow/references/plan-and-schedule.md
+  - skills/git-issue-workflow/references/complete.md
+  - skills/git-issue/references/issue-template.md
+  - specs/results/evidence-sized-delivery/ESD-05/
+  acceptance:
+    commands:
+    - uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py tests/test_card_has_one_home.py
+      tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    assertions:
+    - Every role's entry point links the bounded evidence it needs; one canonical source per concern.
+    - Incremental reading burden is measured and reported per role path.
+    - Planning and close use the same feedback record; no new approval or tooling layer.
+    - Doc-contract tests and the assignment/finalize validator tests stay green.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+- id: ESD-06
+  title: Evaluate instruction uptake, safe batching and validation cost with existing facilities
+  status: planned
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/240
+  schedule_revision: 1
+  depends_on:
+  - ESD-01
+  - ESD-02
+  - ESD-03
+  - ESD-04
+  - ESD-05
+  blocks: []
+  wave: 6
+  promotion_order: 60
+  promotion_predecessor: ESD-05
+  role: evaluation
+  owns_goals:
+  - GOAL-ESD-VELOCITY
+  - GOAL-ESD-CAPACITY
+  - GOAL-ESD-ARCH
+  - GOAL-ESD-UPTAKE
+  conflict_keys:
+    production: []
+    tla: []
+    adapters: []
+    test_graph: []
+    workflow:
+    - evals/ (new declarative case directories only)
+    - specs/results/evidence-sized-delivery/ESD-06/
+    - specs/evals/evidence-sized-delivery/
+  goals:
+  - goal: GOAL-ESD-VELOCITY
+    contribution: guard
+    expected_effect: decides the goal; adds no behavioral delta
+    local_signal: 'N/A: this ticket is the measurement'
+  - goal: GOAL-ESD-CAPACITY
+    contribution: guard
+    expected_effect: decides the goal; adds no behavioral delta
+    local_signal: 'N/A: this ticket is the measurement'
+  - goal: GOAL-ESD-ARCH
+    contribution: guard
+    expected_effect: decides the goal; adds no behavioral delta
+    local_signal: 'N/A: this ticket is the measurement'
+  - goal: GOAL-ESD-UPTAKE
+    contribution: guard
+    expected_effect: decides the goal; adds no behavioral delta
+    local_signal: 'N/A: this ticket is the measurement'
+  feature_branch: feature/240-evaluation
+  worktree: /Volumes/dev/tla-spec-dev-plugin-240-evaluation
+  covers:
+  - '#240'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: 'N/A: evaluation ticket; eval lane via evals/run.sh'
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-06
+  objective: 'Decide the four goals with existing facilities: predeclared evidence table, matched base vs tip runs on declarative
+    eval cases (existing harness, no new executable code), held-out historical replay, and an honest retrospective. Report
+    measured / missed / unmeasured per goal. No model delta expected: record a no-op model result.'
+  desired_actions: []
+  implementation_scope:
+  - evals/
+  - specs/results/evidence-sized-delivery/ESD-06/
+  - specs/evals/evidence-sized-delivery/
+  acceptance:
+    commands: []
+    assertions:
+    - Cases, budget, model/version, plugin revision, environment, comparison design and stopping conditions are declared before
+      any billed run.
+    - Billed runs stay within the declared budget; no selective reruns until a score passes.
+    - Evaluator/environment failures are recorded as validation findings, not instruction passes or fails.
+    - Each goal reports baseline -> measured -> target with a met/missed/unmeasured verdict.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
+epic_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/234
+epic_branch: epic/evidence-sized-delivery
+epic_base_sha: a1ff56cf9ebc108aba2e8dd16b8c1eb3aaa0afa3
+schedule_revision: 1
+epic_goals:
+- id: GOAL-ESD-VELOCITY
+  kind: perf
+  statement: 'Delivery velocity: accepted useful scope per end-to-end elapsed time, with review, setup, validation, eval,
+    repair, waiting and repeat costs separated where records allow.'
+  metric: accepted scope per elapsed time and cost component share, from close-history/PR/run timestamps (retrospective) and
+    the ESD-06 pilot
+  harness: 'ESD-06: retrospective over ESD-01''s cost inventory plus the bounded ESD-06 pilot timings; no new script'
+  baseline:
+    value: 'unmeasured: ESD-01 reconstructs the retrospective baseline or names it unknown'
+    measured_at: a1ff56cf9ebc108aba2e8dd16b8c1eb3aaa0afa3
+    evidence: specs/results/evidence-sized-delivery/ESD-01
+  target: 'report-only: the owner set no numeric threshold at kickoff (owner instruction 2026-11-10: final review only). The
+    verdict reports measured / missed / unmeasured honestly; it never edits this target.'
+  evaluation_ticket: ESD-06
+  evidence_root: specs/results/evidence-sized-delivery/goals/GOAL-ESD-VELOCITY
+- id: GOAL-ESD-CAPACITY
+  kind: quality
+  statement: 'Safe capacity: separate review and verification batch-capacity estimates for the affected component mix and
+    agent model/version, with coverage, escapes, severity, uncertainty and validation instability reported.'
+  metric: held-out audited episodes for which the guidance yields both estimates and a defensible batch decision using only
+    decision-time information
+  harness: 'ESD-06: held-out historical replay of ESD-01 episodes plus matched eval cases (evals/run.sh)'
+  baseline:
+    value: 'unmeasured: no capacity estimate exists in the current instructions'
+    measured_at: a1ff56cf9ebc108aba2e8dd16b8c1eb3aaa0afa3
+    evidence: skills/git-epic-workflow/references/validation-review.md
+  target: 'report-only: the owner set no numeric threshold at kickoff (owner instruction 2026-11-10: final review only). The
+    verdict reports measured / missed / unmeasured honestly; it never edits this target.'
+  evaluation_ticket: ESD-06
+  evidence_root: specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY
+- id: GOAL-ESD-ARCH
+  kind: quality
+  statement: 'Validation architecture: attributable infrastructure failures become concrete repo-specific preflight review
+    priorities and design recommendations.'
+  metric: confirmed validation-origin failure families from ESD-01 that the ESD-03 review guidance flags vs misses
+  harness: 'ESD-06: apply the merged ESD-03 guidance to ESD-01''s held-out validation-origin families; flag/miss table'
+  baseline:
+    value: 'unmeasured: ESD-01 establishes the family inventory'
+    measured_at: a1ff56cf9ebc108aba2e8dd16b8c1eb3aaa0afa3
+    evidence: specs/results/evidence-sized-delivery/ESD-01
+  target: 'report-only: the owner set no numeric threshold at kickoff (owner instruction 2026-11-10: final review only). The
+    verdict reports measured / missed / unmeasured honestly; it never edits this target.'
+  evaluation_ticket: ESD-06
+  evidence_root: specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH
+- id: GOAL-ESD-UPTAKE
+  kind: eval
+  statement: 'Instruction uptake: planning, ticket, review and finalization agents retrieve and use this evidence through
+    existing entry points, within measured reading/context cost; existing eval cases for the edited skills do not regress.'
+  metric: matched base-vs-tip declarative eval case scores on uptake cases, reading cost, and regressions on existing affected
+    cases
+  harness: evals/setup-eval-home.sh --check, then evals/run.sh --case <declared cases> on the base and on the tip, same eval
+    home, same day
+  baseline:
+    value: 'unmeasured: ESD-06 runs base and tip in one session'
+    measured_at: a1ff56cf9ebc108aba2e8dd16b8c1eb3aaa0afa3
+    evidence: specs/evals/evidence-sized-delivery
+  target: 'report-only: the owner set no numeric threshold at kickoff (owner instruction 2026-11-10: final review only). The
+    verdict reports measured / missed / unmeasured honestly; it never edits this target. Guard clause: 0 existing affected
+    cases that pass on the base fail on the tip.'
+  evaluation_ticket: ESD-06
+  evidence_root: specs/evals/evidence-sized-delivery
+eval_budget:
+  max_billed_case_runs: 48
+  max_usd: 40
+  rule: Declared before any billed run; stop at the budget and report what is unmeasured. No selective reruns until a score
+    passes.
+deferment_policy:
+  mode: batch
+  blocking: escalate
+  budget: 5
+  backlog: specs/desired_program_model/deferred_findings.yaml
+  per_ticket_backlog: specs/results/deferred/{ticket}.yaml
+  ledger: specs/results/evidence-sized-delivery/deferred-ledger.yaml
+review_policy:
+  cadence: milestone
+  gate: false
+  merges: owner
+  milestones:
+  - 3
+  - 5
+  artifact_root: specs/results/evidence-sized-delivery/review
+  walkthrough: on-request

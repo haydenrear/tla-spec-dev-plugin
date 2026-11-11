@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:19:22.375Z",
+  "durationSeconds": 31,
+  "costUsd": 0.19371010000000002,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "esd-model-change-recalibrate",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "esd-model-change-recalibrate",
+      "dir": "specs/evals/evidence-sized-delivery/cases/esd-model-change-recalibrate",
+      "source": "mixed",
+      "promptMarkdown": "You are the epic agent at the second review point of an epic that uses this\nplugin. Waves 1 and 2 each carried 4 scope items. Both review points were\nclean: no escapes, nothing overridden, every repair converged in one lap.\n\nBefore wave 3, the operator switches the ticket agents and the review agent\nto a newer, stronger model version. The owner asks: \"The new model is\nbetter -- can wave 3 carry 8 items?\"\n\nAnswer as this plugin's guidance asks the epic agent to: the size you set for\nwave 3, why, and what would change it later. Name the guidance you used\n(file and section).\n\nNOTE ON THIS ENVIRONMENT: your working directory is an empty scratch\nrepository. The plugin's skills are loaded; read them through the Skill tool\nand the files they point to. Nothing here needs to be written or run.\n\nEVAL-CASE: esd-model-change-recalibrate\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "names-step-sizing",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "step-sizing",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "recalibrate-not-increase",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response declines 8 items AND treats the model change itself as\na reason to recalibrate -- it holds wave 3 at 4 items or fewer, or makes wave 3\na calibration batch at or below the old size -- stating that a stronger model\nis a hypothesis to test, not an assumed gain.\n\nSCORE 0.5 if it declines 8 but increases anyway (e.g. to 5 or 6) on the strength\nof the clean history, without treating the model change as needing\nrecalibration; OR holds at 4 but for reasons unrelated to the model change.\n\nSCORE 0 if it approves 8 items, or approves an increase justified by the new\nmodel being stronger.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nSCORE 1 if the response declines 8 items AND treats the model change itself as\na reason to recalibrate -- it holds wave 3 at 4 items or fewer, or makes wave 3\na calibration batch at or below the old size -- stating that a stronger model\nis a hypothesis to test, not an assumed gain.\n\nSCORE 0.5 if it declines 8 but increases anyway (e.g. to 5 or 6) on the strength\nof the clean history, without treating the model change as needing\nrecalibration; OR holds at 4 but for reasons unrelated to the model change.\n\nSCORE 0 if it approves 8 items, or approves an increase justified by the new\nmodel being stronger.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.19371010000000002,
+            "judgeCostUsd": 0.0008025,
+            "durationSeconds": 31,
+            "startedAt": "2026-11-10T15:19:22.459Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-9pbGu0/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-step-sizing",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched step-sizing",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "recalibrate-not-increase",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "**Wave 3 stays at 4 scope items, not 8.** I'd treat it as a calibration batch for the new model, reviewed at the end of the wave with the gate on.\n\n**Guidance used:** `skills/git-epic-workflow/references/step-sizing.md`, mainly §6 *Feedback: hold, increase or decrease*, §9 worked decision 5 *Model upgrade*, §2 (the recalibration paragraph) and §8 *Evidence invalidation*. The `SKILL.md` reference map sends wave-sizing questions to that page.\n\n### Why not 8\n\n1. **A model change overrides the clean history (§6).** \"A changed reviewer or verifier model or version\" is one of the listed overrides. Any override means the batch holds or shrinks, \"however good the aggregate trend looks.\" The two clean review points from waves 1–2 were measured on the old model, so they can't justify a larger wave on the new one.\n2. **\"Stronger\" is something to test, not assume (§2).** \"A stronger model may support a larger batch, but that is a hypothesis to test… It is not an assumed gain.\" The earlier evidence now counts only as a prior, and §8 marks it invalidated for reuse because the reviewer and verifier model changed.\n3. **The model-upgrade decision says so directly (§9.5).** Record the new reviewer and verifier identity, treat earlier evidence as a prior, and run one calibration batch at or below the previous size with `cadence: wave`. Then compare escapes and fix laps per item against waves 1–2.\n4. **8 is too big a jump even without the override.** An increase needs two consecutive clean review points, and then it is one step: \"one more wave-sized group, or about 50% more items, whichever is smaller.\" That is min(4+4, 4×1.5), which is 6, not 8.\n\nAlso, the count is scope items (one behavior change at one boundary), not tickets. Any pair of wave-3 items that share state, a host resource or an interface counts as one extra item. Four strongly coupled items would therefore exceed the batch, and I'd split them so coupled items sit alone.\n\n### What I record (§5)\n- **Plan:** `tickets[].wave` puts 4 items in wave 3. `review_policy` keeps `cadence: wave` and `gate: true`.\n- **Review artifact, delivery-velocity section:**\n  - the new model's name and version\n  - the old-model evidence marked as a prior and invalidated\n  - binding constraint: unrecalibrated capacity after the model change\n  - next decision point: the wave-4 review\n- The required final integrated confirmation and manual acceptance pass stay as they are (§8).\n\n### What would change the size later\n- **Increase to about 6:** the earliest point is after two review points on the new model, so after the wave-3 and wave-4 reviews (wave 5 at the soonest). Both must show no override, faithful instruments on the new items, and repairs converging in at most two laps per layer.\n- **Decrease to 2, with 4 as the ceiling:** if escapes or validation faults per item rise on the new model. The same applies if any other override fires: a blocking or major escape in a reviewed area, repeated faults from the same instrument, or a scope, coupling or toolchain change. Coupled items then go alone. If the cause is in the instrument rather than the product, the instrument gets fixed first.\n- **Not a reason to move the size:** a single red caused by an instrument goes to that instrument's ledger. Another model swap restarts this recalibration.\n\n**For the owner:** possibly, but not yet. Wave 3 at 4 items tests whether the new model can take more. If waves 3 and 4 both come back clean, the next step is about 6 items, and 8 at the earliest after that."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

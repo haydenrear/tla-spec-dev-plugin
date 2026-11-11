@@ -1,0 +1,173 @@
+{
+  "current_dir": null,
+  "desired_dir": "desired",
+  "promotion": {
+    "close_command": "tla-spec-dev --spec-root specs close ticket ESD-06",
+    "on_close": "promote ticket desired/ onto project current/ (removing only seeded paths this ticket dropped, preserving unseeded current-only paths) and merge Test Graph artifacts into project specs/",
+    "worktree": "deferred"
+  },
+  "results_dir": "results",
+  "schema_version": "tla-spec-dev.ticket-workflow.v1",
+  "seed_manifest": {
+    "desired": [
+      "MC.cfg",
+      "MCsmall.cfg",
+      "README.md",
+      "TlaSpecDevCli.tla",
+      "adapter_case_runtime.py",
+      "case_adapters.toml",
+      "production_adapters.py",
+      "spec_manifest.yaml",
+      "tests/test_tla_spec_dev_analyze_adapter.py",
+      "tests/test_tla_spec_dev_binding_reconciliation.py",
+      "tests/test_tla_spec_dev_budgets_adapter.py",
+      "tests/test_tla_spec_dev_case_execution_run.py",
+      "tests/test_tla_spec_dev_cli_adapter.py",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py",
+      "tests/test_tla_spec_dev_corpus_adapter.py",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py",
+      "tests/test_tla_spec_dev_generation_adapter.py",
+      "tests/test_tla_spec_dev_run_adapter.py",
+      "tests/test_tla_spec_dev_scaffold_adapter.py",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py",
+      "tests/test_tla_spec_dev_test_graph_adapter.py",
+      "tests/test_tla_spec_dev_ticket_adapter.py",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py"
+    ],
+    "desired_sha256": {
+      "MC.cfg": "d3c7bd5f313d6a658836b8440f18948cd6d21fbf816bfa008375d88ccd83d90f",
+      "MCsmall.cfg": "9f1fb1fcda70a38a49700f5863f9257e9c0e5d901087934e0ce6f996a06487bd",
+      "README.md": "4c174a2fc0037805b76d7b9d78ae2a1855fec22cf5b726e01781a0fbc0e31b34",
+      "TlaSpecDevCli.tla": "adaa2a7e97a3b45249fab2282af46d2e68d61ae7abba4bb88bbd9fb4ff59497d",
+      "adapter_case_runtime.py": "4c4c7b68af129027ce4da9e7c7962911b34226a0c69988a19d243694129dbb16",
+      "case_adapters.toml": "a22a00920989cda60863e2175e1d33b0ba5d063d33f8d3d2647be3e4b529f7fe",
+      "production_adapters.py": "eb2c3188657478d8f729f7e6cee89604b6cb851f2b87e864369c15157b428c5a",
+      "spec_manifest.yaml": "543dd48ffc0e8a0ed59efbdb0811f3658c6d94c412201505ca290d244a2f66ca",
+      "tests/test_tla_spec_dev_analyze_adapter.py": "86f6dff4add183b551c602e06a75320cbf472b841b623e36698be8dbed6072ff",
+      "tests/test_tla_spec_dev_binding_reconciliation.py": "92c2dbc32545eb291ea2cbe973bcc588bd7407aaa9c5a09b3f54f4c82589f2d2",
+      "tests/test_tla_spec_dev_budgets_adapter.py": "25ff87e79d47dd685f9e3779480616a5fb9882bbd26e215f430d5fd9f0fd7370",
+      "tests/test_tla_spec_dev_case_execution_run.py": "96eaedf220a40e7d037930a6bab7e31447cb0f9e083beabd1cd4d0850eb6c26e",
+      "tests/test_tla_spec_dev_cli_adapter.py": "bd19bbae0febb15b8b0df13b65d7bea02b9b129e5f28bc42b48a18a42d4ab23e",
+      "tests/test_tla_spec_dev_close_promotion_adapter.py": "3dae283ee1c3b51f550ab154a0d3e87bc5103f19fb16f30c0b6da1f73be70cfb",
+      "tests/test_tla_spec_dev_complexity_ledger_adapter.py": "be9bc860dfae29a4fe1529870fa62f9e6fcc41ecf7ed5fd31c9fd01443d8efa1",
+      "tests/test_tla_spec_dev_corpus_adapter.py": "f9961b98e7a528f0c63271846e7681939e8564dd4042a6531cd249ddfd5cf283",
+      "tests/test_tla_spec_dev_effect_conformance_adapter.py": "0e3d2243130be2a75e5368bec1d5e1a5b6bdc7213e1226dda8bb8070e51f3f2d",
+      "tests/test_tla_spec_dev_generation_adapter.py": "a9a2ac6ba72d5de0518f991bb176241461c4d48ed5faed6e2d76c171957270e8",
+      "tests/test_tla_spec_dev_run_adapter.py": "14bdb4941d3efc98395361bd1ae5653cf30810cd1f1da9df7eee3514331969c4",
+      "tests/test_tla_spec_dev_scaffold_adapter.py": "7d79ca9fee0d900438b73066ac3a2052d4cb91353adfbcfe5258c6c07172083e",
+      "tests/test_tla_spec_dev_skill_feedback_adapter.py": "db46090814e7ceca7e1ea8fcb7794fbb3f85a06ea6cd4756fdf1aca29a48a0ca",
+      "tests/test_tla_spec_dev_test_graph_adapter.py": "6f4d416a8038404e3fda68084b277f9dcdf53926fbbb859ad786c88961170e98",
+      "tests/test_tla_spec_dev_ticket_adapter.py": "1cb9181809308a48e61cfdea2244a44ca7bc492bb6b61b03375cd37feb0d82f3",
+      "tests/test_tla_spec_dev_update_ticket_adapter.py": "68de9e77b4b7e2bb698ed6a9683b873dfd1515819fccc663ef7bd6c86f988510"
+    },
+    "excluded": [
+      "tests/test_current_ticket_workflow.py"
+    ],
+    "note": "Paths seeded from project current/ into this ticket workspace. Promotion may remove a project current/ path only if it appears here and the ticket dropped it; paths absent from this list were never offered to the ticket and are preserved.",
+    "source": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/current"
+  },
+  "source_current": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/current",
+  "source_project_desired": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/desired_program_model",
+  "status": "active",
+  "testgraph_dir": "testgraph",
+  "ticket": {
+    "acceptance": {
+      "assertions": [
+        "Cases, budget, model/version, plugin revision, environment, comparison design and stopping conditions are declared before any billed run.",
+        "Billed runs stay within the declared budget; no selective reruns until a score passes.",
+        "Evaluator/environment failures are recorded as validation findings, not instruction passes or fails.",
+        "Each goal reports baseline -> measured -> target with a met/missed/unmeasured verdict.",
+        "No-op model result recorded: specs/current is unchanged by this ticket."
+      ],
+      "commands": [],
+      "evidence": []
+    },
+    "blocks": [],
+    "conflict_keys": {
+      "adapters": [],
+      "production": [],
+      "test_graph": [],
+      "tla": [],
+      "workflow": [
+        "evals/ (new declarative case directories only)",
+        "specs/results/evidence-sized-delivery/ESD-06/",
+        "specs/evals/evidence-sized-delivery/"
+      ]
+    },
+    "covers": [
+      "#240"
+    ],
+    "depends_on": [
+      "ESD-01",
+      "ESD-02",
+      "ESD-03",
+      "ESD-04",
+      "ESD-05"
+    ],
+    "desired_actions": [],
+    "feature_branch": "feature/240-evaluation",
+    "github_issue": "https://github.com/haydenrear/tla-spec-dev-plugin/issues/240",
+    "goals": [
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-ESD-VELOCITY",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-ESD-CAPACITY",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-ESD-ARCH",
+        "local_signal": "N/A: this ticket is the measurement"
+      },
+      {
+        "contribution": "guard",
+        "expected_effect": "decides the goal; adds no behavioral delta",
+        "goal": "GOAL-ESD-UPTAKE",
+        "local_signal": "N/A: this ticket is the measurement"
+      }
+    ],
+    "id": "ESD-06",
+    "implementation_scope": [
+      "evals/",
+      "specs/results/evidence-sized-delivery/ESD-06/",
+      "specs/evals/evidence-sized-delivery/"
+    ],
+    "objective": "Decide the four goals with existing facilities: predeclared evidence table, matched base vs tip runs on declarative eval cases (existing harness, no new executable code), held-out historical replay, and an honest retrospective. Report measured / missed / unmeasured per goal. No model delta expected: record a no-op model result.",
+    "owns_goals": [
+      "GOAL-ESD-VELOCITY",
+      "GOAL-ESD-CAPACITY",
+      "GOAL-ESD-ARCH",
+      "GOAL-ESD-UPTAKE"
+    ],
+    "promotion_order": 60,
+    "promotion_predecessor": "ESD-05",
+    "role": "evaluation",
+    "schedule_revision": 1,
+    "status": "planned",
+    "title": "Evaluate instruction uptake, safe batching and validation cost with existing facilities",
+    "validation": {
+      "evidence_root": "specs/results/evidence-sized-delivery/ESD-06",
+      "graphs": [],
+      "repository_unit": "N/A: evaluation ticket; eval lane via evals/run.sh",
+      "spec_graph": "N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)",
+      "spec_unit": "uvx --with pyyaml --with jinja2 pytest specs/current/tests -q",
+      "tlc": "N/A: no model delta (no-op model result); the epic agent runs TLC at wave close",
+      "toolchain_spec_workflow": "N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)"
+    },
+    "wave": 6,
+    "worktree": "/Volumes/dev/tla-spec-dev-plugin-240-evaluation"
+  },
+  "ticket_dir": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets/ESD-06",
+  "ticket_id": "ESD-06",
+  "ticket_index": 5,
+  "ticket_plan": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/desired_program_model/ticket_plan.yaml",
+  "ticket_root": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets"
+}

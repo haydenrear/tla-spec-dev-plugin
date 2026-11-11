@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:05:38.728Z",
+  "durationSeconds": 32,
+  "costUsd": 0.2416194,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "w-roles-review-finds-its-destination",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-roles-review-finds-its-destination",
+      "dir": "evals/spec-double-2/w-roles-review-finds-its-destination",
+      "source": "mixed",
+      "promptMarkdown": "You have been handed a wave of pull requests in this repository that you did\nnot write, and you must produce this wave's review artifact.\n\nTwo different things went wrong while you did it. One is in the diff you are\nreviewing. The other is in the substrate: the review instructions themselves\nasked you for something the PR bodies gave you no way to check.\n\nAnswer from THIS plugin's own skills, not from general practice:\n\n1. Which named agent role are you, and what is the reading path for it? Name\n   the file and the section.\n2. Those two findings do NOT go to the same place. Give the destination for\n   each, by path or by section.\n3. Where in the artifact do you record what became of a skill change that a\n   ticket agent in this wave proposed?\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the\nsandbox, so a command that writes will fail with \"Operation not permitted\"\nhowever correct it is. That is expected and is not yours to solve.\n\nEVAL-CASE: w-roles-review-finds-its-destination\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "names-the-review-inbox",
+          "type": "regex",
+          "weight": 4,
+          "config": {
+            "target": "last_message",
+            "pattern": "REVIEW-AGENT\\.yaml|deferred/REVIEW",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "names-where-dispositions-go",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "3\\.4|review\\.md|review artifact|wave artifact",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        },
+        {
+          "name": "separates-diff-from-substrate",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nThe prompt gave the agent TWO findings on purpose -- one in the diff under\nreview, one in the substrate -- and asked for a destination for each.\n\nSCORE 1 if the response gives TWO DIFFERENT destinations and gets the split the\nright way round: the diff finding goes into the wave review artifact (a review\ncomment, the artifact, its sections), and the substrate finding goes somewhere\nelse that is about changing a skill. It does not have to use the exact filenames.\n\nSCORE 0.5 if it identifies itself as the review agent and names a reading path,\nbut sends both findings to the same place, or names two destinations without\nsaying which finding goes where.\n\nSCORE 0 if it never identifies itself as the REVIEW agent, or answers from\ngeneral code-review practice with no reference to this plugin.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nThe prompt gave the agent TWO findings on purpose -- one in the diff under\nreview, one in the substrate -- and asked for a destination for each.\n\nSCORE 1 if the response gives TWO DIFFERENT destinations and gets the split the\nright way round: the diff finding goes into the wave review artifact (a review\ncomment, the artifact, its sections), and the substrate finding goes somewhere\nelse that is about changing a skill. It does not have to use the exact filenames.\n\nSCORE 0.5 if it identifies itself as the review agent and names a reading path,\nbut sends both findings to the same place, or names two destinations without\nsaying which finding goes where.\n\nSCORE 0 if it never identifies itself as the REVIEW agent, or answers from\ngeneral code-review practice with no reference to this plugin.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.2416194,
+            "judgeCostUsd": 0.0007866,
+            "durationSeconds": 31,
+            "startedAt": "2026-11-10T15:05:40.300Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-EMgZI3/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "names-the-review-inbox",
+                "passed": true,
+                "weight": 4,
+                "explanation": "matched REVIEW-AGENT\\.yaml|deferred/REVIEW",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-where-dispositions-go",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched 3\\.4|review\\.md|review artifact|wave artifact",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "separates-diff-from-substrate",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "All three answers come from `skills/spec-double-2/references/agent_roles.md`, which the **Role map** in `spec-double-2/SKILL.md` points to.\n\n**1. Role and reading path**\n\nI'm the **review agent**. The role map row is \"a PR you did not write, and a review artifact to produce\", so I read `references/agent_roles.md` § **review** → **You read** (lines 170–181). In order:\n\n1. `skills/git-epic-workflow/references/human-review.md`: §3 *What the artifact carries* says what goes in the artifact, and §3.4 is the part that closes other agents' loops.\n2. The wave's PR bodies, starting with `## Review input`. Each ticket agent has to name its own hot spots, its unrequested decisions and where it would look for bugs, so I start there rather than working it out again.\n3. `spec-double-2/references/blind_dispatch.md`, but only if I also wrote the work I'm reviewing. I didn't, so I skip it.\n4. The **review** row of § *Evidence routing*, but only if the wave changes a node, fixture, runner or oracle, or a PR cites a red or green result as evidence.\n\n**2. Where each finding goes** (§ review → **You write**, lines 183–193)\n\n- **The defect in the diff** goes in the wave artifact, `<artifact_root>/wave-<n>/review.md`, in the matching §3 section of `human-review.md` (for example §3.1 *Hot spots* or §3.3 *Where the bugs probably are*). It's a review comment.\n- **The substrate problem** (the review instructions asked for something the PR bodies gave me no way to check) goes in **`specs/results/deferred/REVIEW-AGENT.yaml`**, written in the `skill_change` grammar, e.g. `proposed(<unit>, <what I hit>)`. The page says this case (\"the PR body gave you no way to check a claim\") is \"a skill change, not a review comment\", so it doesn't go in `review.md`.\n\n**3. What happened to a ticket agent's proposed skill change**\n\nIt goes in **`review.md` §3.4 \"What the epic agent applied, and what it still owes\"** (`human-review.md`, line 387). There is one row for each `## Skill changes proposed` row in the wave's PRs, and each row says `applied(<sha>)` or `declined(<reason>)`. A sha in `applied` must be at least 7 hex characters and nothing else, not \"this PR\" or a branch name. If a proposal has no disposition, say so in that row, because it was routed but never acted on. The next wave's §3.4 carries forward anything still owed.\n\nI didn't write either file. Writes are refused by the sandbox here, and this case ships no fixture.\n\nOne inconsistency I noticed: the *Evidence routing* table in `agent_roles.md` sends the review row's output to \"§3.5 *Delivery velocity and step size*\", but in `human-review.md` §3.5 is titled \"Suggested next steps\". It doesn't affect the three answers."
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

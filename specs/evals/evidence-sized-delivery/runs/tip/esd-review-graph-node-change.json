@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:16:22.443Z",
+  "durationSeconds": 58,
+  "costUsd": 0.41378270000000006,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "esd-review-graph-node-change",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "esd-review-graph-node-change",
+      "dir": "specs/evals/evidence-sized-delivery/cases/esd-review-graph-node-change",
+      "source": "mixed",
+      "promptMarkdown": "You are reviewing pull request #812 in a repository whose validation runs\nthrough this plugin's Test Graph. Besides a product change to settlement\nrounding, the PR changes one validation node: `orders.replay.settlement_check`,\nan assertion node in graph `ordersAcceptance`. Before the PR the node started\nthe settlement service itself. After the PR it reads the service URL that an\nupstream node wrote into saved context, and it is marked `rerun(true)`.\n\nThe PR body says: \"ordersAcceptance is green on the branch (run\n20261110-091502), so the change is verified.\"\n\nWrite your review of the VALIDATION part of this PR as this plugin's own\nguidance asks a reviewer to: what you flag or ask, and whether the green run\nproves the change. Name the guidance you used (file and section).\n\nNOTE ON THIS ENVIRONMENT: your working directory is an empty scratch\nrepository. The plugin's skills are loaded; read them through the Skill tool\nand the files they point to. Nothing here needs to be written or run.\n\nEVAL-CASE: esd-review-graph-node-change\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 20,
+      "graders": [
+        {
+          "name": "judges-the-node-not-the-green",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nThe PR changed a validation node so it reads a service URL from SAVED CONTEXT\nand is marked rerunnable, and cites one green run as proof.\n\nSCORE 1 if the response does BOTH:\n (a) treats the green run as insufficient on its own because the changed node is\n     itself an oracle under review -- e.g. asks whether the node has been shown\n     RED on a planted wrong answer, a mutation or the untouched base, or whether\n     it can pass while exercising nothing; AND\n (b) flags the replay / rerun-from-saved-context risk -- e.g. on a rerun or\n     resume the saved URL may point at a service that is no longer running\n     (stale context), so the node must reconstruct its prerequisite or refuse\n     replay, or the rerun(true) marking is questioned for that reason.\n\nSCORE 0.5 if it does exactly one of (a) or (b).\n\nSCORE 0 if it accepts the green run as proof, or reviews only the product\nrounding change, or gives only generic advice with neither (a) nor (b).\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nThe PR changed a validation node so it reads a service URL from SAVED CONTEXT\nand is marked rerunnable, and cites one green run as proof.\n\nSCORE 1 if the response does BOTH:\n (a) treats the green run as insufficient on its own because the changed node is\n     itself an oracle under review -- e.g. asks whether the node has been shown\n     RED on a planted wrong answer, a mutation or the untouched base, or whether\n     it can pass while exercising nothing; AND\n (b) flags the replay / rerun-from-saved-context risk -- e.g. on a rerun or\n     resume the saved URL may point at a service that is no longer running\n     (stale context), so the node must reconstruct its prerequisite or refuse\n     replay, or the rerun(true) marking is questioned for that reason.\n\nSCORE 0.5 if it does exactly one of (a) or (b).\n\nSCORE 0 if it accepts the green run as proof, or reviews only the product\nrounding change, or gives only generic advice with neither (a) nor (b).\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "names-the-graph-review-page",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "graph-architecture-review",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 14,
+            "costUsd": 0.41378270000000006,
+            "judgeCostUsd": 0.0012291,
+            "durationSeconds": 58,
+            "startedAt": "2026-11-10T15:16:22.544Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Gzny64/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "judges-the-node-not-the-green",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "# Review of PR #812: the validation change (`orders.replay.settlement_check`)\n\n## Verdict\n\nThe green run `20261110-091502` does not show that this change is verified. The guidance says a passing graph is evidence to assess, not proof that the graph itself is correct. This run is evidence I can't assess yet: it shows no red control, nothing about where or how it ran, and the node's new replay contract looks wrong. I'm requesting changes on the validation part and not yet reviewing the rounding change as validated.\n\n## Guidance used\n\n- **test-graph `SKILL.md`, § Node Shape.** It says to read the architecture review before reviewing a PR that changes a node. § When a graph fails, step 4: after a targeted replay, rerun the whole graph from the start.\n- **test-graph `references/graph-architecture-review.md`:**\n  - § *A graph change is a product change*: the five questions.\n  - Checklist rules A1, A3, A4, B1, B2, C4, E1, E2, F3, G1, G2, H1, H2.\n- **spec-double-2 `references/agent_roles.md`:**\n  - § *review*, item 4.\n  - § *Evidence routing*, **review** row: \"does the passing graph prove the change? It is evidence to assess, not authority.\"\n- **git-epic-workflow `references/human-review.md`:**\n  - §3.1 hot spot 6: a changed graph node, and \"check the evidence it cites was produced on this tip, by the home and runner copy it names\".\n  - §3.3: validation-specific bugs.\n- **git-epic-workflow `references/validation-review.md`**, § *A changed contract reruns every instrument that asserts it*.\n\n## What I flag\n\n**1. `rerun(true)` looks wrong (G1, F3, G2). This is the main blocker.**\nThe node now reads a URL for a running service. That service is a process on a claimed port, and it only lives for one run. G1 lists \"claimed port\" and \"an input that the run itself destroyed\" under *refuses replay*. If someone replays this node later from saved context, the URL points at a service that is either gone (a false red) or now a different process on that port, maybe an older build or another agent's run (a false green on the old rounding).\nThe node isn't replay-safe: a stored URL does not make it a function of its saved input. It also can't be replay-by-reconstruction, because an assertion that restarts the service would put setup back into the assertion (A3).\n**Ask:** either declare `rerun(false)`, or check before asserting that the URL still answers and is the service under test (see item 3), and fail with a named error if not (H4). Also add the G2 recovery notes: which saved context is valid to replay from, when the upstream testbed must be rebuilt, and that the full graph is rerun once from the start.\n\n**2. The data edge and the published key (A1).**\n**Ask:** does the node `dependsOn` the upstream node it reads the URL from, and does that node declare the key with `.output(...)`? Name the node and the key. If it only works because of list order or a transitive edge, it's fragile. A missing key must fail with a named error, not fall through to a default or localhost URL.\n\n**3. Runtime identity of the service (B1).**\nBefore the PR, the node started the service, so it knew what it was testing. Now it trusts whatever answers at the URL.\n**Ask:** the upstream testbed should publish the service's identity (build or commit, how it was started). The assertion should check that identity and refuse a mismatch with a named error. Otherwise a stale service with the old rounding can make this node green.\n\n**4. The setup move is the right direction (A3), but it needs to be finished (A4, E1, E2, C4).**\nTaking setup out of the assertion is what A3 asks for. Moving it means:\n- The upstream node should be a `testbed` that declares the process effect, owns its process tree, and has a cleanup or finalizer that only stops what it started.\n- This node's `sideEffects` should no longer list process-spawning effects, and should add a network effect if the guidance's vocabulary calls for one.\n- **Ask:** how is the port chosen? A fixed port is shared with concurrent runs (C4), which ties into the stale-service risk in item 3.\n\n**5. No red shown (H1, H2).**\nThe rounding product change and the changed oracle are in the same PR, and the only evidence is a green.\n**Ask:** cite a run where `settlement_check` is red on the untouched base (old rounding) or on a planted wrong rounding, then green on the branch. Also confirm the node asserts that it actually checked something: a settlement count greater than zero, not a pass over an empty set.\n\n## Questions about run `20261110-091502` (§3.1, B2, SKILL step 4)\n\n- Was it a fresh full run from the beginning, or a `--resume-from-node` / `--run-only-node` replay? A replay is exactly the path the new `rerun(true)` opens up, and it can't stand as the final confirmation.\n- Which commit, home and runner copy produced it? Was it the PR head?\n- Please link `report.md`, `summary.json` and `envelope/orders.replay.settlement_check.json`. I need them to confirm that:\n  - the node ran and passed, rather than being skipped or cached;\n  - the URL it used came from this run's upstream testbed;\n  - the service identity matched the branch.\n\n## Scope of reruns (validation-review.md)\n\nThe PR changes settlement rounding, which is a product contract. ordersAcceptance being green covers only one graph. **Ask:** list every graph whose nodes check settlement or rounding behavior, and show those runs too. A graph still checking the old rounding is red whether anyone runs it or not.\n\n## Where this goes in the review artifact\n\n- Items 1–3 and 5 go under §3.1 hot spots: one row for the node, with the question \"is `rerun(true)` replay-safe against a run-scoped service?\"\n- They also go under §3.3 as validation-specific suspicions: a green that may not have exercised the change, and a replay that reuses stale context. The cheapest check: replay the node against a saved context after the service has stopped, and see whether it fails with a named error or passes.\n- No skill-substrate issue to record: the guidance covered this case.\n\nMy working directory was an empty scratch repo, so I couldn't open the node source, the graph's `build.gradle.kts`, or the run's reports. Everything above is based on the PR description and the plugin's guidance, so each point is a question or request to the author, not a confirmed defect."
+              },
+              {
+                "name": "names-the-graph-review-page",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched graph-architecture-review",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 2x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:06:38.523Z",
+  "durationSeconds": 34,
+  "costUsd": 0.24420360000000002,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "w-roles-testing-finds-its-destination",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-roles-testing-finds-its-destination",
+      "dir": "evals/spec-double-2/w-roles-testing-finds-its-destination",
+      "source": "mixed",
+      "promptMarkdown": "You are adding a case to this repository's eval suite. You are measuring the\nsubstrate, not changing a product.\n\nWhile doing it you measure something about the eval harness itself that\ncontradicts what its documentation says.\n\nAnswer from THIS plugin's own skills, not from general practice:\n\n1. Which named agent role are you, and what is the reading path for it? Name\n   the file and the section.\n2. Where does that measured correction go? Your role has a PREFERRED\n   destination and a fallback -- give both, and say which applies when you\n   are opening a pull request.\n3. What does that destination require of a claim before you may write it\n   there?\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the\nsandbox, so a command that writes will fail with \"Operation not permitted\"\nhowever correct it is. That is expected and is not yours to solve.\n\nEVAL-CASE: w-roles-testing-finds-its-destination\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "knows-what-the-page-demands",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nQuestion 3 asked what the destination requires of a claim before it may be\nwritten there.\n\nSCORE 1 if the response states the rule in substance: name the observation that\nwould differ if the claim were false, or mark it explicitly as a belief rather\nthan a measurement. Any faithful paraphrase counts -- \"it must be falsifiable\nand say what would falsify it\", \"measured, or labelled as a guess\".\n\nSCORE 0.5 if it identifies itself as the TESTING agent and names both\ndestinations but gives only a generic quality bar for question 3 -- be accurate,\ncite sources, keep it short -- without the falsifiability or belief-marking\nrequirement.\n\nSCORE 0 if it never identifies itself as the TESTING agent, or sends a measured\ncorrection about the harness only to a bug tracker or a PR comment with no\nreference to this plugin.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nQuestion 3 asked what the destination requires of a claim before it may be\nwritten there.\n\nSCORE 1 if the response states the rule in substance: name the observation that\nwould differ if the claim were false, or mark it explicitly as a belief rather\nthan a measurement. Any faithful paraphrase counts -- \"it must be falsifiable\nand say what would falsify it\", \"measured, or labelled as a guess\".\n\nSCORE 0.5 if it identifies itself as the TESTING agent and names both\ndestinations but gives only a generic quality bar for question 3 -- be accurate,\ncite sources, keep it short -- without the falsifiability or belief-marking\nrequirement.\n\nSCORE 0 if it never identifies itself as the TESTING agent, or sends a measured\ncorrection about the harness only to a bug tracker or a PR comment with no\nreference to this plugin.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "names-the-testing-inbox",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "TESTING-AGENT\\.yaml|deferred/TESTING",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "prefers-the-reference-page",
+          "type": "regex",
+          "weight": 4,
+          "config": {
+            "target": "last_message",
+            "pattern": "plugin_evals|plugin evals\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.24420360000000002,
+            "judgeCostUsd": 0.0007778,
+            "durationSeconds": 33,
+            "startedAt": "2026-11-10T15:06:39.763Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-aFr1T7/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "knows-what-the-page-demands",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "All three answers come from `skills/spec-double-2/references/agent_roles.md` (the role map in `spec-double-2/SKILL.md` sends you there). I did not create the case or edit any file, because writes are blocked here.\n\n## 1. Role and reading path\n\nI'm the **testing agent**. The row for that role in `agent_roles.md` § *How you know which one you are* reads: \"an eval case, suite or harness — you are measuring the substrate, not changing a product.\" It isn't the ticket agent, even though a PR gets opened. The page says each agent reads the section for what it is doing now.\n\nThe reading path is in `agent_roles.md` § **testing**, \"You read\" (lines 206–217):\n1. `evals/README.md`: where cases live and the one command that runs them.\n2. `skills/spec-double-2/references/plugin_evals.md`: read §0 first (the six habits). After that, read only the numbered section for the current job: §1 what a case can observe, §2 running one, §3 adding a skill and placing a fixture, §4 keeping the score honest.\n3. Run `evals/lib/check_graders.py` and `evals/lib/check_cases_parse.py` before billing anything. Graders compile in a JavaScript regex engine, and a `case.yaml` that fails to parse silently drops out of the corpus.\n\n## 2. Where the measured correction goes\n\nThis comes from § testing, \"You write\" (lines 219–229):\n- **Preferred:** edit `skills/spec-double-2/references/plugin_evals.md` itself. The page says this is the only role whose main destination is a reference page, because a measured fact about the harness is what that page is for.\n- **Fallback:** `specs/results/deferred/TESTING-AGENT.yaml`. Use it when you are not opening a PR, or when the finding is about a unit you are not touching.\n\n**When opening a PR, the preferred destination applies.** You edit `plugin_evals.md` in the PR and add a row to the PR body's `## Skill changes proposed` section: `proposed(spec-double-2, <what you measured>)`.\n\nTo check what happened to it later, use the `awk` ledger lookup from § ticket. For this role there is also `git log --oneline --diff-filter=A -- evals/**/<case-name>/case.yaml`, since a case added because of a finding is itself evidence that the finding was used.\n\n## 3. What a claim needs before it goes there\n\n`plugin_evals.md` § *The rule for adding to this file* (line 99):\n\n> **Before writing a claim here, name the observation that would differ if it were false.** If you cannot name one, you have a belief, and it goes in marked as a belief.\n\nThe page points to the `agents:` paragraph in §3.5, marked *\"I have not run that\"*, as the model for that marking. So the correction goes in only with a named observation that would come out differently if the claim were false. Otherwise it is explicitly labelled as a belief.\n\nThe `proposed(...)` value in the PR body also has its own requirement (`agent_roles.md` § *The slots*): the first slot must be a unit name that `ls skills/` prints, here `spec-double-2`, not a sentence or a file path."
+              },
+              {
+                "name": "names-the-testing-inbox",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched TESTING-AGENT\\.yaml|deferred/TESTING",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "prefers-the-reference-page",
+                "passed": true,
+                "weight": 4,
+                "explanation": "matched plugin_evals|plugin evals\\.md",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

@@ -1,0 +1,1928 @@
+diff --git a/skills/git-epic-workflow/SKILL.md b/skills/git-epic-workflow/SKILL.md
+index feb63ae9..bd6bd747 100644
+--- a/skills/git-epic-workflow/SKILL.md
++++ b/skills/git-epic-workflow/SKILL.md
+@@ -211,8 +211,10 @@ keys before dispatch, and validate each assignment against its plan entry.
+ the role the whole loop narrows at. Your reading path, your own inbox
+ (`specs/results/deferred/EPIC-AGENT.yaml`, which has held one row ever), and how
+ the other three roles see what you did with their findings are in the
+-spec-double-2 skill's `references/agent_roles.md` § epic. Nothing detects your
+-role; you arrive by reading.
++spec-double-2 skill's `references/agent_roles.md` § epic. Its § *Evidence
++routing* names the bounded risk evidence you read at planning, at each review
++point and at close, and who consumes what you write. Nothing detects your role;
++you arrive by reading.
+ 
+ ## Reference map
+ 
+@@ -225,4 +227,6 @@ role; you arrive by reading.
+ | The front door and its five miss cases; homes; ledger; sweep | `references/worktree-lifecycle.md` |
+ | Validate, promote, close, and open the epic PR | `references/finalize.md` |
+ | Classify, defer, batch, and triage failure cases | `references/deferment.md` |
++| Size a wave from review and verification capacity; hold, increase or decrease at a review | `references/step-sizing.md` |
++| A repair loop that is not converging; short and deep reviews; valid targeted reruns | `references/validation-review.md` |
+ | Whether a ticket home's `declared-only` artifacts need rebuilding | `skills/skt/references/derived-artifacts.md`; `references/plan-and-schedule.md` §2 has the fallback |
+diff --git a/skills/git-epic-workflow/references/epic-ticket.md b/skills/git-epic-workflow/references/epic-ticket.md
+index 8b96c450..31238046 100644
+--- a/skills/git-epic-workflow/references/epic-ticket.md
++++ b/skills/git-epic-workflow/references/epic-ticket.md
+@@ -87,6 +87,15 @@ result. Do not encode the cadence in `mode`.
+   integrated epic. Run `local_signal` before close, record the number under the
+   evidence root, and report it against `expected_effect` — including "no
+   measurable movement".
++- **Evidence slice:** <the findings anchored to this ticket's actions, bins and
++  graph nodes, by ID; the dangerous validation boundaries it crosses; the valid
++  targeted reruns; repository-specific instructions — or `none found`>. Read
++  these instead of the whole ledger. When you change a graph node, answer the
++  five questions in test-graph's `references/graph-architecture-review.md`
++  (*A graph change is a product change*) in `## Review input`. When evidence
++  shows the planned batch or validation will not hold, say so there; do not
++  widen scope or drop a REQUIRED entry. (spec-double-2
++  `references/agent_roles.md` § *Evidence routing*, row *ticket*.)
+ - Start the worktree from the latest `origin/epic/<slug>` after all
+   `depends_on` PRs are merged.
+ - Run `tla-spec-dev --spec-root specs open ticket <stable-ticket-id>`; never
+@@ -128,6 +137,10 @@ result. Do not encode the cadence in `mode`.
+   decisions you made that nobody asked for, any guardrail you had to override,
+   where you would look for bugs in your own change, and what about the tooling
+   or skills slowed you down. You are the only one who still knows the last two.
++  Open it with the delivery line `started_at: <UTC>; agent: <model and
++  version>, <harness and version>; scope items: <n>` (`unknown` where unknown),
++  and give each red's origin, channel and effect and whether its repair was
++  product or validation (git-epic-workflow `references/epic-ticket.md` §7).
+ - Push the sealed ticket branch and open its PR with base `epic/<slug>` and
+   `Refs #<issue-number>`. Stop there. The epic owner merges this PR into the
+   epic branch; you do not merge it, do not merge to the default branch, and do
+@@ -580,7 +593,13 @@ The PR body contains:
+ - a `## Review input` section, written for a human who has ten minutes and did
+   not read the ticket. Four short lists, evidence-cited, no padding — the epic
+   owner composes the wave review from these rather than re-deriving them from
+-  the diff (`human-review.md` §3):
++  the diff (`human-review.md` §3). Open it with one **delivery line**:
++  `started_at: <UTC>; agent: <model and version>, <harness and version>; scope
++  items: <n>` (`unknown` where you do not know). Per finding in
++  `## Deferred findings` and per red you met, keep origin, channel and effect
++  apart (`bug_attribution.md` §4.3), and give its cost as product repair or
++  validation repair. The wave owner sizes the next batch from these
++  (`step-sizing.md` §1, §6).
+   - **Hot spots** — what you changed that carries the most risk or the most
+     meaning, with paths. Say when you wrote a file another ticket in your wave
+     also touches;
+diff --git a/skills/git-epic-workflow/references/finalize.md b/skills/git-epic-workflow/references/finalize.md
+index 905e1972..33930254 100644
+--- a/skills/git-epic-workflow/references/finalize.md
++++ b/skills/git-epic-workflow/references/finalize.md
+@@ -327,6 +327,16 @@ this phase for the deeper options review before another repair/rerun begins.
+ Include the cumulative cost, decision record and cross-epic velocity trend in
+ the final PR and carry the chosen improvement into the next epic's planning.
+ 
++Close the capacity loop in the same PR, under **Next epic's starting
++estimate**: the planning estimates (`plan-and-schedule.md` §7) against what each
++wave's *Delivery velocity and step size* block recorded; recurrence of the
++attributed families; REACH and BLIND on the affected components; acceptance
++results. Then write the starting review and verification estimate for the next
++epic, keyed to repository, component and reviewer/verifier model and version,
++and name what stays uncertain. This is the record the next epic's planning
++reads (`plan-and-schedule.md` §3; `validation-review.md`, *Across epics*). It
++changes nothing above: the full integrated run and the manual phase stay.
++
+ ## 3. Pass the external semantic-review gate
+ 
+ Push the fully integrated, still-open workflow state and open or update a draft
+@@ -395,6 +405,7 @@ tip and the close commit changed workflow artifacts only. Its body includes:
+   regression pins or automation limits, repair tickets and final rerun evidence;
+ - the goal table from step 2a — baseline, measured, target, and verdict per
+   goal, with the user's recorded acceptance for any missed goal;
++- the *Next epic's starting estimate* from §2c;
+ - the workflow closed-snapshot path;
+ - the deferred-findings disposition: tickets opened, `wontfix` reasons, and
+   issues carried to the default branch;
+diff --git a/skills/git-epic-workflow/references/goals-and-evaluation.md b/skills/git-epic-workflow/references/goals-and-evaluation.md
+index 1fb58fd6..1d0809cc 100644
+--- a/skills/git-epic-workflow/references/goals-and-evaluation.md
++++ b/skills/git-epic-workflow/references/goals-and-evaluation.md
+@@ -45,6 +45,10 @@ the final graph plus manual acceptance decides the delivered increment.
+ Right-sizing includes the cost of reaching validated acceptance, not just the
+ first full run. Use `validation-review.md` for loop diagnosis, review
+ triggers, architectural alternatives and delivery-velocity trends across epics.
++Use `step-sizing.md` to size each batch from separate review and verification
++capacity estimates. A velocity goal counts accepted increments per elapsed time,
++with fixed, repair, repeat and waiting costs kept separate. A velocity gain is
++never claimed from running fewer checks.
+ 
+ ## What counts as a goal
+ 
+diff --git a/skills/git-epic-workflow/references/human-review.md b/skills/git-epic-workflow/references/human-review.md
+index 7871dbe5..a9713b12 100644
+--- a/skills/git-epic-workflow/references/human-review.md
++++ b/skills/git-epic-workflow/references/human-review.md
+@@ -277,6 +277,13 @@ Rank, highest first:
+    A small production diff behind a semantic change is a hot spot even when the
+    line count says otherwise.
+ 5. **Anything a deferred finding already points at.**
++6. **A changed graph node, fixture, runner or oracle/recovery contract.** Review
++   it beside the product change it judges, with test-graph's
++   `references/graph-architecture-review.md` sections for that contract. A
++   passing graph is evidence to assess, not authority over its own correctness.
++
++Start from each PR's `## Review input` hot spots; check the evidence it cites
++was produced on this tip, by the home and runner copy it names.
+ 
+ Keep it to about seven rows. Each row: the location, why it is hot, and the one
+ question the reviewer should ask about it.
+@@ -366,7 +373,11 @@ Draw from:
+   ticket predicted, and the prediction was the design;
+ - pending backlog entries at `severity: major`;
+ - order- or concurrency-sensitive code that two tickets in one wave introduced
+-  independently.
++  independently;
++- **validation-specific bugs**: a green that never exercised the change, a red
++  the instrument produced, effects outside the node's report directory, a replay
++  that reuses stale context (spec-double-2 `references/bug_attribution.md` §6,
++  §6a; the checklist above).
+ 
+ Each row: the location, why it is suspicious, and the cheapest experiment that
+ would settle it. Label a row with no reproduction as a suspicion in the row
+@@ -504,7 +515,9 @@ Look for evidence the wave produced, not for wishes:
+   `unit publish` rather than stopping at this one project home.
+ 
+ Each row: what was observed → what shape it suggests → which door it ships
+-through (`unit publish`, plan amendment, new issue) → rough cost. Recommend;
++through (`unit publish`, plan amendment, new issue) → rough cost → owner and
++disposition (scheduled as <ticket or issue>, deferred, or declined with a
++reason). A recommendation with no owner is routed, not consumed. Recommend;
+ do not implement. A review that starts changing things is no longer a review,
+ and the wave it was reviewing has moved underneath it.
+ 
+@@ -528,6 +541,14 @@ One place where the schedule and the defect ledger are read together:
+   the evaluation ticket. Say plainly when the trend suggests the target will be
+   missed; that is a decision the user can still act on cheaply now and cannot
+   act on at finalization.
++- **Delivery velocity and step size** — the delivery-velocity section
++  `validation-review.md` (*Deeper review*) asks for, placed here. A few lines,
++  `unknown` where nothing was recorded: reviewer and verifier model and
++  version; the scope items in this batch; escapes with severity; reds by origin, with product and validation repair
++  cost kept apart; whether review coverage supported this batch size; and
++  hold, increase or decrease, with the override that drove it
++  (`step-sizing.md` §6). Collect the delivery lines from the PR bodies rather
++  than re-deriving them. The finalizer compares these with the plan's estimate.
+ - **What gets more expensive if deferred** — a hot spot two more tickets are
+   scheduled to write, a goal whose baseline is still `unmeasured`, a unit edit
+   reconciled into the project home that nobody has decided to publish.
+diff --git a/skills/git-epic-workflow/references/plan-and-schedule.md b/skills/git-epic-workflow/references/plan-and-schedule.md
+index cee5a398..0392932d 100644
+--- a/skills/git-epic-workflow/references/plan-and-schedule.md
++++ b/skills/git-epic-workflow/references/plan-and-schedule.md
+@@ -182,6 +182,16 @@ Graph graphs, and any dashboards or saved baselines. That inventory is the raw
+ material for the goals agreed in step 3a — goals are cheapest when an existing
+ harness already decides them.
+ 
++Then retrieve a **bounded evidence slice**, only for the affected actions, bins
++and graph nodes: the findings already anchored to them, the instrument faults
++and nodes the graph checklist flags (the **dangerous validation boundaries**),
++and the previous epic's *Next epic's starting estimate* (`finalize.md` §2c).
++spec-double-2's `references/agent_roles.md` § *Evidence routing*, row *epic:
++planning*, names the one
++source for each; do not load the whole ledger. Carry what applies to each
++ticket into its assignment's *Evidence slice* bullet (`epic-ticket.md`), so the
++ticket agent does not reread the ledger.
++
+ ## 3a. Agree the epic goals
+ 
+ Before scaffolding the workflow, ask the user what should be measurably better
+@@ -223,6 +233,13 @@ intermediate checks and valid targeted reruns. The planning agent recommends a
+ split when the requested increment is likely to keep reopening validation;
+ the epic owner carries that assessment into execution and subsequent reviews.
+ 
++Size the waves from two separate estimates, review capacity and verification
++capacity, and keep each wave within the tighter one (`references/step-sizing.md`
++§1-§5). Record the estimates, their evidence and their uncertainty in the
++planning conversation, and write the chosen batch into `wave`, `depends_on`,
++each ticket's `validation`, and the evaluation ticket with its `eval_budget`.
++With sparse history or an unknown reviewer/verifier model, start small (§7).
++
+ ## 4. Scaffold the shared workflow once
+ 
+ Choose stable ticket IDs before scaffolding. Use the first ticket only as the
+@@ -373,6 +390,12 @@ missing and errors on a malformed one.
+ Read `references/human-review.md` for what the artifact carries, how the diff is
+ rendered, and what a review may and may not change.
+ 
++The cadence is also a step-size control. Each review point is where the batch is
++held, increased by one bounded step, or decreased (`references/step-sizing.md`
++§6). Choose `cadence: wave` or an early milestone when history is sparse or the
++model has changed. Expensive evals keep their own predeclared checkpoint in the
++evaluation ticket, not at every review point.
++
+ ## 5. Validate the schedule
+ 
+ Treat `depends_on` as a directed graph and reject the plan unless:
+@@ -635,6 +658,12 @@ and a schedule such as:
+ | Issue | Spec ticket | Start dependencies | Wave | Promote after | Goals | State |
+ | --- | --- | --- | --- | --- | --- | --- |
+ 
++Under the schedule, state in a few lines: the review and verification capacity
++estimates (separately), the batch and the cadences chosen, the confidence, the
++cold-start gaps written as `unknown`, and the expensive-eval cost and budget
++(`step-sizing.md` §1–§5, §7). The first review artifact repeats them, so the wave
++owner compares against the same numbers.
++
+ An issue is ready to hand off only when every dependency PR is merged into the
+ remote epic branch. An open or green PR is not a satisfied dependency.
+ 
+diff --git a/skills/git-epic-workflow/references/step-sizing.md b/skills/git-epic-workflow/references/step-sizing.md
+new file mode 100644
+index 00000000..1c7b8dd0
+--- /dev/null
++++ b/skills/git-epic-workflow/references/step-sizing.md
+@@ -0,0 +1,301 @@
++# Step sizing: review capacity, verification capacity and the batch between them
++
++Read this when planning an epic (`plan-and-schedule.md` §3a, §4b), at each review
++point `review_policy` names, and whenever a `validation-review.md` trigger fires.
++It turns that page's convergence criteria into a feedback policy the planning or
++epic agent operates by hand. It adds no script, controller, schema or gate.
++Every decision is written into fields the plan and the review artifact already
++have (§5).
++
++**The question.** What is the largest batch of change that reviewers can examine
++and instruments can verify, so that failures stay attributable and repairs
++converge? The answer is two estimates and a choice. A batch is never larger than
++the tighter estimate. Speed is never claimed from running fewer checks.
++
++**Evidence ids.** `C1`-`C30` are cost rows in
++`specs/results/evidence-sized-delivery/ESD-01/cost.md`. `F1`-`F8` are families
++in `failure-families.md` beside it. Other row ids (`BS-07-DF-05`, `DEF-154`) are
++rows of `inventory.yaml` there. All are in the tla-spec-dev-plugin repository.
++
++## 1. Summarize the starting revision
++
++Do this once per epic, at the revision the epic branch starts from, and again
++when a §6 override fires. Write a few lines per input in the planning
++conversation and the first review artifact. **Unknown is a valid answer and is
++written as `unknown`.** It is never filled with a default.
++
++| Input | Where to read it | What it changes |
++|---|---|---|
++| Affected components | the plan's `conflict_keys`, `desired_actions`, `testgraph_bindings` | which instruments and reviewers are involved |
++| Historical attribution | earlier ledgers and `attribution.yaml`, filed by origin, channel and effect (`bug_attribution.md` §4.3) | where defects cluster, by **origin** |
++| Severity and escapes | ledger `severity`, manual-final-testing and post-merge CATCHes | what review or verification missed before |
++| Coverage | REACH and BLIND rows (`bug_attribution.md` §5, §6) for the affected components | how much a green actually proves |
++| Validation-origin faults and their cost | instrument CATCHes and false reds (`bug_attribution.md` §6a), cost rows (C5, C10, C19, C20) | how many reds will not be about the change |
++| Coupling | shared state, shared host or output tree, interfaces changed together, nodes flagged by `test-graph`'s `graph-architecture-review.md` | how many interactions a batch creates |
++| Reviewer and verifier identity | model name and version, harness version (`claude-agent-acp`, Claude Code), skill pins, test-graph copy | whether history applies at all |
++
++Charge an instrument fault to the instrument, never to product risk
++(`bug_attribution.md` §6a). A red the instrument produced lowers
++**verification** capacity. It says nothing about how risky the product change
++is.
++
++The reviewer/verifier identity is `unknown` in almost every audited row. ESD-01
++found a named model in one record only (meta-harness finalization). So history
++from an unnamed model calibrates a prior, not the current agent.
++
++## 2. Two capacities, estimated separately
++
++Count capacity in **scope items**, never in lines of code or ticket count. A
++scope item is one behavior change at one boundary. Write each item as
++*behavior, boundary, graph nodes affected*. A pair of items that share state, a
++host resource or an interface is an **interacting effect**. Count each such pair
++as one more item: a reviewer and an instrument must each check the interaction
++as well as the parts.
++
++**REVIEW capacity** is the number of scope items one review point can examine
++and still catch what it should. Estimate it from:
++
++- earlier review artifacts: how many hot spots each held, and how many defects
++  in reviewed areas escaped to a later channel;
++- whether each item carries its own red-on-base to green-on-branch proof. Items
++  with proof are cheaper to review. In the bug-sweep, 19 of 19 milestone-1
++  tickets carried one (`review/wave-3/review.md` in that epic);
++- reviewer identity and attention: an owner reviewing at `milestone` cadence
++  reads a larger batch than at `wave` cadence, so expect less depth per item;
++- measured review time where it exists. It mostly does not (C14, C30). CDC is
++  the one phase-separated record: review plus graphs/merge took 2.6-3.0 times
++  the implementation phase (C17, C18).
++
++**VERIFICATION capacity** is the number of scope items the available
++instruments can discriminate **and attribute** within one validation cycle.
++Estimate it from:
++
++- faithful instruments per item: an instrument that has shown red on a planted
++  wrong answer (F3). An item with no faithful instrument costs manual reach;
++- validation-origin fault rate on the affected graphs (F1, F2, F4, F5, F7). Each
++  false red costs a diagnosis, and diagnoses do not parallelize well;
++- shared resources: one host, one output tree, one eval budget. Concurrent runs
++  on one host can turn a 70-minute suite into a projected 20 hours (`DEF-154`,
++  C25);
++- cost per run: cold setup (F6, C26, C28), and expensive evals (C8-C11);
++- **manual-testing reach**: how many scenarios a manual pass can cover in one
++  session. Items reachable only by hand use up this capacity. The final manual
++  pass is the only channel that caught `DEF-110` (blocking; 123,132 green
++  spec-unit cases).
++
++Write each estimate as a **range with a confidence and the evidence behind it**.
++For example: *"review 4-6 independent items or 2 coupled; low confidence, one
++prior review."*
++
++When the reviewer or verifier model or version changes, **recalibrate**. A
++stronger model may support a larger batch, but that is a hypothesis to test
++(§9, scenario 5). It is not an assumed gain.
++
++## 3. Choose a provisional batch within the tighter estimate
++
++1. Take the smaller of the two ranges. With low confidence, use its lower bound.
++2. Fill the batch with items in dependency order. Put coupled high-risk items
++   alone or in a small batch, and group independent items with proof.
++3. State the binding constraint, the evidence, the uncertainty, and what would
++   move it (§6).
++
++The batch is **provisional**. It holds until the next review point, not for the
++whole epic.
++
++## 4. Compare candidate batches by total cost per accepted increment
++
++For each candidate size `b`, write rough components with sources, or `unknown`:
++
++```text
++cost(b) = fixed (setup + review round + expensive eval checkpoint)
++        + variable checking (affected graphs, unit subsets: per item)
++        + expected repair + repeat + delay (rises faster than b once items couple)
++value(b) = accepted useful increments (tickets that pass review AND final confirmation)
++compare cost(b) / value(b), and the critical path, not the summed hours
++```
++
++- **Fixed costs amortize** over larger batches: an eval round (C11 measured
++  $30.50), a review round, per-close bookkeeping (the wave-3 review measured
++  about 16k lines of history snapshot per no-op close).
++- **Repair and repeat costs grow** with coupling and with the validation-origin
++  fault rate. False reds cost runs on innocent tickets (C5: 13 runs, at least
++  1,281 s) and voided evals (C10: 12 runs, $2.71).
++- **Delay usually dominates elapsed time.** It is waiting on owners and holds,
++  not run time (C2 against C1, C12). A smaller batch that waits for the same
++  owner gate is not faster.
++- **Parallel work counts on the critical path, not as summed hours.** Bug-sweep
++  milestone 1 summed 3.09 h of instrument time inside a 2.57 h wall window
++  (C1, C3).
++- Implementation time is unknown everywhere (C13). Mark it `unknown`. Do not
++  divide by it.
++
++**Distinct cadences, each with its own check tier.** Do not run the expensive
++check at the cheaper cadence.
++
++| Cadence | Check tier | Plan field |
++|---|---|---|
++| per change, inside a ticket | cheap local and contract checks: unit subset, doc contracts | `tickets[].validation.repository_unit`, `spec_unit` |
++| per ticket that touches a contract | affected graphs and their dependency closure, from `testgraph_bindings` | `tickets[].validation.graphs` |
++| integration (wave merge) | the affected graphs once on the merged epic tip | `wave`, `review_policy` |
++| review | owner or agent review artifact | `review_policy.cadence`, `.milestones`, `.gate` |
++| expensive eval | predeclared, budgeted checkpoints: never per ticket or per deploy | evaluation ticket (`role: evaluation`), `eval_budget` |
++| deployment (epic to `main`, release) | the full integrated graph plus one manual acceptance pass (`finalize.md` §2-2c) | finalization |
++
++## 5. Write the decision into existing controls
++
++| Decision | Field(s) |
++|---|---|
++| Batch size per step | `tickets[].wave`: how many tickets share a wave |
++| Serialize coupled or host-sharing items | `tickets[].depends_on`, or split across waves; `conflict_keys` name the shared surface |
++| When review happens and whether it blocks | `review_policy.cadence`, `.milestones`, `.gate`, `.walkthrough` |
++| What each ticket runs | `tickets[].validation` (graphs, unit subset); one line in `planning_rules.validation_acceleration_rule` |
++| Where expensive evals run, and their budget | the evaluation ticket and its `owns_goals`; `eval_budget` |
++| The estimate, its evidence and the next review | the review artifact's delivery-velocity section (`validation-review.md`, *Deeper review*) |
++
++A change to these after dispatch is a reschedule. Follow `plan-and-schedule.md`
++for schedule revision and assignments.
++
++## 6. Feedback: hold, increase or decrease
++
++At each review point, record these **observations** in the review artifact:
++
++- defects that escaped review or verification, with their severity;
++- reds by origin: product or instrument (§6a);
++- fix laps per layer, and whether known failures were replaced by new ones;
++- recurrence of an attributed family after a fix;
++- REACH and BLIND changes on the affected components;
++- review time, wait time and run time, each `unknown` where it was not recorded;
++- any change of model, toolchain, scope or coupling.
++
++**Overrides come first.** Any one of these decreases the batch or holds it,
++however good the aggregate trend looks:
++
++- a high-severity escape (`blocking` or `major`) in a reviewed or verified area;
++- repeated validation-origin faults on the same instrument;
++- evidence invalidated by a change to code, inputs, graph, model, toolchain or
++  environment (§8);
++- a scope or coupling change since the estimate;
++- a changed reviewer or verifier model or version.
++
++**Decrease** when an override fires, or a `validation-review.md` deep-review
++trigger fires: halve the next batch, and put coupled items alone. **Fix or
++isolate the instrument** before expanding when the cause is validation-origin.
++
++**Increase** only when two consecutive review points show no override, faithful
++instruments on the new items, and converging repairs (at most two laps per
++layer). Raise the batch by **one step**: one more wave-sized group, or about 50%
++more items, whichever is smaller.
++
++**Otherwise hold.**
++
++These bounds keep one noisy run from moving the batch. A single red attributed
++to the instrument goes to the instrument's ledger. It does not move the batch
++size.
++
++## 7. Sparse history: an uncertainty-aware cold start
++
++With fewer than two comparable prior review points, or reviewer/verifier
++identity `unknown`, both estimates are low-confidence. Start at the lower bound,
++review at the first wave (`cadence: wave` or `milestones: [1, …]`), and treat
++the first batch as calibration.
++
++**Low detected bug counts with weak coverage do not justify a larger step.** If
++BLIND rows or missing red controls cover the affected area, zero catches mean
++"not looked at", not "safe". A blind green is found only when somebody looks
++(F3).
++
++**Regression is an optional retrospective, not a deliverable.** Fit
++defects-per-item or cost against batch size only when you have:
++
++- exposure (items, runs) and severity recorded;
++- component, repository, model and time recorded for each point;
++- enough points for the claim being made.
++
++Report validation instability and detection effort beside each point. State the
++limits: correlation, not cause; batches were chosen, not randomized (selection);
++model, host load and owner availability move together (confounding). No script
++is written for it.
++
++## 8. Keep final confirmation; record evidence invalidation
++
++Every step-size decision keeps the required final integrated confirmation and
++the manual acceptance pass (`finalize.md`). A larger batch never removes them.
++Record a piece of evidence as **invalidated**, and do not reuse it, when any of
++these change after it was produced:
++
++- the code under test;
++- the instrument's inputs or the graph;
++- the reviewer or verifier model or version;
++- the toolchain (home, pins, runner copy);
++- the environment (host, load, disk).
++
++Rerun the affected checks (`validation-review.md`, *A changed contract reruns
++every instrument that asserts it*).
++
++## 9. Worked decisions
++
++Each decision gives the selected controls, the expected effect, the observation
++that would falsify it, and the next review.
++
++**1. Stable expensive evals: amortize.** Polymarket's `E02-CI-EVAL` reached
++14/14 in 934.87 s after the R1-R13 repairs (C27). The BS-17 eval round cost
++$30.50 measured, against $66 declared (C11).
++
++- **Controls:** one evaluation ticket after the last contributing wave;
++  `eval_budget` set before any billed run; tickets run only affected graphs.
++- **Expected effect:** one eval cost spread over every ticket in the batch.
++- **Falsified if:** the checkpoint finds a defect that a ticket-local check
++  could have caught. Then move that assertion earlier.
++- **Next review:** the evaluation ticket's report.
++
++**2. Flaky validation: diagnose and isolate before expanding.** The bug-sweep
++probe errored 13 times across 7 innocent tickets (`BS-07-DF-05`, C5). The
++skill-manager eval round produced about 12 instrument defects to 4 product
++defects (F7).
++
++- **Controls:** hold the batch. Give the instrument fix its own ticket or
++  `depends_on` edge ahead of the dependents. Run the instrument on the
++  untouched base first, as the §6a control.
++- **Expected effect:** reds become attributable, and verification capacity
++  recovers.
++- **Falsified if:** the instrument is green on the base and red on the branch.
++  The red was the product.
++- **Next review:** after the instrument fix merges.
++
++**3. Coupled high-risk change.** CDC's isolation gate was red in 14 of 15 runs
++on an upstream home fault (`SM402-ISOLATION family`). A memory-recycling defect
++surfaced only in the real-repository manual run, behind a gate that was a false
++green for it (`M2B-BEAM-02`).
++
++- **Controls:** the coupled items go in a wave of their own, with `depends_on`
++  serializing them. Review at `cadence: wave` with `gate: true`. Add one
++  intermediate contract assertion per boundary. Reserve manual reach for the
++  real-system scenario.
++- **Expected effect:** each failure points at one boundary.
++- **Falsified if:** repairs keep reopening the other boundary. That is a
++  `validation-review.md` split trigger.
++- **Next review:** the end of that wave.
++
++**4. Sparse history.** A new repository has no ledger, no REACH and no BLIND.
++The model is `unknown`.
++
++- **Controls:** §7 cold start: a small first wave, `milestones: [1, …]`, and
++  instruments shown red before they are trusted.
++- **Expected effect:** a calibrated second estimate after one review point.
++- **Falsified if:** the first wave has an escape that its instruments could not
++  have caught. Then lower verification capacity and add coverage.
++- **Next review:** wave 1.
++
++**5. Model upgrade.** History recorded no model for almost any row (ESD-01
++README). That is the case this decision covers.
++
++- **Controls:** record the new reviewer and verifier identity. Treat earlier
++  evidence as a prior. Run one calibration batch **at or below** the previous
++  size, with `cadence: wave`. Compare escapes and fix laps per item against the
++  prior.
++- **Expected effect:** either a measured reason to increase at the next review,
++  or none.
++- **Falsified if:** escapes or validation faults per item rise on the new model.
++  Then decrease, and keep the old size as the ceiling.
++- **Next review:** after two review points on the new model, the earliest an
++  increase is allowed (§6).
+diff --git a/skills/git-epic-workflow/references/validation-review.md b/skills/git-epic-workflow/references/validation-review.md
+index 910a11fe..1611ebf2 100644
+--- a/skills/git-epic-workflow/references/validation-review.md
++++ b/skills/git-epic-workflow/references/validation-review.md
+@@ -132,6 +132,27 @@ If a trigger fires again, bring new evidence and compare alternatives again;
+ check whether the chosen intervention changed the failure pattern. Keep
+ acceptance criteria intact and preserve unresolved findings through a split.
+ 
++## Step size: two capacities, one batch
++
++The criteria above say when an increment is not converging. To size the next
++batch, use `references/step-sizing.md`, which turns them into a feedback policy:
++
++1. Summarize the starting revision: components, attribution, escapes, coverage,
++   validation-origin faults, coupling, and reviewer/verifier model and version.
++2. Estimate **review capacity** and **verification capacity** (including manual
++   reach) separately, as scope items, not lines or tickets.
++3. Choose a provisional batch within the tighter estimate, and compare candidate
++   batches by total cost per accepted increment, on distinct cadences.
++4. Write the decision into existing plan fields: `wave`, `depends_on`,
++   `validation`, `review_policy`, the evaluation ticket and `eval_budget`.
++5. At each review, **hold, increase by one bounded step, or decrease**. A
++   high-severity escape, a repeated validation fault, invalidated evidence, a
++   scope or coupling change, or a model change overrides an optimistic trend.
++
++Record each decision in the deeper review's delivery-velocity section. Sparse
++history starts small. A model change triggers recalibration, not an assumed
++gain.
++
+ ## Across epics: user value and improving delivery capability
+ 
+ At close, carry a short trend into the next epic's planning: accepted user
+diff --git a/skills/git-issue-workflow/references/complete.md b/skills/git-issue-workflow/references/complete.md
+index 8efe6589..c769de97 100644
+--- a/skills/git-issue-workflow/references/complete.md
++++ b/skills/git-issue-workflow/references/complete.md
+@@ -75,6 +75,7 @@ git push -u origin feature/<ticket>
+ gh pr create --fill --body "Closes #<n>
+ 
+ Graphs run: <named graphs incl. specWorkflow>. Reports attached to the spec ticket.
++started_at: <UTC>; agent: <model and version>, <harness and version>; scope items: <n>
+ 
+ ## Goal contribution
+ 
+@@ -84,6 +85,12 @@ Graphs run: <named graphs incl. specWorkflow>. Reports attached to the spec tick
+ gh pr merge --rebase
+ ```
+ 
++The `started_at` line is the only record of when work began and which model did
++it; write `unknown` for a part you do not know rather than dropping the line.
++Batch sizing and velocity read it (git-epic-workflow `references/step-sizing.md`
++§1). A finding or red you report keeps origin, channel and effect apart
++(spec-double-2 `references/bug_attribution.md` §4.3).
++
+ One row per goal the issue declared, including any whose signal was
+ `N/A: <reason>`; `None declared` when the issue declared none, so a reader can
+ tell that apart from a goal that was ignored. "No measurable movement" and "moved
+diff --git a/skills/git-issue/references/issue-template.md b/skills/git-issue/references/issue-template.md
+index 9d032178..d841e13d 100644
+--- a/skills/git-issue/references/issue-template.md
++++ b/skills/git-issue/references/issue-template.md
+@@ -29,6 +29,9 @@ explicitly rather than deleting it — the implementer relies on the shape.
+ ## Discovery notes
+ <what you learned scanning the repo: entry points, invariants, adjacent code,
+ open questions the implementer should resolve first>
++Risk evidence: <findings already anchored to the touched actions/bins and graph
++nodes, by ID; graph nodes this change must not trust blindly; or "none found">
++(spec-double-2 `references/agent_roles.md` § *Evidence routing*)
+ 
+ ## Worktree & branch
+ Create the worktree AND its own Skill Manager home with ONE command, from the
+diff --git a/skills/spec-double-2/references/agent_roles.md b/skills/spec-double-2/references/agent_roles.md
+index cc39e3a4..d17acff6 100644
+--- a/skills/spec-double-2/references/agent_roles.md
++++ b/skills/spec-double-2/references/agent_roles.md
+@@ -77,6 +77,8 @@ still worked by a **ticket** agent.
+    matches the task you were given. Not the rest of it.
+ 4. `skills/git-issue-workflow/references/complete.md` — at close-out, for the
+    PR body.
++5. Only when a **ticket** trigger in § *Evidence routing* fires: the one section
++   that row names.
+ 
+ ### You write
+ 
+@@ -130,6 +132,9 @@ an id that is not there.
+ 3. `skills/spec-double-2/scripts/improvement_ledger.py` — **run it**, do not
+    read it. It is the only reader of the `skill_change` field across all four
+    record files, and it never refuses.
++4. At planning, at each review point and at close: the **planning**,
++   **wave owner** or **finalizer** row of § *Evidence routing*, and only the
++   section it names.
+ 
+ ### You write
+ 
+@@ -172,6 +177,8 @@ Your own findings return by the same absorption as anyone's — the `awk` in
+    re-deriving it.
+ 3. `skills/spec-double-2/references/blind_dispatch.md` — only when you are
+    reviewing work you also wrote.
++4. When the wave changes a graph node, fixture, runner or oracle, or a PR cites
++   a red or green as evidence: the **review** row of § *Evidence routing*.
+ 
+ ### You write
+ 
+@@ -232,6 +239,27 @@ git log --oneline --diff-filter=A -- evals/**/<your-case-name>/case.yaml
+ 
+ ---
+ 
++## Evidence routing: who reads which risk evidence, and who reads what they wrote
++
++The finding records, the graph review checklist and the batch-sizing policy each
++have **one** home. This table only routes to them. Read a row when its trigger
++fires, read only the section it names, and write into a field that already
++exists. It adds no role, approval round, script or artifact, and every output
++has a named next reader.
++
++| role, moment | trigger | minimum evidence (canonical source) | decision | output (existing field) | next consumer |
++| --- | --- | --- | --- | --- | --- |
++| **epic: planning** | `plan-and-schedule.md` §3, before any assignment is rendered | only for the affected actions, bins and graph nodes: the findings anchored to them (discovery `SKILL.md`, *Starting an issue/ticket*; `bug_attribution.md` §7d); instrument CATCHes and nodes the checklist flags (`bug_attribution.md` §6a; test-graph `graph-architecture-review.md`); the previous epic's starting estimate (`finalize.md` §2c) | split or not; review and verification estimates; batch and cadences; confidence; cold-start gaps; expensive-eval cost (`step-sizing.md` §1–§5, §7) | planning conversation; `wave`, `depends_on`, `validation`, `review_policy`, `eval_budget`; each assignment's *Evidence slice* bullet (`epic-ticket.md`) | ticket agent; first review artifact |
++| **ticket** | the assignment's *Evidence slice* names something you touch; your diff changes a node, fixture or runner; you must interpret a red or green | the *Evidence slice*; *A graph change is a product change* (`graph-architecture-review.md`) for a changed node; `bug_attribution.md` §4.3 for a finding; *A changed contract reruns every instrument that asserts it* (`validation-review.md`) for a rerun | which reruns are valid; whether evidence invalidates the planned capacity (`step-sizing.md` §8). Report it; never widen scope or drop a REQUIRED entry | the `## Review input` delivery line and lists; `## Deferred findings` with origin, channel and effect kept apart | review agent; epic owner |
++| **review** | the wave changes a node, fixture, runner or oracle, or a PR cites a red or green as evidence | the PRs' `## Review input`; the checklist sections for the changed contract (`graph-architecture-review.md` A–H); `bug_attribution.md` §6, §6a | does the passing graph prove the change? It is evidence to assess, not authority. Does review coverage support this batch size? | `human-review.md` §3.1 graph hot spots, §3.3 validation-specific rows, §3.5 *Delivery velocity and step size* | epic wave owner |
++| **epic: wave owner** | each review point `review_policy` names, or a `validation-review.md` trigger | the review artifact; reds by origin; the observations in `step-sizing.md` §6 | hold, increase by one step, or decrease, within policy; product vs validation repair cost; a disposition and owner per architecture recommendation | `human-review.md` §3.4 recommendations, §3.5 *Delivery velocity and step size*; plan fields when rescheduled | next wave's assignments; finalizer |
++| **epic: finalizer** | `finalize.md` §2a–§2c | the planning estimate against each wave's *Delivery velocity and step size*; recurrence of attributed families; REACH and BLIND; manual acceptance results | the next epic's starting estimate; what stays uncertain | the epic PR's *Next epic's starting estimate* (`finalize.md` §2c) | the next epic's planning row |
++
++No row changes the integrated graph or the manual acceptance phase
++(`finalize.md` §2–§2c); a larger batch never removes them.
++
++---
++
+ ## The slots, and why a well-formed value is not enough
+ 
+ The grammar is unchanged and this page does not widen it:
+diff --git a/specs/desired_program_model/ticket_plan.yaml b/specs/desired_program_model/ticket_plan.yaml
+index 23505f07..f8695cc5 100644
+--- a/specs/desired_program_model/ticket_plan.yaml
++++ b/specs/desired_program_model/ticket_plan.yaml
+@@ -253,7 +253,7 @@ tickets:
+     evidence: []
+ - id: ESD-04
+   title: Define model-conditioned review and verification step sizing with eval amortization
+-  status: planned
++  status: closed
+   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/238
+   schedule_revision: 1
+   depends_on:
+diff --git a/specs/results/complexity_ledger.json b/specs/results/complexity_ledger.json
+index 1b2eda49..6f5e5cf9 100644
+--- a/specs/results/complexity_ledger.json
++++ b/specs/results/complexity_ledger.json
+@@ -30890,6 +30890,189 @@
+       ],
+       "errors": [],
+       "verdict": "recorded"
++    },
++    {
++      "schema_version": 1,
++      "scope": "ticket",
++      "scope_id": "ESD-04",
++      "workflow": "evidence-sized-delivery",
++      "recorded_at_utc": "2026-11-10T14:17:10.972319+00:00",
++      "metrics": {
++        "variables": 9,
++        "actions": 19,
++        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
++        "actions_from_fallback_heuristic": false,
++        "bound": 277830,
++        "bound_complete": false,
++        "bound_resolved_variables": 6,
++        "bound_unresolved_variables": [
++          "lastCommand",
++          "result",
++          "skt_answer"
++        ],
++        "modularity": 0.00327538422776524,
++        "distinct_states": 36577,
++        "generated_states": 765259,
++        "depth": 17,
++        "gate_passed": false,
++        "gate_violations": [
++          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
++          "component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6",
++          "component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8"
++        ],
++        "tlc_report": "/Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets/ESD-04/results/tlc-current.txt",
++        "tlc_run_complete": true,
++        "budget_utilization": {
++          "max_state_space_bound": {
++            "cap": 1000000,
++            "used": 277830,
++            "bound_complete": false,
++            "percent_lower_bound": 27.8,
++            "percent": null,
++            "within_cap": null,
++            "caveat": "the bound is a product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
++          },
++          "max_distinct_states": {
++            "cap": 500000,
++            "used": 36577,
++            "percent": 7.3,
++            "within_cap": true
++          }
++        }
++      },
++      "delta": {
++        "previous_scope_id": "ESD-03",
++        "metrics": {
++          "variables": {
++            "before": 9,
++            "after": 9,
++            "delta": 0,
++            "percent": 0.0
++          },
++          "actions": {
++            "before": 19,
++            "after": 19,
++            "delta": 0,
++            "percent": 0.0
++          },
++          "bound": {
++            "before": 277830,
++            "after": 277830,
++            "delta": 0,
++            "percent": 0.0,
++            "bound_complete_before": false,
++            "bound_complete_after": false,
++            "comparable": false,
++            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
++          },
++          "distinct_states": {
++            "before": 36577,
++            "after": 36577,
++            "delta": 0,
++            "percent": 0.0
++          },
++          "generated_states": {
++            "before": 765259,
++            "after": 765259,
++            "delta": 0,
++            "percent": 0.0
++          },
++          "depth": {
++            "before": 17,
++            "after": 17,
++            "delta": 0,
++            "percent": 0.0
++          }
++        },
++        "direction": "zero"
++      },
++      "justification": "No model delta: the ticket changes instructions/evidence only (user mandate #234: no new machinery).",
++      "retention": {
++        "kill_rate": {
++          "status": "not_run",
++          "classification": "unverified",
++          "evidence": "",
++          "value": null
++        },
++        "effect_conformance": {
++          "status": "not_run",
++          "classification": "unverified",
++          "evidence": "",
++          "value": null
++        },
++        "external_coverage": {
++          "status": "not_run",
++          "classification": "unverified",
++          "evidence": "",
++          "value": null
++        }
++      },
++      "retention_summary": [
++        "kill_rate=not_run (UNVERIFIED)",
++        "effect_conformance=not_run (UNVERIFIED)",
++        "external_coverage=not_run (UNVERIFIED)"
++      ],
++      "validated_refactor": {
++        "tlc_before": {
++          "status": "green",
++          "classification": "retained",
++          "evidence": "specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-before.txt",
++          "value": null
++        },
++        "tlc_after": {
++          "status": "green",
++          "classification": "retained",
++          "evidence": "specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-current.txt",
++          "value": null
++        },
++        "behavior_tests": {
++          "status": "pass",
++          "classification": "retained",
++          "evidence": "specs/results/evidence-sized-delivery/ESD-04/epic-close/spec-unit.txt",
++          "value": null
++        },
++        "descriptor_comparison": {
++          "status": "recorded",
++          "classification": "retained",
++          "evidence": "specs/tickets/ESD-04/desired is byte-identical to specs/current (no model delta)",
++          "value": null
++        }
++      },
++      "validated_refactor_summary": [
++        "tlc_before=green (retained)",
++        "tlc_after=green (retained)",
++        "behavior_tests=pass (retained)",
++        "descriptor_comparison=recorded (retained)"
++      ],
++      "refinement": {
++        "searched": true,
++        "outcome": "none",
++        "detail": "searched the ticket delta for model refinements: it changes no TLA+ action, variable or invariant (instruction/evidence only), so none apply",
++        "measured": false,
++        "applied": false,
++        "approved_by": ""
++      },
++      "coverage_audit": {
++        "status": "not_run",
++        "passing": false,
++        "report": "",
++        "in_scope_gaps": null,
++        "scope_source": ""
++      },
++      "transition_diff": "",
++      "narrative": "No-op model result for ESD-04 (PR #258): instruction/evidence-only change; specs/current and the desired model are unchanged; TLC MCsmall green before and after. Known-red spec-unit base: 2 failures, no new failures.",
++      "tlc_findings": [
++        {
++          "level": "OK",
++          "message": "generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature."
++        }
++      ],
++      "notes": [
++        "OK: generated 765259 -> 765259, distinct 36577 -> 36577, depth 17 -> 17. No self-loop-deletion signature.",
++        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
++      ],
++      "errors": [],
++      "verdict": "recorded"
+     }
+   ]
+ }
+diff --git a/specs/results/deferred/ESD-01.yaml b/specs/results/deferred/ESD-01.yaml
+index 86d52d4f..5439da18 100644
+--- a/specs/results/deferred/ESD-01.yaml
++++ b/specs/results/deferred/ESD-01.yaml
+@@ -33,8 +33,8 @@ findings:
+       session transcripts for the ESD-06 pilot. Either supplies the missing denominator without a
+       new tool.
+     blast_radius: "Measurement only; no behaviour change."
+-    disposition: pending
+-    disposition_ticket: null
++    disposition: fixed
++    disposition_ticket: ESD-05
+ 
+   - id: ESD-01-DF-02
+     found_by: "ESD-01"
+diff --git a/specs/results/deferred/ESD-04.yaml b/specs/results/deferred/ESD-04.yaml
+new file mode 100644
+index 00000000..7d2f6d8c
+--- /dev/null
++++ b/specs/results/deferred/ESD-04.yaml
+@@ -0,0 +1,96 @@
++findings:
++  - id: ESD-04-DF-01
++    found_by: "ESD-04"
++    found_at_commit: "847aa4a9"
++    schedule_revision: 1
++    severity: minor
++    blocking: false
++    channel: operator-doing-the-work
++    area: "workflow records: reviewer/verifier model and harness identity is not recorded"
++    surface:
++      production: ["skills/git-epic-workflow/references/human-review.md", "skills/git-issue-workflow/references/complete.md"]
++      tla: []
++      adapters: []
++      test_graph: []
++      workflow: []
++    summary: >-
++      step-sizing.md §1/§6 make the reviewer and verifier model+version an input and a recalibration
++      override, but no existing record carries it: ESD-01 found a named model in one record only
++      (meta-harness finalization). All four ESD-04 replays had model `unknown`, so the recalibration
++      rule cannot be exercised retrospectively. This is the twin of ESD-01-DF-01 (no start timestamps).
++    reproduction: "grep -c 'model: unknown' specs/results/evidence-sized-delivery/ESD-01/inventory.yaml"
++    evidence:
++      - "specs/results/evidence-sized-delivery/ESD-01/README.md (model/version recorded for almost no finding)"
++      - "specs/results/evidence-sized-delivery/ESD-04/local-signal.md (summary table)"
++    why_out_of_scope: >-
++      The PR-body / review-artifact conventions live in human-review.md, complete.md and epic-ticket.md,
++      which are ESD-05's conflict keys.
++    suggested_fix: >-
++      ESD-05: one line in the PR-body and review-artifact conventions -- "agent model + version, harness
++      version" -- next to the start-time convention it may route for ESD-01-DF-01. Prose only.
++    skill_change: "tla-spec-dev/git-epic-workflow human-review.md; tla-spec-dev/git-issue-workflow complete.md (prose line)"
++    blast_radius: "Capacity calibration across model changes stays unmeasurable."
++    disposition: fixed
++    disposition_ticket: ESD-05
++
++  - id: ESD-04-DF-02
++    found_by: "ESD-04"
++    found_at_commit: "847aa4a9"
++    schedule_revision: 1
++    severity: minor
++    blocking: false
++    channel: operator-doing-the-work
++    area: "skill entry point: step-sizing.md not routed from git-epic-workflow SKILL.md"
++    surface:
++      production: ["skills/git-epic-workflow/SKILL.md"]
++      tla: []
++      adapters: []
++      test_graph: []
++      workflow: []
++    summary: >-
++      The new reference skills/git-epic-workflow/references/step-sizing.md is linked from
++      validation-review.md, goals-and-evaluation.md and plan-and-schedule.md §3a/§4b, but not from
++      SKILL.md's reference map, so an agent that does not open those pages will not find it.
++    reproduction: "grep -n step-sizing skills/git-epic-workflow/SKILL.md (no match)"
++    evidence:
++      - "skills/git-epic-workflow/references/step-sizing.md"
++    why_out_of_scope: "SKILL.md is ESD-05's conflict key (entry-point routing)."
++    suggested_fix: >-
++      ESD-05: one reference-map row -- "Sizing a wave or deciding hold/increase/decrease at a review ->
++      references/step-sizing.md".
++    skill_change: "tla-spec-dev/git-epic-workflow SKILL.md (one row)"
++    blast_radius: "Uptake (GOAL-ESD-UPTAKE) only."
++    disposition: fixed
++    disposition_ticket: ESD-05
++
++  - id: ESD-04-DF-03
++    found_by: "ESD-04"
++    found_at_commit: "847aa4a9"
++    schedule_revision: 1
++    severity: minor
++    blocking: false
++    channel: operator-doing-the-work
++    area: "workflow records: batch scope (items per batch) is not recorded"
++    surface:
++      production: []
++      tla: []
++      adapters: []
++      test_graph: []
++      workflow: []
++    summary: >-
++      Capacity is counted in scope items (behavior x boundary, plus interacting pairs), but no audited
++      record states how many items a batch held. CDC's #394/#462 retrospective gives per-batch phase
++      hours with no item count, which is why replay R3 is UNDECIDED. Without it, per-item review or
++      verification cost cannot be measured.
++    reproduction: "Read specs/results/evidence-sized-delivery/ESD-04/local-signal.md R3."
++    evidence:
++      - "specs/results/evidence-sized-delivery/ESD-01/cost.md (C17, C18)"
++    why_out_of_scope: "A recording convention for review artifacts; human-review.md belongs to ESD-05."
++    suggested_fix: >-
++      The review artifact's delivery-velocity section lists the batch's scope items (validation-review.md
++      Deeper review already hosts the section; step-sizing.md §6 names the observations). ESD-05 may add
++      the line to human-review.md's artifact list.
++    skill_change: none
++    blast_radius: "GOAL-ESD-CAPACITY calibration."
++    disposition: fixed
++    disposition_ticket: ESD-05
+diff --git a/specs/results/deferred/ESD-05.yaml b/specs/results/deferred/ESD-05.yaml
+new file mode 100644
+index 00000000..fcf33933
+--- /dev/null
++++ b/specs/results/deferred/ESD-05.yaml
+@@ -0,0 +1,65 @@
++findings:
++  - id: ESD-05-DF-01
++    found_by: "ESD-05"
++    found_at_commit: "54241b36"
++    schedule_revision: 1
++    severity: minor
++    blocking: false
++    channel: operator-doing-the-work
++    area: "skill instructions: the epic-ticket PR-body contract is stated in two files"
++    surface:
++      production: ["skills/git-issue-workflow/references/epic-ticket.md"]
++      tla: []
++      adapters: []
++      test_graph: []
++      workflow: []
++    summary: >-
++      The list of what an epic ticket's PR body carries (Goal contribution, Deferred findings, Skill
++      changes proposed, Review input with its four lists) is written in full in both
++      git-epic-workflow/references/epic-ticket.md §7 and git-issue-workflow/references/epic-ticket.md §7.
++      The ticket agent's reading path (agent_roles.md § ticket, step 2) is the git-issue-workflow copy.
++      ESD-05 added the delivery line (started_at, agent model and version, scope items) and the
++      origin/channel/effect + repair-cost instruction to the git-epic-workflow copy and to the rendered
++      assignment bullet, which every ticket agent reads; the git-issue-workflow copy, outside ESD-05's
++      conflict keys, does not carry them, so the two copies now differ by those lines.
++    reproduction: "grep -n 'started_at' skills/git-epic-workflow/references/epic-ticket.md skills/git-issue-workflow/references/epic-ticket.md (matches only the first)"
++    evidence:
++      - "specs/results/evidence-sized-delivery/ESD-05/README.md (reconciliation)"
++    why_out_of_scope: "skills/git-issue-workflow/references/epic-ticket.md is not in ESD-05's conflict keys."
++    suggested_fix: >-
++      Keep one home: replace the git-issue-workflow §7 list with a pointer to git-epic-workflow
++      epic-ticket.md §7 (or add the two lines). Prose only; it reduces the ticket path by ~40 lines.
++    skill_change: "proposed(git-issue-workflow, epic-ticket.md §7 duplicates the PR-body contract owned by git-epic-workflow epic-ticket.md §7)"
++    blast_radius: "Ticket agents that skip the rendered assignment bullet miss the delivery line."
++    disposition: pending
++    disposition_ticket: null
++
++  - id: ESD-05-DF-02
++    found_by: "ESD-05"
++    found_at_commit: "54241b36"
++    schedule_revision: 1
++    severity: minor
++    blocking: false
++    channel: operator-doing-the-work
++    area: "eval setup: installed homes carry main, not the epic's routed references"
++    surface:
++      production: []
++      tla: []
++      adapters: []
++      test_graph: []
++      workflow: ["specs/evals/evidence-sized-delivery"]
++    summary: >-
++      ~/.skill-manager/plugins/tla-spec-dev, the plugin-marketplace copy and this worktree's home are
++      byte-identical to main a1ff56cf for every file on the role paths (build caches aside).
++      step-sizing.md and graph-architecture-review.md do not exist there, and none of ESD-02..05's
++      routing is present. An ESD-06 uptake case run in an eval home provisioned from the installed
++      plugin measures main for both arms.
++    reproduction: "ls ~/.skill-manager/plugins/tla-spec-dev/skills/git-epic-workflow/references/step-sizing.md (absent)"
++    evidence:
++      - "specs/results/evidence-sized-delivery/ESD-05/README.md (reconciliation)"
++    why_out_of_scope: "Eval provisioning belongs to ESD-06."
++    suggested_fix: "ESD-06: provision the tip arm's eval home from the epic tip checkout and record the plugin revision each arm loaded."
++    skill_change: none
++    blast_radius: "GOAL-ESD-UPTAKE measurement validity."
++    disposition: pending
++    disposition_ticket: null
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/README.md b/specs/results/evidence-sized-delivery/ESD-04/README.md
+new file mode 100644
+index 00000000..de12df4f
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/README.md
+@@ -0,0 +1,51 @@
++# ESD-04: model-conditioned review and verification step sizing
++
++Ticket #238 (epic #234, `evidence-sized-delivery`), wave 4, based on `847aa4a9`
++(the epic tip, which contains merged ESD-01..03 and the waves 1-3 review). This
++ticket changes instructions and evidence only. It adds no script, controller,
++schema, validator or gate.
++
++## What changed
++
++Line counts are from `git diff --numstat` against `847aa4a9`.
++
++| File | +/- | What |
++|---|---|---|
++| `skills/git-epic-workflow/references/step-sizing.md` | +301 / -0 | New page, in nine sections: (1) starting-revision summary; (2) separate review and verification capacity; (3) provisional batch within the tighter estimate; (4) cost per accepted increment, with a cadence/check-tier table; (5) the decision mapped onto existing plan fields; (6) observations, overrides and hold/increase/decrease with bounded steps; (7) cold start and optional regression with its limits; (8) final confirmation and evidence invalidation; (9) five worked decisions. |
++| `skills/git-epic-workflow/references/validation-review.md` | +21 / -0 | A short "Step size: two capacities, one batch" section that links to the new page. |
++| `skills/git-epic-workflow/references/plan-and-schedule.md` | +13 / -0 | One paragraph each in §3a (size waves from the two estimates and record them in plan fields) and §4b (cadence is a step-size control; evals keep their own checkpoint). Nothing outside §3a/§4b changed. |
++| `skills/git-epic-workflow/references/goals-and-evaluation.md` | +4 / -0 | A pointer, plus "velocity is never claimed from fewer checks". |
++| `specs/results/deferred/ESD-04.yaml` | +96 / -0 | Three deferred findings (budget 5), all routed to ESD-05. |
++| `specs/results/evidence-sized-delivery/ESD-04/*` | — | This README, `local-signal.md`, and the validation outputs. |
++
++## Decisions
++
++- **One new page.** The worked decisions and the policy live in `step-sizing.md`.
++  `validation-review.md` grows by 21 lines (150 → 171), so its existing contract
++  sections are untouched.
++- **Capacity unit = scope item.** A scope item is one behavior change at one
++  boundary. Each pair of items that shares state, a host or an interface counts
++  as one more item. There is no LOC or ticket-count rule.
++- **Decisions go to existing fields only:** `wave`, `depends_on`,
++  `tickets[].validation`, `planning_rules.validation_acceleration_rule` (prose,
++  with the bug-sweep and this epic as precedent), `review_policy`, the
++  evaluation ticket, and `eval_budget` (present in this epic's plan). Rationale
++  goes in the review artifact's delivery-velocity section. No new plan key.
++- **Bounded update.** Increase only after two consecutive clean review points,
++  by one step of at most about 50% more items. Decrease by halving on any
++  override. Otherwise hold. A single instrument red does not move the batch.
++
++## Model result
++
++**No-op.** `specs/current`, `specs/desired_program_model` and
++`specs/program_model` are unchanged. The ticket edits prose and evidence and
++changes no action, variable or invariant. Under `bug_attribution.md` §7d, prose
++guidance is a no-op. The epic agent owns the spec close.
++
++## Validation
++
++| Entry | Result | File |
++|---|---|---|
++| `validation.repository_unit` | 407 passed, 1 skipped | `repository-unit.txt` |
++| `validation.spec_unit` | 2 failed, 54 passed: the same two known base failures (`baseline/spec-unit.txt`), none new | `spec-unit.txt` |
++| tlc, graphs | N/A per the assignment | — |
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/epic-close/spec-unit.txt b/specs/results/evidence-sized-delivery/ESD-04/epic-close/spec-unit.txt
+new file mode 100644
+index 00000000..b908add9
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/epic-close/spec-unit.txt
+@@ -0,0 +1,37 @@
++.......F...................F............................                 [100%]
++=================================== FAILURES ===================================
++_______________________ test_every_model_action_is_bound _______________________
++
++    def test_every_model_action_is_bound() -> None:
++        missing = model_actions() - binding_labels()
++>       assert not missing, (
++            f"model actions with no case_adapters.toml binding: {sorted(missing)} "
++            "-- the audit's G5 desync, reintroduced"
++        )
++E       AssertionError: model actions with no case_adapters.toml binding: ['SktCheck', 'SktStatus', 'SktTicketSweep'] -- the audit's G5 desync, reintroduced
++E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
++
++specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:99: AssertionError
++_______________ test_unfilled_ledger_template_refuses_the_close ________________
++
++tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-79/test_unfilled_ledger_template_0')
++
++    def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
++        """Silence is not an acceptable substitute for the record."""
++        adapters = load_adapters()
++        result = adapters.ComplexityLedgerCloseOutAdapter().apply(
++            tmp_path, spec_root="project_specs", ticket_id="CLI-141"
++        )
++    
++        assert result["template_scaffolded_with_sentinels"] is True
++        assert result["unfilled_template_refuses_close"] is True, (
++            "an unfilled ledger template must fail the close, not pass it silently"
++        )
++>       assert result["unfilled_names_refinement_and_narrative"] is True
++E       assert False is True
++
++specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:54: AssertionError
++=========================== short test summary info ============================
++FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
++FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
++2 failed, 54 passed in 19.72s
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-before.txt b/specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-before.txt
+new file mode 100644
+index 00000000..2c218fde
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-before.txt
+@@ -0,0 +1,6 @@
++  calculated (optimistic):  val = 1.4E-9
++  based on the actual fingerprints:  val = 3.3E-11
++765259 states generated, 36577 distinct states found, 0 states left on queue.
++The depth of the complete state graph search is 17.
++The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 25 and the 95th percentile is 8).
++Finished in 01s at (2026-11-10 07:56:42)
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-current.txt b/specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-current.txt
+new file mode 100644
+index 00000000..45ac7e5d
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/epic-close/tlc-current.txt
+@@ -0,0 +1,26 @@
++TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
++Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
++(Use the -nowarning option to disable this warning.)
++Running breadth-first search Model-Checking with fp 102 and seed -6034032101124246164 with 10 workers on 10 cores with 16384MB heap and 64MB offheap memory [pid: 86256] (Mac OS X 26.6.2 aarch64, Oracle Corporation 21 x86_64, MSBDiskFPSet, DiskStateQueue).
++Parsing file /Volumes/dev/wt-epic-evidence-sized-delivery/specs/tickets/ESD-04/desired/TlaSpecDevCli.tla
++Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Naturals.tla
++Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/FiniteSets.tla
++Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/TLC.tla
++Parsing file /private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/Sequences.tla
++Semantic processing of module Naturals
++Semantic processing of module Sequences
++Semantic processing of module FiniteSets
++Semantic processing of module TLC
++Semantic processing of module TlaSpecDevCli
++Starting... (2026-11-10 09:16:49)
++Computing initial states...
++Finished computing initial states: 1 distinct state generated at 2026-11-10 09:16:49.
++Model checking completed. No error has been found.
++  Estimates of the probability that TLC did not check all reachable states
++  because two distinct states had the same fingerprint:
++  calculated (optimistic):  val = 1.4E-9
++  based on the actual fingerprints:  val = 1.1E-11
++765259 states generated, 36577 distinct states found, 0 states left on queue.
++The depth of the complete state graph search is 17.
++The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 25 and the 95th percentile is 8).
++Finished in 01s at (2026-11-10 09:16:50)
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/local-signal.md b/specs/results/evidence-sized-delivery/ESD-04/local-signal.md
+new file mode 100644
+index 00000000..f93a6d83
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/local-signal.md
+@@ -0,0 +1,262 @@
++# ESD-04 local signals
++
++Two signals from the assignment's `goals`:
++
++- **GOAL-ESD-CAPACITY:** replay the policy on audited episodes using only
++  decision-time information, then compare with the holdout outcome.
++- **GOAL-ESD-VELOCITY:** a worked cost comparison for the five scenarios that
++  cites ESD-01 cost rows or marks inputs unknown.
++
++These are signals, not gates. ESD-06 decides both goals.
++
++Row ids (`C*`, `F*`, `BS-07-DF-05` and so on) refer to
++`specs/results/evidence-sized-delivery/ESD-01/`. The policy is
++`skills/git-epic-workflow/references/step-sizing.md`, cited below as `§n`.
++
++## Honesty note: the replay is not blind
++
++I wrote the policy after reading ESD-01, and ESD-01 contains these episodes'
++outcomes. So the four replayed episodes are **not held out from the author**.
++They test whether the policy can be operated on decision-time inputs and
++whether its binding constraint points the same way as the outcome. They do not
++test the policy's predictive skill.
++
++Two safeguards apply:
++
++1. **No numeric threshold was fitted to an episode.** The policy's only numeric
++   bounds are these:
++   - two consecutive review points before an increase;
++   - an increase of one step, about 50% more items at most;
++   - a halving on decrease;
++   - a cold start below two comparable review points.
++
++   None of these four episodes ran long enough to exercise them.
++2. **Episodes were left untouched for ESD-06's blind replay:**
++   - polymarket E02's R1-R13 repair series (C27);
++   - effectful-learning epic-10 (C26, `E10-*`);
++   - meta-harness finalization (`DEF-110`, C24);
++   - CDC #234 (C19).
++
++   I used two of them (C27 and `M2B-BEAM-02`) only as illustrations in
++   step-sizing.md §9, not as replays.
++
++## Signal 1: replay on four audited episodes
++
++The columns are:
++
++- **Known then:** only what the records show existed at the decision point.
++- **Policy decision:** the two estimates, the binding constraint and the
++  controls (§2-§5).
++- **Holdout outcome:** what the records say happened next.
++- **Read:** whether the outcome agrees with the binding constraint the policy
++  chose.
++
++### R1. Bug-sweep kickoff (this plugin, `df48724c`, 2026-11-07 17:09Z)
++
++**Known then.** I checked the following by `git show df48724c:<path>`:
++
++- The plan had 22 tickets, 12 of them in wave 1. Eight tickets named
++  `specWorkflow` in `validation.graphs`, four of them in wave 1 (`BS-01`,
++  `BS-02`, `BS-07`, `BS-08`).
++- `review_policy` was `milestone [3, 6]` with `gate: true`.
++- `validation_acceleration_rule`: affected graphs only, resume from the failing
++  node, two laps per layer.
++- `RP-07-DF-01` was present in `specs/results/deferred_findings_final.yaml`. It
++  records that a node in `specWorkflow`, `failure_cleanup_probe`, leaves
++  surviving daemons from a nested Gradle build, and that the general half of the
++  fix had not landed.
++- The specWorkflow baseline passed in 2 m 15 s on a quiet host (C15).
++- One 10-core host. The eval lane already had instrument defects on record
++  (`EA-DF-15`, `SI-15-DF-05 / EA-DF-08`).
++- Reviewer and verifier model: **unknown**.
++
++**Policy decision.**
++
++- **Review capacity: high.** The items are independent bug fixes, and each must
++  show red on the base and green on the branch, so each carries its own proof.
++  The estimate is 12 or more items per review point. Confidence is low to
++  moderate: the prior epics' review artifacts were smaller.
++- **Verification capacity: split by tier.** Doc and unit checks are
++  unconstrained. Graph checks are not. `specWorkflow` contains a node with an
++  open process-ownership defect, and it would run on one host under about a
++  dozen concurrent agents. That is the F1 pattern, so the estimate is 1-2
++  concurrent specWorkflow tickets per host. Confidence is low: the defect was
++  known, but its load sensitivity had not been measured.
++- **Binding constraint: verification**, for the specWorkflow tickets.
++- **Controls:**
++  - keep wave 1 wide for tickets that do not run a graph;
++  - chain the four wave-1 specWorkflow tickets with `depends_on`, or spread
++    them across waves;
++  - before fan-out, run the probe once on the base under concurrent load, as
++    the §6a control;
++  - declare a single eval checkpoint, with a wheels and home-tier preflight
++    (F2, F7).
++- **Falsified if:** the probe passes under concurrent load on the base. Then the
++  graph constraint was too tight.
++
++**Holdout outcome.**
++
++- The milestone landed in 2 h 34 m wall (C1). All 19 tickets showed red on the
++  base and green on the branch.
++- `specWorkflow` errored in **13 runs across 7 innocent tickets**, at least
++  1,281 s with 6 runs untimed (C5, `BS-07-DF-05`).
++  `spec.reference.adapters_resolve` never ran.
++- 12 eval runs were voided for environment reasons: 666 s, $2.71 (C10).
++- Wait dominated the elapsed time: 29 h between the milestone and the first eval
++  case (C12).
++
++**Read: agrees in direction.** The repeat cost landed on the constraint the
++policy would have bound. The review side was not where the cost went. Two
++things stay unknown:
++
++- whether serializing would have prevented the reds, because the cause is still
++  `inferred` and the probe later passed at load 21-30 (F1 counterexamples);
++- what serializing would have cost in wall time (untimed).
++
++### R2. Meta-harness concurrent wave dispatch (`DEF-154`)
++
++**Known then.** From the row:
++
++- `spec_unit` took about 70 minutes alone;
++- there was one shared host;
++- a wave had two concurrent tickets, each running `spec_unit`.
++
++ESD-01 did not record the dispatch revision, so decision-time knowledge comes
++from this one row. Model: **unknown**.
++
++**Policy decision.**
++
++- **Review capacity: at least 2 items.** Nothing in the records shows review
++  strain.
++- **Verification capacity: 1 full `spec_unit` run per host at a time.** The
++  shared host is a §2 shared resource. Confidence is moderate: the 70-minute
++  time was measured.
++- **Binding constraint: verification.**
++- **Controls:** `depends_on` between the two tickets, or give each ticket only
++  its affected `spec_unit` subset in `tickets[].validation`.
++- **Falsified if:** two concurrent runs finish within about twice the single-run
++  time.
++
++**Holdout outcome.** `DEF-154` was `major`: about 20 h projected under
++contention (C25, inferred). It was promoted with a "serial dispatch rule".
++
++**Read: agrees.** The adopted remedy is the control the policy selects before
++dispatch. Caveat: the 20 h is a projection, not a measurement.
++
++### R3. CDC: planning #462 after #394
++
++**Known then.** These records existed when #462 was planned:
++
++- #394's PR and commit timestamps, and its graph runs: 64.9 graph machine hours,
++  25.2 h of them red (C19);
++- `cdcWorktreeOverlayIsolation` was red in 14 of 15 runs (#234) and 13 of 26
++  (#394), attributed to upstream `skill-manager#402`, which was still open
++  (`SM402-ISOLATION family`).
++
++The phase split (review 81.5 h against implementation 44.0 h, C17) was
++**derivable** from those timestamps. The retrospective that computed it was
++written later, so whether anyone had it at decision time is unknown. Model:
++**unknown**.
++
++**Policy decision.**
++
++- **Override: repeated validation faults.** The same instrument kept failing
++  from an environment origin. That forbids an increase (§6).
++- **Verification capacity: reduced** until the isolation gate's reds stop being
++  charged to the change.
++- **Review capacity: the larger measured cost.** Review plus graphs/merge was
++  3.0× implementation (C17, §4 of `cost.md`).
++- **Decision: hold the batch size.** Give the isolation gate its own
++  instrument-fix dependency, or treat its red as environment-origin under §6a
++  until `#402` lands.
++- **Falsified if:** reds per batch on that gate fall without an instrument fix.
++
++**Holdout outcome.**
++
++- #462 ran in 11 batches, against #394's 20.
++- Summed review hours rose to 87.4 h, with implementation at 36.8 h (C18). Per
++  batch, review rose from about 4.1 h to about 7.9 h (derived).
++- Graphs plus merge fell from 50.3 h to 6.5 h.
++- The isolation gate was still red in 6 of 10 runs (C19, SM402 row).
++
++**Read: UNDECIDED.**
++
++- The repeated fault persisted, which is consistent with "do not increase".
++- Batches were roughly half as many with nearly double the review time per
++  batch. That is consistent with review binding, but each batch's item count is
++  **unknown**, so this cannot be read as a capacity measurement.
++- Phase definitions overlap (`cost.md` §4 caveats). The fall in graph hours has
++  no recorded cause.
++
++### R4. Skill-manager eval: first round, then wide rounds
++
++**Known then.**
++
++- The first round (2026-09-07, one case, 14 runs, $13.06) produced 4 product
++  defects and about 12 instrument defects. Eight consecutive runs died on an
++  unset `TMPDIR` (C29; `SM eval round` rows).
++- The ledger for 09-07 to 09-10 shows 11 product and 18 instrument defects.
++- Whether leaked temp homes (`DEF-OHV-010 / #294`) were known before wide
++  round 1: **unknown**.
++- Model: **unknown**. The harness was Claude Code 2.1.263.
++
++**Policy decision.**
++
++- **Override: repeated validation faults.** Instrument findings outnumbered
++  product findings in the last round, so expanding is out (§9 scenario 2).
++- **Verification capacity: small.** The eval lane was the instrument, and it
++  was failing.
++- **Decision: hold width.** Add a sandbox, disk and toolchain preflight. Run a
++  calibration round at about the first round's width, and widen only when a
++  round's reds are mostly product.
++- **Falsified if:** a wide round's failures are mostly product.
++
++**Holdout outcome.**
++
++- Wide round 1: **27 of 46 runs died on ENOSPC** at $0. The cause was the leaked
++  temp homes, a validation-origin fault (F5).
++- The wide rounds cost $163.36 in total (C29).
++
++**Read: agrees.** The binding constraint, verification by the eval instrument,
++is where the waste landed. The dollar cost of the voided runs was $0. Their
++elapsed cost is **unknown**.
++
++### Summary for GOAL-ESD-CAPACITY
++
++| Episode | Both estimates produced from decision-time info? | Batch decision defensible and written as existing controls? | Agrees with holdout? |
++|---|---|---|---|
++| R1 bug-sweep kickoff | yes (model unknown) | yes: `depends_on`/`wave`, eval checkpoint | direction agrees; magnitude unknown |
++| R2 MH `DEF-154` | yes, from one row | yes: `depends_on` or `validation` subset | agrees |
++| R3 CDC #462 | partly: the phase split was derivable, not then summarized | yes: hold, plus instrument dependency | UNDECIDED (no item counts) |
++| R4 SM eval width | yes (temp-home leak timing unknown) | yes: evaluation scope, preflight | agrees |
++
++**Against `expected_effect`.** All four episodes produced two estimates, a
++provisional batch within the tighter one, and a hold/increase/decrease rule.
++Three agree with the outcome in direction, and one is UNDECIDED.
++
++The reviewer/verifier model was `unknown` in all four, so the policy's model
++recalibration was never exercised by history.
++
++In every agreeing episode, verification bound, not review. This sample is
++selected, and I knew the outcomes, so read it as consistency, not evidence of
++skill.
++
++## Signal 2: worked cost comparison for the five scenarios
++
++`cost(b)` is fixed + variable + expected repair, repeat and delay (§4). Each
++entry cites a row or says `unknown`. Implementation active time is `unknown`
++everywhere (C13, C30), so no entry divides by it.
++
++| Scenario | Candidate A | Candidate B | Fixed | Variable / repeat | Delay | Per accepted increment | Choice |
++|---|---|---|---|---|---|---|---|
++| 1 Stable expensive eval | full eval per ticket (19 tickets) | one predeclared checkpoint | one round $30.50, 5,308 agent-s for 74 cases (C8, C11); A = 19 × $30.50 = $579.50 (**derived, hypothetical**) | B: 12 voided runs, $2.71 (C10); the cost of late-found defects is **unknown** (BS-17: 15 failed cases, 7 explained) | B waits for the checkpoint; the 29 h hold is mostly owner wait (C12) | B: $30.50 / 19 = **$1.61 per accepted ticket** (derived); A: $30.50 | **B** |
++| 2 Flaky validation | expand with the flaky probe | fix or isolate the probe first | A: none extra; B: one instrument ticket, duration **unknown** | A: ≥ 1,281 s of repeats over 7 tickets, 6 more runs untimed (C5), plus `adapters_resolve` skipped | B: serial wait for the fix, **unknown** | A's repeats grow with the number of graph-running tickets; B's cost is one-off | **B**, then expand |
++| 3 Coupled high-risk | many small batches (CDC #394: 20) | fewer larger batches (#462: 11) | per-batch review **derived**: #394 ≈ 4.1 h, #462 ≈ 7.9 h (C17, C18) | graphs+merge 50.3 h vs 6.5 h (C17, C18); red machine hours 25.2 h vs 20.0 h (C19) | idle 39.2 h vs 56.7 h | **unknown**: item counts per batch not recorded | isolate the coupled boundary in its own wave; the batch count alone cannot be chosen from these rows |
++| 4 Sparse history | small calibration wave | full-width first wave | per ticket ≈ 44 s doc contracts + ≈ 20 s spec-unit + ≈ 2 s TLC; ≈ 16k history lines per no-op close (wave-3 review improvement card and hot spot 6) | **unknown** (no history is the premise) | one extra review point; review active time **unknown** (C14) | A pays one review round for calibration; B risks an un-attributable loop, cost **unknown** | **A** |
++| 5 Model upgrade | calibration batch at or below the old size | assume the new model allows a larger batch | a matched base vs tip comparison: 8 cases × 3 runs × 2 sides = $10.03 (C9) is the price of one calibration measurement | **unknown**: no audited record names its model (ESD-01 README) | one wave | **unknown** | **A** |
++
++**Against `expected_effect`.** The comparison amortizes fixed costs where the
++evidence supports it (scenario 1). It refuses an increase where repeat cost or
++missing data dominates (scenarios 2-5). No row claims a speed gain from running
++fewer checks: scenario 1's checkpoint is the same eval, run once rather than
++per ticket.
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/repository-unit.txt b/specs/results/evidence-sized-delivery/ESD-04/repository-unit.txt
+new file mode 100644
+index 00000000..f44e9104
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/repository-unit.txt
+@@ -0,0 +1,7 @@
++........................................................................ [ 17%]
++........................................................................ [ 35%]
++.............s.......................................................... [ 52%]
++........................................................................ [ 70%]
++........................................................................ [ 88%]
++................................................                         [100%]
++407 passed, 1 skipped in 27.74s
+diff --git a/specs/results/evidence-sized-delivery/ESD-04/spec-unit.txt b/specs/results/evidence-sized-delivery/ESD-04/spec-unit.txt
+new file mode 100644
+index 00000000..d66cfbd5
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-04/spec-unit.txt
+@@ -0,0 +1,37 @@
++.......F...................F............................                 [100%]
++=================================== FAILURES ===================================
++_______________________ test_every_model_action_is_bound _______________________
++
++    def test_every_model_action_is_bound() -> None:
++        missing = model_actions() - binding_labels()
++>       assert not missing, (
++            f"model actions with no case_adapters.toml binding: {sorted(missing)} "
++            "-- the audit's G5 desync, reintroduced"
++        )
++E       AssertionError: model actions with no case_adapters.toml binding: ['SktCheck', 'SktStatus', 'SktTicketSweep'] -- the audit's G5 desync, reintroduced
++E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
++
++specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:99: AssertionError
++_______________ test_unfilled_ledger_template_refuses_the_close ________________
++
++tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-77/test_unfilled_ledger_template_0')
++
++    def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
++        """Silence is not an acceptable substitute for the record."""
++        adapters = load_adapters()
++        result = adapters.ComplexityLedgerCloseOutAdapter().apply(
++            tmp_path, spec_root="project_specs", ticket_id="CLI-141"
++        )
++    
++        assert result["template_scaffolded_with_sentinels"] is True
++        assert result["unfilled_template_refuses_close"] is True, (
++            "an unfilled ledger template must fail the close, not pass it silently"
++        )
++>       assert result["unfilled_names_refinement_and_narrative"] is True
++E       assert False is True
++
++specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:54: AssertionError
++=========================== short test summary info ============================
++FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
++FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
++2 failed, 54 passed in 19.61s
+diff --git a/specs/results/evidence-sized-delivery/ESD-05/README.md b/specs/results/evidence-sized-delivery/ESD-05/README.md
+new file mode 100644
+index 00000000..1461dea3
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-05/README.md
+@@ -0,0 +1,81 @@
++# ESD-05 (#239): route evidence and graph-risk review into the role paths
++
++Instruction-only. No script, validator, schema field, role, approval round or
++artifact was added. The assignment schema the validator enforces is unchanged;
++the additions to `epic-ticket.md` are prose bullets of the rendered assignment.
++
++## What changed, by role
++
++| role | entry point it already reads | added | canonical source it now links to |
++| --- | --- | --- | --- |
++| all | spec-double-2 `references/agent_roles.md` | § *Evidence routing*: one role → trigger → minimum evidence → decision → output → next consumer table; one line in each role's *You read* | — (the table only routes) |
++| epic: planning | git-epic-workflow `SKILL.md`, `plan-and-schedule.md` §3, §7 | reference-map rows for `step-sizing.md` and `validation-review.md`; §3 *bounded evidence slice*; §7 states both estimates, batch, cadences, confidence, cold-start gaps, eval cost | `bug_attribution.md` §6a, §7d; `graph-architecture-review.md`; `step-sizing.md` §1–§5, §7 |
++| ticket (epic) | the rendered assignment in the issue body (`epic-ticket.md`) | **Evidence slice** bullet; delivery line in the review-input bullet and §7 | `graph-architecture-review.md` *A graph change is a product change*; `bug_attribution.md` §4.3; `step-sizing.md` §8 |
++| ticket (ordinary) | `complete.md` §5 PR template; issue template *Discovery notes* | `started_at` delivery line; *Risk evidence* line | `bug_attribution.md` §4.3; `step-sizing.md` §1 |
++| review | `human-review.md` §3 | §3.1 rank 6 (graph/oracle/recovery contracts; evidence provenance); §3.3 validation-specific bugs | `graph-architecture-review.md` A–H; `bug_attribution.md` §6, §6a |
++| epic: wave owner | `human-review.md` §3.4, §3.5 | owner + disposition per recommendation; *Delivery velocity and step size* block (the section `validation-review.md` *Deeper review* already required) | `step-sizing.md` §6 |
++| epic: finalizer | `finalize.md` §2c, §5 | *Next epic's starting estimate*, keyed to repo/component/model, with unresolved uncertainty; listed in the epic PR body. Integrated graph and manual acceptance sequence unchanged | `validation-review.md` *Across epics*; `step-sizing.md` |
++
++## Routed deferred rows closed here
++
++| id | what | where fixed |
++| --- | --- | --- |
++| `ESD-01-DF-01` | no record timestamps the start of ticket work | `started_at` in the delivery line: `epic-ticket.md` (assignment bullet and §7), `complete.md` §5 |
++| `ESD-04-DF-01` | no record names reviewer/verifier model and version | `agent:` in the delivery line; reviewer/verifier model in `human-review.md` §3.5 |
++| `ESD-04-DF-02` | `step-sizing.md` not in `git-epic-workflow/SKILL.md`'s reference map | reference-map row (plus one for `validation-review.md`, which was also missing) |
++| `ESD-04-DF-03` | no record states a batch's scope-item count | `scope items:` in the delivery line; batch scope items in `human-review.md` §3.5 |
++
++Each is `disposition: fixed`, `disposition_ticket: ESD-05` in both
++`../deferred-ledger.yaml` and its per-ticket inbox.
++
++## Reconciliation: main, installed copy, bug-sweep
++
++| copy | revision | role-path files vs main `a1ff56cf` |
++| --- | --- | --- |
++| `~/.skill-manager/plugins/tla-spec-dev/skills` | HEAD `a1ff56cf` | identical (only build caches under `test-graph/project_sdk_sources/build-logic` differ) |
++| `~/.skill-manager/plugin-marketplace/plugins/tla-spec-dev/skills` (the copy this session loaded) | — | identical, same caveat |
++| this worktree's `.skill-manager` home | — | identical, same caveat |
++| `origin/epic/bug-sweep` (`67e8aa6a`) | merged to main as #250 | none of the files under ESD-05's keys differ; main is ahead in `test-graph` (`workflows.md` +19 project-lock lines, `_common.py`/`run.py`/`discover.py`) and `skill-manager/references/projects.md` (2 lines) |
++
++**Material divergence:** none between main and the installed copies. The
++divergence that matters is the epic's own: `step-sizing.md`,
++`graph-architecture-review.md`, the ESD-02 sections and all of ESD-05's routing
++exist only on `epic/evidence-sized-delivery` and reach installed homes when the
++epic merges and the plugin is synced. An eval home built from the installed
++plugin measures main for both arms (`ESD-05-DF-02`, for ESD-06).
++
++Commands:
++
++```bash
++git archive a1ff56cf skills | tar -x -C <scratch>
++diff -rq <scratch>/skills ~/.skill-manager/plugins/tla-spec-dev/skills -x __pycache__ -x test_graph
++diff -rq <scratch>/skills ~/.skill-manager/plugin-marketplace/plugins/tla-spec-dev/skills -x __pycache__ -x test_graph
++git diff --stat a1ff56cf origin/epic/bug-sweep -- skills
++```
++
++## Reading burden
++
++Per-role table and the walk-through: `local-signal.md`. Counts are `wc -l` over
++`git show <rev>:skills/<path>` for the files each role's *You read* list names
++(`agent_roles.md`), plus that role's own section and the routing section of
++`agent_roles.md` (awk from the `## <role>` heading to the next `## `), plus, for
++the epic ticket, the rendered assignment block (`epic-ticket.md` between the
++`assignment:start`/`end` markers). Revisions: `a1ff56cf` (main), `54241b36`
++(epic base), working tree (tip).
++
++## No-op model result
++
++`specs/current`, `specs/desired_program_model` and `specs/program_model` are
++unchanged. The change is instruction prose and evidence; it alters no state,
++guard, effect, invariant, interleaving, resource ownership or External surface
++(`bug_attribution.md` §7d: prose is a no-op model result). The epic agent closes
++the spec ticket.
++
++## Validation
++
++| entry | result | output |
++| --- | --- | --- |
++| `validation.repository_unit` | 407 passed, 1 skipped | `repository-unit.txt` |
++| `validation.spec_unit` | 54 passed, 2 failed: the 2 known base failures (`baseline/spec-unit.txt`), no new failure | `spec-unit.txt` |
++| `skill-manager unit validate` on `git-epic-workflow`, `spec-double-2`, `git-issue-workflow`, `git-issue` | all clean | `unit-validate.txt` |
++| `validation.tlc`, `graphs` | N/A per assignment (no model delta; prose has no graph proof) | — |
+diff --git a/specs/results/evidence-sized-delivery/ESD-05/local-signal.md b/specs/results/evidence-sized-delivery/ESD-05/local-signal.md
+new file mode 100644
+index 00000000..df27b6cd
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-05/local-signal.md
+@@ -0,0 +1,105 @@
++# ESD-05 local signal: one finding walked through every role, and the reading cost
++
++`GOAL-ESD-UPTAKE` local signal: *walk one finding through planning, ticket PR,
++review disposition and next-epic reuse; record the exact entry-point links
++followed and the added line count per role path.*
++`expected_effect`: *each role reaches the bounded ESD-02/03/04 guidance from
++its existing entry point; incremental mandatory reading kept small and
++measured.*
++
++The walk was done by reading, at this branch's tip, the way each role would. It
++was not run by independent agents. ESD-06 runs the blind version (base vs tip
++eval cases). This is a signal, not a gate.
++
++## 1. The finding
++
++`ESD-03-DF-01` (major, pending): `spec.workflow.cleanup` deletes
++`Path(ctx.get("spec.workflow.repo", "repoPath") or "")`. With no published
++`repoPath` that is `Path(".")`, the node's working directory, which is
++`test_graph/` (`test_graph/sources/spec_workflow_cleanup.py:29-32`; ledger
++`specs/results/evidence-sized-delivery/deferred-ledger.yaml`, row
++`ESD-03-DF-01`). The wave-3 review anchored it to `UNMODELED/test-graph-nodes`
++(`review/wave-3/review.md` §4) and recommended promoting it outside the epic.
++
++It was chosen because it crosses every role: it is a graph-node defect (the
++ESD-03 checklist), a validation-origin finding (ESD-02 §4.3, §6a, §7d), and it
++lowers verification capacity for any batch that runs `specWorkflow` (ESD-04).
++
++## 2. The walk
++
++"Added text" counts only lines this ticket added on that role's path, so it
++measures what ESD-05 cost, not the canonical sections the role then reads.
++
++| step | role | entry point and the links followed | what the role does with `ESD-03-DF-01` | added text it needed |
++| --- | --- | --- | --- | --- |
++| 1 | epic: planning (next epic that touches `specWorkflow`) | `git-epic-workflow/SKILL.md` reference map → `plan-and-schedule.md` §3 *bounded evidence slice* → spec-double-2 `agent_roles.md` § *Evidence routing*, row *epic: planning* → `bug_attribution.md` §7d (anchor `UNMODELED/test-graph-nodes`), `graph-architecture-review.md` §E (cleanup path from an absent value) and the previous epic's *Next epic's starting estimate* (`finalize.md` §2c) | names `spec.workflow.cleanup` as a **dangerous validation boundary**; verification capacity for any batch running `specWorkflow` is lowered until the guard lands (`step-sizing.md` §1 *validation-origin faults*); writes the boundary into the touching ticket's *Evidence slice* bullet | `plan-and-schedule.md` +9 (§3 paragraph), +6 (§7 estimate lines); routing table 21; SKILL.md map +2 rows |
++| 2 | ticket (e.g. the promoted fix, or any ticket whose matrix runs `specWorkflow`) | issue body → rendered assignment bullet **Evidence slice** (`epic-ticket.md`) → `graph-architecture-review.md` *A graph change is a product change* (5 questions) → `bug_attribution.md` §4.3 for the record | reads the one row instead of the 394-line ledger; if it edits the node, answers *effect scope* and *recovery behavior* in `## Review input`; files any red it meets with origin `test_graph node` (validation), channel, effect kept apart; reports that `specWorkflow` cannot be a valid targeted rerun from a checkout without `repoPath`, rather than dropping it | assignment block +13 (evidence slice 9, delivery line 4); `agent_roles.md` § ticket +2 |
++| 3 | review (the wave holding that ticket) | `agent_roles.md` § review step 4 → row *review* → `human-review.md` §3.1 rank 6, §3.3 *validation-specific bugs* → `graph-architecture-review.md` §E, §G | lists the node as a hot spot beside the product change; checks the PR's evidence came from this tip's home and runner copy; asks whether a green `specWorkflow` exercised the absent-`repoPath` path at all (it does not: a green there is not evidence the guard holds); states whether review coverage supported the batch | `human-review.md` ≈+11 (§3.1, §3.3); `agent_roles.md` § review +2 |
++| 4 | epic: wave owner | row *epic: wave owner* → `human-review.md` §3.4 *recommendations that remain* (now with owner and disposition) and §3.5 *Delivery velocity and step size* → `step-sizing.md` §6 | records the recommendation as `promote → new issue → owner: epic owner → disposition: scheduled as <issue>` instead of an ownerless row; in §3.5 charges any red it caused to validation repair, not product; an unguarded destructive finalizer is a "repeated validation-origin fault" candidate, so hold or decrease the batch (§6 overrides) | `human-review.md` ≈+10 (§3.4 owner/disposition, §3.5 block) |
++| 5 | epic: finalizer → next epic | row *epic: finalizer* → `finalize.md` §2c *Next epic's starting estimate* (+ §5 bullet) | writes: component `test_graph nodes` / repo `tla-spec-dev-plugin` / model `<as recorded>`: verification estimate reduced while `ESD-03-DF-01` is open; uncertainty: not reproduced (reproducing deletes the checkout). The next epic's planning (step 1) reads exactly this block | `finalize.md` +11 |
++
++**Result.** Every role reached the finding and the canonical section it needed
++from its existing entry point, in at most three links, and none of them loaded
++the whole ledger or a whole canonical page. The loop closes: step 5's output is
++step 1's input, through records that already existed (the epic PR, the review
++artifact, the assignment). No role, approval round, script or artifact was added.
++
++**What the walk exposed that ESD-05 did not fix.** Before this ticket, steps 1,
++4 and 5 had no instruction at all: the wave-3 review left `ESD-03-DF-01` with a
++recommended disposition and "owner decision pending" and no owner field, and no
++record carried a starting estimate between epics. Step 2 depends on the epic
++owner actually filling the *Evidence slice*; a `none found` there is honest, a
++missing bullet is not checkable by anything (deliberately: no validator). The
++ticket-side copy of the PR-body contract in `git-issue-workflow` does not carry
++the delivery line (`ESD-05-DF-01`).
++
++## 3. Reading burden per role path
++
++Mandatory path = the files each role's *You read* list in `agent_roles.md`
++sends it to, plus its own section of that page and the new routing section.
++Measured by `wc -l` on `git show <rev>:<path>` at main `a1ff56cf`, the epic
++base `54241b36`, and this branch's tip. The commands are in `README.md`.
++
++| role path | files counted | main `a1ff56cf` | epic base `54241b36` | tip | Δ vs base | Δ % |
++| --- | --- | ---: | ---: | ---: | ---: | ---: |
++| ticket (epic) | git-issue-workflow `SKILL.md`, rendered assignment block, git-issue-workflow `epic-ticket.md`, `agent_roles` § ticket + routing | 957 | 957 | 993 | +36 | +3.8% |
++| ticket (ordinary) | git-issue-workflow `SKILL.md`, `provision.md`, `complete.md`, issue template, `agent_roles` § ticket + routing | 960 | 960 | 993 | +33 | +3.4% |
++| epic: planning | git-epic-workflow `SKILL.md`, `plan-and-schedule.md`, `goals-and-evaluation.md`, `agent_roles` § epic + routing | 1376 | 1393 | 1437 | +44 | +3.2% |
++| review | `human-review.md`, `agent_roles` § review + routing | 701 | 701 | 745 | +44 | +6.3% |
++| epic: wave owner | git-epic-workflow `SKILL.md`, `human-review.md`, `deferment.md`, `agent_roles` § epic + routing | 1193 | 1193 | 1242 | +49 | +4.1% |
++| epic: finalizer | git-epic-workflow `SKILL.md`, `finalize.md`, `deferment.md`, `agent_roles` § epic + routing | 1044 | 1044 | 1083 | +39 | +3.7% |
++
++The routing section (21 lines) is counted in every row although a role reads
++it only when its trigger fires, so the deltas are an upper bound.
++
++**On-trigger reads** (not mandatory; read only when the row's trigger fires).
++Before ESD-05 these were reachable only from `plan-and-schedule.md` §3a/§4b,
++`validation-review.md` and test-graph `SKILL.md`. After, each role is sent to
++one section, never the whole page:
++
++| canonical section | lines | whole page | sent there by |
++| --- | ---: | ---: | --- |
++| `graph-architecture-review.md` *A graph change is a product change* | 27 | 399 | ticket, review |
++| `graph-architecture-review.md` §E (one checklist section, typical) | 23 | 399 | review |
++| `bug_attribution.md` §4.3 | 32 | 943 | ticket |
++| `bug_attribution.md` §7d | 56 | 943 | planning |
++| `step-sizing.md` §1–§5 | 138 | 301 | planning |
++| `step-sizing.md` §6 | 37 | 301 | wave owner |
++| `step-sizing.md` §8 | 16 | 301 | ticket |
++
++**Duplicated prose replaced.** None removed in this ticket. The one duplicate
++found that would shorten a role path (the ticket-side copy of the PR-body
++contract, ~50 lines) is outside the conflict keys and is deferred as
++`ESD-05-DF-01`. The new text points at canonical sections instead of restating
++them: the review artifact's *Delivery velocity and step size* block reuses the
++section `validation-review.md` *Deeper review* already required, rather than
++adding a second one.
++
++## 4. Against `expected_effect`
++
++- *Each role reaches the bounded guidance from its existing entry point*:
++  **met in the walk** (5 of 5 roles; at most 3 links; no whole-corpus load).
++  Not yet measured blind: ESD-06.
++- *Incremental mandatory reading kept small and measured*: **measured**,
++  +33 to +49 lines per role path (+3.2% to +6.3%) over the epic base. No numeric
++  threshold was set (owner instruction, report-only).
+diff --git a/specs/results/evidence-sized-delivery/ESD-05/repository-unit.txt b/specs/results/evidence-sized-delivery/ESD-05/repository-unit.txt
+new file mode 100644
+index 00000000..14d793a5
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-05/repository-unit.txt
+@@ -0,0 +1,7 @@
++........................................................................ [ 17%]
++........................................................................ [ 35%]
++.............s.......................................................... [ 52%]
++........................................................................ [ 70%]
++........................................................................ [ 88%]
++................................................                         [100%]
++407 passed, 1 skipped in 28.47s
+diff --git a/specs/results/evidence-sized-delivery/ESD-05/spec-unit.txt b/specs/results/evidence-sized-delivery/ESD-05/spec-unit.txt
+new file mode 100644
+index 00000000..5197c9d9
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-05/spec-unit.txt
+@@ -0,0 +1,37 @@
++.......F...................F............................                 [100%]
++=================================== FAILURES ===================================
++_______________________ test_every_model_action_is_bound _______________________
++
++    def test_every_model_action_is_bound() -> None:
++        missing = model_actions() - binding_labels()
++>       assert not missing, (
++            f"model actions with no case_adapters.toml binding: {sorted(missing)} "
++            "-- the audit's G5 desync, reintroduced"
++        )
++E       AssertionError: model actions with no case_adapters.toml binding: ['SktCheck', 'SktStatus', 'SktTicketSweep'] -- the audit's G5 desync, reintroduced
++E       assert not {'SktCheck', 'SktStatus', 'SktTicketSweep'}
++
++specs/current/tests/test_tla_spec_dev_binding_reconciliation.py:99: AssertionError
++_______________ test_unfilled_ledger_template_refuses_the_close ________________
++
++tmp_path = PosixPath('/private/var/folders/b7/rsz3g6wn4hg8zl2bwmdx61q00000gn/T/pytest-of-hayde/pytest-81/test_unfilled_ledger_template_0')
++
++    def test_unfilled_ledger_template_refuses_the_close(tmp_path: Path) -> None:
++        """Silence is not an acceptable substitute for the record."""
++        adapters = load_adapters()
++        result = adapters.ComplexityLedgerCloseOutAdapter().apply(
++            tmp_path, spec_root="project_specs", ticket_id="CLI-141"
++        )
++    
++        assert result["template_scaffolded_with_sentinels"] is True
++        assert result["unfilled_template_refuses_close"] is True, (
++            "an unfilled ledger template must fail the close, not pass it silently"
++        )
++>       assert result["unfilled_names_refinement_and_narrative"] is True
++E       assert False is True
++
++specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py:54: AssertionError
++=========================== short test summary info ============================
++FAILED specs/current/tests/test_tla_spec_dev_binding_reconciliation.py::test_every_model_action_is_bound
++FAILED specs/current/tests/test_tla_spec_dev_complexity_ledger_adapter.py::test_unfilled_ledger_template_refuses_the_close
++2 failed, 54 passed in 23.47s
+diff --git a/specs/results/evidence-sized-delivery/ESD-05/unit-validate.txt b/specs/results/evidence-sized-delivery/ESD-05/unit-validate.txt
+new file mode 100644
+index 00000000..a799a002
+--- /dev/null
++++ b/specs/results/evidence-sized-delivery/ESD-05/unit-validate.txt
+@@ -0,0 +1,8 @@
++## git-epic-workflow
++✓ git-epic-workflow (skill): manifest parsed, no markdown skill-import violations
++## spec-double-2
++✓ spec-double-2 (skill): manifest parsed, no markdown skill-import violations
++## git-issue-workflow
++✓ git-issue-workflow (skill): manifest parsed, no markdown skill-import violations
++## git-issue
++✓ git-issue (skill): manifest parsed, no markdown skill-import violations
+diff --git a/specs/results/evidence-sized-delivery/deferred-ledger.yaml b/specs/results/evidence-sized-delivery/deferred-ledger.yaml
+index 7de833bd..b9760a2b 100644
+--- a/specs/results/evidence-sized-delivery/deferred-ledger.yaml
++++ b/specs/results/evidence-sized-delivery/deferred-ledger.yaml
+@@ -30,8 +30,8 @@ findings:
+     writes. The assignment''s dispatch comment and the PR body are two such places. Or read agent session
+     transcripts for the ESD-06 pilot. Either supplies the missing denominator without a new tool.'
+   blast_radius: Measurement only; no behaviour change.
+-  disposition: pending
+-  disposition_ticket: null
++  disposition: fixed
++  disposition_ticket: ESD-05
+ - found_by: ESD-01
+   id: ESD-01-DF-02
+   found_at_commit: 9635bad239986a4e5e07745947273bc4480a82a2
+@@ -302,3 +302,93 @@ findings:
+   blast_radius: effectProviderExamples; disk use over many runs.
+   disposition: pending
+   disposition_ticket: null
++- found_by: ESD-04
++  id: ESD-04-DF-01
++  found_at_commit: 847aa4a9
++  schedule_revision: 1
++  severity: minor
++  blocking: false
++  channel: operator-doing-the-work
++  area: 'workflow records: reviewer/verifier model and harness identity is not recorded'
++  surface:
++    production:
++    - skills/git-epic-workflow/references/human-review.md
++    - skills/git-issue-workflow/references/complete.md
++    tla: []
++    adapters: []
++    test_graph: []
++    workflow: []
++  summary: 'step-sizing.md §1/§6 make the reviewer and verifier model+version an input and a recalibration
++    override, but no existing record carries it: ESD-01 found a named model in one record only (meta-harness
++    finalization). All four ESD-04 replays had model `unknown`, so the recalibration rule cannot be exercised
++    retrospectively. This is the twin of ESD-01-DF-01 (no start timestamps).'
++  reproduction: 'grep -c ''model: unknown'' specs/results/evidence-sized-delivery/ESD-01/inventory.yaml'
++  evidence:
++  - specs/results/evidence-sized-delivery/ESD-01/README.md (model/version recorded for almost no finding)
++  - specs/results/evidence-sized-delivery/ESD-04/local-signal.md (summary table)
++  why_out_of_scope: The PR-body / review-artifact conventions live in human-review.md, complete.md and
++    epic-ticket.md, which are ESD-05's conflict keys.
++  suggested_fix: 'ESD-05: one line in the PR-body and review-artifact conventions -- "agent model + version,
++    harness version" -- next to the start-time convention it may route for ESD-01-DF-01. Prose only.'
++  skill_change: tla-spec-dev/git-epic-workflow human-review.md; tla-spec-dev/git-issue-workflow complete.md
++    (prose line)
++  blast_radius: Capacity calibration across model changes stays unmeasurable.
++  disposition: fixed
++  disposition_ticket: ESD-05
++- found_by: ESD-04
++  id: ESD-04-DF-02
++  found_at_commit: 847aa4a9
++  schedule_revision: 1
++  severity: minor
++  blocking: false
++  channel: operator-doing-the-work
++  area: 'skill entry point: step-sizing.md not routed from git-epic-workflow SKILL.md'
++  surface:
++    production:
++    - skills/git-epic-workflow/SKILL.md
++    tla: []
++    adapters: []
++    test_graph: []
++    workflow: []
++  summary: The new reference skills/git-epic-workflow/references/step-sizing.md is linked from validation-review.md,
++    goals-and-evaluation.md and plan-and-schedule.md §3a/§4b, but not from SKILL.md's reference map, so
++    an agent that does not open those pages will not find it.
++  reproduction: grep -n step-sizing skills/git-epic-workflow/SKILL.md (no match)
++  evidence:
++  - skills/git-epic-workflow/references/step-sizing.md
++  why_out_of_scope: SKILL.md is ESD-05's conflict key (entry-point routing).
++  suggested_fix: 'ESD-05: one reference-map row -- "Sizing a wave or deciding hold/increase/decrease at
++    a review -> references/step-sizing.md".'
++  skill_change: tla-spec-dev/git-epic-workflow SKILL.md (one row)
++  blast_radius: Uptake (GOAL-ESD-UPTAKE) only.
++  disposition: fixed
++  disposition_ticket: ESD-05
++- found_by: ESD-04
++  id: ESD-04-DF-03
++  found_at_commit: 847aa4a9
++  schedule_revision: 1
++  severity: minor
++  blocking: false
++  channel: operator-doing-the-work
++  area: 'workflow records: batch scope (items per batch) is not recorded'
++  surface:
++    production: []
++    tla: []
++    adapters: []
++    test_graph: []
++    workflow: []
++  summary: 'Capacity is counted in scope items (behavior x boundary, plus interacting pairs), but no audited
++    record states how many items a batch held. CDC''s #394/#462 retrospective gives per-batch phase hours
++    with no item count, which is why replay R3 is UNDECIDED. Without it, per-item review or verification
++    cost cannot be measured.'
++  reproduction: Read specs/results/evidence-sized-delivery/ESD-04/local-signal.md R3.
++  evidence:
++  - specs/results/evidence-sized-delivery/ESD-01/cost.md (C17, C18)
++  why_out_of_scope: A recording convention for review artifacts; human-review.md belongs to ESD-05.
++  suggested_fix: The review artifact's delivery-velocity section lists the batch's scope items (validation-review.md
++    Deeper review already hosts the section; step-sizing.md §6 names the observations). ESD-05 may add
++    the line to human-review.md's artifact list.
++  skill_change: none
++  blast_radius: GOAL-ESD-CAPACITY calibration.
++  disposition: fixed
++  disposition_ticket: ESD-05
+diff --git a/specs/results/evidence-sized-delivery/review/merges.md b/specs/results/evidence-sized-delivery/review/merges.md
+index a85f5890..681a019d 100644
+--- a/specs/results/evidence-sized-delivery/review/merges.md
++++ b/specs/results/evidence-sized-delivery/review/merges.md
+@@ -5,3 +5,4 @@
+ | 1 | ESD-01 (#235) | #255 | f7090c02 | 10 (first) | 1st | `specs/.history/evidence-sized-delivery/ticket-000-ESD-01` — no-op, complexity delta zero | clean: holds nothing that removing it would destroy (rc=0) |
+ | 2 | ESD-02 (#236) | #256 | dd1124fd | 20 (after ESD-01) | 2nd | `specs/.history/evidence-sized-delivery/ticket-001-ESD-02` — no-op, delta zero | clean (rc=0) |
+ | 3 | ESD-03 (#237) | #257 | 6380abe3 | 30 (after ESD-02) | 3rd | `specs/.history/evidence-sized-delivery/ticket-002-ESD-03` — no-op, delta zero | clean (rc=0) |
++| 4 | ESD-04 (#238) | #258 | 8cb577b7 | 40 (after ESD-03) | 4th | `specs/.history/evidence-sized-delivery/ticket-003-ESD-04` — no-op, delta zero | clean (rc=0) |
+diff --git a/specs/results/evidence-sized-delivery/review/worktrees.md b/specs/results/evidence-sized-delivery/review/worktrees.md
+index fce254ff..6a9a6064 100644
+--- a/specs/results/evidence-sized-delivery/review/worktrees.md
++++ b/specs/results/evidence-sized-delivery/review/worktrees.md
+@@ -6,3 +6,4 @@
+ | /Volumes/dev/tla-spec-dev-plugin-235-evidence-audit | feature/235-evidence-audit | ESD-01 | #255 f7090c02 | clean | nothing to reconcile | no |
+ | /Volumes/dev/tla-spec-dev-plugin-236-attribution-anchors | feature/236-attribution-anchors | ESD-02 | #256 dd1124fd | clean | nothing to reconcile | no |
+ | /Volumes/dev/tla-spec-dev-plugin-237-graph-architecture | feature/237-graph-architecture | ESD-03 | #257 6380abe3 | clean | nothing to reconcile | no |
++| /Volumes/dev/tla-spec-dev-plugin-238-step-sizing | feature/238-step-sizing | ESD-04 | #258 8cb577b7 | clean | nothing to reconcile | no |

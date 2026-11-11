@@ -29,6 +29,11 @@ test_graph/
   build/validation-reports/<runId>/  # evidence from prior runs
 ```
 
+The Core/Internal/External split, `actions.yml` and `testgraph_bindings.yml` are
+the layout *where the repository has them*. A single canonical module named in
+`spec_manifest.yaml`, with its non-decomposition recorded there, is a complete
+baseline, not a partial one (this plugin's own `TlaSpecDevCli.tla` is that case).
+
 Verify with one pass before reading anything deeply:
 
 ```bash

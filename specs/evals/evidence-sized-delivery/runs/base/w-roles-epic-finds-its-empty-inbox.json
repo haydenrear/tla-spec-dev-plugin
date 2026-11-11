@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:02:36.881Z",
+  "durationSeconds": 36,
+  "costUsd": 0.219953,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-base",
+    "ablation": "none",
+    "caseFilter": "w-roles-epic-finds-its-empty-inbox",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-base"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-roles-epic-finds-its-empty-inbox",
+      "dir": "evals/spec-double-2/w-roles-epic-finds-its-empty-inbox",
+      "source": "mixed",
+      "promptMarkdown": "You are running a multi-ticket epic in this repository. You own the plan and\nthe schedule, you dispatch ticket agents and you merge each wave. You do not\nopen a ticket PR yourself -- the ticket agents do that.\n\nMerging this wave, you hit friction in the substrate: the skill that tells\nyou how to reconcile the ticket homes is wrong about one step.\n\nAnswer from THIS plugin's own skills, not from general practice:\n\n1. Which named agent role are you here, and what is the reading path for it?\n   Name the file and the section.\n2. You have no PR of your own, so where exactly does what you just learned\n   go? Give the path.\n3. How many findings does that destination hold right now, how many have ever\n   been filed in it, and why does that matter for this loop?\n\nNOTE ON THIS ENVIRONMENT: Bash commands that write here are refused by the\nsandbox, so a command that writes will fail with \"Operation not permitted\"\nhowever correct it is. That is expected and is not yours to solve.\n\nEVAL-CASE: w-roles-epic-finds-its-empty-inbox\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 900,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "knows-the-inbox-is-empty",
+          "type": "llm",
+          "weight": 4,
+          "graderMarkdown": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nQuestion 3 asked how many findings the epic agent's inbox holds now, how many\nhave ever been filed in it, and why that matters.\n\nGROUND TRUTH, so this grader does not punish the correct answer: the file holds\nZERO rows today and exactly ONE has ever been filed in it -- EA-DF-01, which a\nlater ticket absorbed into the ledger, leaving its id behind under absorbed_ids.\nSo \"zero\" and \"one\" are BOTH right depending on which question is being answered,\nand a response that separates the two has given the best answer, not a confused\none. The first version of this grader demanded the single word zero and scored\nthat correct answer FAIL three judges out of three; it was recalibrated against\nthe measured response rather than left to punish precision.\n\nSCORE 1 if the response gets the quantity substantively right -- empty now, at\nmost one ever -- AND draws the consequence: the role responsible for consuming\nfindings has essentially no record of ever having filed one itself, which is why\nthis loop is fragile. Any wording of that consequence counts. Naming the absorbed\nid, or saying the count is nearly nil rather than exactly zero, still scores 1.\n\nSCORE 0.5 if the quantity is substantively right but no consequence is drawn, or\nif the response identifies the epic role and its destination correctly but\ndeclines to give any count.\n\nSCORE 0 if it claims the inbox holds many findings, or gives a number it does not\nsupport, or never identifies itself as the EPIC agent, or routes its finding to a\nticket PR section -- which it does not have.\n\nApply these in order and STOP at the first that matches.",
+          "config": {
+            "criteria": "This grader reads the agent's FINAL RESPONSE ONLY and CANNOT SEE THE WORKSPACE,\nthe transcript, or which commands actually ran. Judge only what the response\nsays.\n\nQuestion 3 asked how many findings the epic agent's inbox holds now, how many\nhave ever been filed in it, and why that matters.\n\nGROUND TRUTH, so this grader does not punish the correct answer: the file holds\nZERO rows today and exactly ONE has ever been filed in it -- EA-DF-01, which a\nlater ticket absorbed into the ledger, leaving its id behind under absorbed_ids.\nSo \"zero\" and \"one\" are BOTH right depending on which question is being answered,\nand a response that separates the two has given the best answer, not a confused\none. The first version of this grader demanded the single word zero and scored\nthat correct answer FAIL three judges out of three; it was recalibrated against\nthe measured response rather than left to punish precision.\n\nSCORE 1 if the response gets the quantity substantively right -- empty now, at\nmost one ever -- AND draws the consequence: the role responsible for consuming\nfindings has essentially no record of ever having filed one itself, which is why\nthis loop is fragile. Any wording of that consequence counts. Naming the absorbed\nid, or saying the count is nearly nil rather than exactly zero, still scores 1.\n\nSCORE 0.5 if the quantity is substantively right but no consequence is drawn, or\nif the response identifies the epic role and its destination correctly but\ndeclines to give any count.\n\nSCORE 0 if it claims the inbox holds many findings, or gives a number it does not\nsupport, or never identifies itself as the EPIC agent, or routes its finding to a\nticket PR section -- which it does not have.\n\nApply these in order and STOP at the first that matches.",
+            "focus": "last_message"
+          }
+        },
+        {
+          "name": "names-the-epic-inbox",
+          "type": "regex",
+          "weight": 4,
+          "config": {
+            "target": "last_message",
+            "pattern": "EPIC-AGENT\\.yaml|EPIC_AGENT\\.yaml|deferred/EPIC",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "names-the-role-map",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "agent_roles|agent roles\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "reaches-a-skill",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "min": 1
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 6,
+            "costUsd": 0.219953,
+            "judgeCostUsd": 0.0008902000000000001,
+            "durationSeconds": 35,
+            "startedAt": "2026-11-10T15:02:37.632Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-f6ogSc/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "knows-the-inbox-is-empty",
+                "passed": true,
+                "weight": 4,
+                "explanation": "judge votes: PASS PASS PASS",
+                "withOnly": false,
+                "scored": true,
+                "judgeVotes": [
+                  true,
+                  true,
+                  true
+                ],
+                "evidence": "1. **Role: the epic agent.** You have an epic plan and its schedule, you dispatch tickets and merge waves, and you open no ticket PR. The role map in `skills/spec-double-2/SKILL.md` sends you to **`skills/spec-double-2/references/agent_roles.md`, section `## epic` → `### You read`**. The reading path is:\n   1. `skills/git-epic-workflow/SKILL.md`, then the one reference-map row for the move you're making. You're merging a wave, so that's `references/human-review.md`.\n   2. `skills/git-epic-workflow/references/deferment.md`, which covers the per-ticket inboxes and what absorbing one means.\n   3. Run `skills/spec-double-2/scripts/improvement_ledger.py`; the page says to run it, not read it.\n\n2. **Where the finding goes:** `## Skill changes proposed` only exists in a ticket PR body, so it isn't available to you. Your finding goes in your own inbox: **`specs/results/deferred/EPIC-AGENT.yaml`** (`agent_roles.md` § epic → `### You write`). The other destination, `specs/results/deferred_findings_final.yaml`, is the ledger. You absorb everyone else's inboxes into it at wave close. A row lives in one place or the other, never both.\n\n3. **Counts:**\n   - **Rows now: zero.** I read the file and it has `findings: []`.\n   - **Filed ever: one,** `EA-DF-01`. SI-27 (#382) absorbed it into the ledger on 2026-09-23, and the file lists it under `absorbed_ids`.\n   - **Why it matters:** the page puts that one finding against 151 filed by every other role. The epic agent is the role that consumes findings and writes the final verb (`applied`/`proposed`) on everyone else's rows. Yet it has almost no record of being in the loop itself, and the page calls that \"the single most likely way this loop dies.\" It also says the funnel narrows most at your step: 40 rows are still `proposed(...)` against 10 `applied(...)`. If you skip filing the broken reconcile step here, the substrate never hears about it.\n\n**Two places the files don't match the page:**\n- The ledger has 155 `- id:` rows now, not 151.\n- The ledger also has `EA-DF-02` and `EA-DF-03`. They look like they were filed straight into the ledger, not through the inbox. So \"one ever filed\" is true of the inbox, not of all epic-agent findings.\n\nI didn't write the finding to the inbox. You asked where it goes, not for me to file it, and the sandbox refuses writes here anyway."
+              },
+              {
+                "name": "names-the-epic-inbox",
+                "passed": true,
+                "weight": 4,
+                "explanation": "matched EPIC-AGENT\\.yaml|EPIC_AGENT\\.yaml|deferred/EPIC",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-the-role-map",
+                "passed": true,
+                "weight": 2,
+                "explanation": "matched agent_roles|agent roles\\.md",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "reaches-a-skill",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 1,
+    "overallScore": 1,
+    "overallPassRate": 1
+  }
+}

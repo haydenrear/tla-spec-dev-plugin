@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.322",
+  "startedAt": "2026-11-10T15:15:40.916Z",
+  "durationSeconds": 19,
+  "costUsd": 0.17160899999999998,
+  "partial": false,
+  "suite": {
+    "root": "/private/tmp/esd06-view-tip",
+    "ablation": "none",
+    "caseFilter": "w-tg-run-a-graph-not-bare-gradle",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "tla-spec-dev",
+        "version": "0.1.0",
+        "path": "/private/tmp/esd06-view-tip"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "w-tg-run-a-graph-not-bare-gradle",
+      "dir": "evals/test-graph/w-tg-run-a-graph-not-bare-gradle",
+      "source": "mixed",
+      "promptMarkdown": "I have a fresh git worktree of a repository that carries a `test_graph/`\nvalidation project and nests the `test-graph` skill. I want to run its\nregistered graph `cliWorkflow`.\n\nGive me the exact shell command to run, and one sentence on why that is the\nright entry point. Do NOT run it yourself — a graph run takes several\nminutes and downloads a toolchain. Reply with the command in a code block.\n\nEVAL-CASE: w-tg-run-a-graph-not-bare-gradle\n",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 16,
+      "graders": [
+        {
+          "name": "did-not-reach-for-gradle",
+          "type": "file_exists",
+          "weight": 2,
+          "config": {
+            "path": ".eval/forbid-bare-gradlew",
+            "exists": true
+          }
+        },
+        {
+          "name": "knows-what-the-runner-does-first",
+          "type": "regex",
+          "weight": 2,
+          "config": {
+            "target": "last_message",
+            "pattern": "(provider[- ]binding|build-logic|standard-nodes|materiali[sz])",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "names-the-runner-script",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": "last_message",
+            "pattern": "\\brun(-graphs)?\\.py\\b",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.7142857142857143,
+            "passed": false,
+            "turns": 5,
+            "costUsd": 0.17160899999999998,
+            "judgeCostUsd": 0,
+            "durationSeconds": 18,
+            "startedAt": "2026-11-10T15:15:41.455Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-GtWGhl/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "did-not-reach-for-gradle",
+                "passed": true,
+                "weight": 2,
+                "explanation": ".eval/forbid-bare-gradlew exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "knows-what-the-runner-does-first",
+                "passed": false,
+                "weight": 2,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "names-the-runner-script",
+                "passed": true,
+                "weight": 3,
+                "explanation": "matched \\brun(-graphs)?\\.py\\b",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.7142857142857143,
+        "passRate": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 1,
+    "casesPassed": 0,
+    "overallScore": 0.7142857142857143,
+    "overallPassRate": 0
+  }
+}
