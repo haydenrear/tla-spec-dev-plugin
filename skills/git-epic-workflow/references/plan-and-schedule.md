@@ -185,7 +185,12 @@ harness already decides them.
 Then retrieve a **bounded evidence slice**, only for the affected actions, bins
 and graph nodes: the findings already anchored to them, the instrument faults
 and nodes the graph checklist flags (the **dangerous validation boundaries**),
-and the previous epic's *Next epic's starting estimate* (`finalize.md` §2c).
+and the previous epic's *Next epic's starting estimate* (`finalize.md` §2c). To
+find it, search the merged epic PRs:
+`gh pr list --state merged --search "\"Next epic's starting estimate\" in:body"`.
+Also run test-graph's *pre-run review* (`graph-architecture-review.md`) over the
+nodes and instruments the affected graphs execute, and schedule its fix-ahead
+tickets in the first wave.
 spec-double-2's `references/agent_roles.md` § *Evidence routing*, row *epic:
 planning*, names the one
 source for each; do not load the whole ledger. Carry what applies to each
@@ -238,7 +243,8 @@ capacity, and keep each wave within the tighter one (`references/step-sizing.md`
 §1-§5). Record the estimates, their evidence and their uncertainty in the
 planning conversation, and write the chosen batch into `wave`, `depends_on`,
 each ticket's `validation`, and the evaluation ticket with its `eval_budget`.
-With sparse history or an unknown reviewer/verifier model, start small (§7).
+With sparse history or an unknown reviewer/verifier model, keep the §3 batch and
+review at the first wave (§7). The default leans to batching.
 
 ## 4. Scaffold the shared workflow once
 

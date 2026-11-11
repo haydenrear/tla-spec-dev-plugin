@@ -57,8 +57,9 @@ reliable delivery of the next user-value increment here?** Record:
 - What changed or what hypothesis will this run discriminate? Link the failure,
   fix and attribution. An unchanged retry needs a concrete transient-failure
   hypothesis and evidence that repeating it can distinguish that cause.
-- What is the smallest valid rerun? Use Test Graph's saved-context rerun for an
-  isolated node when its inputs/environment remain valid; rerun downstream
+- What is the smallest valid rerun? **By default, resume from the failed node**
+  (test-graph `graph-architecture-review.md` G0). Use Test Graph's saved-context
+  rerun for an isolated node when its inputs/environment remain valid; rerun downstream
   dependents when published outputs change and rebuild stale prerequisites.
   Name why a full fresh run is necessary when choosing one. Keep the required
   final integrated confirmation. Follow test-graph's `references/workflows.md`
@@ -141,17 +142,22 @@ batch, use `references/step-sizing.md`, which turns them into a feedback policy:
    validation-origin faults, coupling, and reviewer/verifier model and version.
 2. Estimate **review capacity** and **verification capacity** (including manual
    reach) separately, as scope items, not lines or tickets.
-3. Choose a provisional batch within the tighter estimate, and compare candidate
-   batches by total cost per accepted increment, on distinct cadences.
+3. Choose a provisional batch at the upper end of the tighter estimate for
+   independent items with proof, batching instrument repairs with the work they
+   unblock, and compare candidate batches by total cost per accepted increment,
+   on distinct cadences. When amortization and caution disagree, batch.
 4. Write the decision into existing plan fields: `wave`, `depends_on`,
    `validation`, `review_policy`, the evaluation ticket and `eval_budget`.
-5. At each review, **hold, increase by one bounded step, or decrease**. A
-   high-severity escape, a repeated validation fault, invalidated evidence, a
-   scope or coupling change, or a model change overrides an optimistic trend.
+5. At each review, **hold, increase by one step, or decrease**. Only a
+   high-severity product escape or non-converging product repairs decrease the
+   batch. Invalidated evidence, a scope or coupling change, or a model change
+   holds it. Instrument faults never shrink it: they schedule an instrument
+   fix inside the next batch. One clean review allows an increase.
 
 Record each decision in the deeper review's delivery-velocity section. Sparse
-history starts small. A model change triggers recalibration, not an assumed
-gain.
+history gets an early review, not a small batch. A model change triggers
+recalibration at the same size, not an assumed gain. None of this is a gate
+(`step-sizing.md`, *Nothing on this page blocks*).
 
 ## Across epics: user value and improving delivery capability
 

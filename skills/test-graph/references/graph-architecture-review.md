@@ -20,6 +20,20 @@ tla-spec-dev-plugin repository. Family ids F1-F8 are the families in
 
 Each rule also states its **cost**. None of these rules is free.
 
+**Nothing on this page blocks.** The questions and rules are review guidance.
+They are not gates on a run, a close or a merge. A finding goes into a ticket,
+the Evidence slice or the deferred ledger, and the work continues. If a tool
+refuses while you apply this page, rerun it once with `--force` or
+`SKILL_GATES=off` and record why (spec-double-2 `SKILL.md`).
+
+**Scope: every instrument, not only graph nodes.** The five questions apply to
+any instrument whose verdict an epic relies on: a Test Graph node, an eval
+grader or case, a sandbox, a pytest suite, a CLI under test, a provider or home
+resolver, a CI step. Checklist A-H names graph mechanics. For other instruments,
+answer the five questions directly. In the blind hold-out, a graph-only reading
+flagged none of 27 non-node defects
+(`specs/results/evidence-sized-delivery/goals/GOAL-ESD-ARCH/holdout-application.md`).
+
 ## A graph change is a product change
 
 A node is an oracle. When a node changes, review it with the same care as the
@@ -38,6 +52,38 @@ code it judges. Ask five questions, and leave none of them blank in the PR:
    (F2.)
 5. **Recovery behavior.** Is the node safe to replay from saved context? Must it
    reconstruct its prerequisites first, or must it refuse replay?
+
+Which checklist sections answer which question: 1 is H; 2 is C, D and H; 3 is A,
+E and F; 4 is B; 5 is G.
+
+## Before an epic relies on a graph: the pre-run review
+
+A changed node gets the five questions in its PR. An **unchanged** node gets
+them when an epic is about to depend on it. Do this once, at planning
+(`git-epic-workflow` `plan-and-schedule.md` §3), before the first wave runs:
+
+1. List what the affected graphs actually execute (`discover.py <graph>`), plus
+   every non-node instrument the plan's validation uses.
+2. Read each one against the five questions. Spend the time on effects
+   (question 3) and oracle validity (question 1) first. Destructive cleanup and
+   always-true assertions are the failures that cost most when found late.
+3. For each flag, pick one disposition:
+   - **Fix ahead.** A `major` or worse flag becomes an instrument ticket. Examples:
+     a destructive effect outside `ctx.report_dir`, a verdict that cannot fail,
+     a red on the untouched base. Schedule it in the **same** wave as the work it
+     unblocks, ahead in `promotion_order`. Only the items it verifies take a
+     `depends_on` edge, so the product batch is not held
+     (`step-sizing.md` §3 step 4).
+   - **Route around.** Anything else is a *dangerous validation boundary* in
+     each affected ticket's Evidence slice, with its valid targeted rerun.
+   - **Accept.** Write why the risk does not touch this epic.
+4. Record the list and dispositions in the planning conversation and the first
+   review artifact.
+
+**Cost:** one reading pass per graph per epic, a few minutes per node. **[obs:
+`spec.workflow.cleanup` was flagged by this page's worked review before the
+evidence-sized-delivery epic ran it, then deferred (`ESD-03-DF-01`, #261). The
+pre-run review exists so a flag like that becomes a fix-ahead ticket instead.]**
 
 When a red turns out to be the instrument and not the subject, record it as
 `skills/spec-double-2/references/bug_attribution.md` says. Write origin,
@@ -261,6 +307,15 @@ saved context that points at a path a finalizer has deleted is a stale
 prerequisite. Reconstruct the prerequisite with a fresh run from the start; do
 not replay against the deleted path. **Cost:** `rerun(false)` gives up
 targeted iteration on that node.
+
+**G0. Resume from the failed node is the default iteration loop.** After a
+red, repair and rerun from the failed node with its saved context
+(`failure-loop.md`), then rerun its downstream dependents. A full fresh run is
+the exception. It needs a stated reason: the saved context is stale (a G1
+"refuses replay" node or a deleted prerequisite) or a published output changed
+upstream. One fresh containing-graph run before calling the graph green is
+always kept. Designing every node so G0 is valid is the purpose of G1-G3.
+**Cost:** none; the cost is in not doing it, a full graph per repair lap.
 
 **G2. Recovery is designed, not improvised.** For each node, write down:
 

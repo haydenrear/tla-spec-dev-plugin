@@ -9,8 +9,27 @@ have (§5).
 
 **The question.** What is the largest batch of change that reviewers can examine
 and instruments can verify, so that failures stay attributable and repairs
-converge? The answer is two estimates and a choice. A batch is never larger than
-the tighter estimate. Speed is never claimed from running fewer checks.
+converge? The answer is two estimates and a choice. A batch stays within the
+tighter estimate, at its **upper** end unless §3 says otherwise. Speed is never
+claimed from running fewer checks.
+
+**Nothing on this page blocks.** Every rule here decides what goes in the plan.
+None of them is a stop condition, and none adds a gate. "Hold" means "do not grow
+the next batch", not "wait". If a tool you run while following this page refuses
+(a validator, `close ticket`, the census), it is advisory: rerun it once with
+`--force` or `SKILL_GATES=off`, and write the reason in the receipt or the PR
+(spec-double-2 `SKILL.md`, *Nothing here blocks*). Do not spend a cycle
+re-satisfying a check on work it does not apply to, such as a no-op model close.
+Never edit a plan status to get past a refusal.
+
+**The default leans to batching.** The held-out replay of this guidance
+(`specs/results/evidence-sized-delivery/goals/GOAL-ESD-CAPACITY/holdout-replay.md`)
+found its misses ran **conservative**. In three of four episodes (E1, E2, E3),
+the larger batch the planner actually ran worked: a validation cycle's fixed
+cost outweighed the attribution risk. The fourth (E4) justified caution only for
+one coupled item that had no faithful instrument. The rules below are calibrated
+to that result. Two of the four episodes are also §9 examples, so treat this as
+a direction, not a measurement.
 
 **Evidence ids.** `C1`-`C30` are cost rows in
 `specs/results/evidence-sized-delivery/ESD-01/cost.md`. `F1`-`F8` are families
@@ -93,11 +112,34 @@ stronger model may support a larger batch, but that is a hypothesis to test
 
 ## 3. Choose a provisional batch within the tighter estimate
 
-1. Take the smaller of the two ranges. With low confidence, use its lower bound.
-2. Fill the batch with items in dependency order. Put coupled high-risk items
-   alone or in a small batch, and group independent items with proof.
-3. State the binding constraint, the evidence, the uncertainty, and what would
+1. Take the smaller of the two ranges, and use its **upper bound** for items
+   that are independent and carry their own proof (red on base, green on
+   branch) or a faithful instrument. Use the lower bound only for coupled,
+   high-risk items with no faithful instrument. Low confidence alone does not
+   push you to the lower bound. It means the next review checks the choice.
+2. Fill the batch with items in dependency order. Group independent items with
+   proof. Put a coupled high-risk item that has no faithful instrument alone,
+   and keep everything else batched around it rather than serializing the wave.
+3. **An irreducible group goes in whole.** When items cannot be validated apart
+   (one build, two sites, one assertion), the group is one batch even if it
+   exceeds the bound. Say so in the decision.
+4. **Instrument repairs batch with the work they unblock.** A known instrument
+   fault does not hold the product batch. Put the instrument fix in the same
+   batch, ahead in `promotion_order`, with a `depends_on` edge only from the
+   items whose verification needs it (§9, decision 2).
+5. State the binding constraint, the evidence, the uncertainty, and what would
    move it (§6).
+
+**The batch unit** is the scope item (§2). "Halve" and "one step" are counted
+in items, rounded to whole items, and never go below one. Halving one item
+holds at one.
+
+**Tie-break.** When amortization (§4: a full graph or eval cycle's fixed cost)
+and caution (§6) disagree, batch. If the instruments attribute failures per item
+(a distinct node, site or assertion for each), verification is not really the
+binding constraint. The batch may then grow to the review estimate. Split only
+items whose failures one instrument cannot tell apart. Write which way you went
+and why.
 
 The batch is **provisional**. It holds until the next review point, not for the
 whole epic.
@@ -167,37 +209,62 @@ At each review point, record these **observations** in the review artifact:
 - review time, wait time and run time, each `unknown` where it was not recorded;
 - any change of model, toolchain, scope or coupling.
 
-**Overrides come first.** Any one of these decreases the batch or holds it,
-however good the aggregate trend looks:
+**Decrease: product escapes only.** Halve the next batch, and put the coupled
+items involved alone, when either of these happens:
 
-- a high-severity escape (`blocking` or `major`) in a reviewed or verified area;
-- repeated validation-origin faults on the same instrument;
+- a high-severity **product** escape (`blocking` or `major`) in a reviewed or
+  verified area;
+- a `validation-review.md` deep-review trigger fires on **product** repairs
+  (repairs reopening other product failures).
+
+**Hold** (do not grow, do not shrink) when any of these happens:
+
 - evidence invalidated by a change to code, inputs, graph, model, toolchain or
   environment (§8);
 - a scope or coupling change since the estimate;
 - a changed reviewer or verifier model or version.
 
-**Decrease** when an override fires, or a `validation-review.md` deep-review
-trigger fires: halve the next batch, and put coupled items alone. **Fix or
-isolate the instrument** before expanding when the cause is validation-origin.
+**Instrument faults never shrink the batch.** Repeated validation-origin faults
+on one instrument mean you schedule its fix: an instrument ticket batched with
+the next wave, ahead in `promotion_order` (§3 step 4). A single instrument red
+goes to the instrument's ledger and does not move the batch at all.
 
-**Increase** only when two consecutive review points show no override, faithful
-instruments on the new items, and converging repairs (at most two laps per
-layer). Raise the batch by **one step**: one more wave-sized group, or about 50%
-more items, whichever is smaller.
+**Increase** after **one** review point with no decrease or hold condition,
+faithful instruments on the new items, and converging repairs (at most two laps
+per layer). Raise the batch by **one step**: up to double the items, or one
+more wave-sized group, whichever is larger. After two consecutive clean review
+points, the next planner may start at the upper bound of the larger estimate.
 
 **Otherwise hold.**
 
-These bounds keep one noisy run from moving the batch. A single red attributed
-to the instrument goes to the instrument's ledger. It does not move the batch
-size.
+Every repair and attribution at a review also feeds the loop that improves the
+skills themselves (§6a).
+
+### 6a. Recurring validation faults become skill or instrument changes
+
+At each review point, list the validation-origin families that **recurred**.
+These are the instrument reds that the §1 history already held. For each one,
+record exactly one of:
+
+- a `skill_change` on its finding (`bug_attribution.md` §2a), applied through
+  `human-review.md` §3.4's doors, when a reference page, validator or skill
+  would have prevented it;
+- an instrument ticket scheduled in the next batch (§3 step 4), when the node
+  or harness itself is the fix;
+- `declined: <reason>`, written down.
+
+A family that recurs with none of the three is the loop failing. The next
+review lists it first.
 
 ## 7. Sparse history: an uncertainty-aware cold start
 
 With fewer than two comparable prior review points, or reviewer/verifier
-identity `unknown`, both estimates are low-confidence. Start at the lower bound,
-review at the first wave (`cadence: wave` or `milestones: [1, …]`), and treat
-the first batch as calibration.
+identity `unknown`, both estimates are low-confidence. Apply §3 as usual: the
+upper bound for independent items with proof, the lower bound only for coupled
+items with no faithful instrument. Review at the first wave (`cadence: wave` or
+`milestones: [1, …]`), and treat the first batch as calibration. An early
+review is what makes a larger first batch safe. Starting small and staying
+small is the failure the held-out replay found.
 
 **Low detected bug counts with weak coverage do not justify a larger step.** If
 BLIND rows or missing red controls cover the affected area, zero catches mean
@@ -248,19 +315,29 @@ $30.50 measured, against $66 declared (C11).
   could have caught. Then move that assertion earlier.
 - **Next review:** the evaluation ticket's report.
 
-**2. Flaky validation: diagnose and isolate before expanding.** The bug-sweep
+**2. Flaky validation: fix the instrument inside the batch.** The bug-sweep
 probe errored 13 times across 7 innocent tickets (`BS-07-DF-05`, C5). The
 skill-manager eval round produced about 12 instrument defects to 4 product
-defects (F7).
+defects (F7). In effectful-learning epic-10, batching three instrument fixes
+in one cycle took the run from 13 to 20 passing nodes. That saved two serial
+cycles of about one hour each, where a "fix it alone first" reading would have
+held the batch at one (holdout-replay E2).
 
-- **Controls:** hold the batch. Give the instrument fix its own ticket or
-  `depends_on` edge ahead of the dependents. Run the instrument on the
-  untouched base first, as the §6a control.
-- **Expected effect:** reds become attributable, and verification capacity
-  recovers.
-- **Falsified if:** the instrument is green on the base and red on the branch.
-  The red was the product.
-- **Next review:** after the instrument fix merges.
+- **Controls:** keep the batch size. Put the instrument fix in the same batch,
+  ahead in `promotion_order`, with a `depends_on` edge only from the items its
+  verification gates. Run the instrument on the untouched base first, as the
+  `bug_attribution.md` §6a control, and record its reds there, not against the
+  product items.
+- **Expected effect:** reds become attributable in the same cycle, and nothing
+  waits a cycle for the instrument.
+- **Falsified if:** a batched item's failure cannot be told apart from the
+  instrument's. Then split that item out, not the whole batch. Also falsified if
+  the instrument is green on the base and red on the branch: the red was the
+  product.
+- **Next review:** the end of the batch.
+
+§9's decisions cite the same episodes as holdout-replay E1 and E4. They are
+illustrations, not held-out evidence.
 
 **3. Coupled high-risk change.** CDC's isolation gate was red in 14 of 15 runs
 on an upstream home fault (`SM402-ISOLATION family`). A memory-recycling defect
@@ -279,7 +356,7 @@ green for it (`M2B-BEAM-02`).
 **4. Sparse history.** A new repository has no ledger, no REACH and no BLIND.
 The model is `unknown`.
 
-- **Controls:** §7 cold start: a small first wave, `milestones: [1, …]`, and
+- **Controls:** §7 cold start: a first wave at the §3 bound, `milestones: [1, …]`, and
   instruments shown red before they are trusted.
 - **Expected effect:** a calibrated second estimate after one review point.
 - **Falsified if:** the first wave has an escape that its instruments could not
@@ -290,12 +367,13 @@ The model is `unknown`.
 README). That is the case this decision covers.
 
 - **Controls:** record the new reviewer and verifier identity. Treat earlier
-  evidence as a prior. Run one calibration batch **at or below** the previous
-  size, with `cadence: wave`. Compare escapes and fix laps per item against the
-  prior.
+  evidence as a prior. Run one calibration batch **at** the previous size
+  (§6 says a model change holds, never shrinks), with `cadence: wave`. Compare
+  product escapes and fix laps per item against the prior.
 - **Expected effect:** either a measured reason to increase at the next review,
   or none.
-- **Falsified if:** escapes or validation faults per item rise on the new model.
-  Then decrease, and keep the old size as the ceiling.
-- **Next review:** after two review points on the new model, the earliest an
-  increase is allowed (§6).
+- **Falsified if:** product escapes per item rise on the new model. Then
+  decrease, and keep the old size as the ceiling. Validation faults alone go
+  to the instrument (§6).
+- **Next review:** after one clean review point on the new model, the earliest
+  an increase is allowed (§6).
