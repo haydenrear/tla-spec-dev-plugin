@@ -31622,6 +31622,178 @@
       ],
       "errors": [],
       "verdict": "recorded"
+    },
+    {
+      "schema_version": 1,
+      "scope": "workflow",
+      "scope_id": "evidence-sized-delivery",
+      "workflow": "evidence-sized-delivery",
+      "recorded_at_utc": "2026-11-11T23:45:04.691197+00:00",
+      "metrics": {
+        "variables": 9,
+        "actions": 19,
+        "action_attribution": "top-level disjuncts of the next-state relation Next, called-operator bodies expanded transitively; helpers are not actions",
+        "actions_from_fallback_heuristic": false,
+        "bound": 277830,
+        "bound_complete": false,
+        "bound_resolved_variables": 6,
+        "bound_unresolved_variables": [
+          "lastCommand",
+          "result",
+          "skt_answer"
+        ],
+        "modularity": 0.00327538422776524,
+        "distinct_states": null,
+        "generated_states": null,
+        "depth": null,
+        "gate_passed": false,
+        "gate_violations": [
+          "state-space upper bound 277,830 is INCOMPLETE and CANNOT be compared against max_state_space_bound 1,000,000: product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer) -- a LOWER BOUND on the declared-representation bound, not the bound. Percent-of-cap over an incomplete bound is not a measurement, so this scan reports the cap comparison as unknown rather than as within cap",
+          "component C1 has 7 variables (complexity_gate, lastCommand, result, setup_phase, skt_answer, spec_root, ticket_state), exceeding max_component_variables 6",
+          "component C1 is touched by 18 actions (BuildSkillCli, InstallLocalCli, ScaffoldProject, RecordBudgets, ScaffoldWorkflow, OpenTicket, UpdateTicketDesired, UpdateTicketCurrent, AnalyzeComplexity, AnalyzeCorpus, GenerateCases, RunEffectConformance, RunSpecUnitTests, CloseTicket, CloseTicketWeakened, SktStatus, SktCheck, SktTicketSweep), exceeding max_component_actions 8"
+        ],
+        "budget_utilization": {
+          "max_state_space_bound": {
+            "cap": 1000000,
+            "used": 277830,
+            "bound_complete": false,
+            "percent_lower_bound": 27.8,
+            "percent": null,
+            "within_cap": null,
+            "caveat": "the bound is a product over 6 of 9 declared variables (3 unresolved: lastCommand, result, skt_answer), so percent-of-cap is not a measurement and within_cap is UNKNOWN -- an incomplete bound at or under the cap is not evidence of anything"
+          }
+        }
+      },
+      "delta": {
+        "previous_scope_id": "ESD-07",
+        "metrics": {
+          "variables": {
+            "before": 9,
+            "after": 9,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "actions": {
+            "before": 19,
+            "after": 19,
+            "delta": 0,
+            "percent": 0.0
+          },
+          "bound": {
+            "before": 277830,
+            "after": 277830,
+            "delta": 0,
+            "percent": 0.0,
+            "bound_complete_before": false,
+            "bound_complete_after": false,
+            "comparable": false,
+            "note": "both bounds are products over a SUBSET of the declared variables, so this delta measures the resolved subset, not the model"
+          },
+          "distinct_states": {
+            "before": 36577,
+            "after": null,
+            "delta": null
+          },
+          "generated_states": {
+            "before": 765259,
+            "after": null,
+            "delta": null
+          },
+          "depth": {
+            "before": 17,
+            "after": null,
+            "delta": null
+          }
+        },
+        "direction": "zero"
+      },
+      "justification": "ZERO model delta, so no TLA+ representation was added and none needs justifying. TLC was nonetheless run at close on the converged model rather than cited from a previous epic, so the receipts carry a measurement of THIS tree.",
+      "retention": {
+        "kill_rate": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "EXPERIMENTAL per the pivot; no decrease claimed, and no model delta to claim it for.",
+          "value": null
+        },
+        "effect_conformance": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+          "value": null
+        },
+        "external_coverage": {
+          "status": "not_run",
+          "classification": "unverified",
+          "evidence": "EXPERIMENTAL per the pivot; no decrease claimed.",
+          "value": null
+        }
+      },
+      "retention_summary": [
+        "kill_rate=not_run (UNVERIFIED)",
+        "effect_conformance=not_run (UNVERIFIED)",
+        "external_coverage=not_run (UNVERIFIED)"
+      ],
+      "validated_refactor": {
+        "tlc_before": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "Not a separate run, and deliberately not presented as one. Model delta is zero, so the before-model and the after-model are the same file and one TLC run measures both. A second run of an unchanged model would be the same numbers wearing a different label, which is the shape that made the recycled evidence hard to spot.",
+          "value": null
+        },
+        "tlc_after": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "specs/current/TlaSpecDevCli.tla with MC.cfg, run at close on 2026-09-06: \"Model checking completed. No error has been found.\" 2,505,440 states generated, 124,643 distinct, depth 24, 0 left on queue, finished in 02s.",
+          "value": null
+        },
+        "behavior_tests": {
+          "status": "green",
+          "classification": "retained",
+          "evidence": "Full suite at the close tip: 12 failed, 1613 passed, 23 skipped -- item for item the standing baseline, with no failure introduced by this epic. The 12 are pre-existing and four of them assert against a ledger that is not on main; see #296.",
+          "value": null
+        },
+        "descriptor_comparison": {
+          "status": "recorded",
+          "classification": "retained",
+          "evidence": "`diff -rq specs/current specs/desired_program_model` differs only in README.md, spec_manifest.yaml status metadata, and the two planning files the close ignores by design (desired_state.yaml, ticket_plan.yaml). No semantic file differs.",
+          "value": null
+        }
+      },
+      "validated_refactor_summary": [
+        "tlc_before=green (retained)",
+        "tlc_after=green (retained)",
+        "behavior_tests=green (retained)",
+        "descriptor_comparison=recorded (retained)"
+      ],
+      "refinement": {
+        "searched": true,
+        "outcome": "none",
+        "detail": "No reduction was searched for, because there is no model change to reduce. An epic that adds zero actions cannot simplify its way to a smaller one, and inventing a refactor to fill this field is the retrospective this programme has spent three epics learning not to write.",
+        "measured": true,
+        "applied": false,
+        "approved_by": ""
+      },
+      "coverage_audit": {
+        "status": "not_run",
+        "passing": false,
+        "report": "",
+        "in_scope_gaps": null,
+        "scope_source": "specs/desired_program_model/ticket_plan.yaml epic_goals -- the six goals AT-04 decided clause by clause."
+      },
+      "transition_diff": "",
+      "narrative": "Workflow close of attribute-the-catch. The epic ships documentation and prompts: `references/bug_attribution.md` (the four record kinds -- CATCH, REACH, BLIND, PRICE), the two surfaces that ask for them at ticket close-out and workflow close, `prompts/regression_architecture.md`, and AT-04's clause-by-clause evaluation of six goals. MODEL DELTA IS ZERO AND THAT IS THE TICKET: no TLA+ action, variable or invariant was added, removed or changed, and `specs/current` was byte-identical to `specs/desired_program_model` on every semantic file at close. Six goals MET; one clause of GOAL-the-record-says-what-caught-it is DESIGNED, NOT APPLIED, because the 364-row ledger whose 27 out-of-vocabulary rows it would dispose lives on epic/stabilize-substrate and arrives with #296 -- stated in AT-04's RESULT.md as the epic's single largest limitation rather than worked around.",
+      "tlc_findings": [
+        {
+          "level": "NOTE",
+          "message": "TLC reports incomplete; comparison skipped."
+        }
+      ],
+      "notes": [
+        "NOTE: TLC reports incomplete; comparison skipped.",
+        "coverage audit (MF-026) is `not_run`: audit has not been run for this scope. RECORDED, NOT REFUSED (2026-08-04). The four oracles check fidelity of what is modeled and are bounded to it; unmodeled surface is invisible to all of them while they report green, and this is the only sweep that looks at it. Run `prompts/coverage_audit.md` if you want that read on this scope."
+      ],
+      "errors": [],
+      "verdict": "recorded"
     }
   ]
 }
