@@ -430,7 +430,8 @@ tickets:
   - ESD-03
   - ESD-04
   - ESD-05
-  blocks: []
+  blocks:
+  - ESD-07
   wave: 6
   promotion_order: 60
   promotion_predecessor: ESD-05
@@ -497,10 +498,87 @@ tickets:
     - Each goal reports baseline -> measured -> target with a met/missed/unmeasured verdict.
     - 'No-op model result recorded: specs/current is unchanged by this ticket.'
     evidence: []
+- id: ESD-07
+  title: Batch-favoring step sizing, advisory checks, pre-run graph review and resume-first reruns
+  status: planned
+  github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/270
+  schedule_revision: 2
+  depends_on:
+  - ESD-06
+  blocks: []
+  wave: 7
+  promotion_order: 70
+  promotion_predecessor: ESD-06
+  role: implementation
+  conflict_keys:
+    production: []
+    tla: []
+    adapters: []
+    test_graph:
+    - skills/test-graph/references/graph-architecture-review.md
+    workflow:
+    - skills/git-epic-workflow/references/step-sizing.md
+    - skills/git-epic-workflow/references/validation-review.md
+    - skills/git-epic-workflow/references/plan-and-schedule.md
+    - skills/spec-double-2/references/agent_roles.md
+    - specs/results/evidence-sized-delivery/ESD-07/
+  goals:
+  - goal: GOAL-ESD-CAPACITY
+    contribution: direct
+    expected_effect: 'Owner amendment after evaluation: the guidance chooses the larger batch the held-out outcomes supported
+      (E1, E2, E3) without losing E4''s caution. Not re-measured by ESD-06 (post-evaluation, eval run budget 46/48 spent); the
+      CAPACITY verdict is recorded as invalidated for the changed sections (step-sizing.md §8).'
+    local_signal: Re-derive the four held-out decisions (holdout-replay.md E1-E4) by the amended rules alone; count agree/partly/disagree
+      against the recorded outcomes (leakage noted)
+  - goal: GOAL-ESD-ARCH
+    contribution: direct
+    expected_effect: The pre-run review applies the five questions to every instrument the affected graphs execute, not only
+      changed graph nodes, closing the 0-of-27 non-node gap by scope; unmeasured blind.
+    local_signal: Count the ESD-06 hold-out rows whose instrument class is now inside the page's stated scope (before vs after)
+  feature_branch: feature/270-batch-favoring-sizing
+  worktree: /Volumes/dev/tla-spec-dev-plugin-270-batch-favoring-sizing
+  covers:
+  - '#270'
+  validation:
+    tlc: 'N/A: no model delta (no-op model result); the epic agent runs TLC at wave close'
+    spec_unit: uvx --with pyyaml --with jinja2 pytest specs/current/tests -q
+    repository_unit: uvx --with pyyaml --with jinja2 pytest tests/test_workflow_reference_contracts.py tests/test_source_citations.py
+      tests/test_card_has_one_home.py tests/test_testgraph_channels.py tests/test_disposition_requirement.py tests/test_every_finding_reaches_the_table.py
+      tests/test_goal_baseline_is_a_card.py tests/test_bs02_disposition_improvement_ledger_attribution.py skills/git-epic-workflow/scripts/tests
+      -q
+    graphs: []
+    spec_graph: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence only)'
+    toolchain_spec_workflow: 'N/A: no spec-double-2 / tla-spec-dev CLI behavior change in this ticket (instruction/evidence
+      only)'
+    evidence_root: specs/results/evidence-sized-delivery/ESD-07
+  objective: 'Owner final-review amendment (#270): make step sizing favor larger batches where the held-out replay showed
+    over-caution, keep every check advisory with a recorded override, add a pre-run review of existing graph nodes and instruments
+    with fix-ahead tickets for major flags, make resume-from-the-failed-node the default rerun, route recurring validation-origin
+    families to a skill change, and correct the review routing row (MAN-06). No new script, gate or field.'
+  desired_actions: []
+  implementation_scope:
+  - skills/git-epic-workflow/references/step-sizing.md
+  - skills/git-epic-workflow/references/validation-review.md
+  - skills/git-epic-workflow/references/plan-and-schedule.md
+  - skills/test-graph/references/graph-architecture-review.md
+  - skills/spec-double-2/references/agent_roles.md
+  - specs/results/evidence-sized-delivery/ESD-07/
+  acceptance:
+    commands: []
+    assertions:
+    - Both new pages state that nothing in them blocks and how to override a refusing tool once, with a reason.
+    - The default batch for independent items with proof is the upper bound of the tighter estimate; instrument repairs batch
+      with dependent work; halving only follows a product escape.
+    - The pre-run review covers existing nodes and non-node instruments; major flags become fix-ahead tickets that do not hold
+      the product batch.
+    - Resume from the failed node is the default rerun; a full fresh run needs a stated reason (stale context) plus the final
+      confirmation.
+    - 'No-op model result recorded: specs/current is unchanged by this ticket.'
+    evidence: []
 epic_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/234
 epic_branch: epic/evidence-sized-delivery
 epic_base_sha: a1ff56cf9ebc108aba2e8dd16b8c1eb3aaa0afa3
-schedule_revision: 1
+schedule_revision: 2
 epic_goals:
 - id: GOAL-ESD-VELOCITY
   kind: perf
