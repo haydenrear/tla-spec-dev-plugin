@@ -32,6 +32,7 @@ SKILL_ROOT = SCRIPTS_DIR.parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 import run  # noqa: E402
+from report_fixture import temporary_observed_report
 import sweep  # noqa: E402
 
 
@@ -44,6 +45,8 @@ def started(task: str) -> dict:
 
 
 def finished(task: str, outcome: str, run_dirs: list[str] | None = None, failure: str | None = None) -> dict:
+    if outcome == "passed" and run_dirs is None:
+        run_dirs = [temporary_observed_report()]
     return {"event": "finished", "task": task, "graph": True, "outcome": outcome,
             "seconds": 1.0, "runDirs": run_dirs or [], "failure": failure, "skipMessage": None}
 

@@ -34,6 +34,7 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import run  # noqa: E402
+from report_fixture import observed_report
 from test_outcome_json import (  # noqa: E402
     FIXTURE_SETTINGS, NODE_HEADER, SDK, _real_sdk_unavailable, write_envelope)
 
@@ -76,7 +77,7 @@ class ResumeFrontDoorTest(unittest.TestCase):
         (self.root / "build.gradle.kts").write_text("validationGraph { }\n")
         self.ledger = [{"event": "scheduled", "task": "chain", "graph": True},
                        {"event": "finished", "task": "chain", "graph": True, "outcome": "passed",
-                        "seconds": 1.0, "runDirs": [], "failure": None}]
+                        "seconds": 1.0, "runDirs": [observed_report(self.tmp / "resumed-output")], "failure": None}]
 
     def main(self, *argv: str, cwd: Path | None = None):
         calls = []

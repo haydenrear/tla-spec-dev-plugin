@@ -36,6 +36,7 @@ SDK = SKILL_ROOT / "project_sdk_sources"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 import run  # noqa: E402
+from report_fixture import temporary_observed_report
 import sweep  # noqa: E402
 
 
@@ -109,7 +110,7 @@ class CollectNodesTest(unittest.TestCase):
         for rc in (0, 1, 2, 130, 137):
             self.assertIn(run.sweep_exit_code(rc, unknown), (0, 1, 3))
         green = run.summarize_sweep(["a"], [{"event": "scheduled", "task": "a", "graph": True},
-                                            {"event": "finished", "task": "a", "outcome": "passed"}], False)
+                                            {"event": "finished", "task": "a", "outcome": "passed", "runDirs": [temporary_observed_report()]}], False)
         self.assertEqual(1, run.sweep_exit_code(130, green))
 
 
