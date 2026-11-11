@@ -45,7 +45,8 @@ FAKE_RUNNER = textwrap.dedent('''
     out = pathlib.Path(os.environ["FAKE_OUT"]) / str(len(open(os.environ["FAKE_CALLS"]).readlines()))
     out.mkdir(parents=True, exist_ok=True)
     rows = [{"graph": g, "status": statuses.get(g, "passed"), "cause": None,
-             "duration_seconds": 1.5, "report_dir": str(out)}
+             "duration_seconds": 1.5, "report_dir": str(out),
+             "nodes": [{"node": "fixture.observed", "status": statuses.get(g, "passed")}]}
             for g in graphs if statuses.get(g) != "absent"]
     (out / "outcome.json").write_text(json.dumps({"schema": "test-graph.outcome.v1", "graphs": rows}))
     print(out / "outcome.json")
@@ -58,6 +59,9 @@ class MilestoneCase(unittest.TestCase):
         self.addCleanup(holder.cleanup)
         self.root = Path(holder.name).resolve()
         subprocess.run(["git", "init", "-q", str(self.root)], check=True)
+        subprocess.run(["git", "-C", str(self.root), "-c", "user.name=Milestone fixture",
+                        "-c", "user.email=fixture@example.invalid", "commit", "--allow-empty",
+                        "-qm", "source identity"], check=True)
         (self.root / "fake_run.py").write_text(FAKE_RUNNER)
         self.calls = self.root / "calls.jsonl"
         self.calls.touch()
@@ -92,6 +96,22 @@ class MilestoneCase(unittest.TestCase):
         self.lock.parent.mkdir(parents=True, exist_ok=True)
         self.lock.write_text(json.dumps({"pid": pid, "host": socket.gethostname(),
                                          "acquired_at": "earlier", **extra}))
+
+
+class SealedMetadataTest(MilestoneCase):
+    def test_reused_metadata_comes_from_terminal_authority(self):
+        self.config(default=['gate'], shared=['load'])
+        self.assertEqual(self.run_ms('gate')[0], ms.EXIT_PASSED)
+        hint_path = self.root / 'build/milestone-last.json'
+        hint = json.loads(hint_path.read_text())
+        row = hint['executions']['default:gate']
+        row.update(graph='forged', phase='shared', duration_seconds=-999)
+        hint_path.write_text(json.dumps(hint))
+        self.assertEqual(self.run_ms('load')[0], ms.EXIT_PASSED)
+        reused = json.loads(hint_path.read_text())['executions']['default:gate']
+        self.assertEqual(reused['graph'], 'gate')
+        self.assertEqual(reused['phase'], 'default')
+        self.assertEqual(reused['duration_seconds'], 1.5)
 
 
 class VacuumTest(MilestoneCase):
@@ -175,7 +195,7 @@ class SharedDependencyTest(MilestoneCase):
         self.config(default=["a"], shared=["load"])
         os.environ["FAKE_NO_OUTCOME"] = "1"
         code, _, _ = self.run_ms()
-        self.assertEqual(code, ms.EXIT_FAILED)  # the skipped shared graph did not run
+        self.assertEqual(code, ms.EXIT_ERRORED)  # blocked dependents preserve infrastructure classification
         self.assertEqual(self.invoked(), [["a"]])
 
     def test_force_runs_shared_although_default_red(self) -> None:
@@ -191,7 +211,7 @@ class SharedDependencyTest(MilestoneCase):
         self.run_ms()
         code, out, _ = self.run_ms("load")
         self.assertEqual(code, ms.EXIT_FAILED)
-        self.assertIn("last recorded milestone", out)
+        self.assertIn("default set not green", out)
         self.assertEqual(self.invoked(), [["a"]])
         os.environ["FAKE_STATUSES"] = "{}"
         self.run_ms("a")
@@ -204,6 +224,51 @@ class SharedDependencyTest(MilestoneCase):
         code, _, _ = self.run_ms("load")
         self.assertEqual(code, ms.EXIT_FAILED)
         self.assertEqual(self.invoked(), [])
+
+
+class BoundAdmissionTest(MilestoneCase):
+    def test_same_graph_names_have_distinct_phase_authorities(self):
+        self.config(default=["load"], shared=["load"])
+        code, output, _ = self.run_ms()
+        self.assertEqual(code, ms.EXIT_PASSED)
+        self.assertEqual(self.invoked(), [["load"], ["load"]])
+        self.assertIn("| load | default | PASSED", output)
+        self.assertIn("| load | shared | PASSED", output)
+        last = json.loads((self.root / "build/milestone-last.json").read_text())
+        self.assertEqual(set(last["executions"]), {"default:load", "shared:load"})
+
+    def test_architecture_change_refuses_cached_green_then_accepts_fresh(self):
+        self.config(default=["a"], shared=["load"])
+        self.assertEqual(self.run_ms("a")[0], ms.EXIT_PASSED)
+        with mock.patch("evidence.platform.machine", return_value="different-architecture"):
+            self.assertEqual(self.run_ms("load")[0], ms.EXIT_FAILED)
+            self.assertEqual(self.invoked(), [["a"]])
+            self.assertEqual(self.run_ms("a")[0], ms.EXIT_PASSED)
+            self.assertEqual(self.run_ms("load")[0], ms.EXIT_PASSED)
+        self.assertEqual(self.invoked(), [["a"], ["a"], ["load"]])
+
+    def test_force_receipt_is_not_normal_cached_authority(self):
+        self.config(default=["a"], shared=["load"])
+        self.assertEqual(self.run_ms("a", "--force")[0], ms.EXIT_PASSED)
+        self.assertEqual(self.run_ms("load")[0], ms.EXIT_FAILED)
+        self.assertEqual(self.invoked(), [["a"]])
+
+    def test_legacy_unbound_cache_cannot_admit_shared(self):
+        self.config(default=["a"], shared=["load"])
+        path = self.root / "build/milestone-last.json"
+        path.parent.mkdir()
+        path.write_text(json.dumps({"graphs": {"a": {"status": "passed"}}}))
+        self.assertEqual(self.run_ms("load")[0], ms.EXIT_FAILED)
+        self.assertEqual(self.invoked(), [])
+
+    def test_terminal_records_are_unique_and_previous_bytes_retained(self):
+        self.config(default=["a"])
+        self.assertEqual(self.run_ms()[0], ms.EXIT_PASSED)
+        old = next((self.root / "build/milestone-runs").glob("*/result.json"))
+        original = old.read_bytes()
+        self.assertEqual(self.run_ms()[0], ms.EXIT_PASSED)
+        self.assertEqual(old.read_bytes(), original)
+        self.assertEqual(len(list((self.root / "build/milestone-runs").glob("*/result.json"))), 2)
 
 
 class LockTest(MilestoneCase):

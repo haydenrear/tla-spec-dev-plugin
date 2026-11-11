@@ -49,14 +49,18 @@ a warning.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import socket
 import subprocess
 import sys
 import time
-import tomllib
+import uuid
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from evidence import EvidenceError, atomic_document, binding_identity, file_digest, read_document
 
 EXIT_PASSED, EXIT_FAILED, EXIT_REFUSED, EXIT_ERRORED = 0, 1, 2, 3
 CONFIG_ENV = "MILESTONE_CONFIG"
@@ -86,6 +90,7 @@ def repo_root(start: Path) -> Path:
 
 
 def load_config(path: Path) -> dict:
+    import tomllib  # Config parsing needs 3.11; lock helpers remain importable on 3.10.
     if not path.is_file():
         raise Refused(f"no milestone config at {path}: declare a [milestone] table "
                       f"(see references/human-review.md) or pass --config")
@@ -102,9 +107,20 @@ def load_config(path: Path) -> dict:
         if not isinstance(value, list) or not all(isinstance(g, str) and g for g in value):
             raise Refused(f"{path}: milestone.{key} must be a list of graph names")
         cfg[key] = list(dict.fromkeys(value))
-    overlap = set(cfg["default"]) & set(cfg["shared"])
-    if overlap:
-        raise Refused(f"{path}: graph(s) in both default and shared: {sorted(overlap)}")
+    environment = table.get("environment", {})
+    if not isinstance(environment, dict) or set(environment) - {"default", "shared"}:
+        raise Refused(f"{path}: milestone.environment names default and shared sets")
+    cfg["environment"] = {}
+    for phase in ("default", "shared"):
+        values = environment.get(phase, {})
+        if not isinstance(values, dict) or len(values) > 256 or not all(
+                isinstance(k, str) and k and "=" not in k and isinstance(v, str)
+                for k, v in values.items()):
+            raise Refused(f"{path}: phase environment must be a bounded string map")
+        cfg["environment"][phase] = values
+    cfg["identity"] = table.get("identity", {})
+    if not isinstance(cfg["identity"], dict):
+        raise Refused(f"{path}: milestone.identity must be a table")
     for key in ("runner", "test_graph_root", "lock"):
         if key in table and not isinstance(table[key], str):
             raise Refused(f"{path}: milestone.{key} must be a string")
@@ -273,11 +289,11 @@ def read_outcome(stdout: str, graphs: list[str]) -> tuple[dict[str, dict], str |
         reason = "no outcome.json (runner printed no outcome path)"
     else:
         try:
-            outcome = json.loads(path.read_text(encoding="utf-8"))
+            outcome = read_document(path)
         except (OSError, ValueError) as exc:
             reason = f"outcome.json unreadable: {exc}"
     by_name = {}
-    if isinstance(outcome, dict):
+    if isinstance(outcome, dict) and outcome.get("schema") == "test-graph.outcome.v1":
         for g in outcome.get("graphs") or []:
             if isinstance(g, dict) and g.get("graph"):
                 by_name[g["graph"]] = g
@@ -289,14 +305,20 @@ def read_outcome(stdout: str, graphs: list[str]) -> tuple[dict[str, dict], str |
                           "duration_seconds": None, "report_dir": None}
             continue
         status = g.get("status") if g.get("status") in STATUSES else "errored"
-        rows[name] = {"status": status, "cause": g.get("cause"),
+        cause = g.get("cause")
+        if status == "passed":
+            nodes = g.get("nodes")
+            if not isinstance(nodes, list) or not nodes or not all(
+                    isinstance(node, dict) and node.get("status") == "passed" for node in nodes):
+                status, cause = "errored", "passed graph has no nonempty passed node observations"
+        rows[name] = {"status": status, "cause": cause,
                       "duration_seconds": g.get("duration_seconds"),
                       "report_dir": g.get("report_dir")}
     return rows, str(path) if outcome is not None else None
 
 
 def run_set(runner: Path | None, graphs: list[str], tg_root: str | None,
-            log=print) -> tuple[dict[str, dict], str | None]:
+            log=print, environment: dict[str, str] | None = None, stdout_path: Path | None = None) -> tuple[dict[str, dict], str | None]:
     if runner is None or not runner.is_file():
         cause = f"runner not found ({runner})" if runner else "runner not found"
         return {g: {"status": "errored", "cause": cause, "duration_seconds": None,
@@ -309,20 +331,28 @@ def run_set(runner: Path | None, graphs: list[str], tg_root: str | None,
     log("milestone: " + " ".join(cmd))
     sys.stdout.flush()
     try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)
+        env = os.environ.copy()
+        env.update(environment or {})
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, env=env)
     except OSError as exc:
         return {g: {"status": "errored", "cause": f"runner failed to start: {exc}",
                     "duration_seconds": None, "report_dir": None} for g in graphs}, None
     sys.stdout.write(proc.stdout)
+    if stdout_path is not None:
+        with stdout_path.open("x", encoding="utf-8") as stream:
+            os.chmod(stdout_path, 0o600)
+            stream.write(proc.stdout)
     return read_outcome(proc.stdout, graphs)
 
 
 def exit_code(rows: dict[str, dict]) -> int:
     statuses = [r["status"] for r in rows.values()]
-    if any(s in ("failed", "not_run") for s in statuses):
+    if "failed" in statuses:
         return EXIT_FAILED
     if "errored" in statuses:
         return EXIT_ERRORED
+    if "not_run" in statuses:
+        return EXIT_FAILED
     return EXIT_PASSED
 
 
@@ -330,7 +360,7 @@ def format_table(rows: dict[str, dict], sets: dict[str, str]) -> str:
     out = ["| graph | set | status | cause | seconds |", "| --- | --- | --- | --- | --- |"]
     for name, r in rows.items():
         secs = "" if r.get("duration_seconds") is None else f"{r['duration_seconds']}"
-        out.append(f"| {name} | {sets.get(name, '?')} | {r['status'].upper()} | "
+        out.append(f"| {r.get('graph', name)} | {sets.get(name, '?')} | {r['status'].upper()} | "
                    f"{r.get('cause') or ''} | {secs} |")
     return "\n".join(out)
 
@@ -343,6 +373,7 @@ def milestone(argv: list[str] | None = None, *, cwd: Path | None = None) -> int:
     parser.add_argument("--config", help=f"milestone config (default <repo>/{DEFAULT_CONFIG}, "
                                          f"or ${CONFIG_ENV})")
     parser.add_argument("--runner", help="test-graph run.py to invoke (overrides config)")
+    parser.add_argument("--set", choices=("default", "shared"), help="select only this configured phase")
     parser.add_argument("--force", action="store_true",
                         help="override every gate (same as SKILL_GATES=off)")
     args = parser.parse_args(argv)
@@ -369,9 +400,13 @@ def milestone(argv: list[str] | None = None, *, cwd: Path | None = None) -> int:
         return EXIT_REFUSED
 
     selected = args.graphs or configured
-    default = [g for g in cfg["default"] if g in selected]
-    shared = [g for g in cfg["shared"] if g in selected]
-    sets = {**{g: "default" for g in cfg["default"]}, **{g: "shared" for g in cfg["shared"]}}
+    phases = {
+        phase: [g for g in cfg[phase] if g in selected and args.set in (None, phase)]
+        for phase in ("default", "shared")
+    }
+    if not any(phases.values()):
+        print("milestone: refused: selected phase contains no graphs", file=sys.stderr)
+        return EXIT_REFUSED
     lock_path = Path(cfg.get("lock") or DEFAULT_LOCK)
     lock_path = lock_path if lock_path.is_absolute() else root / lock_path
     last_path = lock_path.parent / LAST_RECORD
@@ -379,7 +414,6 @@ def milestone(argv: list[str] | None = None, *, cwd: Path | None = None) -> int:
     tg_root = cfg.get("test_graph_root")
     if tg_root and not Path(tg_root).is_absolute():
         tg_root = str(root / tg_root)
-
     lock = MilestoneLock(lock_path, force=force)
     try:
         lock.acquire()
@@ -387,46 +421,128 @@ def milestone(argv: list[str] | None = None, *, cwd: Path | None = None) -> int:
         print(f"milestone: refused: {exc}", file=sys.stderr)
         return EXIT_REFUSED
     try:
-        rows: dict[str, dict] = {}
-        if default:
-            got, _ = run_set(runner, default, tg_root)
-            rows.update(got)
-            default_green = all(rows[g]["status"] == "passed" for g in default)
-            why = "default set not green in this run"
-        else:
-            try:
-                last = json.loads(last_path.read_text(encoding="utf-8"))
-                prior = {g: last["graphs"][g]["status"] for g in cfg["default"]}
-                default_green = bool(prior) and all(s == "passed" for s in prior.values())
-            except (OSError, ValueError, KeyError, TypeError):
-                default_green = not cfg["default"]
-            why = f"default set not green in the last recorded milestone ({last_path})"
-        if shared:
-            if default_green or force:
-                if not default_green:
-                    print(f"milestone: --force: running shared graphs although {why}")
-                got, _ = run_set(runner, shared, tg_root)
-                rows.update(got)
-            else:
-                for g in shared:
-                    rows[g] = {"status": "not_run", "cause": f"skipped: {why}",
-                               "duration_seconds": None, "report_dir": None}
-        code = exit_code(rows)
-        # Merge into the last record so a later targeted rerun sees every graph.
-        try:
-            record = json.loads(last_path.read_text(encoding="utf-8"))
-            record.setdefault("graphs", {})
-        except (OSError, ValueError):
-            record = {"graphs": {}}
-        record["graphs"].update(rows)
-        record["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        last_path.parent.mkdir(parents=True, exist_ok=True)
-        last_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-        print(format_table(rows, sets))
-        print(f"milestone: exit {code} ({ {0: 'passed', 1: 'failed', 3: 'errored'}[code] })")
-        return code
+        return execute_milestone(cfg, cfg_path, root, runner, tg_root, phases,
+                                 lock_path, last_path, force)
+    except (EvidenceError, OSError, subprocess.SubprocessError) as exc:
+        print(f"milestone: refused: {exc}", file=sys.stderr)
+        return EXIT_REFUSED
     finally:
         lock.release()
+
+
+def prior_execution(entry, key, identity):
+    """A cache hint is admissible only through its immutable terminal authority."""
+    if not isinstance(entry, dict) or entry.get("status") != "passed":
+        return None
+    authority = entry.get("authority")
+    if not isinstance(authority, dict):
+        return None
+    try:
+        path = Path(authority["path"])
+        if file_digest(path) != authority["sha256"]:
+            return None
+        terminal = read_document(path)
+        if terminal["identity"] != identity or terminal.get("force") or terminal.get("sourceChangedDuringRun"):
+            return None
+        row = terminal["executions"][key]
+        if row.get("status") != "passed":
+            return None
+        outcome = row["outcome"]
+        outcome_path = Path(outcome["path"])
+        if file_digest(outcome_path) != outcome["sha256"]:
+            return None
+        observed, _ = read_outcome(str(outcome_path), [row["graph"]])
+        if observed[row["graph"]]["status"] != "passed":
+            return None
+        return {**row, "authority": dict(authority)}
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def execute_milestone(cfg, config_path, root, runner, tg_root, phases,
+                      lock_path, last_path, force):
+    # Missing runners remain infrastructure errors, including when Git is absent.
+    if runner is None or not runner.is_file():
+        rows = {g: {"status": "errored", "cause": "runner not found",
+                    "duration_seconds": None} for names in phases.values() for g in names}
+        print(format_table(rows, {g: p for p, names in phases.items() for g in names}))
+        return EXIT_ERRORED
+    identity = binding_identity(root, config_path, runner, Path(tg_root) if tg_root else None, cfg)
+    invocation = lock_path.parent / "milestone-runs" / (time.strftime("%Y%m%dT%H%M%S", time.gmtime()) + "-" + uuid.uuid4().hex)
+    invocation.mkdir(parents=True, mode=0o700)
+    try:
+        previous = read_document(last_path)
+    except (OSError, ValueError):
+        previous = {}
+    atomic_document(invocation / "prior-record.json", previous, exclusive=True)
+    candidates = previous.get("executions", {}) if isinstance(previous, dict) and previous.get("identity") == identity else {}
+    available = {}
+    for key, hint in candidates.items():
+        sealed = prior_execution(hint, key, identity)
+        if sealed is not None:
+            available[key] = sealed
+    rows, sets = {}, {}
+    for phase, names in phases.items():
+        for graph in names:
+            key = f"{phase}:{graph}"
+            available.pop(key, None)
+    # Invalidate selected prior greens before launching. An interrupted attempt
+    # cannot leave yesterday's successful result as the current authority.
+    atomic_document(last_path, {"identity": identity, "executions": available,
+                                "activeInvocation": str(invocation)})
+    atomic_document(invocation / "start.json", {"identity": identity, "phases": phases,
+                                               "force": force}, exclusive=True)
+    drifted = False
+    for phase in ("default", "shared"):
+        names = phases[phase]
+        if not names:
+            continue
+        default_green = all(available.get(f"default:{g}", {}).get("status") == "passed"
+                            for g in cfg["default"])
+        if phase == "shared" and (not default_green or drifted) and not force:
+            got = {g: {"status": "not_run", "cause": "skipped: default set not green for current source identity",
+                       "duration_seconds": None, "report_dir": None} for g in names}
+            outcome = None
+        else:
+            got, outcome = run_set(runner, names, tg_root,
+                                   environment=cfg["environment"][phase],
+                                   stdout_path=invocation / f"{phase}.stdout.log")
+        current = binding_identity(root, config_path, runner, Path(tg_root) if tg_root else None, cfg)
+        if current != identity:
+            drifted = True
+            available.clear()
+            for row in got.values():
+                if row["status"] != "not_run":
+                    row["reported_status"] = row["status"]
+                    row["status"] = "errored"
+                    row["cause"] = "source/input/tool/configuration identity changed during the run"
+        proof = {"path": outcome, "sha256": file_digest(Path(outcome))} if outcome else None
+        for graph, row in got.items():
+            key = f"{phase}:{graph}"
+            row.update(graph=graph, phase=phase, outcome=proof)
+            rows[key], sets[key] = row, phase
+            available[key] = row
+        atomic_document(last_path, {"identity": identity, "executions": available,
+                                    "activeInvocation": str(invocation)})
+    code = exit_code(rows)
+    result_path = invocation / "result.json"
+    terminal = {"schema": "epic.milestone.result.v1", "identity": identity,
+                "executions": rows, "exitCode": code, "force": force,
+                "sourceChangedDuringRun": drifted}
+    atomic_document(result_path, terminal, exclusive=True)
+    authority = {"path": str(result_path), "sha256": file_digest(result_path)}
+    for key in rows:
+        available[key] = {**rows[key], "authority": authority}
+    # Keep the legacy graph-name projection for older readers; phase-qualified
+    # executions and their terminal authorities decide all new admissions.
+    graph_rows = {row["graph"]: row for row in available.values()}
+    atomic_document(last_path, {"schema": "epic.milestone.cache.v2", "identity": identity,
+                                "executions": available, "graphs": graph_rows,
+                                "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    print(format_table(rows, sets))
+    print(f"milestone: record {result_path}")
+    print(f"milestone: exit {code} ({ {0: 'passed', 1: 'failed', 3: 'errored'}[code] })")
+    return code
 
 
 if __name__ == "__main__":
