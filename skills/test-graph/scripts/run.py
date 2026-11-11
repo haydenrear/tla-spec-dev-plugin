@@ -147,6 +147,32 @@ def report_status(run_dirs: list[str]) -> str | None:
     return None
 
 
+def observed_green_report(run_dirs: list[str]) -> bool:
+    """A green task owns one complete report and its actual node envelopes."""
+    if len(run_dirs) != 1:
+        return False
+    try:
+        document = json.loads((Path(run_dirs[0]) / "summary.json").read_text())
+        execution = document["execution"]
+        expected = execution["expectedNodeIds"]
+        observed = execution["observedNodeIds"]
+        nodes = document["nodes"]
+        if (document.get("status") != "passed" or execution.get("complete") is not True
+                or not isinstance(expected, list) or not expected
+                or not all(isinstance(node, str) and node for node in expected)
+                or len(set(expected)) != len(expected)
+                or not isinstance(observed, list) or len(observed) != len(expected) or set(observed) != set(expected)
+                or not isinstance(nodes, list) or len(nodes) != len(expected)
+                or {node.get("nodeId") for node in nodes} != set(expected)
+                or any(node.get("status") != "passed" for node in nodes)):
+            return False
+        actual = collect_nodes(run_dirs[0], None)
+        return (len(actual) == len(expected) and {node["node"] for node in actual} == set(expected)
+                and all(node["status"] == "passed" for node in actual))
+    except (ValueError, OSError, TypeError, KeyError, AttributeError):
+        return False
+
+
 def failed_nodes(run_dirs: list[str]) -> list[str]:
     """Node ids whose envelope says ``failed`` (a completed, red assertion)."""
     red = []
@@ -215,6 +241,12 @@ def summarize_sweep(requested: list[str], records: list[dict], run_all: bool) ->
             entry["seconds"] = record.get("seconds")
             entry["run_dirs"] = list(record.get("runDirs") or [])
             entry["report_status"] = report_status(entry["run_dirs"])
+            if entry["report_status"] == "failed":
+                entry["status"] = "failed"
+                entry["reason"] = "the owned graph report contains a failed verdict despite process success"
+            elif not observed_green_report(entry["run_dirs"]):
+                entry["status"] = "errored"
+                entry["reason"] = "process succeeded without an owned complete nonempty passing report and node evidence"
         elif record.get("outcome") == "failed":
             entry["seconds"] = record.get("seconds")
             entry["run_dirs"] = list(record.get("runDirs") or [])
@@ -563,6 +595,8 @@ def build_outcome(summary: dict, monitor: InvocationMonitor | None, *, started: 
         nodes: list[dict] = []
         for run_dir in entry["run_dirs"]:
             nodes.extend(collect_nodes(run_dir, monitor))
+        if entry["status"] == "passed" and (not nodes or any(node["status"] != "passed" for node in nodes)):
+            entry = dict(entry, status="errored", reason="passing graph has missing or nonpassing node evidence")
         ran = entry["status"] != "not_run"
         graphs.append({
             "graph": entry["graph"],
@@ -593,9 +627,12 @@ def build_outcome(summary: dict, monitor: InvocationMonitor | None, *, started: 
     all_nodes = [n for g in graphs for n in g["nodes"]]
     node_counts = {f"nodes_{s}": sum(1 for n in all_nodes if n["status"] == s)
                    for s in ("passed", "failed", "errored", "not_run")}
+    overall = worst([g["status"] for g in graphs]) if summary["selection_known"] else "not_run"
+    if exit_code == 0 and overall != "passed":
+        exit_code = SWEEP_EXIT_ERRORED if overall == "errored" else 1
     return {
         "schema": OUTCOME_SCHEMA,
-        "status": worst([g["status"] for g in graphs]) if summary["selection_known"] else "not_run",
+        "status": overall,
         "exit_code": exit_code,
         "gradle_exit_code": gradle_rc,
         "exit_codes": {"0": "passed", "1": "failed or not run", str(SWEEP_EXIT_ERRORED): "errored"},
@@ -778,7 +815,7 @@ def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
         print(format_outcome_line(outcome), flush=True)
     # Last stdout line, always: the path a caller reads instead of grepping logs.
     print(outcome_path, flush=True)
-    return exit_code
+    return outcome["exit_code"]
 
 
 def main(argv: list[str] | None = None) -> int:

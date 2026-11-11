@@ -20,6 +20,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 import run  # noqa: E402
+from report_fixture import observed_report,temporary_observed_report
 
 
 def scheduled(task: str, graph: bool = True) -> dict:
@@ -30,6 +31,8 @@ def finished(task: str, outcome: str, **extra) -> dict:
     record = {"event": "finished", "task": task, "graph": True, "outcome": outcome,
               "seconds": 1.0, "runDirs": [], "failure": None, "skipMessage": None}
     record.update(extra)
+    if outcome == "passed" and "runDirs" not in extra:
+        record["runDirs"] = [temporary_observed_report()]
     return record
 
 
@@ -37,7 +40,10 @@ def run_dir_with_verdict(parent: str | Path, status: str, name: str = "20990101-
     """A run directory whose summary.json carries the graph's own verdict."""
     run_dir = Path(parent) / "build" / "validation-reports" / name
     run_dir.mkdir(parents=True, exist_ok=True)
-    (run_dir / "summary.json").write_text(json.dumps({"status": status}))
+    if status == "passed":
+        observed_report(run_dir)
+    else:
+        (run_dir / "summary.json").write_text(json.dumps({"status": status}))
     return str(run_dir)
 
 

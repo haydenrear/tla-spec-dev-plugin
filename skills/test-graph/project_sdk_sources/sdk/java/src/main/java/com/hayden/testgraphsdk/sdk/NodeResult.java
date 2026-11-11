@@ -108,6 +108,14 @@ public final class NodeResult {
 
     public NodeStatus status() { return status; }
 
+    NodeResult requireAssertionObservation(NodeSpec spec) {
+        if (spec.kind() == NodeSpec.Kind.ASSERTION && status == NodeStatus.PASSED && assertions.isEmpty()) {
+            assertion("nonempty_assertion_observations", false);
+            failureMessage = "assertion node recorded no observations";
+        }
+        return this;
+    }
+
     /** Project the published map into a ContextItem for downstream consumption. */
     public ContextItem toContextItem() {
         return new ContextItem(nodeId, new LinkedHashMap<>(published));

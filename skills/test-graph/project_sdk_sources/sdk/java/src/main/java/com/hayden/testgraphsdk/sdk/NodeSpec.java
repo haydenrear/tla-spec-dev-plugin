@@ -94,6 +94,7 @@ public final class NodeSpec {
     public NodeSpec cucumber()                       { this.reportCucumber = true; return this; }
 
     public String id() { return id; }
+    Kind kind() { return kind; }
 
     /**
      * Serialize to the spec JSON the plugin's describe-loader consumes.

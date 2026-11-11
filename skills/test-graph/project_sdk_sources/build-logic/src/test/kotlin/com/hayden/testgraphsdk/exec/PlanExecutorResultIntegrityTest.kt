@@ -20,6 +20,28 @@ import kotlin.test.assertTrue
 class PlanExecutorResultIntegrityTest {
 
     @Test
+    fun passedEmptyCustomAssertionCannotPublishContext() {
+        val (envelope, failure) = runSingleNode { invocation ->
+            invocation.resultOut.parentFile.mkdirs()
+            val now = Instant.now().toString()
+            invocation.resultOut.writeText(
+                """{"nodeId":"planned.node","status":"passed","startedAt":"$now","endedAt":"$now","assertions":[],"artifacts":[],"processes":[],"metrics":{},"logs":[],"published":{"poison":"must-not-flow"}}"""
+            )
+            CanonicalEnvelopeValidator.validateTentative(
+                MiniJson.obj(MiniJson.parse(invocation.resultOut.readText())), "fixture input", "planned.node"
+            )
+            println("[H1 schema valid/H2 current clock] " + invocation.resultOut.readText())
+            println("[H3 report custody] " + invocation.reportDir.asFile.absolutePath)
+        }
+        assertTrue(envelope.isFile, "executor failed before envelope: ${failure.stackTraceToString()}")
+        val parsed = MiniJson.obj(MiniJson.parse(envelope.readText()))
+        assertEquals("errored", parsed["status"])
+        assertEquals(emptyMap<String, String>(), MiniJson.stringMap(parsed["published"]))
+        assertContains(parsed["failureMessage"] as String, "no observations")
+        assertContains(failure.message.orEmpty(), "node planned.node errored")
+    }
+
+    @Test
     fun rejectsAChildResultForAnotherNodeBeforePublishedContextIsAccepted() {
         val impersonator = "x".repeat(8_192)
         val (envelope, failure) = runSingleNode { invocation ->
