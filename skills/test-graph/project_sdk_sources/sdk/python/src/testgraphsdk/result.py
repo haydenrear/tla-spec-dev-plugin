@@ -123,9 +123,9 @@ class NodeResult:
 
     def assertion(self, name: str, ok: bool) -> "NodeResult":
         self.assertions.append(
-            _Assertion(name=name, status=NodeStatus.PASSED if ok else NodeStatus.FAILED)
+            _Assertion(name=name, status=NodeStatus.PASSED if ok is True else NodeStatus.FAILED)
         )
-        if not ok and self.status == NodeStatus.PASSED:
+        if ok is not True and self.status == NodeStatus.PASSED:
             self.status = NodeStatus.FAILED
         return self
 

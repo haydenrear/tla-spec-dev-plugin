@@ -137,6 +137,9 @@ abstract class RunTestGraphTask : DefaultTask() {
     @get:Internal lateinit var sourcesDirsProvider: () -> List<File>
 
     @get:Internal abstract val projectDirectory: DirectoryProperty
+    /** Exact directory allocated by THIS task invocation; never inferred by scanning. */
+    @get:Internal var executedReportDirectory: File? = null
+        private set
     @get:Internal abstract val reportRoot: DirectoryProperty
     @get:Internal var resumeFromBuildPath: String? = null
     @get:Internal var resumeFromNodeId: String? = null
@@ -203,6 +206,7 @@ abstract class RunTestGraphTask : DefaultTask() {
             )
         }
         val reportDirFile = RunIds.allocate(reportRoot.get().asFile)
+        executedReportDirectory = reportDirFile
         val runId = reportDirFile.name
         val reportDir = project.layout.dir(project.provider { reportDirFile }).get()
         // A resumed run inherits the prefix nodes' results and input context, but

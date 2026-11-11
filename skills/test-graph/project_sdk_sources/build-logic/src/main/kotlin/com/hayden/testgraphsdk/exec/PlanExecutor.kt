@@ -1,5 +1,6 @@
 package com.hayden.testgraphsdk.exec
 
+import com.hayden.testgraphsdk.NodeKind
 import com.hayden.testgraphsdk.ValidationNodeSpec
 import com.hayden.testgraphsdk.isFinalizerNode
 import org.gradle.api.file.Directory
@@ -584,6 +585,15 @@ class PlanExecutor(
             )
         }
         val status = tentative.status
+        if (status == "passed" && spec.kind == NodeKind.ASSERTION &&
+            (tentative.value["assertions"] as List<*>).isEmpty()) {
+            return synthesized(
+                spec, "errored", "assertion node recorded no observations",
+                stdoutRel, inputContextRel, exitCode,
+                executorStartedAt, executorEndedAt,
+                rerunGuidance = rerunGuidance,
+            )
+        }
         if (status == "passed" && exitCode != 0) {
             return synthesized(
                 spec, "errored",

@@ -73,6 +73,12 @@ def node(spec: NodeSpec) -> Callable[[Callable[[NodeContext], NodeResult]], Call
                     result = body(ctx)
                 except BaseException as exc:
                     result = NodeResult.error(spec.id, exc)
+                # Fluent construction starts green; an assertion verdict becomes
+                # terminal only after at least one observation was recorded.
+                if (json.loads(spec.to_json())["kind"] == "assertion"
+                        and result.status.value == "passed" and not result.assertions):
+                    result.assertion("nonempty_assertion_observations", False)
+                    result.failure_message = "assertion node recorded no observations"
                 ended = datetime.now(timezone.utc)
                 result._stamp(started, ended)
 

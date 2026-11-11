@@ -85,6 +85,7 @@ public final class Node {
                         .endedAt(Instant.now());
             }
 
+            result.requireAssertionObservation(spec);
             if (telemetry != null) {
                 telemetry.nodeResult(
                         result.status().wire(),
