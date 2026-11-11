@@ -181,13 +181,66 @@ python3 <git-epic-workflow>/scripts/milestone.py loadTest   # targeted rerun
   start counts as **errored**.
 - Shared graphs are skipped (`not_run`) while default is not green. A targeted
   rerun of a shared graph alone checks the last recorded milestone
-  (`build/milestone-last.json`).
+  (`build/milestone-last.json`). The hint must resolve to a hash-bound immutable
+  terminal record and its unchanged nonempty passed SDK outcome. Commit, dirty
+  source, configuration, declared inputs, actual executable bytes, selected
+  runtime environment and architecture must match. Source/input changes during
+  the default phase invalidate admission before shared starts.
 - It prints a per-graph table and exits 0 passed, 1 failed or not run, 3
   errored with nothing failed, 2 refused. A config with no graphs is refused,
   not green.
 - `--force` or `SKILL_GATES=off` overrides every gate: it takes over a live
   lock, runs unlocked under an ancestor's, runs shared graphs although default
   is red, and lets an empty milestone exit 0 with a warning.
+
+### Phase environment and evidence utilities
+
+The same graph may occur in both sets. Use `--set default` or `--set shared`
+when selecting one phase. Each invocation retains unique `start.json`, raw
+phase stdout/stderr (exclusive mode 0600), prior hint and immutable `result.json` under
+`build/milestone-runs/`; `milestone-last.json` is only a cache hint. Keep the
+original reports and failure artifacts. Streams are persisted as bytes while the
+runner executes and teed live; terminal rows seal path, byte count and SHA-256.
+An interrupted attempt retains the emitted stream files even without a terminal
+result. Keep these raw files private; publish sanitized references and summaries.
+A forced run never authorizes normal
+cached shared admission. Missing or empty node observations are infrastructure
+errors; blocked shared graphs remain `not_run` with the cause.
+
+```toml
+[milestone.environment.default]
+LOAD_MODE = "default"
+[milestone.environment.shared]
+LOAD_MODE = "shared"
+[milestone.identity]
+paths = ["corpus-receipt.json", "toolchain-receipt.json"]
+tools = ["java", "uv"]
+environment = ["JAVA_HOME", "DATASET_VERSION"]
+```
+
+Declare compact immutable receipts for large external inputs; directory
+fingerprinting is bounded and external directories are refused. Tools resolve
+through the invocation PATH and their bytes are hashed. No absent input may be
+presented as a measured result.
+
+`evidence.py claims <input.json>` validates and renders a nonempty `claims`
+list. Each row has `id`, `verdict` (`met`, `missed`, or `unmeasured`), measured
+observation, baseline, target and hash-bound `evidence` paths. Unmeasured rows
+require `reason`; empty observations or criteria and nonfinite numbers cannot
+render as met. Zero and false are valid observations. This renders qualified
+claims; it does not invent comparisons or measurements.
+
+Before scheduling a product repair, run `evidence.py admit-repair <input.json>`.
+Require caller attribution `category: product`, owner, model anchor, reproducer
+argv and a SHA-bound terminal red. Environment/apparatus failures cannot grant
+product-repair admission. Preserve the red artifact independently of admission.
+
+Test Graph's `clean.py` keeps validation reports, sweeps, milestone state and
+registered `--retain` paths. It refuses a live milestone lock, never moves
+retained files and invokes only root `:clean` with explicit disposable targets.
+Subproject outputs remain outside this root cleanup. Inspect with `--dry-run`;
+register any additional retained root before cleaning. Partial Gradle failures
+remain nonzero and leave the retained originals in place.
 
 ## 2. When the review happens
 
