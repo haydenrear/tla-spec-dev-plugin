@@ -21,9 +21,16 @@ code=int(os.environ.get('LOCK_EXIT','0'))
 # not from Gradle's exit code alone; record the events a real graph task emits.
 ledger=os.environ.get('TEST_GRAPH_SWEEP_LEDGER')
 if phase=='run' and ledger:
+ report=Path.cwd()/'build'/'validation-reports'/('fixture-'+str(os.getpid()))
+ report.mkdir(parents=True)
+ node={'nodeId':'fixture.observed','status':'passed' if code==0 else 'failed','assertions':[{'name':'fixture observation','status':'passed' if code==0 else 'failed'}]}
+ (report/'envelope').mkdir()
+ (report/'envelope'/'fixture.observed.json').write_text(json.dumps(node))
+ (report/'execution-scope.json').write_text(json.dumps({'expectedNodeIds':[node['nodeId']]}))
+ (report/'summary.json').write_text(json.dumps({'status':node['status'],'execution':{'complete':True,'expectedNodeIds':[node['nodeId']],'observedNodeIds':[node['nodeId']]},'nodes':[node]}))
  with open(ledger,'a')as f:
   for event in ('scheduled','started'):f.write(json.dumps({'event':event,'task':'fixture','graph':True})+'\\n')
-  f.write(json.dumps({'event':'finished','task':'fixture','graph':True,'outcome':'passed' if code==0 else 'failed','runDirs':[]})+'\\n')
+  f.write(json.dumps({'event':'finished','task':'fixture','graph':True,'outcome':'passed' if code==0 else 'failed','runDirs':[str(report)]})+'\\n')
 raise SystemExit(code)
 '''
 
