@@ -1,5 +1,16 @@
 # Finalization — epic/evidence-sized-delivery (#234)
 
+> **Amendment, 2026-11-11 (schedule revision 2).** At final review the owner added **ESD-07** (#270,
+> PR #271, merged `f37b87c4`). It makes step sizing favor batching, keeps every check advisory with a
+> recorded override, adds a pre-run review of existing graph nodes and instruments with fix-ahead
+> tickets, makes resume-from-the-failed-node the default rerun, and fixes MAN-06. Prose only, no-op
+> model (`specs/.history/evidence-sized-delivery/ticket-006-ESD-07`); doc-contract subset 407 passed /
+> 1 skipped. **ESD-06 measured the tip before ESD-07**, so the CAPACITY and ARCH verdicts below are
+> invalidated for the sections ESD-07 changed (`step-sizing.md` §8). ESD-07's local signals are
+> calibration only: E1–E4 re-derived 3 agree / 1 partly (was 1 / 2 / 1), written after seeing the
+> outcomes; non-node scope went from 0 to 27 of 27. The eval budget has 2 runs left, so no blind
+> re-measurement was run. Next measurement: a blind replay on new episodes (`../ESD-07/README.md`).
+
 Integrated tip validated: `0beb5e83` (`tip.txt`), all six ticket PRs merged (#255–#260), origin/main
 unchanged since the base `a1ff56cf` (no default-branch integration needed). Run 2026-11-10, serially
 (no concurrent graph/eval/suite on the host — the epic's own F1 lesson).
@@ -162,7 +173,7 @@ doc-contract pytest subset + spec-unit + TLC per ticket, one integrated eval che
 | ESD-05-DF-01 | minor | fixed (epic agent, wave-5 review) |
 | ESD-05-DF-02 | minor | consumed (ESD-06 base/tip checkout split) |
 | ESD-06-DF-01, -04 | minor | carried → #263 |
-| ESD-06-DF-02, -03 | minor | carried → #264 |
+| ESD-06-DF-02, -03 | minor | carried → #264; items 1–2 consumed by ESD-07 (#270) |
 
 ## 8. Not yet done (needs owner approval first)
 

@@ -1,0 +1,6 @@
+  calculated (optimistic):  val = 1.4E-9
+  based on the actual fingerprints:  val = 3.3E-11
+765259 states generated, 36577 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 17.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 25 and the 95th percentile is 8).
+Finished in 01s at (2026-11-10 07:56:42)

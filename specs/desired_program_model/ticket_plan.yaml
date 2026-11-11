@@ -500,7 +500,7 @@ tickets:
     evidence: []
 - id: ESD-07
   title: Batch-favoring step sizing, advisory checks, pre-run graph review and resume-first reruns
-  status: planned
+  status: closed
   github_issue: https://github.com/haydenrear/tla-spec-dev-plugin/issues/270
   schedule_revision: 2
   depends_on:
