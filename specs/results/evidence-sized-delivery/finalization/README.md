@@ -80,7 +80,7 @@ policy; wave 6 (evaluation) is reviewed here. **No wave review was answered by t
 implicit decision in them is listed for the final review (the epic PR's "Decisions awaiting your
 acceptance").
 
-## 5. Manual product-testing phase (finalize §2c) — PENDING OWNER
+## 5. Manual product-testing phase (finalize §2c) — agent pass done (§5a); owner disposition pending
 
 The product here is instruction text, so the manual phase is the owner reading the routes an agent
 takes. Prepared scenarios (tester: owner; build: the epic tip; record results in the PR):
@@ -91,6 +91,35 @@ takes. Prepared scenarios (tester: owner; build: the epic tip; record results in
 4. **Finalizer path.** `finalize.md` §2c *Next epic's starting estimate* → §6 below is the first instance; is it what the next planner needs?
 
 Untested scenarios need an explicit owner disposition before the workflow is closed.
+
+### 5a. Agent-executed pass (2026-11-10, at the owner's request)
+
+Tester: the epic agent (Claude Opus 5.5, `claude-opus-5-5`, Claude Code 2.1.322); scenario 3 by a
+fresh review subagent of the same model that was given only the pages, the node and the runner sources
+(no issues, no `specs/results/`). Build: epic tip `70d31ac7`, detached scratch worktree. Every command
+ran against scratch copies; nothing here changed the epic's plan, ledger or issues. **This pass does not
+replace the owner's reading**; it records what the pages and their tools actually do when followed.
+
+| # | Scenario | Result | What happened |
+| --- | --- | --- | --- |
+| 1 | Planner | **pass, with gaps** | `SKILL.md` → `plan-and-schedule.md` §3a → `step-sizing.md`: 2 links. From those pages alone I sized a hypothetical 4-ticket follow-up epic (#261/#262 as TGS-01..04): scope items listed per ticket with interacting pairs; review 3–5 independent / 2 coupled items (low confidence: prior is prose, this is code); verification 1–2 items until the probe is fixed (§9.2, `specWorkflow` deterministic red), so verification binds; batch 1 item/wave, instrument fix first, `cadence: wave`, `gate: true`, `eval_budget` 0 (no prose change, §4 cadence table). Written into `wave`/`depends_on`/`validation`/`review_policy`/`eval_budget`; `validate_epic_plan.py --strict` **OK**. My first draft drew 3 warnings (invented `walkthrough: always`, `blocks` not the reverse of `depends_on`, evaluation ticket with no goal); §4b and the validator caught each. |
+| 2 | Ticket | **pass on the rules; two tool defects** | Rendered TGS-03's assignment from the `epic-ticket.md` template with the Evidence slice filled; `validate_assignment.py --strict` **OK**. Recorded the real `failure_cleanup_probe` red per `bug_attribution.md` §4.3/§6a with `census.py record`: origin (validation bin), channel (`test-graph`, run id), effect (false red, `adapters_resolve` skipped), the §6a item-3 control, cost as validation repair — all fit in existing prose, as §4.3 intends. `absorb` then `check`: **FAIL `dangling_duplicate`** (below). |
+| 3 | Review | **pass: flagged #261 independently, plus two new defects** | Hops: `agent_roles.md` § review → § Evidence routing row → `graph-architecture-review.md` (3 links). Five questions on `spec.workflow.cleanup`: 3 defects, 1 partial, 1 nothing. The reviewer derived the empty-path deletion from the runner itself (`PlanExecutor.kt:181-184`: a skipped dependency counts as executed; finalizer runs after it), not from the page's own verdict. **Caveat:** the page's *Worked review* (line 376) already states this verdict for this node, so the test is not blind. |
+| 4 | Finalizer | **partial** | §6 above carries the keyed estimate, binding constraint and uncertainty that §2c asks for. It lacks §2c's explicit *REACH and BLIND on the affected components* and *recurrence of attributed families* lines, and compares against "planned" rather than per-wave *Delivery velocity and step size* blocks (only wave 5 had one: this plan predates `step-sizing.md`). Discoverability: the estimate's home is "the epic PR" (`finalize.md` §2c, `agent_roles.md` row *epic: finalizer*), but the planner row only cites the page section; nothing says how to find that PR. A body search (`gh pr list --state all --search "\"Next epic's starting estimate\" in:body"`) finds #265 today, and only because the heading is quoted exactly. |
+
+**New findings from this pass** (filed as noted; none blocks this epic, which changed no code):
+
+| ID | Severity | Finding | Where |
+| --- | --- | --- | --- |
+| MAN-01 | minor | `census.py record --duplicate-of` resolves only within this epic's ledger. A recurrence of an earlier epic's finding — exactly §6a's recurrence case — passes `record` (rc 0) and then fails `check` with `dangling_duplicate`. `deferment.md` says "a finding seen before is recorded with `--duplicate-of`" with no cross-epic rule. Workaround used in this epic: say "recurrence of <id>" in prose (ESD-01-DF-02). | `census.py:203`, `deferment.md:151` → #262 (tool), #264 (docs) |
+| MAN-02 | minor | `census.py record --surface` writes only `surface.production`; an instrument path (`test_graph/...`) lands under `production`, against §6a "an `area` on an instrument defect names the instrument". | `census.py:349,394` → #262 |
+| MAN-03 | minor | `validate_assignment.py` passes an assignment whose prose bullets still hold template placeholders (`origin/epic/<slug>`, `open ticket <stable-ticket-id>`, `Refs #<issue-number>`). | `validate_assignment.py` → #264 |
+| MAN-04 | **high** | `spec.workflow.cleanup` line 35 `.assertion("fixture repo path was published", bool(str(repo)))` is always true (`str(Path(""))` is `"."`): the node reports a published path exactly when it is about to delete `test_graph/`. | `test_graph/sources/spec_workflow_cleanup.py:35` → #261 |
+| MAN-05 | medium (inferred) | The cleanup depends only on `spec.workflow.repo` but must run after start/complete/close; it does so only because the graph walks dependencies in list order (`GraphModel.kt:20-36`). Reordering would delete the fixture repo mid-run. | → #261 |
+| MAN-06 | minor | Routing rows cite pages by bare filename and wrong section labels: `agent_roles.md:254` names `human-review.md` "§3.3 validation-specific rows" (§3.3 is *Where the bugs probably are*) and "§3.5 *Delivery velocity and step size*" (a bullet inside §3.5 *Suggested next steps*); the row points at checklist A–H, not the five questions, and the page never maps one to the other. `finalize.md` §2c's planner pointer names a page, not a findable location. | → #264 |
+
+Owner disposition still needed: whether this agent-executed pass is accepted for the four scenarios, or
+which you will read yourself.
 
 ## 6. Next epic's starting estimate (finalize §2c)
 
@@ -139,7 +168,7 @@ doc-contract pytest subset + spec-unit + TLC per ticket, one integrated eval che
 
 - External semantic review of the draft epic PR (finalize §3), then workflow promotion/close with
   `close_tickets.py` (§4) — **the closed snapshot is irreversible and is written only after approval**.
-- Manual scenarios §5.
+- Owner disposition of the manual scenarios (§5; agent-executed pass recorded in §5a).
 - Merge to `main` (owner only), then the one-pass worktree sweep (§6): 7 ticket/epic worktrees plus
   the detached measurement checkout `/Volumes/dev/tla-spec-dev-plugin-esd06-base` (local commit
   `14e3247c`, case data only) and ESD-06's `/private/tmp/esd06-view-*`, `/private/tmp/e-*`.
