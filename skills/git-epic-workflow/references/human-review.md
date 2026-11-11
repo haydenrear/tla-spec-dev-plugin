@@ -197,9 +197,13 @@ python3 <git-epic-workflow>/scripts/milestone.py loadTest   # targeted rerun
 
 The same graph may occur in both sets. Use `--set default` or `--set shared`
 when selecting one phase. Each invocation retains unique `start.json`, raw
-phase stdout, prior hint and immutable `result.json` under
+phase stdout/stderr (exclusive mode 0600), prior hint and immutable `result.json` under
 `build/milestone-runs/`; `milestone-last.json` is only a cache hint. Keep the
-original reports and failure artifacts. A forced run never authorizes normal
+original reports and failure artifacts. Streams are persisted as bytes while the
+runner executes and teed live; terminal rows seal path, byte count and SHA-256.
+An interrupted attempt retains the emitted stream files even without a terminal
+result. Keep these raw files private; publish sanitized references and summaries.
+A forced run never authorizes normal
 cached shared admission. Missing or empty node observations are infrastructure
 errors; blocked shared graphs remain `not_run` with the cause.
 

@@ -49,9 +49,12 @@ a warning.
 from __future__ import annotations
 
 import argparse
+import codecs
+from contextlib import ExitStack
 import hashlib
 import json
 import os
+import selectors
 import socket
 import subprocess
 import sys
@@ -333,16 +336,53 @@ def run_set(runner: Path | None, graphs: list[str], tg_root: str | None,
     try:
         env = os.environ.copy()
         env.update(environment or {})
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, env=env)
+        chunks = []
+        # Persist bytes as they arrive, before decoding/teeing. Opening with an
+        # exclusive 0600 descriptor avoids a permissions window or overwriting
+        # earlier attempts. Interrupted attempts retain their emitted streams.
+        with ExitStack() as stack:
+            files = {}
+            if stdout_path is not None:
+                for name in ("stdout", "stderr"):
+                    path = stdout_path if name == "stdout" else stdout_path.with_name(
+                        stdout_path.name.removesuffix(".stdout.log") + ".stderr.log")
+                    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                    files[name] = stack.enter_context(os.fdopen(descriptor, "wb", buffering=0))
+            with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env) as proc:
+                try:
+                    with selectors.DefaultSelector() as selector:
+                        for name, pipe, live in (("stdout", proc.stdout, sys.stdout),
+                                                 ("stderr", proc.stderr, sys.stderr)):
+                            selector.register(pipe, selectors.EVENT_READ,
+                                              (name, live, codecs.getincrementaldecoder("utf-8")("replace")))
+                        while selector.get_map():
+                            for key, _ in selector.select():
+                                name, live, decoder = key.data
+                                raw = os.read(key.fileobj.fileno(), 65536)
+                                if raw:
+                                    if name in files:
+                                        files[name].write(raw)
+                                    if name == "stdout":
+                                        chunks.append(raw)
+                                    live.write(decoder.decode(raw))
+                                    live.flush()
+                                else:
+                                    live.write(decoder.decode(b"", final=True))
+                                    live.flush()
+                                    selector.unregister(key.fileobj)
+                except BaseException:
+                    proc.terminate()
+                    try:
+                        proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        proc.kill()
+                        proc.wait()
+                    raise
+        return read_outcome(b"".join(chunks).decode("utf-8", "replace"), graphs)
     except OSError as exc:
         return {g: {"status": "errored", "cause": f"runner failed to start: {exc}",
                     "duration_seconds": None, "report_dir": None} for g in graphs}, None
-    sys.stdout.write(proc.stdout)
-    if stdout_path is not None:
-        with stdout_path.open("x", encoding="utf-8") as stream:
-            os.chmod(stdout_path, 0o600)
-            stream.write(proc.stdout)
-    return read_outcome(proc.stdout, graphs)
+
 
 
 def exit_code(rows: dict[str, dict]) -> int:
@@ -519,7 +559,13 @@ def execute_milestone(cfg, config_path, root, runner, tg_root, phases,
         proof = {"path": outcome, "sha256": file_digest(Path(outcome))} if outcome else None
         for graph, row in got.items():
             key = f"{phase}:{graph}"
-            row.update(graph=graph, phase=phase, outcome=proof)
+            streams = {}
+            for name in ("stdout", "stderr"):
+                path = invocation / f"{phase}.{name}.log"
+                if path.is_file():
+                    streams[name] = {"path": str(path), "sizeBytes": path.stat().st_size,
+                                     "sha256": file_digest(path)}
+            row.update(graph=graph, phase=phase, outcome=proof, streams=streams)
             rows[key], sets[key] = row, phase
             available[key] = row
         atomic_document(last_path, {"identity": identity, "executions": available,

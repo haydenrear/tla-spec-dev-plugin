@@ -14,7 +14,9 @@ import importlib.util
 import io
 import json
 import os
+import signal
 import socket
+import time
 import subprocess
 import sys
 import tempfile
@@ -96,6 +98,47 @@ class MilestoneCase(unittest.TestCase):
         self.lock.parent.mkdir(parents=True, exist_ok=True)
         self.lock.write_text(json.dumps({"pid": pid, "host": socket.gethostname(),
                                          "acquired_at": "earlier", **extra}))
+
+
+class FailureCustodyTest(MilestoneCase):
+    def test_stderr_only_failure_is_retained_privately(self):
+        self.config(default=['gate'], shared=['load'])
+        (self.root / 'fake_run.py').write_text(
+            "import sys\nsys.stderr.write('pre-SDK diagnostic\\n')\nsys.exit(3)\n")
+        self.assertEqual(self.run_ms()[0], ms.EXIT_ERRORED)
+        path = next((self.root / 'build/milestone-runs').glob('*/default.stderr.log'))
+        self.assertEqual(path.read_text(), 'pre-SDK diagnostic\n')
+        self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+
+
+    def test_emitted_bytes_survive_controller_interruption(self):
+        self.config(default=['gate'])
+        (self.root / 'fake_run.py').write_text(
+            "import sys,time\nprint('stdout before completion',flush=True)\n"
+            "print('stderr before completion',file=sys.stderr,flush=True)\ntime.sleep(60)\n")
+        with tempfile.TemporaryFile() as live:
+            process = subprocess.Popen([sys.executable, '-B', str(SCRIPT)], cwd=self.root,
+                                       stdout=live, stderr=live)
+            try:
+                deadline = time.monotonic() + 10
+                paths = []
+                while time.monotonic() < deadline:
+                    paths = list((self.root / 'build/milestone-runs').glob('*/default.*.log'))
+                    if len(paths) == 2 and all(path.stat().st_size > 0 for path in paths):
+                        break
+                    time.sleep(0.02)
+                self.assertIsNone(process.poll(), 'runner must still be active at observation')
+                self.assertEqual(len(paths), 2)
+                self.assertEqual({path.read_text() for path in paths},
+                                 {'stdout before completion\n', 'stderr before completion\n'})
+                process.send_signal(signal.SIGINT)
+                self.assertNotEqual(process.wait(timeout=10), 0)
+                self.assertTrue(all(path.stat().st_size > 0 for path in paths))
+                self.assertTrue(all(path.stat().st_mode & 0o777 == 0o600 for path in paths))
+            finally:
+                if process.poll() is None:
+                    process.send_signal(signal.SIGINT)
+                    process.wait(timeout=10)
 
 
 class SealedMetadataTest(MilestoneCase):
