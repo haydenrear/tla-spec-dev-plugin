@@ -188,3 +188,15 @@
   fix: none
   skill_change: "proposed(repository root: declare the test environment, or document `uv run --no-project --python 3.14 --with pytest --with pyyaml pytest tests`)"
   pinned_by: null
+
+- id: REGRESS-EVAL-01
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: instrument
+  area: "the eval harness's per-case fixture placement in evals/lib/place.sh"
+  observed: "after the verify arms were added, the escalation case scored 0.80 with `escalates` passing. The kept trace shows why: 'find: test_graph/build/validation-reports/20261112-090000: No such file or directory'. The fixture was never placed (no place arm), so the agent escalated because it could read nothing, and attributed origin `unknown`"
+  effect: "false green on `escalates` and `no-edit-to-product-or-check` (weight 6 of 10): the case passed its two heaviest graders without the agent ever seeing the failure it is about. Only the attribution grader, which needs the report read, exposed it"
+  fix: "place arms added for both cases"
+  pinned_by: null
+  pin_note: "same gap as REGRESS-REVIEW-03, on the placement side: a case with a fixture/ and no place arm runs silently without it"
+  skill_change: "proposed(evals/lib: the same pre-flight as REGRESS-REVIEW-03 should name a case that has fixture/ and no place arm)"

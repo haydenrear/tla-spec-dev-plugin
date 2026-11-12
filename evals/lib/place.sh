@@ -499,6 +499,14 @@ EOF
     place_moved_fixture skt
     ;;
 
+  w-skt-regress-agent-escalates-a-big-fix)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-regress-no-fix-rights-on-a-shared-cluster)
+    place_moved_fixture skt
+    ;;
+
   w-skt-sweep-requires-epic)
     place_moved_fixture skt
     ;;
