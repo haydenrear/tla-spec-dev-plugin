@@ -39,9 +39,9 @@
   observed: "both new cases scored 0.00 with every verdict file missing, including the forbid and within-budget ones; neither case had a verify arm"
   effect: "false red: two billed runs ($0.39) measured the missing arm, not the agents. Also caught by operator-running-a-shipped-instrument (the eval run itself), read correctly only because ALL verdicts were absent"
   fix: "arms added for both cases"
-  pinned_by: null
-  pin_note: "nothing checks that a case directory has a verify arm; verify.sh's own comment calls a missing arm 'the silent one'"
-  skill_change: "proposed(evals/lib: a pre-flight that names any case with expect.json and no verify arm, beside check_cases_parse.py)"
+  pinned_by: "tests/test_agent_integration_harness.py::test_the_hooks_handle_every_case_that_exists"
+  pin_note: "CORRECTED: the pin already existed and went red on these two cases. It was not run until after two billed eval rounds, because the repository tests/ suite has no declared environment (REGRESS-ENV-01) and takes 28 minutes"
+  skill_change: "proposed(evals/run.sh: run that one test in its pre-flight, beside check_cases_parse.py, so a missing arm is named before a run is billed)"
 
 - id: REGRESS-REVIEW-04
   severity: minor
@@ -197,6 +197,26 @@
   observed: "after the verify arms were added, the escalation case scored 0.80 with `escalates` passing. The kept trace shows why: 'find: test_graph/build/validation-reports/20261112-090000: No such file or directory'. The fixture was never placed (no place arm), so the agent escalated because it could read nothing, and attributed origin `unknown`"
   effect: "false green on `escalates` and `no-edit-to-product-or-check` (weight 6 of 10): the case passed its two heaviest graders without the agent ever seeing the failure it is about. Only the attribution grader, which needs the report read, exposed it"
   fix: "place arms added for both cases"
+  pinned_by: "tests/test_agent_integration_harness.py::test_the_hooks_handle_every_case_that_exists"
+  pin_note: "same test as REGRESS-REVIEW-03: it covers the place arms as well, and passes now that both are registered"
+  skill_change: "see REGRESS-REVIEW-03"
+
+- id: REGRESS-ENV-02
+  severity: minor
+  channel: the-suite
+  origin: environment
+  area: "the primary checkout's local state, as seen by tests/test_reference_adapters_carry_the_bootstrap.py"
+  observed: "two tests fail in the primary checkout with `ModuleNotFoundError: No module named 'spec_double_compiler.runtime'` and pass, 49 of 49 with the harness file, in a clean worktree of the same commit (f3f23ee3)"
+  effect: "false red against the branch: the commit is the same, only the checkout differs. Cause not investigated"
+  fix: none
   pinned_by: null
-  pin_note: "same gap as REGRESS-REVIEW-03, on the placement side: a case with a fixture/ and no place arm runs silently without it"
-  skill_change: "proposed(evals/lib: the same pre-flight as REGRESS-REVIEW-03 should name a case that has fixture/ and no place arm)"
+
+- id: REGRESS-PRE-01
+  severity: minor
+  channel: the-suite
+  origin: unknown
+  area: "tests/test_architecture_tags.py::test_the_same_tag_control_holds"
+  observed: "fails on this branch and identically on main (d98b20eb) in a clean worktree"
+  effect: "pre-existing red, not introduced here; not investigated"
+  fix: none
+  pinned_by: null
