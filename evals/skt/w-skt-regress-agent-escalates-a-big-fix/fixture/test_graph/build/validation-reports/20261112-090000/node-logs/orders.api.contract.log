@@ -1,0 +1,5 @@
+[orders.api.contract] GET http://127.0.0.1:18080/orders/17 -> 200
+[orders.api.contract] body: {"id": 17, "total": 1250}
+[orders.api.contract] AssertionError: response_carries_currency: 'currency' not in response
+[orders.api.contract] note: OrderOut (src/orders/schema.py) declares no `currency`;
+[orders.api.contract]       Order (src/orders/model.py) has no `currency` column, so there is nothing to serialise.
