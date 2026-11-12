@@ -182,7 +182,7 @@ def test_a_graph_with_no_fresh_report_is_incomplete_not_green(repo, tmp_path):
 def test_a_resume_that_passes_is_green_and_says_it_was_a_resume(repo, tmp_path):
     new(repo)
     harness = stub_harness(tmp_path, """
-        write_summary("alpha", "errored"); write_summary("alpha", "passed", mode="resume")
+        write_summary("alpha", "errored"); write_summary("alpha", "passed", mode="resume-from-node")
     """)
     proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness), "--json")
     assert proc.returncode == 0
@@ -277,7 +277,7 @@ def test_a_pass_older_than_the_fix_or_only_a_resume_is_not_green(repo, tmp_path)
         write_summary("alpha", "passed")
         commit("test_graph/fixture.txt", "fixed\\n")
         commit("test_graph/other.txt", "fixed\\n")
-        write_summary("beta", "passed", mode="resume")
+        write_summary("beta", "passed", mode="resume-from-node")
     """)
     proc = skt(repo, "run", "r1", "alpha", "beta", "--fix", "--isolated", "x",
                "--meta-harness", str(harness), "--json")
@@ -337,3 +337,111 @@ def test_a_red_with_no_attribution_row_is_named_as_a_gap(repo, tmp_path):
     gaps = json.loads(proc.stdout)["attribution_gaps"]
     assert any("row 1 lacks: area" in g for g in gaps)
     assert any(g.startswith("alpha went red") for g in gaps)
+
+
+# ---- found by review and by hand (REGRESS-REVIEW-*, REGRESS-MAN-* in the attribution record)
+
+def test_an_untracked_file_is_a_change_and_close_will_not_delete_it(repo, tmp_path):
+    record = new(repo)
+    harness = stub_harness(tmp_path, """
+        (Path(wt) / "src").mkdir(exist_ok=True)
+        (Path(wt) / "src" / "new_product.py").write_text("x = 1\\n" * 100)
+        write_summary("alpha", "passed")
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 4, proc.stdout
+    result = json.loads(proc.stdout)
+    assert result["fixes"]["untracked"] == ["src/new_product.py"] and result["fixes"]["lines"] == 100
+    refused = skt(repo, "close", "r1")
+    assert refused.returncode == 2 and "src/new_product.py" in refused.stderr
+    assert (Path(record["worktree"]) / "src" / "new_product.py").exists()
+
+
+def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
+    new(repo)
+    first = stub_harness(tmp_path, """
+        commit("test_graph/fixture.txt", "fixed\\n")
+    """)
+    assert skt(repo, "run", "r1", "alpha", "--fix", "--isolated", "x", "--meta-harness", str(first)).returncode == 3
+    second = stub_harness(tmp_path, """
+        write_summary("alpha", "passed")
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(second), "--json")
+    assert proc.returncode == 0, proc.stdout
+    result = json.loads(proc.stdout)
+    assert result["attempt"] == 2 and result["over_budget"] == []
+    assert len(result["fixes"]["commits"]) == 1  # the branch still carries attempt 1's fix
+
+
+def test_a_stale_report_in_a_reused_attempt_directory_is_not_read(repo, tmp_path):
+    record = new(repo)
+    assert skt(repo, "run", "r1", "alpha", "--dry-run").returncode == 0
+    (Path(record["state"]) / "attempt-1" / "agent-report.json").write_text(
+        json.dumps({"graphs": [], "escalation": {"reason": "left over"}}))
+    harness = stub_harness(tmp_path, 'write_summary("alpha", "passed")')
+    proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 0, proc.stdout
+    assert json.loads(proc.stdout)["agent_report_problem"] == "the agent wrote no report"
+
+
+def test_only_an_escalation_object_escalates(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        write_summary("alpha", "passed")
+        agent_report.write_text(json.dumps({"graphs": [], "attribution": [], "escalation": "none"}))
+    """)
+    assert skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness)).returncode == 0
+
+
+def test_one_node_run_alone_is_not_a_pass(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        write_summary("alpha", "errored"); write_summary("alpha", "passed", mode="run-only-node")
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 3
+    assert json.loads(proc.stdout)["graphs"][0]["status"] == "needs_full_run"
+
+
+def test_running_a_graph_more_often_than_the_limit_is_escalated(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        for _ in range(3): write_summary("alpha", "failed")
+        write_summary("alpha", "passed")
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--fix", "--isolated", "x", "--max-runs", "3",
+               "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 4
+    assert "run 4 times" in json.loads(proc.stdout)["over_budget"][0]
+
+
+def test_no_test_graph_project_is_one_line_not_a_traceback_or_a_red(repo):
+    subprocess.run(["git", "-C", str(repo), "rm", "-rq", "test_graph"], check=True)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", str(repo),
+                    "commit", "-qm", "no graphs"], check=True)
+    new(repo)
+    proc = skt(repo, "run", "r1", "alpha", "--dry-run")
+    assert proc.returncode == 2 and "Traceback" not in proc.stderr
+    assert "no test graph project" in proc.stderr
+
+
+def test_flags_may_come_before_or_between_the_positionals(repo):
+    new(repo)
+    proc = skt(repo, "run", "r1", "--fix", "--isolated", "x", "alpha", "--dry-run", "beta")
+    assert proc.returncode == 0, proc.stderr
+    assert "alpha, beta" in proc.stdout
+
+
+def test_close_refuses_to_run_from_inside_its_own_worktree(repo):
+    record = new(repo)
+    proc = skt(Path(record["worktree"]), "close", "r1")
+    assert proc.returncode == 2 and "inside the worktree" in proc.stderr
+    assert Path(record["worktree"]).is_dir()
+
+
+def test_declared_effects_reads_nested_calls_and_bare_names(tmp_path):
+    sys.path.insert(0, str(CLI.parents[1]))
+    from skt import regress
+    node = tmp_path / "n.py"
+    node.write_text('S.side_effects(SideEffect.environment("provision"), "net:external", "browser")\n')
+    assert regress.declared_effects([str(node)]) == ["browser", "environment:provision", "net:external"]

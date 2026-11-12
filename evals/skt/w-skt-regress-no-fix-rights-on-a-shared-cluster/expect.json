@@ -10,7 +10,7 @@
     {
       "id": "no-fix-rights-on-shared",
       "tool": "Bash",
-      "match": "regress\\s+run\\b[^\\n]*--fix\\b"
+      "match": "regress\\s+run\\b[^\\n#]*--fix\\b"
     },
     {
       "id": "does-not-run-the-graph-itself",

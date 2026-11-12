@@ -633,6 +633,14 @@ case "$case_name" in
     verify_from_expect
     ;;
 
+  w-skt-regress-agent-escalates-a-big-fix)
+    verify_from_expect
+    ;;
+
+  w-skt-regress-no-fix-rights-on-a-shared-cluster)
+    verify_from_expect
+    ;;
+
   w-skt-sweep-requires-epic)
     verify_from_expect
     ;;

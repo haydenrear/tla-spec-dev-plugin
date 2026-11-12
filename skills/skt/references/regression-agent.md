@@ -26,6 +26,10 @@ skt regress info <id> | list
 skt regress close <id>                 # remove the worktree; a branch holding fix commits is kept
 ```
 
+Flags may come before, after or between the positional arguments. `close`
+refuses while the worktree holds uncommitted or untracked work, and refuses to
+run from inside the worktree it removes.
+
 ## Two modes
 
 | | report-only (default) | `--fix` |
@@ -76,9 +80,17 @@ spec or model, requires deciding what correct behaviour is, was tried once and
 did not work, or has an unknown cause.
 
 The budget is measured by `skt` from git, not taken from the agent:
-`--max-fix-lines` (default 60 changed lines in total) and `--max-fix-files`
-(default 4). A run over it is `escalated` even when every graph is green. So is
-any change to the tree in a report-only run.
+`--max-fix-lines` (default 60 changed lines in total), `--max-fix-files`
+(default 4) and `--max-runs` (default 5 runs of one graph). A run over any of
+them is `escalated` even when every graph is green. So is any change to the
+tree in a report-only run.
+
+- Files the agent created and did not `git add` count as changes. Only the
+  test graph's own `build/` output is left out.
+- The line and file budget is for the whole `regress/<id>` branch. Fixes made
+  over several attempts under one id add up.
+- The report-only check looks only at what the current attempt changed, so a
+  report-only rerun after a fix attempt is not blamed for the earlier fix.
 
 ## The verdict is not the agent's
 
@@ -94,8 +106,12 @@ only reports written after the run started.
 | 2 | | usage, including `--fix` without `--isolated` |
 
 `needs_full_run`: once the agent has changed the tree, a pass counts only if it
-is a full run that finished after the last fix commit. A resume proves only the
-nodes from the failed one onward.
+is a full run that finished after the last fix commit. While the tree is
+unchanged, a pass by resume from the failed node counts, because the nodes
+before it passed in the same run. A single node run on its own never counts.
+
+A crash inside `skt regress` exits 3, never 1: exit 1 always means a graph's
+own report is red.
 
 ## What comes back
 

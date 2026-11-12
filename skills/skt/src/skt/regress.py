@@ -2,7 +2,7 @@
 
 The split this exists for: a big model writes a large batch of change and
 never runs the graphs itself; a cheap model, driven through meta-harness,
-runs them on a detached worktree of the pushed commit, retries what is
+runs them in a worktree of the pushed commit, retries what is
 retryable, and reports. Running and re-running graphs is most of what
 validation costs and none of it needs the big model.
 
@@ -232,10 +232,16 @@ def declared_effects(sources: list[str]) -> list[str]:
             text = Path(source).read_text(errors="replace")
         except OSError:
             continue
-        for call in re.findall(r"side_effects\(([^)]*)\)", text):
-            found.update(re.findall(r"[\"']([a-z]+:[A-Za-z0-9_.-]+)[\"']", call))
+        for start in (m.end() for m in re.finditer(r"side_effects\(", text)):
+            depth, end = 1, start
+            while end < len(text) and depth:
+                depth += {"(": 1, ")": -1}.get(text[end], 0)
+                end += 1
+            call = text[start:end - 1]
             found.update(f"environment:{m}" for m in
                          re.findall(r"SideEffect\.environment\(\s*[\"'](\w+)[\"']", call))
+            bare = re.sub(r"SideEffect\.\w+\([^)]*\)", "", call)
+            found.update(re.findall(r"[\"']([A-Za-z][\w:.-]*)[\"']", bare))
         if re.search(r"environment_?[rR]epository", text):
             found.add("environment:repository")
     return sorted(found)
@@ -365,6 +371,7 @@ WHEN YOU ARE DONE, OR HAVE ESCALATED, write this JSON file, and nothing else, to
 
 {skeleton}
 
+`escalation` is null unless you escalated; when you did, it is the object described above.
 `attribution` is an empty list only when no run failed at all. For a graph you did not
 get to, use `not_run`. Then reply with one line: the path of the file you wrote.
 """
@@ -372,24 +379,41 @@ get to, use `not_run`. Then reply with one line: the path of the file you wrote.
 
 # ------------------------------------------------------------------ verdict
 
-def tree_changes(run: dict) -> dict:
-    """What the agent changed, measured from git and not from its report."""
+def tree_changes(run: dict, since: str | None = None) -> dict:
+    """What changed in the worktree since ``since`` (default: the commit under test).
+
+    Measured from git and not from the agent's report. Untracked files count:
+    a new file nobody ``git add``ed is still a change, and ``close`` would
+    otherwise delete it without a word.
+    """
     wt = run["worktree"]
+    base = since or run["sha"]
     files, lines = [], 0
-    for row in _git(["diff", "--numstat", run["sha"]], wt).splitlines():
+    for row in _git(["diff", "--numstat", base], wt).splitlines():
         added, deleted, path = row.split("\t", 2)
         files.append(path)
         lines += (int(added) if added.isdigit() else 0) + (int(deleted) if deleted.isdigit() else 0)
+    tg_rel = os.path.relpath(run["test_graph_root"], wt)
+    # The graph runs write their reports under <test graph>/build. That output is
+    # the runner's, whether or not the repository ignores it.
+    untracked = [u for u in _git(["ls-files", "--others", "--exclude-standard"], wt).splitlines()
+                 if u and not u.startswith(f"{tg_rel}/build/")]
+    for path in untracked:
+        files.append(path)
+        try:
+            lines += len((Path(wt) / path).read_bytes().splitlines())
+        except OSError:
+            pass
     status = _git(["status", "--porcelain", "--untracked-files=no"], wt)
     head = _git(["rev-parse", "HEAD"], wt)
-    tg_rel = os.path.relpath(run["test_graph_root"], wt)
     return {
         "files": files,
         "lines": lines,
-        "commits": _git(["rev-list", f"{run['sha']}..HEAD"], wt).split(),
-        "uncommitted": bool(status.strip()),
+        "commits": _git(["rev-list", f"{base}..HEAD"], wt).split(),
+        "untracked": untracked,
+        "uncommitted": bool(status.strip()) or bool(untracked),
         "outside_test_graph": [f for f in files if not f.startswith(tg_rel + "/")],
-        "last_commit_time": int(_git(["log", "-1", "--format=%ct", "HEAD"], wt)) if head != run["sha"] else None,
+        "last_commit_time": int(_git(["log", "-1", "--format=%ct", "HEAD"], wt)) if head != base else None,
     }
 
 
@@ -399,8 +423,10 @@ def read_verdict(tg_root: str, graphs: list[str], since: float,
 
     A report older than the invocation is ignored: ``validation-reports``
     keeps earlier green runs, so a graph that never executed looks green
-    there. When the tree was changed during the run (``changed_at``), a pass
-    counts only if it is a full run that finished after the last change.
+    there. A pass by resume counts while the tree is unchanged; a single
+    node run on its own never does. Once the tree has changed
+    (``changed_at``), a pass counts only if it is a full run that finished
+    after the last change.
 
     Also returns every non-passed run seen, for the attribution check.
     """
@@ -436,9 +462,15 @@ def read_verdict(tg_root: str, graphs: list[str], since: float,
             continue
         last = attempts[-1]
         status = last["status"] or "unknown"
-        via_resume = last["mode"] not in (None, "full")
-        if status == "passed" and changed_at is not None and (via_resume or last["mtime"] < changed_at):
-            # Green on a tree that has since changed, or only from the failed node on.
+        mode = last["mode"] or "full"
+        via_resume = mode != "full"
+        if status == "passed" and (
+            # One node on its own proves nothing about the nodes after it.
+            (via_resume and not mode.startswith("resume"))
+            # Once the tree has changed, only a full run that finished in a later
+            # second than the last change counts (commit times are whole seconds).
+            or (changed_at is not None and (via_resume or int(last["mtime"]) <= int(changed_at)))
+        ):
             status = "needs_full_run"
         rows.append({
             "graph": graph,
@@ -594,6 +626,11 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     # so the run provisions its own instead of reusing the feature branch's.
     agent_env.setdefault("TEST_GRAPH_FEATURE_BRANCH", f"regress-{record['id']}")
 
+    if not Path(record["test_graph_root"]).is_dir():
+        raise RegressError(
+            f"no test graph project at {record['test_graph_root']}",
+            fix=f"skt regress close {run_id}, then `skt regress new <ref> --test-graph-root <dir>`",
+        )
     runner_path = find_runner(record, runner, start)
     registered = discover_graphs(runner_path, record["test_graph_root"])
     if all_graphs:
@@ -605,10 +642,14 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     shared = beyond_local(effects)
     model = model or os.environ.get("SKT_REGRESS_MODEL") or DEFAULT_MODEL
 
+    # A directory left by an interrupted or dry run is reused, never read: nothing
+    # in it may be taken for this attempt's output.
     attempt_no = len(record["attempts"]) + 1
     attempt_dir = Path(record["state"]) / f"attempt-{attempt_no}"
     attempt_dir.mkdir(parents=True, exist_ok=True)
     report_path = attempt_dir / "agent-report.json"
+    for stale in ("agent-report.json", "episode.json", "result.json", "attribution.yaml", "fixes.patch"):
+        (attempt_dir / stale).unlink(missing_ok=True)
     brief = build_brief(record, graphs, runner_path, report_path, fix=fix, isolated=isolated,
                         effects=effects, max_fix_lines=max_fix_lines, max_fix_files=max_fix_files,
                         max_runs=max_runs)
@@ -633,22 +674,32 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         return EXIT_GREEN
 
     binary = find_meta_harness(meta_harness)
+    head_at_start = _git(["rev-parse", "HEAD"], record["worktree"])
     started = time.time()
     episode, used_url = run_episode(binary, attempt_dir, request, base_url)
 
-    changes = tree_changes(record)
+    changes = tree_changes(record)                      # the whole branch: what would be merged
+    this_attempt = tree_changes(record, head_at_start)  # what this run did
     changed = bool(changes["files"])
     rows, reds = read_verdict(record["test_graph_root"], graphs, started,
                               changed_at=(changes["last_commit_time"] or time.time()) if changed else None)
     agent_report, report_problem = read_agent_report(report_path)
-    escalation = (agent_report or {}).get("escalation") or None
+    escalation = (agent_report or {}).get("escalation")
+    if not isinstance(escalation, dict) or not escalation:
+        escalation = None  # "none", "", [] and the like are a slip, not an escalation
     over = []
-    if changed and not fix:
-        over.append("the agent changed the tree in a report-only run")
+    if this_attempt["files"] and not fix:
+        over.append("the agent changed the tree in a report-only run: "
+                    + ", ".join(this_attempt["files"][:5]))
+    # The budget is for the branch as a whole: fixes spread over several
+    # attempts are not smaller for having been made in instalments.
     if changes["lines"] > max_fix_lines:
         over.append(f"{changes['lines']} changed lines (limit {max_fix_lines})")
     if len(changes["files"]) > max_fix_files:
         over.append(f"{len(changes['files'])} changed files (limit {max_fix_files})")
+    for row in rows:
+        if row["runs"] > max_runs:
+            over.append(f"{row['graph']} was run {row['runs']} times (limit {max_runs})")
     statuses = {r["status"] for r in rows}
     if escalation or over:
         verdict, code = "escalated", EXIT_ESCALATED
@@ -663,7 +714,11 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     if attribution:
         write_attribution_yaml(attempt_dir / "attribution.yaml", record, attempt_no, attribution)
     if changed:
-        (attempt_dir / "fixes.patch").write_text(_git(["diff", record["sha"]], record["worktree"]) + "\n")
+        patch = _git(["diff", record["sha"]], record["worktree"]) + "\n"
+        if changes["untracked"]:
+            patch += "\n# Untracked files, not in the diff above:\n" + "".join(
+                f"#   {u}\n" for u in changes["untracked"])
+        (attempt_dir / "fixes.patch").write_text(patch)
 
     result = {
         "id": record["id"],
@@ -716,7 +771,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     if changed:
         print(f"  fixes          {len(changes['commits'])} commit(s) on {record.get('branch')}, "
               f"{changes['lines']} lines in {len(changes['files'])} file(s)"
-              f"{' -- UNCOMMITTED changes left' if changes['uncommitted'] else ''}")
+              f"{' -- UNCOMMITTED changes or untracked files left' if changes['uncommitted'] else ''}")
         if changes["outside_test_graph"]:
             print(f"                 outside the test graph: {', '.join(changes['outside_test_graph'])}")
         print(f"                 review before merging: {attempt_dir / 'fixes.patch'}")
@@ -763,10 +818,16 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
     worktree = Path(record["worktree"])
     branch = record.get("branch")
     if worktree.is_dir():
-        if tree_changes(record)["uncommitted"]:
+        here = Path.cwd().resolve()
+        if here == worktree.resolve() or worktree.resolve() in here.parents:
+            raise RegressError("close cannot run from inside the worktree it removes",
+                               fix=f"cd {_main_worktree(start)} && skt regress close {run_id}")
+        left = tree_changes(record)
+        if left["uncommitted"]:
+            what = ", ".join(left["untracked"][:5]) or "modified tracked files"
             raise RegressError(
-                f"{worktree} has uncommitted changes to tracked files",
-                fix=f"commit or discard them in {worktree}, then close again",
+                f"{worktree} holds uncommitted work ({what})",
+                fix=f"commit or delete it in {worktree}, then close again",
             )
         # --force: build output under test_graph/build is untracked, and expected.
         _git(["worktree", "remove", "--force", str(worktree)], start)
@@ -823,3 +884,7 @@ def main(args) -> int:
         if err.fix:
             print(f"fix:   {err.fix}", file=sys.stderr)
         return err.code
+    except (OSError, ValueError, KeyError) as err:
+        # Exit 1 means "a graph is red". A crash in here is not that.
+        print(f"error: skt regress failed before a verdict: {type(err).__name__}: {err}", file=sys.stderr)
+        return EXIT_INCOMPLETE

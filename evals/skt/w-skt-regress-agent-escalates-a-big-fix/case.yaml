@@ -53,6 +53,9 @@ execution:
        - `effect`: `faithful` when the red was about a real defect in the code under test;
          `false red` when the code under test was fine and the instrument or the environment failed.
        - `observed`: quote the report or the log. Do not guess.
+       - `introduced_by`: the commit under test may hold several tickets, each commit subject
+         starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
+         ticket's commit caused this, give that ticket id. If it does not, write null.
 
     YOU MAY MAKE SMALL FIXES, AND ONLY SMALL ONES
     This run is isolated: local temp and loopback only; the service under test is started by the graph on a free port
@@ -110,13 +113,15 @@ execution:
           "effect": "faithful | false red",
           "observed": "<text quoted from the report or log>",
           "fix": "<commit sha of your fix> | escalated | none",
-          "pinned_by": "<node or assertion that now catches it, or null>"
+          "pinned_by": "<node or assertion that now catches it, or null>",
+          "introduced_by": "<ticket id from the subject of the commit that caused it, or null>"
         }
       ],
       "escalation": null,
       "notes": "<anything the next reader must know, or empty>"
     }
 
+    `escalation` is null unless you escalated; when you did, it is the object described above.
     `attribution` is an empty list only when no run failed at all. For a graph you did not
     get to, use `not_run`. Then reply with one line: the path of the file you wrote.
 

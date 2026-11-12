@@ -197,18 +197,21 @@ def build_parser() -> argparse.ArgumentParser:
     regress = sub.add_parser(
         "regress",
         help="run one commit's test graphs with a small-model agent through "
-        "meta-harness, on a detached worktree; the verdict is read from the "
+        "meta-harness, in a worktree of that commit; the verdict is read from the "
         "graph reports, not from the agent",
         epilog=(
             "examples:\n"
-            "  skt regress new origin/epic/my-epic          detached worktree of that commit\n"
+            "  skt regress new origin/epic/my-epic          worktree of that commit, on regress/<id>\n"
             "  skt regress run <id> cliWorkflow sktSurface  run these graphs with the agent\n"
             "  skt regress run <id> --all --model CLAUDE_haiku\n"
+            "  skt regress run <id> --all --fix --isolated 'k3d cluster regress-<id>' \\\n"
+            "      --env KUBECONFIG=/path/to/private.kubeconfig\n"
             "  skt regress run <id> --all --dry-run         write the brief and request, start nothing\n"
             "  skt regress info <id> | list | close <id>\n"
             "\n"
             "exit codes (run): 0 every graph passed, 1 a graph failed or errored,\n"
-            "                  3 not every graph was decided, 2 usage\n"
+            "                  3 not every graph was decided, 4 escalated (a fix bigger\n"
+            "                  than the agent may make is needed), 2 usage\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -248,6 +251,10 @@ def build_parser() -> argparse.ArgumentParser:
     regress.add_argument("--keep-state", action="store_true",
                          help="close: remove the worktree, keep the results")
     regress.add_argument("--json", action="store_true", help="run: machine-readable result")
+    # Kept so main() can parse `regress` on its own: its flags mix with
+    # positionals (`run <id> --fix --isolated x graphA graphB`), which a
+    # subparser reached through the parent cannot parse on Python 3.11/3.12.
+    parser.regress_parser = regress
 
     return parser
 
@@ -379,6 +386,9 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(verb_help)
         return 0
     parser = build_parser()
+    raw = list(sys.argv[1:] if argv is None else argv)
+    if raw[:1] == ["regress"]:
+        return _import_sibling("regress").main(parser.regress_parser.parse_intermixed_args(raw[1:]))
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
