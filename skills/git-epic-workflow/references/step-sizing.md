@@ -10,8 +10,11 @@ have (§5).
 **The question.** What is the largest batch of change that reviewers can examine
 and instruments can verify, so that failures stay attributable and repairs
 converge? The answer is two estimates and a choice. A batch stays within the
-tighter estimate, at its **upper** end unless §3 says otherwise. Speed is never
-claimed from running fewer checks.
+tighter estimate, at its **upper** end unless §3 says otherwise.
+
+Speed comes from running each check **once per step instead of once per
+ticket**. It is never claimed from dropping a check: everything a ticket would
+have run still runs, on the whole step, at its boundary (§0).
 
 **Nothing on this page blocks.** Every rule here decides what goes in the plan.
 None of them is a stop condition, and none adds a gate. "Hold" means "do not grow
@@ -35,6 +38,79 @@ a direction, not a measurement.
 `specs/results/evidence-sized-delivery/ESD-01/cost.md`. `F1`-`F8` are families
 in `failure-families.md` beside it. Other row ids (`BS-07-DF-05`, `DEF-154`) are
 rows of `inventory.yaml` there. All are in the tla-spec-dev-plugin repository.
+
+## 0. The step: how many tickets are finished before anything is validated
+
+The **step** is the number of tickets whose code is completed before any test
+graph, spec close, review or manual test runs. A step of 1 is one ticket, then
+its graphs, then its review. A step of 4 is four tickets written back to back
+and then validated together, once. A step of `epic` is every ticket in the
+epic, then one validation. The owner may set the step directly, and trying
+steps of 2, 3, 4 and `epic` is the point: validation and review are the fixed
+cost, and a larger step pays it fewer times.
+
+**Inside the step, a ticket is only written.** For each ticket, in dependency
+order:
+
+- write the production code, its unit tests, its TLA+ and adapter changes, and
+  its new or changed test-graph nodes. The nodes are written, not run;
+- run only the cheap local checks: the repository unit subset, compile, lint;
+- commit per ticket, with the ticket id at the start of every commit subject;
+- file what you notice by reading into the ticket's inbox (`deferment.md`).
+
+No graph run, no spec close, no convergence review, no review stop, no wave
+artifact and no manual test happens inside the step. One agent may take all of
+a step's tickets in one worktree, or several agents may take them in parallel.
+Either way nothing is validated until the boundary.
+
+**At the step boundary, everything runs once, on the whole step:**
+
+1. graph regression for every ticket in the step, new graphs included, handed
+   to the regression agent (`regression-handoff.md`);
+2. spec-unit, TLC and any other check the tickets' `validation` named;
+3. the spec closes, in promotion order;
+4. one review artifact for the step (`human-review.md`);
+5. the manual pass, when this boundary is the epic's last (`finalize.md`).
+
+**Attribution is brought up to date at every boundary, before the next step
+starts.** A larger step is safe only while it is measured, and attribution is
+the measurement:
+
+- every red at the boundary gets a row (the regression agent returns them),
+  and every row names the ticket whose commit introduced it, in
+  `introduced_by`. The ticket id in the commit subjects is what makes that
+  cheap: read `git log` for the files involved, or rerun the one failing node
+  on the commit after each ticket;
+- absorb the rows into the ledger at the boundary (`deferment.md`). Do not
+  carry them into the next step unrecorded;
+- write one line per boundary in the review artifact: step size, tickets,
+  reds by origin (product, instrument, environment), laps to green,
+  escalations, wall time, and tokens where known, each `unknown` where it was
+  not recorded.
+
+Those lines are how two step sizes are compared. Correctness is held equal when
+product escapes found *after* the boundary (by the manual pass, or after merge)
+do not rise with the step. Reds found *at* the boundary are the step working.
+
+**When a step does not converge**, cut it at a ticket: `skt regress new <the
+commit after ticket j>` validates the first j tickets alone. The commit-per-
+ticket rule exists for this.
+
+**How the step is written into the plan** (§5 has the fields):
+
+| step | plan |
+|---|---|
+| k tickets | the k tickets share a wave, or fill consecutive waves; `review_policy.cadence: milestone` with `milestones` naming the boundary waves |
+| the whole epic | `review_policy.cadence: finalization-only` |
+| either | each ticket assignment carries `validation.when: step`; `planning_rules.validation_acceleration_rule` says `step=<k>: graphs, spec close and review run at the boundary after waves [...]` |
+
+`validation.when: step` tells the ticket agent to run `repository_unit` only
+and leave the rest of its matrix to the boundary
+(git-issue-workflow `references/epic-ticket.md` §4). Without it a ticket runs
+its whole matrix itself, which is a step of 1.
+
+The rest of this page sizes the step. §1-§4 estimate how large it can be, §6
+moves it after each boundary, and "batch" below means the step.
 
 ## 1. Summarize the starting revision
 
@@ -176,18 +252,23 @@ check at the cheaper cadence.
 
 | Cadence | Check tier | Plan field |
 |---|---|---|
-| per change, inside a ticket | cheap local and contract checks: unit subset, doc contracts | `tickets[].validation.repository_unit`, `spec_unit` |
-| per ticket that touches a contract | affected graphs and their dependency closure, from `testgraph_bindings` | `tickets[].validation.graphs` |
-| integration (wave merge) | the affected graphs once on the merged epic tip | `wave`, `review_policy` |
-| review | owner or agent review artifact | `review_policy.cadence`, `.milestones`, `.gate` |
+| per change, inside a ticket | cheap local checks only: unit subset, compile, lint, doc contracts | `tickets[].validation.repository_unit` |
+| step boundary (§0) | the affected graphs and their dependency closure for every ticket in the step, once, by the regression agent; spec-unit, TLC, spec closes | `tickets[].validation` with `when: step`; `wave`, `review_policy.milestones` |
+| review, at the same boundary | one owner or agent review artifact for the step | `review_policy.cadence`, `.milestones`, `.gate` |
 | expensive eval | predeclared, budgeted checkpoints: never per ticket or per deploy | evaluation ticket (`role: evaluation`), `eval_budget` |
 | deployment (epic to `main`, release) | the full integrated graph plus one manual acceptance pass (`finalize.md` §2-2c) | finalization |
+
+**Graph regression is handed off, once per batch.** The affected-graphs tier
+at integration is run by a small-model regression agent (`regression-handoff.md`),
+not by the epic agent or the ticket agents. Its laps are cheap, so the fixed
+cost a larger batch amortizes is one handoff and one review of what came back.
 
 ## 5. Write the decision into existing controls
 
 | Decision | Field(s) |
 |---|---|
-| Batch size per step | `tickets[].wave`: how many tickets share a wave |
+| The step: tickets finished before anything is validated (§0) | `review_policy.cadence` and `.milestones` (the boundaries); `validation.when: step` on each assignment; `planning_rules.validation_acceleration_rule` |
+| Tickets written in parallel inside a step | `tickets[].wave`: how many tickets share a wave |
 | Serialize coupled or host-sharing items | `tickets[].depends_on`, or split across waves; `conflict_keys` name the shared surface |
 | When review happens and whether it blocks | `review_policy.cadence`, `.milestones`, `.gate`, `.walkthrough` |
 | What each ticket runs | `tickets[].validation` (graphs, unit subset); one line in `planning_rules.validation_acceleration_rule` |

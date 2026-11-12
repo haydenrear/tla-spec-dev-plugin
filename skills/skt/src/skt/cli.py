@@ -194,6 +194,61 @@ def build_parser() -> argparse.ArgumentParser:
     publish.add_argument("--check", action="store_true", help="list edited units only; exit 10 if any")
     publish.add_argument("--ticket", help="ticket id for the publish branch (default: inferred from branch)")
 
+    regress = sub.add_parser(
+        "regress",
+        help="run one commit's test graphs with a small-model agent through "
+        "meta-harness, on a detached worktree; the verdict is read from the "
+        "graph reports, not from the agent",
+        epilog=(
+            "examples:\n"
+            "  skt regress new origin/epic/my-epic          detached worktree of that commit\n"
+            "  skt regress run <id> cliWorkflow sktSurface  run these graphs with the agent\n"
+            "  skt regress run <id> --all --model CLAUDE_haiku\n"
+            "  skt regress run <id> --all --dry-run         write the brief and request, start nothing\n"
+            "  skt regress info <id> | list | close <id>\n"
+            "\n"
+            "exit codes (run): 0 every graph passed, 1 a graph failed or errored,\n"
+            "                  3 not every graph was decided, 2 usage\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    regress.add_argument("verb", choices=["new", "run", "info", "list", "close"])
+    regress.add_argument("target", nargs="?", metavar="REF|ID",
+                         help="new: the commit or ref to test; run/info/close: the id `new` printed")
+    regress.add_argument("graphs", nargs="*", help="run: graph names (or --all)")
+    regress.add_argument("--all", action="store_true", help="run: every registered graph")
+    regress.add_argument("--id", help="new: the id (default: the short sha)")
+    regress.add_argument("--path", help="new: where to put the worktree")
+    regress.add_argument("--test-graph-root",
+                         help="new: the test graph project, relative to the worktree (default test_graph)")
+    regress.add_argument("--model",
+                         help="run: meta-harness model id (default $SKT_REGRESS_MODEL or CLAUDE_haiku)")
+    regress.add_argument("--timeout", type=int, default=4 * 60 * 60,
+                         help="run: seconds the whole episode may take (default 14400)")
+    regress.add_argument("--meta-harness", help="run: the meta-harness binary (default $META_HARNESS_BIN or PATH)")
+    regress.add_argument("--runner", help="run: the test-graph run.py (default: resolved)")
+    regress.add_argument("--base-url",
+                         help="run: use this running `meta-harness serve` instead of starting a private one")
+    regress.add_argument("--dry-run", action="store_true",
+                         help="run: write the brief and the episode request, start nothing")
+    regress.add_argument("--fix", action="store_true",
+                         help="run: let the agent commit small fixes on regress/<id> and rerun "
+                         "until green; needs --isolated")
+    regress.add_argument("--isolated", metavar="STATEMENT",
+                         help="run: what these graphs touch and why nobody else is on it "
+                         "(a private cluster, a scratch namespace, local temp only)")
+    regress.add_argument("--env", action="append", metavar="KEY=VALUE",
+                         help="run: environment for the agent, repeatable (KUBECONFIG=... for the private cluster)")
+    regress.add_argument("--max-fix-lines", type=int, default=60,
+                         help="run: changed lines the agent's fixes may total before the run is escalated (default 60)")
+    regress.add_argument("--max-fix-files", type=int, default=4,
+                         help="run: files the agent's fixes may touch (default 4)")
+    regress.add_argument("--max-runs", type=int, default=5,
+                         help="run: times the agent may run one graph, resumes included (default 5)")
+    regress.add_argument("--keep-state", action="store_true",
+                         help="close: remove the worktree, keep the results")
+    regress.add_argument("--json", action="store_true", help="run: machine-readable result")
+
     return parser
 
 
@@ -363,6 +418,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.command == "publish":
         return _import_sibling("publish").run(args.unit, check_only=args.check, ticket=args.ticket)
+    if args.command == "regress":
+        return _import_sibling("regress").main(args)
     return _stub(args.command)
 
 

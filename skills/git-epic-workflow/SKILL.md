@@ -227,6 +227,7 @@ you arrive by reading.
 | The front door and its five miss cases; homes; ledger; sweep | `references/worktree-lifecycle.md` |
 | Validate, promote, close, and open the epic PR | `references/finalize.md` |
 | Classify, defer, batch, and triage failure cases | `references/deferment.md` |
-| Size a wave from review and verification capacity; hold, increase or decrease at a review | `references/step-sizing.md` |
+| Choose the step: how many tickets are written before graphs, spec close and review run once; size it, and hold, increase or decrease at each boundary | `references/step-sizing.md` |
 | A repair loop that is not converging; short and deep reviews; valid targeted reruns | `references/validation-review.md` |
+| A batch's code is done: hand graph regression to a small-model agent; isolation; escalations; attribution | `references/regression-handoff.md` |
 | Whether a ticket home's `declared-only` artifacts need rebuilding | `skills/skt/references/derived-artifacts.md`; `references/plan-and-schedule.md` §2 has the fallback |

@@ -41,6 +41,8 @@ skt ticket list       # every ticket worktree here, and what blocks retiring it
 skt ticket sweep      # retire many at once — dry run unless you pass --yes
 skt publish [<unit>]  # a home-edited skill -> up one tier -> its own git repo
 skt build [<id>]      # rebuild a derived artifact whose inputs you changed
+skt regress new <ref> # worktree of a commit on regress/<id>, for a small-model agent to run its test graphs in
+skt regress run <id> <graph>... [--fix --isolated "..."]   # that agent, through meta-harness: verdict, small fixes, attribution, escalation
 skill-manager home drift --ack --home=<home>   # clear the launch gate a sync warns about; the home is a flag, never positional
 ```
 
@@ -136,6 +138,17 @@ path form still works and is the fallback when `skt` is not on `PATH`:
 `wt` is the door; the lifecycle behind it is `git-issue-workflow`'s and
 `wt` resolves that unit at run time, refusing in one line when it cannot
 (`$GIT_ISSUE_WORKFLOW_SCRIPTS` overrides).
+
+## Handing graph runs to a small model
+
+Do not run and re-run test graphs yourself after a large batch of change.
+`skt regress` runs them with a small model through meta-harness in a worktree
+of the commit. With `--fix` the agent commits small fixes and reruns until
+green, and that needs `--isolated "<statement>"`: what the graphs touch must be
+private to the run. It returns a verdict read from the graph reports, an
+attribution row for every red it met, and an escalation (exit 4) when the fix
+is bigger than it may make. Modes, budgets, exit codes and files are in
+`references/regression-agent.md`.
 
 ## Retiring an epic's worktrees
 
