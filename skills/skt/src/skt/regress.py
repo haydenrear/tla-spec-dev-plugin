@@ -319,22 +319,42 @@ dir=@DIR@
 mkdir -p "$dir"
 key=$(printf '%s' "$*" | tr -c 'A-Za-z0-9._-' '_')
 pidf="$dir/$key.pid"; rcf="$dir/$key.rc"; log="$dir/$key.log"
+startf="$dir/$key.start"
 if [ ! -f "$pidf" ]; then
   rm -f "$rcf"
-  RUNNER=@RUNNER@ TG=@TG@ LOG="$log" RCF="$rcf" nohup bash -c \
-    'python3 "$RUNNER" "$@" --test-graph-root "$TG" > "$LOG" 2>&1; echo $? > "$RCF.tmp"; mv "$RCF.tmp" "$RCF"' \
-    graph "$@" < /dev/null > /dev/null 2>&1 &
-  echo $! > "$pidf"
+  date +%s > "$startf"
+  # A new session, so the agent's tool ending its command (and killing that
+  # process group) cannot kill the wrapper before it records the exit code.
+  RUNNER=@RUNNER@ TG=@TG@ LOG="$log" RCF="$rcf" PIDF="$pidf" python3 -c '
+import os, subprocess, sys
+p = subprocess.Popen(["bash", "-c",
+    "python3 \"$RUNNER\" \"$@\" --test-graph-root \"$TG\" > \"$LOG\" 2>&1; echo $? > \"$RCF.tmp\"; mv \"$RCF.tmp\" \"$RCF\"",
+    "graph", *sys.argv[1:]], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL, start_new_session=True)
+open(os.environ["PIDF"], "w").write(str(p.pid))
+' "$@"
   echo "STARTED $*"
 fi
 end=$((SECONDS + @WAIT@))
-while [ ! -f "$rcf" ] && [ $SECONDS -lt $end ]; do sleep 2; done
+alive() { kill -0 "$(cat "$pidf" 2>/dev/null)" 2>/dev/null; }
+while [ ! -f "$rcf" ] && [ $SECONDS -lt $end ] && alive; do sleep 2; done
+started=$(cat "$startf" 2>/dev/null || date +%s); mins=$(( ($(date +%s) - started) / 60 ))
+# Liveness first, then the exit code: a wrapper that was dead before the
+# check below has already written its exit code if it ever will.
+dead=0; alive || dead=1
 if [ -f "$rcf" ]; then
   rm -f "$pidf"
-  echo "FINISHED $*  (runner exit $(cat "$rcf"))  full log: $log"
+  echo "FINISHED $*  (runner exit $(cat "$rcf"), after ${mins} min)  full log: $log"
+  tail -n 30 "$log"
+elif [ "$dead" = 1 ]; then
+  rm -f "$pidf"
+  echo "FINISHED $*  (runner exit UNKNOWN: the run's process is gone and wrote no exit code, after ${mins} min)  full log: $log"
+  echo "Read the report from the log below; if it names none, record status errored, origin environment."
   tail -n 30 "$log"
 else
-  echo "STILL RUNNING $*  -- run this exact command again to keep waiting. Do nothing else meanwhile."
+  echo "STILL RUNNING $*  (${mins} min so far; the run's process is alive)"
+  echo "last log line: $(tail -n 1 "$log" 2>/dev/null | cut -c1-200)"
+  echo "-> Your next action: run this exact command again, right now. Do nothing else meanwhile."
 fi
 """
 
@@ -471,6 +491,16 @@ FOR EACH GRAPH
    It prints FINISHED or STILL RUNNING within about two minutes. On STILL RUNNING, run the
    same command again, and keep doing that until it prints FINISHED. A run can take tens
    of minutes. Slow is not failed. Run one graph at a time.
+   HOW TO WAIT, exactly:
+   - The command itself IS the wait: each call sits for up to {GRAPH_WAIT} seconds watching
+     the run. Calling it again immediately is correct and costs nothing extra.
+   - Your reply to a STILL RUNNING line is always one tool call: the same graph command.
+     Do not write text, do not read files and do not reason about how long it is taking.
+   - Never use ScheduleWakeup, sleep, Monitor, a background option or any timer, and never
+     end your turn while a graph is unfinished. If you do, you are never woken again and
+     the whole run is lost.
+   - A graph that is truly stuck is detected by the command, not by you: when the run's
+     process dies, it prints FINISHED with exit UNKNOWN. Until then, keep calling it.
 2. Find the report directory the run wrote: the newest directory under
      {tg}/{REPORTS}/
    Its name is the runId. Read `summary.json` (field `status`). On anything other than

@@ -594,7 +594,7 @@ def test_the_graph_command_blocks_briefly_and_rejoins_the_same_run(tmp_path, mon
     assert "STARTED alpha" in first.stdout and "STILL RUNNING alpha" in first.stdout
     second = subprocess.run(["bash", str(script), "alpha"], capture_output=True, text=True)
     assert "STARTED" not in second.stdout, "the second call must rejoin, not start another run"
-    assert "FINISHED alpha  (runner exit 7)" in second.stdout
+    assert "FINISHED alpha  (runner exit 7," in second.stdout
     assert "--test-graph-root" in second.stdout
     third = subprocess.run(["bash", str(script), "alpha"], capture_output=True, text=True)
     assert "STARTED alpha" in third.stdout, "after FINISHED the same command is a new run"
