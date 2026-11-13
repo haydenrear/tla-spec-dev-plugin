@@ -36,6 +36,7 @@ regression once, which is what makes the larger batch worth taking.
 | 4 | escalated | read the escalation; make the fix yourself or dispatch it to a ticket agent; push; `skt regress new <new tip>` and run again |
 | 1 | red | the agent ran out of laps without escalating; treat it as an escalation and read the last report |
 | 3 | incomplete | a graph was not decided (timeout, episode failure, or `needs_full_run`); run again with the same id, naming those graphs |
+| 3 | `AGENT DID NOT START` | the small model never ran, usually because its CLI is not logged in on this machine. Do not rerun and do not run the graphs yourself instead: tell the user, and wait |
 
 **An escalation is the agent doing its job.** It is told to stop and return
 anything that is not a small, obvious fix: a change over the line budget, a new
@@ -57,6 +58,13 @@ regress-<id>, created for this run"`. A graph that deploys to Kubernetes gets
 its own cluster, not a namespace in a shared one. How to arrange that, and what
 to do with a graph that cannot be isolated (run it report-only, without
 `--fix`), is test-graph's `references/isolation-for-agent-runs.md`.
+
+**One regression run at a time, unless every one is isolated.** Before `skt
+regress run`, look at `skt regress list` for a run marked `RUNNING`, and make
+sure no ticket agent is running the same graphs by hand. A second run is refused
+unless both carry `--isolated`, report-only runs included. Do not split a
+step's graphs across parallel runs to save time unless each has its own
+cluster, ports and output directories.
 
 Plan for it: a graph the regression agent will repair needs its isolation
 named in the plan, on the tickets whose `validation.graphs` include it.

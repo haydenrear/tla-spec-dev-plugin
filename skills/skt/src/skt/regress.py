@@ -297,6 +297,11 @@ other than the ones this worktree and its graphs already use.
 A small fix is one that is obviously right from the report and the log:
 a wrong path, a missing import, a typo, a stale fixture, a timeout that is too short,
 a node script that crashes for a reason unrelated to what it asserts.
+- Change the fewest lines that make the failing node pass. Touch only the file the report
+  or the log points at. Do not tidy, rename, reformat, upgrade or "improve" anything else,
+  and do not fix something that is not failing.
+- A fix belongs in the test graph project ({tg}) unless the log quotes a crash at a named
+  line of another file. Changing how the code under test behaves is never a small fix.
 - Commit each fix on its own: `git commit -am "regress: <what you fixed>"`.
   You are on branch {run.get('branch', '(detached)')}. Do not push. Do not switch branches.
 - All of your fixes together must stay within {max_fix_lines} changed lines in {max_fix_files} files.
@@ -535,10 +540,59 @@ def _free_port() -> int:
         return sock.getsockname()[1]
 
 
+AUTH_ENV = ("CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX")
+
+
 def _agent_env() -> dict:
-    # A session spawned from inside another agent session must not inherit its identity.
+    # A session spawned from inside another agent session must not inherit its
+    # identity. Its credentials are another matter: without them the agent has
+    # nothing to log in with.
     return {k: v for k, v in os.environ.items()
-            if not (k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"))}
+            if k in AUTH_ENV or not (k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"))}
+
+
+# ------------------------------------------------------------- one at a time
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
+def live_runs(start: str | Path = ".") -> list[dict]:
+    """Regression runs of this repository that are executing right now."""
+    found = []
+    root = state_root(start)
+    for marker in sorted(root.glob("*/running.json")) if root.is_dir() else []:
+        try:
+            data = json.loads(marker.read_text())
+        except (OSError, ValueError):
+            continue
+        if isinstance(data.get("pid"), int) and _alive(data["pid"]):
+            found.append(data)
+        else:
+            marker.unlink(missing_ok=True)  # left by a run that was killed
+    return found
+
+
+def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Path = ".") -> None:
+    """Two runs may overlap only when both say what they touch is private."""
+    for other in live_runs(start):
+        if other["id"] == run_id:
+            raise RegressError(f"regress {run_id} is already running (pid {other['pid']})",
+                               fix="wait for it; `skt regress list` shows what is running")
+        if not (isolated or "").strip() or not (other.get("isolated") or "").strip():
+            which = "this run has" if not (isolated or "").strip() else f"regress {other['id']} has"
+            raise RegressError(
+                f"regress {other['id']} is running (pid {other['pid']}, graphs: "
+                f"{', '.join(other.get('graphs') or [])}) and {which} no isolation statement: two "
+                "runs sharing ports, clusters or output directories fail each other's graphs",
+                fix='wait for it to finish, or give every overlapping run --isolated "<statement>"',
+            )
 
 
 def _wait_listening(base_url: str, proc: subprocess.Popen, seconds: float = 60) -> None:
@@ -674,9 +728,16 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         return EXIT_GREEN
 
     binary = find_meta_harness(meta_harness)
+    refuse_shared_concurrency(record["id"], isolated, start)
     head_at_start = _git(["rev-parse", "HEAD"], record["worktree"])
     started = time.time()
-    episode, used_url = run_episode(binary, attempt_dir, request, base_url)
+    marker = Path(record["state"]) / "running.json"
+    marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
+                                  "isolated": isolated, "started": started}) + "\n")
+    try:
+        episode, used_url = run_episode(binary, attempt_dir, request, base_url)
+    finally:
+        marker.unlink(missing_ok=True)
 
     changes = tree_changes(record)                      # the whole branch: what would be merged
     this_attempt = tree_changes(record, head_at_start)  # what this run did
@@ -709,6 +770,10 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         verdict, code = "green", EXIT_GREEN
     else:
         verdict, code = "incomplete", EXIT_INCOMPLETE
+    # No report of any kind and a failed episode: the agent never got to work.
+    # That is a login or a meta-harness problem, and running again will not fix it.
+    never_started = (episode.get("outcome") != "succeeded" and agent_report is None
+                     and all(r["runs"] == 0 for r in rows) and not this_attempt["files"])
     gaps = attribution_gaps(agent_report, reds)
     attribution = [r for r in (agent_report or {}).get("attribution") or [] if isinstance(r, dict)]
     if attribution:
@@ -730,6 +795,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "isolated": isolated,
         "declared_effects": effects,
         "verdict": verdict,
+        "agent_started": not never_started,
         "graphs": rows,
         "escalation": escalation,
         "over_budget": over,
@@ -779,8 +845,18 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         print(f"  attribution    {len(attribution)} row(s): {attempt_dir / 'attribution.yaml'}")
     for gap in gaps:
         print(f"  ATTRIBUTION GAP  {gap}")
-    if episode.get("outcome") != "succeeded":
+    if never_started:
+        print("  AGENT DID NOT START  no graph ran and nothing was reported. Do not rerun as it is.\n"
+              f"                 episode {episode.get('outcome')}: {episode.get('error')}\n"
+              f"                 server log: {attempt_dir / 'serve.log'}\n"
+              "                 Usual cause: the provider CLI behind this model has no logged-in\n"
+              "                 session on this machine (for CLAUDE_*: run `claude` once in a\n"
+              "                 terminal and log in). Then run this command again.")
+    elif episode.get("outcome") != "succeeded":
         print(f"  episode        {episode.get('outcome')}: {episode.get('error')}")
+    notes = (agent_report or {}).get("notes")
+    if isinstance(notes, str) and notes.strip():
+        print(f"  agent notes    {notes.strip()}")
     if report_problem:
         print(f"  agent report   {report_problem}")
     print(f"result     {attempt_dir / 'result.json'}")
@@ -805,9 +881,12 @@ def list_runs(start: str | Path = ".") -> int:
     if not found:
         print("no regression worktrees")
         return 0
+    running = {r["id"] for r in live_runs(start)}
     for path in found:
         record = json.loads(path.read_text())
         last = record["attempts"][-1]["verdict"] if record["attempts"] else "never run"
+        if record["id"] in running:
+            last = "RUNNING"
         gone = "" if Path(record["worktree"]).is_dir() else "  (worktree gone)"
         print(f"{record['id']:<16} @{record['sha'][:10]}  {last:<10} {record['worktree']}{gone}")
     return 0

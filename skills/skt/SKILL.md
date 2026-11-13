@@ -150,6 +150,17 @@ attribution row for every red it met, and an escalation (exit 4) when the fix
 is bigger than it may make. Modes, budgets, exit codes and files are in
 `references/regression-agent.md`.
 
+Before you start one, check two things:
+
+- **One at a time, or isolated.** A run must be the only regression run in the
+  repository, or every overlapping run must carry `--isolated`. `skt regress
+  list` shows what is `RUNNING`; a second run without the statement is refused.
+  This holds for report-only runs too: two agents on the same ports, cluster or
+  output directory fail each other's graphs and the attribution blames the code.
+- **The agent can log in.** The small model runs through the provider CLI's own
+  session on this machine. `AGENT DID NOT START` in the output means it never
+  ran. Do not rerun: tell the user to log in (`claude`), then run again.
+
 ## Retiring an epic's worktrees
 
 When an epic finishes, `skt ticket list <epic>` enumerates its ticket worktrees

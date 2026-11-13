@@ -66,12 +66,28 @@ What `skt` does about isolation, and what it leaves to you:
   true. Making a graph isolatable is test-graph's
   `references/isolation-for-agent-runs.md`.
 
+## One run at a time, unless every run is isolated
+
+Graphs share more than they declare: fixed ports, a host cluster, an output
+directory. Two regression runs on them at once fail each other's graphs, and
+the reds come back attributed to the code. So `skt regress run` refuses to
+start while another regression run of this repository is executing, unless
+**both** runs carry `--isolated "<statement>"`. `--isolated` is accepted
+without `--fix` for this purpose. A second run under the same id is always
+refused. `skt regress list` marks a run that is executing `RUNNING`.
+
+The check covers this repository on this machine. It does not see a graph you
+are running by hand, a ticket agent running one, or another machine. Those are
+yours to rule out before you start.
+
 ## What a small fix is, and what is escalated
 
 The agent is told a small fix is one that is obviously right from the report and
 the log: a wrong path, a missing import, a typo, a stale fixture, a short
 timeout, a node script that crashes for a reason unrelated to what it asserts.
-It is told never to weaken a check to get a green.
+It is told never to weaken a check to get a green, to change the fewest lines
+that make the failing node pass, to touch only the file the report points at,
+and that changing how the code under test behaves is never a small fix.
 
 It must stop, change nothing more, run nothing more and write an `escalation`
 (graph, node, reason, what is needed, files, quoted evidence) when the fix would
@@ -112,6 +128,15 @@ before it passed in the same run. A single node run on its own never counts.
 
 A crash inside `skt regress` exits 3, never 1: exit 1 always means a graph's
 own report is red.
+
+**`AGENT DID NOT START`** (exit 3, `agent_started: false` in `result.json`):
+the episode failed, no graph ran and nothing was reported. Running again will
+give the same result. The usual cause is that the provider CLI behind the model
+has no logged-in session on this machine. meta-harness starts that CLI and uses
+its login; `skt` cannot log in for it. For a `CLAUDE_*` model, a person runs
+`claude` in a terminal once and logs in. `CLAUDE_CODE_OAUTH_TOKEN`, when set, is
+passed through to the agent. The episode error and `serve.log` in the attempt
+directory say what meta-harness saw.
 
 ## What comes back
 

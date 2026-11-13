@@ -445,3 +445,59 @@ def test_declared_effects_reads_nested_calls_and_bare_names(tmp_path):
     node = tmp_path / "n.py"
     node.write_text('S.side_effects(SideEffect.environment("provision"), "net:external", "browser")\n')
     assert regress.declared_effects([str(node)]) == ["browser", "environment:provision", "net:external"]
+
+
+def test_a_second_run_is_refused_while_an_unisolated_one_is_live(repo, tmp_path):
+    harness = stub_harness(tmp_path, "write_summary('alpha', 'passed')")
+    env = {"META_HARNESS_BIN": str(harness)}
+    assert skt(repo, "new", "HEAD", "--id", "one").returncode == 0
+    assert skt(repo, "new", "HEAD", "--id", "two").returncode == 0
+    state = Path(subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
+                                 "--git-common-dir"], capture_output=True, text=True).stdout.strip())
+    marker = state / "skt-regress" / "one" / "running.json"
+    marker.write_text(json.dumps({"id": "one", "pid": os.getpid(), "graphs": ["beta"], "isolated": None}))
+
+    refused = skt(repo, "run", "two", "alpha", env=env)
+    assert refused.returncode == 2, refused.stdout + refused.stderr
+    assert "regress one is running" in refused.stderr
+    same = skt(repo, "run", "one", "alpha", env=env)
+    assert same.returncode == 2 and "already running" in same.stderr
+    assert "RUNNING" in skt(repo, "list").stdout
+
+    # Both isolated: they may overlap.
+    marker.write_text(json.dumps({"id": "one", "pid": os.getpid(), "graphs": ["beta"],
+                                  "isolated": "its own cluster"}))
+    half = skt(repo, "run", "two", "alpha", env=env)
+    assert half.returncode == 2, "an unisolated run must not join an isolated one"
+    both = skt(repo, "run", "two", "alpha", "--isolated", "its own temp dir", env=env)
+    assert both.returncode == 0, both.stdout + both.stderr
+
+    # A marker whose process is gone is swept, not obeyed.
+    marker.write_text(json.dumps({"id": "one", "pid": 2 ** 22 + 12345, "graphs": [], "isolated": None}))
+    swept = skt(repo, "run", "two", "alpha", env=env)
+    assert "is running" not in swept.stderr and swept.returncode != 2
+    assert not marker.exists()
+    assert not (state / "skt-regress" / "two" / "running.json").exists()
+
+
+def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
+    harness = stub_harness(tmp_path, "outcome = 'failed'")
+    assert skt(repo, "new", "HEAD", "--id", "auth").returncode == 0
+    out = skt(repo, "run", "auth", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "AGENT DID NOT START" in out.stdout and "log in" in out.stdout
+    state = subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
+                            "--git-common-dir"], capture_output=True, text=True).stdout.strip()
+    result = json.loads((Path(state) / "skt-regress" / "auth" / "attempt-1" / "result.json").read_text())
+    assert result["agent_started"] is False
+
+
+def test_the_agent_keeps_its_credentials_but_not_the_parent_session(monkeypatch):
+    sys.path.insert(0, str(CLI.parent))
+    import regress
+    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "t")
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s")
+    monkeypatch.setenv("CLAUDECODE", "1")
+    env = regress._agent_env()
+    assert env.get("CLAUDE_CODE_OAUTH_TOKEN") == "t"
+    assert "CLAUDE_CODE_SESSION_ID" not in env and "CLAUDECODE" not in env
