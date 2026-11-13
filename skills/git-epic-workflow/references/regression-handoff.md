@@ -18,9 +18,13 @@ regression once, which is what makes the larger batch worth taking.
 2. **Branch and hand off.** From the pushed batch tip:
 
    ```bash
-   skt regress new <epic tip sha>
+   skt regress new <epic tip sha>          # or: skt regress adopt <a set-up worktree at that tip>
    skt regress run <id> <affected graphs>... --fix --isolated "<statement>" [--env KUBECONFIG=...]
    ```
+
+   Use `adopt` when the graphs need a skill home, an index or other local
+   setup: a fresh worktree has none, and the agent may not create it. Never
+   let a regression run build a new index base or start services.
 
    Name the affected graphs and their dependency closure from the plan's
    `testgraph_bindings`, plus the graphs the batch added. `--fix` needs the
@@ -36,6 +40,7 @@ regression once, which is what makes the larger batch worth taking.
 | 4 | escalated | read the escalation; make the fix yourself or dispatch it to a ticket agent; push; `skt regress new <new tip>` and run again |
 | 1 | red | the agent ran out of laps without escalating; treat it as an escalation and read the last report |
 | 3 | incomplete | a graph was not decided (timeout, episode failure, or `needs_full_run`); run again with the same id, naming those graphs |
+| 3 | `AGENT STOPPED WITHOUT REPORTING` | it started, ran tools and ended with no report (stalled, or used a wait tool). Read the trace the output names, check nothing it started is still running, then decide: rerun, or run the graphs as background jobs yourself |
 | 3 | `AGENT DID NOT START` | the small model never ran, usually because its CLI is not logged in on this machine. Do not rerun and do not run the graphs yourself instead: tell the user, and wait |
 
 **An escalation is the agent doing its job.** It is told to stop and return

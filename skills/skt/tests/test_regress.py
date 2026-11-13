@@ -81,6 +81,12 @@ def stub_harness(tmp_path: Path, behaviour: str) -> Path:
                 import os
                 os.utime(d / "summary.json", (time.time() - age, time.time() - age))
             time.sleep(0.02)
+        def trace(*events):
+            d = Path(argv[argv.index("--project-root") + 1]) / ".meta-harness" / "evidence" / "e-1"
+            d.mkdir(parents=True, exist_ok=True)
+            with open(d / "events.jsonl", "a") as f:
+                for kind, data in events:
+                    f.write(json.dumps({"kind": kind, "ts": "t", "data": data}) + chr(10))
         outcome = "succeeded"
     """) + textwrap.dedent(behaviour) + textwrap.dedent("""
         Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
@@ -481,7 +487,13 @@ def test_a_second_run_is_refused_while_an_unisolated_one_is_live(repo, tmp_path)
 
 
 def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
-    harness = stub_harness(tmp_path, "outcome = 'failed'")
+    harness = stub_harness(tmp_path, """
+        # What a rejected credential really leaves: one empty closing message.
+        trace(("execution.started", {}),
+              ("agent.message.complete", {"content": [{"type": "text", "text": ""}]}),
+              ("turn.ended", {"stop_reason": "error"}))
+        outcome = "failed"
+    """)
     assert skt(repo, "new", "HEAD", "--id", "auth").returncode == 0
     out = skt(repo, "run", "auth", "alpha", env={"META_HARNESS_BIN": str(harness)})
     assert out.returncode == 3, out.stdout + out.stderr
@@ -501,3 +513,101 @@ def test_the_agent_keeps_its_credentials_but_not_the_parent_session(monkeypatch)
     env = regress._agent_env()
     assert env.get("CLAUDE_CODE_OAUTH_TOKEN") == "t"
     assert "CLAUDE_CODE_SESSION_ID" not in env and "CLAUDECODE" not in env
+
+
+def _result(repo: Path, run_id: str, attempt: int = 1) -> dict:
+    state = subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
+                            "--git-common-dir"], capture_output=True, text=True).stdout.strip()
+    return json.loads((Path(state) / "skt-regress" / run_id / f"attempt-{attempt}" / "result.json").read_text())
+
+
+def test_an_agent_that_ran_tools_and_then_hung_is_not_called_a_login_problem(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        trace(("tool.call", {"name": "Bash"}), ("tool.call", {"name": "ScheduleWakeup"}),
+              ("turn.ended", {"usage": {"session_total_tokens": 1234}}))
+        outcome = "failed"
+    """)
+    assert skt(repo, "new", "HEAD", "--id", "hung").returncode == 0
+    out = skt(repo, "run", "hung", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "AGENT DID NOT START" not in out.stdout and "log in" not in out.stdout
+    assert "AGENT STOPPED WITHOUT REPORTING" in out.stdout
+    assert "WAIT TOOL USED  ScheduleWakeup" in out.stdout
+    result = _result(repo, "hung")
+    assert result["agent_started"] is True
+    assert result["trace"]["tool_calls"] == 2 and result["trace"]["tokens"]["total_tokens"] == 1234
+
+
+def test_without_a_trace_nothing_is_claimed_about_the_login(repo, tmp_path):
+    harness = stub_harness(tmp_path, "outcome = 'failed'")
+    assert skt(repo, "new", "HEAD", "--id", "blind").returncode == 0
+    out = skt(repo, "run", "blind", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 3
+    assert "AGENT DID NOT START" not in out.stdout and "unknown" in out.stdout
+    assert _result(repo, "blind")["agent_started"] is None
+
+
+def test_a_silent_episode_is_stopped(repo, tmp_path):
+    harness = stub_harness(tmp_path, "trace(('tool.call', {'name': 'Bash'})); time.sleep(60)")
+    assert skt(repo, "new", "HEAD", "--id", "quiet").returncode == 0
+    began = time.time()
+    out = skt(repo, "run", "quiet", "alpha", "--stall-timeout", "3", env={"META_HARNESS_BIN": str(harness)})
+    assert time.time() - began < 40
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "recorded nothing for" in out.stdout and "AGENT DID NOT START" not in out.stdout
+
+
+def test_adopt_runs_in_an_existing_worktree_and_close_leaves_it(repo, tmp_path):
+    ticket = tmp_path / "proj-TICKET-1"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-q", "-b", "ticket-1", str(ticket)], check=True)
+    (ticket / ".skill-manager").mkdir()            # setup that git does not track
+    (repo / ".git" / "info").mkdir(exist_ok=True)
+    (repo / ".git" / "info" / "exclude").write_text(".skill-manager/\n")
+    harness = stub_harness(tmp_path, """
+        assert (Path(wt) / ".skill-manager").is_dir()
+        write_summary("alpha", "passed")
+    """)
+    adopted = skt(repo, "adopt", str(ticket), "--id", "t1")
+    assert adopted.returncode == 0, adopted.stderr
+    out = skt(repo, "run", "t1", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert skt(repo, "close", "t1").returncode == 0
+    assert ticket.is_dir() and (ticket / ".skill-manager").is_dir()
+    branches = subprocess.run(["git", "-C", str(repo), "branch", "--list", "ticket-1"],
+                              capture_output=True, text=True).stdout
+    assert "ticket-1" in branches
+
+    (ticket / "scratch.txt").write_text("x")
+    dirty = skt(repo, "adopt", str(ticket), "--id", "t2")
+    assert dirty.returncode == 2 and "uncommitted" in dirty.stderr
+    assert skt(repo, "adopt", str(tmp_path), "--id", "t3").returncode == 2
+
+
+def test_the_graph_command_blocks_briefly_and_rejoins_the_same_run(tmp_path, monkeypatch):
+    sys.path.insert(0, str(CLI.parent))
+    import regress
+    monkeypatch.setattr(regress, "GRAPH_WAIT", 3)
+    runner = tmp_path / "run.py"
+    runner.write_text("import sys, time\ntime.sleep(5)\nprint('ran', sys.argv[1:])\nsys.exit(7)\n")
+    script = regress.write_graph_script(tmp_path, runner, str(tmp_path / "tg"))
+    first = subprocess.run(["bash", str(script), "alpha"], capture_output=True, text=True)
+    assert "STARTED alpha" in first.stdout and "STILL RUNNING alpha" in first.stdout
+    second = subprocess.run(["bash", str(script), "alpha"], capture_output=True, text=True)
+    assert "STARTED" not in second.stdout, "the second call must rejoin, not start another run"
+    assert "FINISHED alpha  (runner exit 7," in second.stdout
+    assert "--test-graph-root" in second.stdout
+    third = subprocess.run(["bash", str(script), "alpha"], capture_output=True, text=True)
+    assert "STARTED alpha" in third.stdout, "after FINISHED the same command is a new run"
+
+
+def test_the_brief_forbids_setup_background_work_and_timers(repo, tmp_path):
+    assert skt(repo, "new", "HEAD", "--id", "brief").returncode == 0
+    assert skt(repo, "run", "brief", "alpha", "--dry-run").returncode == 0
+    brief = Path(_result.__globals__["subprocess"].run(
+        ["git", "-C", str(repo), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+        capture_output=True, text=True).stdout.strip()) / "skt-regress" / "brief" / "attempt-1" / "brief.md"
+    text = brief.read_text()
+    assert "graph.sh alpha" not in text and "graph.sh <graph>" in text
+    assert "NO setup of any kind" in text and "NO background work and NO timers" in text
+    assert "in the background and wait" not in text
+    assert "run.py" not in text, "the agent is given the wrapper, never the runner"

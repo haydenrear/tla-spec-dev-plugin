@@ -42,6 +42,7 @@ skt ticket sweep      # retire many at once — dry run unless you pass --yes
 skt publish [<unit>]  # a home-edited skill -> up one tier -> its own git repo
 skt build [<id>]      # rebuild a derived artifact whose inputs you changed
 skt regress new <ref> # worktree of a commit on regress/<id>, for a small-model agent to run its test graphs in
+skt regress adopt <worktree dir>            # or run it in an existing, set-up worktree (needed when graphs need the skill home)
 skt regress run <id> <graph>... [--fix --isolated "..."]   # that agent, through meta-harness: verdict, small fixes, attribution, escalation
 skill-manager home drift --ack --home=<home>   # clear the launch gate a sync warns about; the home is a flag, never positional
 ```
@@ -157,6 +158,10 @@ Before you start one, check two things:
   list` shows what is `RUNNING`; a second run without the statement is refused.
   This holds for report-only runs too: two agents on the same ports, cluster or
   output directory fail each other's graphs and the attribution blames the code.
+- **The worktree has what the graphs need.** `skt regress new` gives a bare
+  worktree with no skill home, index or tools. If the graphs need those, use
+  `skt regress adopt <ticket or epic worktree>`. The agent is forbidden to set
+  anything up and will escalate instead.
 - **The agent can log in.** The small model runs through the provider CLI's own
   session on this machine. `AGENT DID NOT START` in the output means it never
   ran. Do not rerun: tell the user to log in (`claude`), then run again.
