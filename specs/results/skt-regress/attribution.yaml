@@ -1,0 +1,222 @@
+# Attribution for branch feature/skt-regress (`skt regress`, step-sizing §0).
+#
+# WHERE THESE BELONG. This branch was built without a ticket, so there is no
+# per-ticket inbox to file into. Per bug_attribution.md §4 the rows are written
+# here, beside the work, and move into the ledger
+# (specs/results/deferred_findings_final.yaml) when an epic absorbs the branch.
+#
+# Every row is a CATCH (§4). `origin` is where the fix went (§4.3):
+# product = skt regress and its docs; instrument = the evals and tests that
+# measure it. `effect` is in words. Commits are on feature/skt-regress.
+# Found on 845659d8/82e1c72d (the first pushed state); all fixed in the commit
+# that adds this file unless `fix` says otherwise.
+
+- id: REGRESS-REVIEW-01
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "skt regress: tree_changes, the measurement behind the fix budget and close"
+  observed: "untracked files were invisible: a report-only run that created a 500-line file ended green with fixes.files [], and `close` then deleted the file"
+  effect: "false green on the budget and report-only checks; silent loss of the agent's work on close"
+  fix: "untracked files count as changes (the test graph's build/ output excepted); close refuses while they exist"
+  pinned_by: "skills/skt/tests/test_regress.py::test_an_untracked_file_is_a_change_and_close_will_not_delete_it"
+
+- id: REGRESS-REVIEW-02
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "skt regress run: which commit a rerun's changes are measured against"
+  observed: "a report-only rerun under the same id, after a fix attempt, was escalated for 'changed the tree' though it changed nothing"
+  effect: "false escalation on the path regression-handoff.md tells the epic agent to take after `incomplete`"
+  fix: "the report-only check measures from HEAD at the start of the attempt; the line/file budget stays per branch, and the doc says so"
+  pinned_by: "skills/skt/tests/test_regress.py::test_a_rerun_is_not_blamed_for_the_previous_attempts_fix"
+
+- id: REGRESS-REVIEW-03
+  severity: major
+  channel: independent-review
+  origin: instrument
+  area: "the eval harness's per-case dispatch in evals/lib/verify.sh"
+  observed: "both new cases scored 0.00 with every verdict file missing, including the forbid and within-budget ones; neither case had a verify arm"
+  effect: "false red: two billed runs ($0.39) measured the missing arm, not the agents. Also caught by operator-running-a-shipped-instrument (the eval run itself), read correctly only because ALL verdicts were absent"
+  fix: "arms added for both cases"
+  pinned_by: "tests/test_agent_integration_harness.py::test_the_hooks_handle_every_case_that_exists"
+  pin_note: "CORRECTED: the pin already existed and went red on these two cases. It was not run until after two billed eval rounds, because the repository tests/ suite has no declared environment (REGRESS-ENV-01) and takes 28 minutes"
+  skill_change: "proposed(evals/run.sh: run that one test in its pre-flight, beside check_cases_parse.py, so a missing arm is named before a run is billed)"
+
+- id: REGRESS-REVIEW-04
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "skt cli: the regress subparser's positionals and flags"
+  observed: "on Python 3.11/3.12, `regress run r1 --fix --isolated x alpha beta` and `regress new --id x HEAD` failed with 'unrecognized arguments'"
+  effect: "a correct command refused on a supported interpreter"
+  fix: "regress is parsed with parse_intermixed_args; checked on 3.11 and 3.14"
+  pinned_by: "skills/skt/tests/test_regress.py::test_flags_may_come_before_or_between_the_positionals"
+  pin_note: "the test runs on whichever interpreter the suite uses; 3.11 was checked by hand"
+
+- id: REGRESS-REVIEW-05
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "skt regress: uncaught exceptions and what exit 1 means"
+  observed: "a worktree with no test_graph/ raised FileNotFoundError and exited 1, which callers are told to read as 'a graph is red'"
+  effect: "a crash reported as a red verdict. Found independently by hand (REGRESS-MAN-01)"
+  fix: "missing project is a one-line refusal (exit 2); any other OSError/ValueError/KeyError exits 3, never 1"
+  pinned_by: "skills/skt/tests/test_regress.py::test_no_test_graph_project_is_one_line_not_a_traceback_or_a_red"
+
+- id: REGRESS-REVIEW-06
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "skt regress run: reuse of an attempt directory after an interrupted or dry run"
+  observed: "a leftover agent-report.json carrying an escalation was read as the next attempt's report: exit 4 from a file the agent never wrote"
+  effect: "false escalation; a stale attribution list would also have hidden gaps"
+  fix: "the attempt's output files are deleted before the episode starts"
+  pinned_by: "skills/skt/tests/test_regress.py::test_a_stale_report_in_a_reused_attempt_directory_is_not_read"
+
+- id: REGRESS-REVIEW-07
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "skt regress run: reading the agent's `escalation` field"
+  observed: "any truthy value escalated, so `\"escalation\": \"none\"` with every graph green exited 4"
+  effect: "false escalation on an easy slip for a small model"
+  fix: "only a non-empty object escalates; the brief now says null unless escalated"
+  pinned_by: "skills/skt/tests/test_regress.py::test_only_an_escalation_object_escalates"
+
+- id: REGRESS-REVIEW-08
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "skt regress: read_verdict, the rule for which pass counts"
+  observed: "(a) a run-only-node pass after an errored full run was green though downstream nodes never ran; (b) a full pass in the same second as a later fix commit counted as newer than it"
+  effect: "false green"
+  fix: "a single-node run never counts; after a change the pass must finish in a later whole second than the last commit"
+  pinned_by: "skills/skt/tests/test_regress.py::test_one_node_run_alone_is_not_a_pass"
+  pin_note: "(b) is exercised only through the existing stale-pass test, whose stub sleeps across the second boundary"
+
+- id: REGRESS-REVIEW-09
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "skt regress close, run from inside the worktree it removes"
+  observed: "the worktree was removed, then `git worktree prune` failed in the vanished cwd: exit 2 with state and branch left behind"
+  effect: "half-completed close; recoverable by a second close from the main checkout"
+  fix: "close refuses up front and names the directory to run from"
+  pinned_by: "skills/skt/tests/test_regress.py::test_close_refuses_to_run_from_inside_its_own_worktree"
+
+- id: REGRESS-REVIEW-10
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "skt regress: declared_effects, the reading aid for the isolation statement"
+  observed: "`side_effects(SideEffect.environment(\"provision\"), \"net:external\")` yielded only environment:provision; bare names such as \"browser\" yielded nothing"
+  effect: "the 'effects beyond this machine' note under-reported"
+  fix: "balanced-parenthesis scan; bare names are kept"
+  pinned_by: "skills/skt/tests/test_regress.py::test_declared_effects_reads_nested_calls_and_bare_names"
+  pin_note: "`SideEffect.env(...)` and `env_all()` are still not reported; they read the environment and are not an effect on shared infrastructure"
+
+- id: REGRESS-REVIEW-11
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "skt cli: regress help text and epilog"
+  observed: "help said 'detached worktree' after `new` began creating regress/<id>; the exit-code list omitted 4"
+  effect: "documentation contradicting the code. Cause: a scripted string replacement that silently did not match"
+  fix: "help and epilog corrected"
+  pinned_by: null
+  pin_note: "nothing checks help text against behaviour"
+
+- id: REGRESS-REVIEW-12
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "skt regress run: --max-runs"
+  observed: "the limit appeared only in the brief; a graph run 20 times could still be green"
+  effect: "an unenforced budget"
+  fix: "runs are counted from the reports and a graph over the limit escalates the run"
+  pinned_by: "skills/skt/tests/test_regress.py::test_running_a_graph_more_often_than_the_limit_is_escalated"
+
+- id: REGRESS-REVIEW-13
+  severity: minor
+  channel: independent-review
+  origin: instrument
+  area: "eval case w-skt-regress-agent-escalates-a-big-fix: its prompt"
+  observed: "the description says the prompt is the brief build_brief writes; the brief had since gained `introduced_by` and the prompt had not"
+  effect: "the case measured a brief that no longer ships"
+  fix: "prompt regenerated from build_brief"
+  pinned_by: null
+  pin_note: "the prompt is a pasted copy; it will drift again whenever the brief changes"
+
+- id: REGRESS-REVIEW-14
+  severity: minor
+  channel: independent-review
+  origin: instrument
+  area: "eval case w-skt-regress-no-fix-rights-on-a-shared-cluster: its forbid regex"
+  observed: "`regress\\s+run\\b[^\\n]*--fix\\b` matched a correct command carrying the comment `# no --fix on a shared cluster`"
+  effect: "false red on a correct answer"
+  fix: "the match stops at `#`"
+  pinned_by: null
+
+- id: REGRESS-MAN-01
+  severity: major
+  channel: operator-doing-the-work
+  origin: product
+  area: "skt regress run on a commit with no test graph project"
+  observed: "Traceback ... FileNotFoundError: .../my proj-regress-m1/test_graph, exit 1"
+  effect: "same defect as REGRESS-REVIEW-05, found by the manual pass before the review returned"
+  fix: "see REGRESS-REVIEW-05"
+  pinned_by: "skills/skt/tests/test_regress.py::test_no_test_graph_project_is_one_line_not_a_traceback_or_a_red"
+
+- id: REGRESS-MAN-02
+  severity: minor
+  channel: the-suite
+  origin: product
+  area: "skt regress: the untracked-file check added for REGRESS-REVIEW-01"
+  observed: "seven existing tests went to exit 4: the graph runner's reports under test_graph/build were counted as files the agent created, in a repository that does not ignore build/"
+  effect: "faithful red on a fix that was wrong when first written"
+  fix: "the test graph's build/ output is excluded from the untracked check"
+  pinned_by: "skills/skt/tests/test_regress.py::test_green_when_every_graph_report_passed"
+
+- id: REGRESS-ENV-01
+  severity: minor
+  channel: operator-doing-the-work
+  origin: instrument
+  area: "running the repository's tests/ directory: there is no project environment"
+  observed: "`uv run pytest tests` and `uv run --python 3.14 pytest tests` both failed collection with ModuleNotFoundError: tomllib; the tests need Python >= 3.11 with pytest and PyYAML and nothing declares it"
+  effect: "false red against the branch; the same errors occur on main"
+  fix: none
+  skill_change: "proposed(repository root: declare the test environment, or document `uv run --no-project --python 3.14 --with pytest --with pyyaml pytest tests`)"
+  pinned_by: null
+
+- id: REGRESS-EVAL-01
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: instrument
+  area: "the eval harness's per-case fixture placement in evals/lib/place.sh"
+  observed: "after the verify arms were added, the escalation case scored 0.80 with `escalates` passing. The kept trace shows why: 'find: test_graph/build/validation-reports/20261112-090000: No such file or directory'. The fixture was never placed (no place arm), so the agent escalated because it could read nothing, and attributed origin `unknown`"
+  effect: "false green on `escalates` and `no-edit-to-product-or-check` (weight 6 of 10): the case passed its two heaviest graders without the agent ever seeing the failure it is about. Only the attribution grader, which needs the report read, exposed it"
+  fix: "place arms added for both cases"
+  pinned_by: "tests/test_agent_integration_harness.py::test_the_hooks_handle_every_case_that_exists"
+  pin_note: "same test as REGRESS-REVIEW-03: it covers the place arms as well, and passes now that both are registered"
+  skill_change: "see REGRESS-REVIEW-03"
+
+- id: REGRESS-ENV-02
+  severity: minor
+  channel: the-suite
+  origin: environment
+  area: "the primary checkout's local state, as seen by tests/test_reference_adapters_carry_the_bootstrap.py"
+  observed: "two tests fail in the primary checkout with `ModuleNotFoundError: No module named 'spec_double_compiler.runtime'` and pass, 49 of 49 with the harness file, in a clean worktree of the same commit (f3f23ee3)"
+  effect: "false red against the branch: the commit is the same, only the checkout differs. Cause not investigated"
+  fix: none
+  pinned_by: null
+
+- id: REGRESS-PRE-01
+  severity: minor
+  channel: the-suite
+  origin: unknown
+  area: "tests/test_architecture_tags.py::test_the_same_tag_control_holds"
+  observed: "fails on this branch and identically on main (d98b20eb) in a clean worktree"
+  effect: "pre-existing red, not introduced here; not investigated"
+  fix: none
+  pinned_by: null

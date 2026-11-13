@@ -228,6 +228,26 @@ adapter, or Test Graph effects.
 
 ## 4. Run the assigned validation loop
 
+**If your assignment's `validation` block says `when: step`, most of this
+section is not yours.** The epic is taking a step of several tickets and
+validating them together at its boundary (git-epic-workflow's
+`references/step-sizing.md` §0). You then:
+
+- run `repository_unit` and the cheap local checks (compile, lint), and nothing
+  else from the matrix. Do not run graphs, TLC or spec-unit, and do not record
+  a convergence review;
+- still write every surface §3 assigns, including new and changed Test Graph
+  nodes. They are written here and run at the boundary;
+- start every commit subject with your ticket id. Reds found at the boundary
+  are attributed to the ticket whose commit introduced them, and this is how;
+- still file what you notice by reading into your inbox (§ deferment);
+- leave the spec ticket open. The epic owner closes specs at the boundary, so
+  skip §6's close;
+- say `validation deferred to the step boundary` at the top of `## Review
+  input` in the PR, with the `repository_unit` result.
+
+Without `when: step`, run the whole matrix as below.
+
 The epic owner scopes this matrix to the ticket's affected graphs and their
 required dependency closure. Run all REQUIRED entries; request an amendment
 when the assignment unnecessarily demands a full epic sweep, rather than

@@ -187,6 +187,7 @@ Open only the page your task needs.
 | Dense API/DSL/task reference: `NodeSpec`, `NodeResult`, context wire format, Gradle DSL, Java/Python SDK | [`references/reference.md`](references/reference.md) |
 | Debugging a failed graph: direct node invocation, resume/run-only rules, envelope and closure schema | [`references/failure-loop.md`](references/failure-loop.md) |
 | Authoring or reviewing a node/graph: declared effects, runtime identity, timeouts, process ownership, cleanup, replay/recovery contracts | [`references/graph-architecture-review.md`](references/graph-architecture-review.md) |
+| A graph a regression agent will rerun and repair: what must be private, a cluster of its own | [`references/isolation-for-agent-runs.md`](references/isolation-for-agent-runs.md) |
 | Branch environment repository contract, Git fixture policy, OpenTofu outputs, local k3d, required coverage | [`references/environment-repositories.md`](references/environment-repositories.md) |
 | Generated GitHub Actions workflow, skill install, symlink repair/preserve modes, private installs | [`references/github-actions.md`](references/github-actions.md) |
 | Python/uv/Gradle environment mismatches, `python` alias vs `python3` | [`references/debug-python-uv-env.md`](references/debug-python-uv-env.md) |

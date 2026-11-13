@@ -396,9 +396,13 @@ missing and errors on a malformed one.
 Read `references/human-review.md` for what the artifact carries, how the diff is
 rendered, and what a review may and may not change.
 
-The cadence is also a step-size control. Each review point is where the batch is
-held, increased by one bounded step, or decreased (`references/step-sizing.md`
-§6). Choose `cadence: wave` or an early milestone when history is sparse or the
+**The cadence is the step.** A review point is a step boundary: the tickets
+before it are written without running graphs, closing specs or stopping for
+review, and all of that runs once at the boundary (`references/step-sizing.md`
+§0). So also ask how many tickets the owner wants finished between
+boundaries: 2, 3, 4, or the whole epic (`finalization-only`). That is a normal
+choice for any epic, not only a small one, and the plan records it. Each
+boundary is also where the step is held, increased or decreased (§6). Choose `cadence: wave` or an early milestone when history is sparse or the
 model has changed. Expensive evals keep their own predeclared checkpoint in the
 evaluation ticket, not at every review point.
 
