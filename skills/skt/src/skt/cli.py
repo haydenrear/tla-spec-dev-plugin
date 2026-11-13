@@ -202,6 +202,8 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "examples:\n"
             "  skt regress new origin/epic/my-epic          worktree of that commit, on regress/<id>\n"
+            "  skt regress adopt ../repo-TICKET-12          run in that worktree instead (it already\n"
+            "                                               has its home and setup); close leaves it\n"
             "  skt regress run <id> cliWorkflow sktSurface  run these graphs with the agent\n"
             "  skt regress run <id> --all --model CLAUDE_haiku\n"
             "  skt regress run <id> --all --fix --isolated 'k3d cluster regress-<id>' \\\n"
@@ -215,12 +217,13 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    regress.add_argument("verb", choices=["new", "run", "info", "list", "close"])
-    regress.add_argument("target", nargs="?", metavar="REF|ID",
-                         help="new: the commit or ref to test; run/info/close: the id `new` printed")
+    regress.add_argument("verb", choices=["new", "adopt", "run", "info", "list", "close"])
+    regress.add_argument("target", nargs="?", metavar="REF|DIR|ID",
+                         help="new: the commit or ref to test; adopt: an existing, set-up worktree "
+                         "to run in; run/info/close: the id `new` or `adopt` printed")
     regress.add_argument("graphs", nargs="*", help="run: graph names (or --all)")
     regress.add_argument("--all", action="store_true", help="run: every registered graph")
-    regress.add_argument("--id", help="new: the id (default: the short sha)")
+    regress.add_argument("--id", help="new, adopt: the id (default: the short sha)")
     regress.add_argument("--path", help="new: where to put the worktree")
     regress.add_argument("--test-graph-root",
                          help="new: the test graph project, relative to the worktree (default test_graph)")
@@ -248,6 +251,9 @@ def build_parser() -> argparse.ArgumentParser:
                          help="run: files the agent's fixes may touch (default 4)")
     regress.add_argument("--max-runs", type=int, default=5,
                          help="run: times the agent may run one graph, resumes included (default 5)")
+    regress.add_argument("--stall-timeout", type=int, default=15 * 60,
+                         help="run: stop the episode when the agent records nothing for this many "
+                         "seconds (default 900; 0 never)")
     regress.add_argument("--keep-state", action="store_true",
                          help="close: remove the worktree, keep the results")
     regress.add_argument("--json", action="store_true", help="run: machine-readable result")

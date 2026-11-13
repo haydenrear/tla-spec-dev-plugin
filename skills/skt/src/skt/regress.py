@@ -36,7 +36,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
 import shutil
+import signal
 import socket
 import subprocess
 import sys
@@ -46,6 +48,10 @@ from pathlib import Path
 
 DEFAULT_MODEL = "CLAUDE_haiku"
 DEFAULT_TIMEOUT = 4 * 60 * 60
+DEFAULT_STALL_TIMEOUT = 15 * 60  # seconds without a trace event before the episode is stopped
+GRAPH_WAIT = 100                 # seconds one call of graph.sh blocks: under a default command timeout
+# Tools that hand control to a scheduler. Nothing wakes a session driven through meta-harness.
+WAIT_TOOLS = ("ScheduleWakeup", "CronCreate", "Monitor", "PushNotification")
 STATE_DIRNAME = "skt-regress"
 REPORTS = Path("build") / "validation-reports"
 
@@ -145,6 +151,56 @@ def new(ref: str, run_id: str | None = None, path: str | None = None,
         "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "attempts": [],
     }
+    _save_run(run)
+    return run
+
+
+def adopt(worktree_dir: str, run_id: str | None = None, test_graph_root: str | None = None,
+          start: str | Path = ".") -> dict:
+    """Run in a worktree that already exists and is already set up.
+
+    A fresh worktree has only what git tracks. A repository whose graphs need
+    more than that (a skill home, an index, installed tools) is tested where
+    that setup already is: the ticket's or the epic's own worktree.
+    """
+    worktree = Path(worktree_dir).resolve()
+    if not worktree.is_dir():
+        raise RegressError(f"{worktree} is not a directory")
+    try:
+        theirs = Path(_git(["rev-parse", "--path-format=absolute", "--git-common-dir"], worktree)).resolve()
+        top = Path(_git(["rev-parse", "--show-toplevel"], worktree)).resolve()
+    except subprocess.CalledProcessError:
+        raise RegressError(f"{worktree} is not a git worktree") from None
+    if theirs != common_dir(start).resolve() or top != worktree:
+        raise RegressError(f"{worktree} is not the top of a worktree of this repository",
+                           fix="name the worktree's top directory (`git worktree list`)")
+    sha = _git(["rev-parse", "HEAD"], worktree)
+    run_id = _valid_id(run_id or sha[:10])
+    state = state_root(start) / run_id
+    if (state / "run.json").exists():
+        raise RegressError(f"regression run {run_id!r} already exists",
+                           fix=f"skt regress run {run_id} <graph>...   # or: skt regress close {run_id}")
+    branch = _git(["rev-parse", "--abbrev-ref", "HEAD"], worktree)
+    run = {
+        "id": run_id,
+        "ref": branch,
+        "sha": sha,
+        "branch": None if branch == "HEAD" else branch,
+        "worktree": str(worktree),
+        "adopted": True,
+        "state": str(state),
+        "test_graph_root": str((worktree / (test_graph_root or "test_graph")).resolve()),
+        "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "attempts": [],
+    }
+    left = tree_changes(run)
+    if left["uncommitted"]:
+        what = ", ".join(left["untracked"][:5]) or "modified tracked files"
+        raise RegressError(
+            f"{worktree} holds uncommitted work ({what}); the agent's changes could not be told from it",
+            fix="commit or stash it, then adopt again",
+        )
+    state.mkdir(parents=True, exist_ok=True)
     _save_run(run)
     return run
 
@@ -253,13 +309,61 @@ def beyond_local(effects: list[str]) -> list[str]:
 
 # ------------------------------------------------------------------- brief
 
+GRAPH_SCRIPT = r"""#!/usr/bin/env bash
+# usage: graph.sh <graph>   |   graph.sh --resume <runId>
+# Starts the run detached, waits at most @WAIT@ seconds, and says whether it
+# finished. Called again with the same arguments it rejoins the same run.
+set -u
+[ $# -ge 1 ] || { echo "usage: graph.sh <graph> | graph.sh --resume <runId>" >&2; exit 2; }
+dir=@DIR@
+mkdir -p "$dir"
+key=$(printf '%s' "$*" | tr -c 'A-Za-z0-9._-' '_')
+pidf="$dir/$key.pid"; rcf="$dir/$key.rc"; log="$dir/$key.log"
+if [ ! -f "$pidf" ]; then
+  rm -f "$rcf"
+  RUNNER=@RUNNER@ TG=@TG@ LOG="$log" RCF="$rcf" nohup bash -c \
+    'python3 "$RUNNER" "$@" --test-graph-root "$TG" > "$LOG" 2>&1; echo $? > "$RCF.tmp"; mv "$RCF.tmp" "$RCF"' \
+    graph "$@" < /dev/null > /dev/null 2>&1 &
+  echo $! > "$pidf"
+  echo "STARTED $*"
+fi
+end=$((SECONDS + @WAIT@))
+while [ ! -f "$rcf" ] && [ $SECONDS -lt $end ]; do sleep 2; done
+if [ -f "$rcf" ]; then
+  rm -f "$pidf"
+  echo "FINISHED $*  (runner exit $(cat "$rcf"))  full log: $log"
+  tail -n 30 "$log"
+else
+  echo "STILL RUNNING $*  -- run this exact command again to keep waiting. Do nothing else meanwhile."
+fi
+"""
+
+
+def write_graph_script(attempt_dir: Path, runner: Path, tg_root: str) -> Path:
+    """The one command the agent runs a graph with.
+
+    It blocks for a bounded time and rejoins the same run when called again,
+    so the agent needs no long command timeout, no background job of its own
+    and no timer -- none of which work for a session driven through
+    meta-harness.
+    """
+    path = attempt_dir / "graph.sh"
+    path.write_text(GRAPH_SCRIPT.replace("@WAIT@", str(GRAPH_WAIT))
+                    .replace("@DIR@", shlex.quote(str(attempt_dir / "graph-runs")))
+                    .replace("@RUNNER@", shlex.quote(str(runner)))
+                    .replace("@TG@", shlex.quote(tg_root)))
+    path.chmod(0o755)
+    return path
+
+
 def build_brief(run: dict, graphs: list[str], runner: Path, report_path: Path, *,
                 fix: bool = False, isolated: str | None = None, effects: list[str] | None = None,
                 max_fix_lines: int = DEFAULT_MAX_FIX_LINES, max_fix_files: int = DEFAULT_MAX_FIX_FILES,
                 max_runs: int = DEFAULT_MAX_RUNS) -> str:
     tg = run["test_graph_root"]
-    run_cmd = f"python3 {runner} <graph> --test-graph-root {tg}"
-    resume_cmd = f"python3 {runner} --resume <runId> --test-graph-root {tg}"
+    # ``runner`` is the attempt's graph.sh (write_graph_script), not run.py itself.
+    run_cmd = f"bash {runner} <graph>"
+    resume_cmd = f"bash {runner} --resume <runId>"
     skeleton = json.dumps({
         "sha": run["sha"],
         "graphs": [{
@@ -318,7 +422,8 @@ STOP AND ESCALATE, do not attempt the fix, when any of these is true:
 - you would have to decide what the correct behaviour is;
 - you fixed it once and the same node still fails;
 - you cannot tell why it failed;
-- the failure is in the isolated environment itself and you cannot repair it from this worktree.
+- the graph cannot run because something is not set up, or the failure is in the
+  isolated environment itself. You never repair the environment.
 To escalate: make no further changes, run no further graphs, mark the remaining graphs
 `not_run`, and set `escalation` in the report to:
   {escalation}
@@ -329,9 +434,10 @@ To escalate: make no further changes, run no further graphs, mark the remaining 
 - Only when the origin of a failure is `environment`, retry ONCE by resuming from the failed node:
     {resume_cmd}
   Never run a graph more than twice in total. Never retry a `product` or `instrument` failure.
-- If a failure needs a change to pass, say what is needed in `escalation`:
+- If a failure needs a change or some setup to pass, say what is needed in `escalation`:
     {escalation}
 """
+    fix_cmds = ";\n- in the worktree: your edits, `git add` and `git commit`" if fix else ""
     effects_line = ", ".join(effects) if effects else "none found in the node sources"
     return f"""You are a test-graph regression runner. Your job is to run the test graphs listed
 below on one commit and report exactly what happened.
@@ -341,14 +447,30 @@ Worktree (your working directory): {run['worktree']}
 Test graph project: {tg}
 Side effects these graphs declare: {effects_line}
 
+THE ONLY COMMANDS YOU RUN
+- the graph command given below, to run a graph and to wait for it;
+- commands that only read: cat, ls, grep, head, tail, `git log`, `git diff`, `git status`{fix_cmds}.
+Nothing else. In particular:
+- NO setup of any kind. Do not install, build, bootstrap, refresh, index, migrate, log in,
+  or start, stop or restart any service, daemon, container, cluster or server. Do not run
+  docker, kubectl, helm, k3d, pip, uv, npm, brew, make, or any script from this repository
+  other than the graph command. If a graph cannot run because something is not set up
+  (a missing home, tool, index, credential or service), that is an `environment` failure:
+  do not repair it. Record it and escalate, saying exactly what is missing.
+- NO background work and NO timers. Do not end a command with `&`, do not use nohup, and
+  do not use a background-run option, a scheduled wakeup, a reminder, a monitor or a
+  "check back later" tool. Nothing will ever wake you: you would stop for good. The only
+  way to wait is to run the graph command again.
+
 GRAPHS TO RUN, in this order:
 {chr(10).join(f'  - {g}' for g in graphs)}
 
 FOR EACH GRAPH
-1. Run it:
+1. Run it, with exactly this command:
      {run_cmd}
-   Run one graph at a time and wait for it. A run can take tens of minutes: use the longest
-   command timeout you have, or run it in the background and wait. Slow is not failed.
+   It prints FINISHED or STILL RUNNING within about two minutes. On STILL RUNNING, run the
+   same command again, and keep doing that until it prints FINISHED. A run can take tens
+   of minutes. Slow is not failed. Run one graph at a time.
 2. Find the report directory the run wrote: the newest directory under
      {tg}/{REPORTS}/
    Its name is the runId. Read `summary.json` (field `status`). On anything other than
@@ -611,13 +733,85 @@ def _wait_listening(base_url: str, proc: subprocess.Popen, seconds: float = 60) 
     raise RegressError("meta-harness serve did not start listening within 60s", code=EXIT_INCOMPLETE)
 
 
-def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None) -> tuple[dict, str]:
-    """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one."""
+def read_trace(evidence: Path) -> dict | None:
+    """What the agent did, from meta-harness's own event log. None when there is none."""
+    logs = sorted(evidence.glob("*/events.jsonl")) if evidence.is_dir() else []
+    if not logs:
+        return None
+    trace = {"events": 0, "tool_calls": 0, "agent_messages": 0, "tools": {}, "wait_tools": [],
+             "last_tool": None, "last_event": None, "tokens": None, "cost_usd": None}
+    for log in logs:
+        try:
+            lines = log.read_text(errors="replace").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            kind, data = event.get("kind"), event.get("data") or {}
+            trace["events"] += 1
+            trace["last_event"] = event.get("ts") or trace["last_event"]
+            if kind == "tool.call":
+                name = data.get("name") or data.get("title") or "?"
+                trace["tool_calls"] += 1
+                trace["tools"][name] = trace["tools"].get(name, 0) + 1
+                trace["last_tool"] = name
+                if name in WAIT_TOOLS and name not in trace["wait_tools"]:
+                    trace["wait_tools"].append(name)
+            elif kind in ("agent.message.chunk", "agent.message.complete", "agent.thought.chunk"):
+                # A turn that failed at once still closes with one empty message.
+                content = data.get("content")
+                parts = content if isinstance(content, list) else [content]
+                if any(isinstance(c, dict) and (c.get("text") or "").strip() for c in parts):
+                    trace["agent_messages"] += 1
+            elif kind == "turn.ended":
+                usage = data.get("usage") or {}
+                if usage.get("session_total_tokens") is not None:
+                    trace["tokens"] = {k[len("session_"):]: v for k, v in usage.items()
+                                       if k.startswith("session_")}
+            elif kind == "usage.update":
+                cost = ((data.get("usage") or {}).get("raw") or {}).get("cost") or {}
+                if cost.get("amount") is not None:
+                    trace["cost_usd"] = cost["amount"]
+    return trace
+
+
+def _trace_mtime(evidence: Path) -> float | None:
+    times = [f.stat().st_mtime for f in evidence.glob("*/events.jsonl")] if evidence.is_dir() else []
+    return max(times) if times else None
+
+
+def _stop_group(proc: subprocess.Popen) -> None:
+    """Stop a process and everything it started that stayed in its group."""
+    for sig, grace in ((signal.SIGTERM, 20), (signal.SIGKILL, 5)):
+        try:
+            os.killpg(proc.pid, sig)
+        except (ProcessLookupError, PermissionError):
+            pass
+        try:
+            proc.wait(timeout=grace)
+            return
+        except subprocess.TimeoutExpired:
+            continue
+
+
+def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
+                stall_timeout: int = DEFAULT_STALL_TIMEOUT) -> tuple[dict, str]:
+    """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
+
+    The private server runs in its own process group, and the group is stopped
+    when the episode ends, so nothing the agent started outlives the run unless
+    it detached itself. With a private server the trace is watched: an episode
+    that records nothing for ``stall_timeout`` seconds is stopped.
+    """
     request_path = attempt_dir / "request.json"
     result_path = attempt_dir / "episode.json"
     request_path.write_text(json.dumps(request, indent=2) + "\n")
-    serve = None
-    log = None
+    evidence = attempt_dir / ".meta-harness" / "evidence"
+    serve = client = log = None
+    stopped = None
     try:
         if base_url is None:
             port = _free_port()
@@ -626,24 +820,38 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
             serve = subprocess.Popen(
                 [binary, "--project-root", str(attempt_dir), "serve", "--port", str(port)],
                 stdout=log, stderr=subprocess.STDOUT, env=_agent_env(), cwd=str(attempt_dir),
+                start_new_session=True,
             )
             _wait_listening(base_url, serve)
-        subprocess.run(
+        client = subprocess.Popen(
             [binary, "--project-root", str(attempt_dir), "episode", "--base-url", base_url,
              "--request", str(request_path), "--output", str(result_path)],
-            capture_output=True, text=True, timeout=request["timeoutSeconds"] + 300,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-    except subprocess.TimeoutExpired:
-        pass
+        began = time.time()
+        deadline = began + request["timeoutSeconds"] + 300
+        while client.poll() is None:
+            now = time.time()
+            if now > deadline:
+                stopped = "the episode ran past its timeout"
+                break
+            if serve is not None and stall_timeout:
+                quiet = now - (_trace_mtime(evidence) or began)
+                if quiet > stall_timeout:
+                    stopped = (f"the agent recorded nothing for {int(quiet)}s and was stopped "
+                               f"(--stall-timeout {stall_timeout})")
+                    break
+            time.sleep(2)
     finally:
+        if client is not None and client.poll() is None:
+            client.kill()
+            client.wait()
         if serve is not None:
-            serve.terminate()
-            try:
-                serve.wait(timeout=30)
-            except subprocess.TimeoutExpired:
-                serve.kill()
+            _stop_group(serve)
         if log is not None:
             log.close()
+    if stopped:
+        return {"outcome": "stopped", "error": stopped}, base_url
     try:
         return json.loads(result_path.read_text()), base_url
     except (OSError, ValueError):
@@ -657,7 +865,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         base_url: str | None = None, dry_run: bool = False, as_json: bool = False,
         fix: bool = False, isolated: str | None = None, env: list[str] | None = None,
         max_fix_lines: int = DEFAULT_MAX_FIX_LINES, max_fix_files: int = DEFAULT_MAX_FIX_FILES,
-        max_runs: int = DEFAULT_MAX_RUNS, start: str | Path = ".") -> int:
+        max_runs: int = DEFAULT_MAX_RUNS, stall_timeout: int = DEFAULT_STALL_TIMEOUT,
+        start: str | Path = ".") -> int:
     record = load_run(run_id, start)
     if not Path(record["worktree"]).is_dir():
         raise RegressError(f"worktree {record['worktree']} is gone", fix=f"skt regress close {run_id}")
@@ -704,7 +913,9 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     report_path = attempt_dir / "agent-report.json"
     for stale in ("agent-report.json", "episode.json", "result.json", "attribution.yaml", "fixes.patch"):
         (attempt_dir / stale).unlink(missing_ok=True)
-    brief = build_brief(record, graphs, runner_path, report_path, fix=fix, isolated=isolated,
+    graph_script = write_graph_script(attempt_dir, runner_path, record["test_graph_root"])
+    shutil.rmtree(attempt_dir / "graph-runs", ignore_errors=True)
+    brief = build_brief(record, graphs, graph_script, report_path, fix=fix, isolated=isolated,
                         effects=effects, max_fix_lines=max_fix_lines, max_fix_files=max_fix_files,
                         max_runs=max_runs)
     (attempt_dir / "brief.md").write_text(brief)
@@ -735,7 +946,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
                                   "isolated": isolated, "started": started}) + "\n")
     try:
-        episode, used_url = run_episode(binary, attempt_dir, request, base_url)
+        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
     finally:
         marker.unlink(missing_ok=True)
 
@@ -770,10 +981,16 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         verdict, code = "green", EXIT_GREEN
     else:
         verdict, code = "incomplete", EXIT_INCOMPLETE
-    # No report of any kind and a failed episode: the agent never got to work.
-    # That is a login or a meta-harness problem, and running again will not fix it.
-    never_started = (episode.get("outcome") != "succeeded" and agent_report is None
-                     and all(r["runs"] == 0 for r in rows) and not this_attempt["files"])
+    # Whether the agent ever got to work is read from meta-harness's trace, not
+    # guessed from what is missing afterwards: an agent that ran tools and then
+    # hung leaves the same empty hands as one that could not log in.
+    trace = read_trace(attempt_dir / ".meta-harness" / "evidence") if base_url is None else None
+    silent = (episode.get("outcome") != "succeeded" and agent_report is None
+              and all(r["runs"] == 0 for r in rows) and not this_attempt["files"])
+    if trace is None:
+        agent_started = None if silent else True   # no trace to read (--base-url, or none written)
+    else:
+        agent_started = bool(trace["tool_calls"] or trace["agent_messages"]) or not silent
     gaps = attribution_gaps(agent_report, reds)
     attribution = [r for r in (agent_report or {}).get("attribution") or [] if isinstance(r, dict)]
     if attribution:
@@ -795,7 +1012,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "isolated": isolated,
         "declared_effects": effects,
         "verdict": verdict,
-        "agent_started": not never_started,
+        "agent_started": agent_started,
+        "trace": trace,
         "graphs": rows,
         "escalation": escalation,
         "over_budget": over,
@@ -845,8 +1063,9 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         print(f"  attribution    {len(attribution)} row(s): {attempt_dir / 'attribution.yaml'}")
     for gap in gaps:
         print(f"  ATTRIBUTION GAP  {gap}")
-    if never_started:
-        print("  AGENT DID NOT START  no graph ran and nothing was reported. Do not rerun as it is.\n"
+    if agent_started is False:
+        print("  AGENT DID NOT START  the trace holds no tool call and no message from the agent.\n"
+              "                 Do not rerun as it is.\n"
               f"                 episode {episode.get('outcome')}: {episode.get('error')}\n"
               f"                 server log: {attempt_dir / 'serve.log'}\n"
               "                 Usual cause: the provider CLI behind this model has no logged-in\n"
@@ -854,6 +1073,20 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
               "                 terminal and log in). Then run this command again.")
     elif episode.get("outcome") != "succeeded":
         print(f"  episode        {episode.get('outcome')}: {episode.get('error')}")
+        if agent_started is None:
+            print("                 whether the agent started is unknown: no local trace to read")
+        elif agent_report is None and trace:
+            print(f"  AGENT STOPPED WITHOUT REPORTING  it had started: {trace['tool_calls']} tool call(s), "
+                  f"last tool {trace['last_tool']}, last event {trace['last_event']}.\n"
+                  "                 This is not a login problem. Read the trace before running again:\n"
+                  f"                 {attempt_dir / '.meta-harness' / 'evidence'}")
+    if trace and trace["wait_tools"]:
+        print(f"  WAIT TOOL USED  {', '.join(trace['wait_tools'])}: nothing wakes a session driven "
+              "through meta-harness, so the agent stopped there")
+    if trace and trace["tokens"]:
+        cost = f", ${trace['cost_usd']:.2f}" if isinstance(trace["cost_usd"], (int, float)) else ""
+        print(f"  usage          {trace['tokens'].get('total_tokens')} tokens, "
+              f"{trace['tool_calls']} tool call(s){cost}")
     notes = (agent_report or {}).get("notes")
     if isinstance(notes, str) and notes.strip():
         print(f"  agent notes    {notes.strip()}")
@@ -896,6 +1129,13 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
     record = load_run(run_id, start)
     worktree = Path(record["worktree"])
     branch = record.get("branch")
+    if record.get("adopted"):
+        if keep_state:
+            print(f"released {worktree} (adopted; left as it is); results kept in {record['state']}")
+        else:
+            shutil.rmtree(record["state"], ignore_errors=True)
+            print(f"released {worktree} (adopted; the worktree and its branch are left as they are)")
+        return 0
     if worktree.is_dir():
         here = Path.cwd().resolve()
         if here == worktree.resolve() or worktree.resolve() in here.parents:
@@ -944,6 +1184,17 @@ def main(args) -> int:
             if not Path(record["test_graph_root"]).is_dir():
                 print(f"note: no test graph project at {record['test_graph_root']} "
                       f"(--test-graph-root names another)")
+            if (_main_worktree() / ".skill-manager").is_dir():
+                print("note: this repository's checkouts carry a skill home and this worktree has none.\n"
+                      "      It holds only what git tracks. If the graphs need the home, an index or\n"
+                      "      other local setup, close this and use `skt regress adopt <ticket worktree>`.")
+            print(f"next: skt regress run {record['id']} <graph>...   # or --all")
+            return 0
+        if verb == "adopt":
+            record = adopt(args.target, run_id=args.id, test_graph_root=args.test_graph_root)
+            print(f"adopted {record['worktree']} @{record['sha'][:10]} "
+                  f"({record['branch'] or 'detached'}) as regression run {record['id']}")
+            print("note: fix commits land on that branch; `skt regress close` leaves the worktree alone")
             print(f"next: skt regress run {record['id']} <graph>...   # or --all")
             return 0
         if verb == "run":
@@ -952,7 +1203,7 @@ def main(args) -> int:
                        base_url=args.base_url, dry_run=args.dry_run, as_json=args.json,
                        fix=args.fix, isolated=args.isolated, env=args.env,
                        max_fix_lines=args.max_fix_lines, max_fix_files=args.max_fix_files,
-                       max_runs=args.max_runs)
+                       max_runs=args.max_runs, stall_timeout=args.stall_timeout)
         if verb == "info":
             return info(args.target)
         if verb == "close":
