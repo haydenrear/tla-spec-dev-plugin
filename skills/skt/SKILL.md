@@ -162,6 +162,10 @@ Before you start one, check two things:
   worktree with no skill home, index or tools. If the graphs need those, use
   `skt regress adopt <ticket or epic worktree>`. The agent is forbidden to set
   anything up and will escalate instead.
+- **Check on it; do not watch it.** Run it in the background, sleep, and look
+  in about every half hour, with a 20-minute backup timer set before you
+  sleep. What to look at is in git-epic-workflow's
+  `references/regression-handoff.md`.
 - **The agent can log in.** The small model runs through the provider CLI's own
   session on this machine. `AGENT DID NOT START` in the output means it never
   ran. Do not rerun: tell the user to log in (`claude`), then run again.

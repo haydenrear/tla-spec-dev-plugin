@@ -29,7 +29,22 @@ regression once, which is what makes the larger batch worth taking.
    Name the affected graphs and their dependency closure from the plan's
    `testgraph_bindings`, plus the graphs the batch added. `--fix` needs the
    isolation statement; see below. Run it in the background: it can take hours.
-3. **Read what came back** (table below), absorb the attribution, and either go
+3. **Check on it about every half hour.** Start the run as a background
+   command, then end your turn and sleep. Set a backup timer for 20 minutes
+   before you do, so that you wake even if the run never reports back. Do not
+   poll in a loop and do not do the agent's work while you wait. At each check:
+
+   - `skt regress list`: is it still `RUNNING`?
+   - The newest report under `<test graph>/build/validation-reports/`: is a
+     graph still producing output, and has any graph finished?
+   - `<git common dir>/skt-regress/<id>/attempt-<n>/.meta-harness/evidence/`:
+     is the agent still doing useful work, or is it idle after the graphs
+     finished, calling a timer, or running setup commands?
+
+   If the graphs have finished and the agent is idling or waiting on a timer,
+   stop the run (kill the `skt regress run` process; it stops the agent with
+   it) and read what it left. Then set the backup timer again and sleep.
+4. **Read what came back** (table below), absorb the attribution, and either go
    on to manual testing and the merge, or repair and hand off again.
 
 ## What came back, and what you do

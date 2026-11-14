@@ -193,13 +193,23 @@ def adopt(worktree_dir: str, run_id: str | None = None, test_graph_root: str | N
         "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "attempts": [],
     }
+    for other in sorted(state_root(start).glob("*/run.json")) if state_root(start).is_dir() else []:
+        try:
+            taken = json.loads(other.read_text())
+        except (OSError, ValueError):
+            continue
+        if Path(taken.get("worktree", "")).resolve() == worktree:
+            raise RegressError(f"{worktree} is already regression run {taken['id']!r}",
+                               fix=f"skt regress run {taken['id']} <graph>...   # or: skt regress close {taken['id']}")
     left = tree_changes(run)
-    if left["uncommitted"]:
-        what = ", ".join(left["untracked"][:5]) or "modified tracked files"
+    if _git(["status", "--porcelain", "--untracked-files=no"], worktree).strip():
         raise RegressError(
-            f"{worktree} holds uncommitted work ({what}); the agent's changes could not be told from it",
-            fix="commit or stash it, then adopt again",
+            f"{worktree} holds modified tracked files; the agent's changes could not be told from them",
+            fix="commit or stash them, then adopt again",
         )
+    # Untracked files already here (a skill home, an index, local setup the
+    # repository does not ignore) are the worktree's, not the agent's.
+    run["baseline_untracked"] = left["untracked"]
     state.mkdir(parents=True, exist_ok=True)
     _save_run(run)
     return run
@@ -558,8 +568,9 @@ def tree_changes(run: dict, since: str | None = None) -> dict:
     tg_rel = os.path.relpath(run["test_graph_root"], wt)
     # The graph runs write their reports under <test graph>/build. That output is
     # the runner's, whether or not the repository ignores it.
+    baseline = set(run.get("baseline_untracked") or [])
     untracked = [u for u in _git(["ls-files", "--others", "--exclude-standard"], wt).splitlines()
-                 if u and not u.startswith(f"{tg_rel}/build/")]
+                 if u and not u.startswith(f"{tg_rel}/build/") and u not in baseline]
     for path in untracked:
         files.append(path)
         try:
@@ -1046,6 +1057,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "mode": "fix" if fix else "report-only",
         "isolated": isolated,
         "declared_effects": effects,
+        "runner": str(runner_path),
         "verdict": verdict,
         "agent_started": agent_started,
         "trace": trace,
@@ -1072,6 +1084,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         return code
     print(f"regress {record['id']} @{record['sha'][:10]}: {verdict.upper()} "
           f"(attempt {attempt_no}, {model}, {result['mode']}, {result['duration_seconds']}s)")
+    print(f"  runner         {runner_path}")
     for row in rows:
         line = f"  {row['status']:<14} {row['graph']}"
         if row["runs"] > 1:

@@ -577,9 +577,16 @@ def test_adopt_runs_in_an_existing_worktree_and_close_leaves_it(repo, tmp_path):
                               capture_output=True, text=True).stdout
     assert "ticket-1" in branches
 
-    (ticket / "scratch.txt").write_text("x")
-    dirty = skt(repo, "adopt", str(ticket), "--id", "t2")
-    assert dirty.returncode == 2 and "uncommitted" in dirty.stderr
+    # Untracked setup the repository does not ignore is the worktree's own baseline.
+    (ticket / "local-index").mkdir()
+    (ticket / "local-index" / "data").write_text("x")
+    assert skt(repo, "adopt", str(ticket), "--id", "t2").returncode == 0
+    again = skt(repo, "adopt", str(ticket), "--id", "t2b")
+    assert again.returncode == 2 and "already regression run" in again.stderr
+    assert skt(repo, "close", "t2").returncode == 0
+    (ticket / "test_graph" / "keep").write_text("changed")
+    dirty = skt(repo, "adopt", str(ticket), "--id", "t4")
+    assert dirty.returncode == 2 and "modified tracked files" in dirty.stderr
     assert skt(repo, "adopt", str(tmp_path), "--id", "t3").returncode == 2
 
 

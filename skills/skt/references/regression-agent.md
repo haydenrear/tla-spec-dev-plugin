@@ -45,8 +45,10 @@ skt regress run <id> <graph>...
 skt regress close <id>                    # drops the results; the worktree and branch stay
 ```
 
-`adopt` refuses a worktree with uncommitted or untracked work, because the
-agent's changes could not be told from it. In fix mode the fix commits land on
+`adopt` refuses a worktree with modified tracked files, because the agent's
+changes could not be told from them, and a worktree that is already adopted
+under another id. Untracked files already there (the home, an index) are
+recorded as the worktree's own and are not counted as the agent's changes. In fix mode the fix commits land on
 that worktree's own branch. Nothing else should be working in it during the
 run.
 
@@ -180,8 +182,8 @@ last tool, tokens, cost).
 - **`AGENT STOPPED WITHOUT REPORTING`** (exit 3, `agent_started: true`): it ran
   tools and then the episode ended with no report. Not a login problem. Read
   the trace. `WAIT TOOL USED` names a scheduling tool it called.
-- With `--base-url` there is no local trace, `agent_started` is `null`, and the
-  output says it is unknown.
+- With `--base-url`, or when the private server wrote no trace at all,
+  `agent_started` is `null` and the output says it is unknown.
 
 **`AGENT DID NOT START`** (exit 3, `agent_started: false` in `result.json`):
 the trace holds no tool call and no message from the agent. Running again will
@@ -230,7 +232,11 @@ attribution row against its report before it goes in the ledger.
 - `--meta-harness` or `$META_HARNESS_BIN`, else `meta-harness` on `PATH`.
 - `--runner` or `$SKT_REGRESS_RUNNER`: the test-graph `run.py`. By default the
   copy inside the worktree under test is used when the repository ships one,
-  then this session's homes.
+  then the worktree's own skill home (`<worktree>/.skill-manager`), then this
+  session's homes. The output and `result.json` name the runner that was used.
+  A runner from a home other than the worktree's relinks the worktree's test
+  graph to that home and every node fails at setup: when every node fails at
+  setup, check the `runner` line first.
 - `--base-url` drives an already running `meta-harness serve` instead of
   starting one. Evidence then lives wherever that server keeps it.
 - `--timeout` bounds the whole episode in seconds (default four hours).
