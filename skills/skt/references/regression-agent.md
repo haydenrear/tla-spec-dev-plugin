@@ -17,7 +17,8 @@ attribution row for every red it met, and an escalation when the fix is bigger
 than it is allowed to make.
 
 ```bash
-skt regress new <ref>                  # worktree of that commit on branch regress/<id>; prints the id
+skt regress new <ref>                  # fresh worktree of that commit on branch regress/<id>; prints the id
+skt regress adopt <worktree dir>       # or: run in a worktree that exists and is already set up
 skt regress run <id> <graph>...        # report-only: run, retry environment failures, report
 skt regress run <id> --all --fix --isolated "<statement>" [--env KUBECONFIG=...]
                                        # fix mode: small fixes, rerun until green, or escalate
@@ -29,6 +30,51 @@ skt regress close <id>                 # remove the worktree; a branch holding f
 Flags may come before, after or between the positional arguments. `close`
 refuses while the worktree holds uncommitted or untracked work, and refuses to
 run from inside the worktree it removes.
+
+## Where it runs: a fresh worktree, or one you already have
+
+`new` makes a worktree that holds only what git tracks. It has no skill home
+(`.skill-manager`), no index, no installed tools, nothing a ticket worktree gets
+from `wt new`. That is right for a repository whose graphs need nothing else.
+
+When the graphs need that setup, do not let the agent build it. Use `adopt`:
+
+```bash
+skt regress adopt ../myrepo-TICKET-12     # or the epic's own checkout
+skt regress run <id> <graph>...
+skt regress close <id>                    # drops the results; the worktree and branch stay
+```
+
+`adopt` refuses a worktree with modified tracked files, because the agent's
+changes could not be told from them, and a worktree that is already adopted
+under another id. Untracked files already there (the home, an index) are
+recorded as the worktree's own and are not counted as the agent's changes. In fix mode the fix commits land on
+that worktree's own branch. Nothing else should be working in it during the
+run.
+
+## What the agent may run
+
+One command runs a graph: `graph.sh`, written into the attempt directory. It
+starts the run detached, blocks for at most 100 seconds and prints `FINISHED`
+or `STILL RUNNING`; called again it rejoins the same run. The agent is told to
+repeat it until `FINISHED`.
+
+Besides that it may read files and, in fix mode, edit and commit. The brief
+forbids everything else, by name:
+
+- **No setup.** No install, build, bootstrap, refresh, index or login, and no
+  starting or stopping a service, daemon, container or cluster. A graph that
+  cannot run because something is not set up is an `environment` failure, and
+  the agent escalates it saying what is missing.
+- **No background work and no timers.** No `&`, no `nohup`, no scheduled
+  wakeup. Nothing wakes a session driven through meta-harness, so an agent that
+  "waits" that way has stopped for good.
+
+These are instructions to a small model, not a sandbox. Its permission requests
+are approved automatically. What `skt` does enforce: the private meta-harness
+server runs in its own process group, which is stopped when the run ends, and
+an episode whose trace records nothing for `--stall-timeout` seconds (default
+900) is stopped. A process that detached itself survives both.
 
 ## Two modes
 
@@ -129,8 +175,18 @@ before it passed in the same run. A single node run on its own never counts.
 A crash inside `skt regress` exits 3, never 1: exit 1 always means a graph's
 own report is red.
 
+Whether the agent started is read from meta-harness's trace, and `result.json`
+carries it as `agent_started` with a `trace` summary (tool calls by name, the
+last tool, tokens, cost).
+
+- **`AGENT STOPPED WITHOUT REPORTING`** (exit 3, `agent_started: true`): it ran
+  tools and then the episode ended with no report. Not a login problem. Read
+  the trace. `WAIT TOOL USED` names a scheduling tool it called.
+- With `--base-url`, or when the private server wrote no trace at all,
+  `agent_started` is `null` and the output says it is unknown.
+
 **`AGENT DID NOT START`** (exit 3, `agent_started: false` in `result.json`):
-the episode failed, no graph ran and nothing was reported. Running again will
+the trace holds no tool call and no message from the agent. Running again will
 give the same result. The usual cause is that the provider CLI behind the model
 has no logged-in session on this machine. meta-harness starts that CLI and uses
 its login; `skt` cannot log in for it. For a `CLAUDE_*` model, a person runs
@@ -148,6 +204,7 @@ Each run is a numbered attempt under `<git common dir>/skt-regress/<id>/`:
 | `fixes.patch` | everything the agent changed against the commit under test |
 | `attribution.yaml` | one candidate CATCH row per red the agent met |
 | `agent-report.json` | the agent's own report |
+| `graph.sh`, `graph-runs/` | the graph command the agent was given, and each run's full log |
 | `brief.md`, `request.json`, `episode.json` | the exact prompt, the episode request, meta-harness's result |
 | `.meta-harness/evidence/` | the agent's full trace |
 
@@ -175,10 +232,15 @@ attribution row against its report before it goes in the ledger.
 - `--meta-harness` or `$META_HARNESS_BIN`, else `meta-harness` on `PATH`.
 - `--runner` or `$SKT_REGRESS_RUNNER`: the test-graph `run.py`. By default the
   copy inside the worktree under test is used when the repository ships one,
-  then this session's homes.
+  then the worktree's own skill home (`<worktree>/.skill-manager`), then this
+  session's homes. The output and `result.json` name the runner that was used.
+  A runner from a home other than the worktree's relinks the worktree's test
+  graph to that home and every node fails at setup: when every node fails at
+  setup, check the `runner` line first.
 - `--base-url` drives an already running `meta-harness serve` instead of
   starting one. Evidence then lives wherever that server keeps it.
 - `--timeout` bounds the whole episode in seconds (default four hours).
+  `--stall-timeout` stops it earlier when the trace goes quiet (default 900).
 
 meta-harness answers the agent's permission requests with the first option
 offered, which is how an unattended agent gets to run shell commands. That is

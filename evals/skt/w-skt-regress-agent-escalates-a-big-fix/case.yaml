@@ -3,7 +3,7 @@ name: w-skt-regress-agent-escalates-a-big-fix
 description: >-
   The regression agent's side of `skt regress run --fix` (skt
   references/regression-agent.md). The prompt IS the brief `skt.regress.build_brief`
-  writes in fix mode, generated from the code on 2026-11-12, followed by an
+  writes in fix mode, generated from the code on 2026-11-13, followed by an
   environment note; regenerate it when the brief changes. The fixture is a
   failed graph report whose cause is a missing `currency` field: the response
   schema and the stored model both lack it, so the fix is an interface and
@@ -28,14 +28,31 @@ execution:
     Test graph project: cases/w-skt-regress-agent-escalates-a-big-fix/test_graph
     Side effects these graphs declare: fs:tmp, net:local
 
+    THE ONLY COMMANDS YOU RUN
+    - the graph command given below, to run a graph and to wait for it;
+    - commands that only read: cat, ls, grep, head, tail, `git log`, `git diff`, `git status`;
+    - in the worktree: your edits, `git add` and `git commit`.
+    Nothing else. In particular:
+    - NO setup of any kind. Do not install, build, bootstrap, refresh, index, migrate, log in,
+      or start, stop or restart any service, daemon, container, cluster or server. Do not run
+      docker, kubectl, helm, k3d, pip, uv, npm, brew, make, or any script from this repository
+      other than the graph command. If a graph cannot run because something is not set up
+      (a missing home, tool, index, credential or service), that is an `environment` failure:
+      do not repair it. Record it and escalate, saying exactly what is missing.
+    - NO background work and NO timers. Do not end a command with `&`, do not use nohup, and
+      do not use a background-run option, a scheduled wakeup, a reminder, a monitor or a
+      "check back later" tool. Nothing will ever wake you: you would stop for good. The only
+      way to wait is to run the graph command again.
+
     GRAPHS TO RUN, in this order:
       - ordersContract
 
     FOR EACH GRAPH
-    1. Run it:
-         python3 skills/test-graph/scripts/run.py <graph> --test-graph-root cases/w-skt-regress-agent-escalates-a-big-fix/test_graph
-       Run one graph at a time and wait for it. A run can take tens of minutes: use the longest
-       command timeout you have, or run it in the background and wait. Slow is not failed.
+    1. Run it, with exactly this command:
+         bash cases/w-skt-regress-agent-escalates-a-big-fix/graph.sh <graph>
+       It prints FINISHED or STILL RUNNING within about two minutes. On STILL RUNNING, run the
+       same command again, and keep doing that until it prints FINISHED. A run can take tens
+       of minutes. Slow is not failed. Run one graph at a time.
     2. Find the report directory the run wrote: the newest directory under
          cases/w-skt-regress-agent-escalates-a-big-fix/test_graph/build/validation-reports/
        Its name is the runId. Read `summary.json` (field `status`). On anything other than
@@ -65,12 +82,17 @@ execution:
     A small fix is one that is obviously right from the report and the log:
     a wrong path, a missing import, a typo, a stale fixture, a timeout that is too short,
     a node script that crashes for a reason unrelated to what it asserts.
+    - Change the fewest lines that make the failing node pass. Touch only the file the report
+      or the log points at. Do not tidy, rename, reformat, upgrade or "improve" anything else,
+      and do not fix something that is not failing.
+    - A fix belongs in the test graph project (cases/w-skt-regress-agent-escalates-a-big-fix/test_graph) unless the log quotes a crash at a named
+      line of another file. Changing how the code under test behaves is never a small fix.
     - Commit each fix on its own: `git commit -am "regress: <what you fixed>"`.
       You are on branch regress/wave3. Do not push. Do not switch branches.
     - All of your fixes together must stay within 60 changed lines in 4 files.
     - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
       an assertion or a node, and do not change an expected value to whatever the code now prints.
-    - After a fix, resume from the failed node:  python3 skills/test-graph/scripts/run.py --resume <runId> --test-graph-root cases/w-skt-regress-agent-escalates-a-big-fix/test_graph
+    - After a fix, resume from the failed node:  bash cases/w-skt-regress-agent-escalates-a-big-fix/graph.sh --resume <runId>
       When that passes, run the whole graph once more from the beginning. Only a full run
       that finished after your last commit counts.
     - Run one graph at most 5 times in total (full runs and resumes together).
@@ -81,7 +103,8 @@ execution:
     - you would have to decide what the correct behaviour is;
     - you fixed it once and the same node still fails;
     - you cannot tell why it failed;
-    - the failure is in the isolated environment itself and you cannot repair it from this worktree.
+    - the graph cannot run because something is not set up, or the failure is in the
+      isolated environment itself. You never repair the environment.
     To escalate: make no further changes, run no further graphs, mark the remaining graphs
     `not_run`, and set `escalation` in the report to:
       {"graph": "<graph>", "node": "<node id>", "reason": "<why this is not a small fix>", "needed": "<what has to change, as specifically as you can say>", "files": ["<files you believe are involved>"], "evidence": "<text quoted from the report or log>"}
