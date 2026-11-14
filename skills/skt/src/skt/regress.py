@@ -212,14 +212,19 @@ def find_runner(run: dict, explicit: str | None = None, start: str | Path = ".")
 
     Preferred order: the flag, the environment, the copy inside the tree
     under test (a repository that ships the skill is tested with its own
-    runner), then the homes this session can see.
+    runner), the tree's OWN skill home (an adopted ticket worktree carries
+    one, and its test_graph links point into it), then the homes this
+    session can see. The tree's home must beat SKILL_MANAGER_HOME and the
+    main checkout's home: their runner relinks test_graph/{build-logic,sdk,
+    standard-nodes} to themselves and every node errors at describe.
     """
     candidates: list[Path] = []
     for value in (explicit, os.environ.get("SKT_REGRESS_RUNNER")):
         if value:
             candidates.append(Path(value).expanduser())
-    candidates.append(Path(run["worktree"]) / "skills" / "test-graph" / "scripts" / "run.py")
-    homes: list[Path] = []
+    tree = Path(run["worktree"])
+    candidates.append(tree / "skills" / "test-graph" / "scripts" / "run.py")
+    homes: list[Path] = [tree / ".skill-manager"]
     if os.environ.get("SKILL_MANAGER_HOME"):
         homes.append(Path(os.environ["SKILL_MANAGER_HOME"]))
     homes += [_main_worktree(start) / ".skill-manager", Path.home() / ".skill-manager"]

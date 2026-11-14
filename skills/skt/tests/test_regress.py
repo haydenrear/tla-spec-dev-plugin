@@ -611,3 +611,27 @@ def test_the_brief_forbids_setup_background_work_and_timers(repo, tmp_path):
     assert "NO setup of any kind" in text and "NO background work and NO timers" in text
     assert "in the background and wait" not in text
     assert "run.py" not in text, "the agent is given the wrapper, never the runner"
+
+
+def test_an_adopted_tree_uses_its_own_home_runner_over_the_session_and_main_homes(tmp_path, monkeypatch):
+    # acc07-r33: the session home and the main checkout's home both carried a
+    # runner; it relinked the ticket's test_graph into the shared home and every
+    # node errored at describe. The ticket worktree's own home must win.
+    sys.path.insert(0, str(CLI.parent.parent))
+    from skt import regress
+    def runner_in(home: Path) -> Path:
+        path = home / "plugins" / "tla-spec-dev" / "skills" / "test-graph" / "scripts" / "run.py"
+        path.parent.mkdir(parents=True)
+        path.write_text("")
+        return path
+    tree = tmp_path / "ticket"
+    own = runner_in(tree / ".skill-manager")
+    session = runner_in(tmp_path / "session-home")
+    main = tmp_path / "main"
+    runner_in(main / ".skill-manager")
+    monkeypatch.setenv("SKILL_MANAGER_HOME", str(session.parents[5]))
+    monkeypatch.delenv("SKT_REGRESS_RUNNER", raising=False)
+    monkeypatch.setattr(regress, "_main_worktree", lambda start=".": main)
+    assert regress.find_runner({"worktree": str(tree)}) == own.resolve()
+    own.unlink()
+    assert regress.find_runner({"worktree": str(tree)}) == session.resolve()
