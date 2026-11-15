@@ -82,7 +82,9 @@ If the selected storage cannot be used, for example the drive is not
 connected, nothing runs: the outcome is `errored`, exit 3, with the reason and
 the drive's name. That is an environment problem, not a red. Fix the storage
 and run again; do not attribute it to a ticket. Nodes read the exported
-variables and must not hardcode a `/Volumes/...` path or fall back to one.
+variables and must not hardcode a `/Volumes/...` path or fall back to one. A
+variable the shell had already set to something else gets the profile's value,
+and the run says which (`storage.overrode`).
 
 `--storage off` (or `TEST_GRAPH_STORAGE=off`) skips the preparation and records
 `skipped`. A repository without the file is unaffected and `storage` is `null`.

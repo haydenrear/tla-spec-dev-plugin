@@ -42,12 +42,15 @@ def find_config(test_graph_root: Path) -> Path | None:
     if explicit:
         return Path(explicit).expanduser()
     here = Path(test_graph_root).resolve()
-    for directory in [here, *here.parents]:
+    chain = [here, *here.parents]
+    # Outside a repository there is no root to stop at, so look no further
+    # than the project itself: a file in the home directory is not this
+    # project's.
+    inside = next((i for i, d in enumerate(chain) if (d / ".git").exists()), 0)
+    for directory in chain[: inside + 1]:
         candidate = directory / CONFIG_NAME
         if candidate.is_file():
             return candidate
-        if (directory / ".git").exists():
-            return None
     return None
 
 
@@ -100,6 +103,9 @@ def prepare(test_graph_root: Path, mode: str | None = None) -> Storage:
             "image": document.get("image"),
             "action": document.get("action"),
             "env": sorted(env),
+            # The tracked profile wins over a value the caller exported, because
+            # a stale export is how a run ends up on another disk. Said out loud.
+            "overrode": sorted(k for k, v in env.items() if k in os.environ and os.environ[k] != v),
         }
     except (ValueError, KeyError, TypeError, AttributeError) as exc:
         message = f"`deploy-storage up --json` printed something this runner cannot read: {exc}"
@@ -116,7 +122,11 @@ def describe(storage: Storage) -> str | None:
         device = record.get("device") or {}
         if device:
             where += f" on {device.get('name')} (uuid {device.get('volume_uuid')})"
-        return f"storage: profile {record['profile']} ({record['location']}, {record['backend']}) at {where}"
+        line = f"storage: profile {record['profile']} ({record['location']}, {record['backend']}) at {where}"
+        if record.get("overrode"):
+            line += ("\nstorage: these variables were set differently in this shell and now carry the "
+                     "profile's value: " + ", ".join(record["overrode"]))
+        return line
     if record["status"] == "skipped":
         return f"storage: not prepared ({record['reason']})"
     return f"storage: UNAVAILABLE: {record['error']}"

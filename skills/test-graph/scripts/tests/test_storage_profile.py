@@ -116,6 +116,21 @@ class StorageProfileTest(unittest.TestCase):
         self.assertIn("storage: profile portable (external, directory) at /Volumes/renamed/proj "
                       "on development-ssd (uuid AAAA-1111)", printed)
 
+    def test_a_caller_export_that_disagrees_is_replaced_and_reported(self) -> None:
+        self.track_config()
+        self.fake_deploy_storage(stdout=json.dumps(READY))
+        with patch.dict(os.environ, {"K3D_MEDIA_ROOT": "/Volumes/old-disk"}):
+            _, outcome, printed = self.invoke()
+        self.assertEqual("/Volumes/renamed/proj", self.gradle_env[0]["K3D_MEDIA_ROOT"])
+        self.assertEqual(["K3D_MEDIA_ROOT"], outcome["storage"]["overrode"])
+        self.assertIn("now carry the profile's value: K3D_MEDIA_ROOT", printed)
+
+    def test_a_project_outside_any_repository_does_not_search_upward(self) -> None:
+        import shutil
+        shutil.rmtree(self.repo / ".git")
+        self.track_config()  # in the parent of the project, which is in no repository now
+        self.assertIsNone(_storage.find_config(self.root))
+
     def test_a_missing_drive_stops_the_run_before_gradle(self) -> None:
         self.track_config()
         self.fake_deploy_storage(

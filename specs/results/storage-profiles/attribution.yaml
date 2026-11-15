@@ -1,0 +1,97 @@
+# Storage profiles (deploy-helm 0.3.0 `deploy-storage`, test-graph storage hook,
+# git-epic-workflow worktree question). What escaped the author and how it was caught.
+# Code: haydenrear/deploy-helm feature/storage-profiles; this repository feature/storage-profiles.
+
+- id: STORAGE-REVIEW-01
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "deploy-storage device register"
+  observed: "registering a path that does not exist walked up to / and recorded the boot volume's UUID under the device name; an external profile then resolved onto the internal disk as a plain directory"
+  effect: "the exact outcome the mechanism exists to prevent: data on the internal disk, labelled external, outside a sparsebundle"
+  fix: "register refuses a path that does not exist and a volume that is internal; using a device whose UUID is the internal disk is refused too"
+  pinned_by: "deploy-helm tests/deploy_storage/test_storage_profiles.py::test_device_register_refuses_a_path_that_does_not_exist, ::test_a_device_registered_as_the_internal_disk_is_refused"
+
+- id: STORAGE-REVIEW-02
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "deploy-storage select / worktrees select (edits to the tracked file)"
+  observed: "both wrote first and validated afterwards. `worktrees select external --directory /abs` left an invalid table; a quoted `selected` key or a multi-line string containing a line starting with [ left a duplicate key. Every later command, and every test-graph run, then exited 2 until the file was fixed by hand. select also dropped a trailing comment, dropped indentation and turned CRLF into LF"
+  effect: "one bad command breaks the repository's storage for everyone who pulls"
+  fix: "the new content is validated before the file is replaced; a layout the edit cannot handle is an error and the file is unchanged. Only the value changes"
+  pinned_by: "::test_select_never_leaves_a_file_it_could_not_edit_safely, ::test_an_invalid_worktrees_choice_leaves_the_file_unchanged, ::test_select_keeps_crlf_and_indentation"
+
+- id: STORAGE-REVIEW-03
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "deploy-storage select"
+  observed: "with `selected` naming a profile that no longer exists, select itself exited 2 on the invalid selection and could not repair it"
+  effect: "the repair command refused the state it is for"
+  fix: "select reads the file without requiring a valid current selection"
+  pinned_by: "::test_select_repairs_a_selection_that_names_no_profile"
+
+- id: STORAGE-REVIEW-04
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "deploy-storage down --eject; [storage.env] templates"
+  observed: "`down --eject` on an internal profile detached the image and then exited 2 'no drive to eject'. A template with a literal brace failed only after `up` had attached (or created) the image, and made `status --json` print no JSON"
+  effect: "exit 2 did not mean nothing happened"
+  fix: "the eject check runs before the detach; templates are checked when the file is read"
+  pinned_by: "::test_eject_on_an_internal_profile_is_refused_before_the_detach, ::test_a_bad_env_template_is_rejected_before_anything_is_attached"
+
+- id: STORAGE-REVIEW-05
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "deploy_storage.sparsebundle ensure_attached / detach"
+  observed: "when /Volumes/<name> is taken, macOS mounts the image at '/Volumes/<name> 1'. up failed and left it attached there, where status, up and down never look"
+  effect: "an image mounted and invisible to the tool; a later eject fails as busy"
+  fix: "a stray attach is detached again and the error says where it landed; down detaches the image wherever it is mounted"
+  pinned_by: "::test_an_image_that_lands_beside_its_mountpoint_is_detached_again"
+  pin_note: "scripted OS only; not reproduced against real hdiutil"
+
+- id: STORAGE-REVIEW-06
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "config search (deploy-storage and test-graph); test-graph env export"
+  observed: "outside a git repository the search for deploy-storage.toml walked to /, so a file in the home directory was picked up. A [storage.env] key silently replaced a value the caller had exported"
+  effect: "a project using another directory's storage choice; an override nobody is told about"
+  fix: "outside a repository only the starting directory is searched; the profile still wins over a caller export, and the run prints and records which variables it replaced (`storage.overrode`)"
+  pinned_by: "::test_the_config_search_does_not_leave_a_directory_that_is_in_no_repository; skills/test-graph/scripts/tests/test_storage_profile.py::test_a_caller_export_that_disagrees_is_replaced_and_reported, ::test_a_project_outside_any_repository_does_not_search_upward"
+
+- id: STORAGE-MAN-01
+  severity: major
+  channel: operator-doing-the-work
+  origin: instrument
+  area: "the author's own real-Docker test and its cleanup"
+  observed: "the first real run bound a new volume into a container, then failed to detach it ('Resource busy' after docker stop), and the test fixture ran `hdiutil detach -force`. From then on Docker Desktop refused to bind-mount newly attached volumes ('error while creating mount source path /host_mnt/Volumes/<name>: file exists') in 5 of 6 later attempts, and refuses /Volumes/dev, a drive mounted earlier that day whose state before the test is unknown"
+  effect: "the positive Docker path (bind mount read back, down refusing, detach after stop) passed in none of the full runs; the test now skips with the reason when Docker refuses. Docker Desktop on this machine probably needs a restart, which was not done because two clusters are running"
+  fix: "the fixture removes its container first and never forces before six gentle attempts; `down` never forces; the reference says never to force-detach a volume a container has mounted"
+  pinned_by: null
+  pin_note: "cause not proven: the forced detach is the only change between the run that worked and the ones that did not"
+
+- id: STORAGE-MAN-02
+  severity: minor
+  channel: operator-doing-the-work
+  origin: product
+  area: "deploy-storage down after docker stop"
+  observed: "in the one later run where Docker accepted the bind mount, the volume stayed busy for more than 12 s after `docker stop` while the stopped container still existed"
+  effect: "down reported busy with no hint that a stopped container was the holder"
+  fix: "a busy detach names the stopped containers that still mount the storage and says to remove them"
+  pinned_by: null
+  pin_note: "the real test accepts either outcome and checks the message; the detach-after-remove branch has not been seen to pass"
+
+- id: STORAGE-LIVE
+  severity: none
+  channel: operator-doing-the-work
+  origin: product
+  area: "what was measured"
+  observed: "deploy-helm: 927 passed, 7 skipped (one of them the real-Docker test). Real macOS: create, write, detach, reattach keeps the file; another image on the mountpoint refused; a volume found by UUID. storageProfilesPhase graph: passed, 10 assertions. Live monitoring cluster, read-only: status, verify-mounts ok for `monitoring`, MISMATCH exit 3 for another cluster, down exit 4 naming the running nodes; `monitoring status --json` storage block identical before and after the refactor. test-graph end to end with a real profile: storage recorded in outcome.json; unregistered drive: exit 3 before Gradle; --storage off: skipped"
+  effect: "not a defect: the measured state"
+  fix: none
+  pinned_by: null
+  pin_note: "not shown: a real external drive (register, unplug, replug under another name); a real k3d cluster created on a profile; Linux; any downstream repository; the epic agent actually asking the worktree question"
