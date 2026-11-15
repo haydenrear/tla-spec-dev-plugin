@@ -1,0 +1,13 @@
+{
+  "runId": "20261112-090000",
+  "status": "failed",
+  "execution": {
+    "mode": "full",
+    "graphName": "ordersContract",
+    "complete": true,
+    "expectedNodeIds": [
+      "orders.service.start",
+      "orders.api.contract"
+    ]
+  }
+}

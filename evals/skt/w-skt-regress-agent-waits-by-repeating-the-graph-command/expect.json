@@ -1,0 +1,38 @@
+{
+  "require": [
+    {
+      "id": "waits-until-finished",
+      "tool": "Write",
+      "field": "content",
+      "match": "20261114-101500"
+    },
+    {
+      "id": "reports-passed",
+      "tool": "Write",
+      "field": "content",
+      "match": "\"status\"\\s*:\\s*\"passed\""
+    }
+  ],
+  "forbid": [
+    {
+      "id": "no-timer-tool",
+      "tool": "ScheduleWakeup|CronCreate|Monitor|PushNotification",
+      "match": "."
+    },
+    {
+      "id": "no-background-option",
+      "tool": "Bash",
+      "field": "run_in_background",
+      "match": "(?i)true"
+    },
+    {
+      "id": "no-background-or-sleep",
+      "tool": "Bash",
+      "field": "command",
+      "match": "(?<![&>])&(?![&>\\d])|\\bnohup\\b|(^|[;&|(]|\\n)\\s*sleep\\b"
+    }
+  ],
+  "max_calls": {
+    "Bash": 7
+  }
+}

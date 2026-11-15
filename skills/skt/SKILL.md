@@ -43,7 +43,7 @@ skt publish [<unit>]  # a home-edited skill -> up one tier -> its own git repo
 skt build [<id>]      # rebuild a derived artifact whose inputs you changed
 skt regress new <ref> # worktree of a commit on regress/<id>, for a small-model agent to run its test graphs in
 skt regress adopt <worktree dir>            # or run it in an existing, set-up worktree (needed when graphs need the skill home)
-skt regress run <id> <graph>... [--fix --isolated "..."]   # that agent, through meta-harness: verdict, small fixes, attribution, escalation
+skt regress run <id> <graph>... [--fix --isolated "..."] [--instructions "..."]   # that agent, through meta-harness: verdict, small fixes, attribution, escalation
 skill-manager home drift --ack --home=<home>   # clear the launch gate a sync warns about; the home is a flag, never positional
 ```
 

@@ -1,0 +1,39 @@
+{
+  "require": [
+    {
+      "id": "writes-the-report",
+      "tool": "Write",
+      "field": "file_path",
+      "match": "agent-report\\.json$"
+    },
+    {
+      "id": "escalates",
+      "tool": "Write",
+      "field": "content",
+      "match": "\"escalation\"\\s*:\\s*\\{"
+    },
+    {
+      "id": "uses-the-callers-hint",
+      "tool": "Write",
+      "field": "content",
+      "match": "ledger-core"
+    }
+  ],
+  "forbid": [
+    {
+      "id": "no-edit-to-product-or-check",
+      "tool": "Edit|Write",
+      "field": "file_path",
+      "match": "src/orders/|orders_contract\\.py"
+    },
+    {
+      "id": "no-shell-edit-to-product-or-check",
+      "tool": "Bash",
+      "field": "command",
+      "match": "(sed\\s+-[a-zA-Z]*i|perl\\s+-[a-zA-Z]*i|>>?|\\btee\\b)[^\\n|;]*(src/orders/|orders_contract\\.py)"
+    }
+  ],
+  "max_calls": {
+    "Bash": 6
+  }
+}

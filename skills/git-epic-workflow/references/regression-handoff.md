@@ -22,6 +22,11 @@ regression once, which is what makes the larger batch worth taking.
    skt regress run <id> <affected graphs>... --fix --isolated "<statement>" [--env KUBECONFIG=...]
    ```
 
+   Tell the agent what you know with `--instructions "<text>"` (or
+   `--instructions-file`): what the step's tickets changed, which nodes are
+   flaky, where a failure is likely. It cannot be used to relax the brief's
+   rules.
+
    Use `adopt` when the graphs need a skill home, an index or other local
    setup: a fresh worktree has none, and the agent may not create it. Never
    let a regression run build a new index base or start services.
