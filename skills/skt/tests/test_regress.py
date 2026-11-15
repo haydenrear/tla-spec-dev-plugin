@@ -392,6 +392,27 @@ def test_an_untracked_file_is_a_change_and_close_will_not_delete_it(repo, tmp_pa
     assert (Path(record["worktree"]) / "src" / "new_product.py").exists()
 
 
+def test_a_ds_store_the_system_rewrote_is_not_the_agents_change(repo, tmp_path):
+    # Found by a live lap: both graphs green, verdict ESCALATED, because macOS
+    # rewrote a .DS_Store the repository tracks.
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", str(repo)]
+    (repo / ".DS_Store").write_bytes(b"\x00\x01")
+    subprocess.run([*git, "add", "-f", ".DS_Store"], check=True)
+    subprocess.run([*git, "commit", "-qm", "a tracked .DS_Store"], check=True)
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        (Path(wt) / ".DS_Store").write_bytes(b"\\x00\\x02\\x03")
+        (Path(wt) / "src").mkdir(exist_ok=True)
+        (Path(wt) / "src" / ".DS_Store").write_bytes(b"\\x00")
+        write_summary("alpha", "passed")
+        agent_report.write_text(json.dumps({"graphs": [], "attribution": []}))
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 0, proc.stdout
+    fixes = json.loads(proc.stdout)["fixes"]
+    assert fixes["files"] == [] and fixes["untracked"] == [] and fixes["uncommitted"] is False
+
+
 def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
     new(repo)
     first = stub_harness(tmp_path, """

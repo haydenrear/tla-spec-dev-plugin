@@ -193,7 +193,7 @@ def main(ctx):
         fh.write(ctx.node_id + "\\n")
     if (ROOT / ("fail-" + ctx.node_id)).exists():
         return NodeResult.fail(ctx.node_id, "marker says fail").assertion("marker_absent", False)
-    return NodeResult.pass_(ctx.node_id)
+    return NodeResult.pass_(ctx.node_id).assertion("marker_absent", True)
 
 
 if __name__ == "__main__":
