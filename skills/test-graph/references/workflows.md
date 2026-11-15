@@ -160,6 +160,14 @@ not_run`), a `cause`, `duration_seconds`, `timeout_bound_seconds`, the host
 | `no_run_dir` | `errored` | the graph task threw before allocating a run directory, so no node ran -- e.g. a node describe that failed on every retry (`NodeDescribeErroredException`) |
 | `skipped` / `not_scheduled` | `not_run` | stopped after an earlier failure, or never scheduled |
 
+`storage` records the repository's selected storage profile for the run:
+`null` when the repository has no `deploy-storage.toml`; otherwise `status`
+(`ready | skipped | unavailable`), and when ready the `profile`, `location`,
+`backend`, `root`, the `device` with its volume UUID, and the names of the
+variables exported to the nodes. When it is `unavailable` nothing ran: the
+outcome is `errored` with exit 3 and a top-level `reason` naming the drive
+(SKILL.md, "Storage profiles").
+
 A graph with a red node is `FAILED` even when another node errored: a red
 assertion outranks an error. The SDK stamps a node's timeout bound only into a
 timed-out envelope, so `timeout_bound_seconds` is `null` for a node that did not
