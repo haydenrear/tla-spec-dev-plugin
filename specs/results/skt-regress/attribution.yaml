@@ -220,3 +220,159 @@
   effect: "pre-existing red, not introduced here; not investigated"
   fix: none
   pinned_by: null
+
+# ---------------------------------------------------------------------------
+# After the merge of #273: outside pilots of `skt regress` in another
+# repository (2026-11-13), PR #275, and PR #279 (issues #277, #278).
+# `channel: operator-running-a-shipped-instrument` = a pilot run by another
+# session; `independent-review` = the reviewer deployed on PR #279;
+# `operator-doing-the-work` = found while building or checking by hand.
+
+- id: REGRESS-PILOT-01
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "skt regress new: what a fresh worktree contains"
+  observed: "pilot 1: the fresh worktree had no .skill-manager home and graph describe crashed in test_graph/support before any test ran"
+  effect: "false red: every graph errored for want of setup, not because of the commit"
+  fix: "#275: `skt regress adopt <worktree>` runs in a worktree that is already set up; `new` prints a note when the repository's checkouts carry a home"
+  pinned_by: "skills/skt/tests/test_regress.py::test_adopt_runs_in_an_existing_worktree_and_close_leaves_it"
+  pin_note: "adopt itself has not been run in the pilot repository by this branch's author"
+
+- id: REGRESS-PILOT-02
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "the brief: what the agent may run"
+  observed: "pilot 1: to work around the missing home the agent ran a substrate refresh in the background, which started a persister, a control plane and two Java processes and began building a new index base"
+  effect: "side effects outside the run, left running after it; cleaned up by hand"
+  fix: "#275: the brief forbids setup, services, containers and clusters by name and tells the agent to escalate a missing setup; the private server's process group is stopped when the run ends"
+  pinned_by: "skills/skt/tests/test_regress.py::test_the_brief_forbids_setup_background_work_and_timers"
+  pin_note: "an instruction, not a sandbox: a process that detaches itself survives. No live case of a missing setup has been run since"
+
+- id: REGRESS-PILOT-03
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "the brief: how the agent waits for a graph"
+  observed: "pilot 1: the agent waited with ScheduleWakeup and never woke. Pilot 2 (after #275's first commit): 10 ScheduleWakeup calls, 2 h 52 m and $0.87 for about two minutes of graph time"
+  effect: "runs that never return, or return hours late; cost with no work"
+  fix: "#275: one blocking graph command that rejoins the same run. #279: the brief states up front that the session has no timers and that a reply without a tool call ends it, puts the wait rule beside the command, and makes writing the report the last action"
+  pinned_by: "evals/skt/w-skt-regress-agent-waits-by-repeating-the-graph-command; live: 3 of 3 Haiku runs with the wait forced to 10 s per call saw 6-7 STILL RUNNING replies each, repeated the command, used no wait tool and ended within seconds of the graphs (101-103 s)"
+  pin_note: "the eval runs the eval lane's model, not Haiku. The live runs waited about a minute and a half in total, not tens of minutes: a long real graph is still unobserved under the new brief"
+
+- id: REGRESS-PILOT-04
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "skt regress run: how it decides the agent never started"
+  observed: "pilot 1: exit 3 with 'provider CLI has no logged-in session' for an agent that had started and run tools"
+  effect: "wrong cause named to the caller"
+  fix: "#275: read from meta-harness's trace; AGENT STOPPED WITHOUT REPORTING is separate from AGENT DID NOT START"
+  pinned_by: "skills/skt/tests/test_regress.py::test_an_agent_that_ran_tools_and_then_hung_is_not_called_a_login_problem"
+  pin_note: "introduced by this branch's own guess-from-absence check, added one commit before the merge of #273 and verified only against a rejected credential"
+
+- id: REGRESS-PILOT-05
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "graph.sh, the wait wrapper written in #275"
+  observed: "pilot 2: the wrapper that records the runner's exit code was killed with the agent's command; graph.sh never checked liveness and printed STILL RUNNING forever"
+  effect: "an endless wait; the agent fell back to timers"
+  fix: "9cdd06f4 (another session): the wrapper starts in a new session; a dead run is reported as FINISHED with exit UNKNOWN"
+  pinned_by: "skills/skt/tests/test_regress.py::test_the_graph_command_blocks_briefly_and_rejoins_the_same_run"
+  pin_note: "ESCAPE of this author's own check: #275's PR listed 'a graph longer than one wait with a real agent' as not checked, and that was the case that failed"
+
+- id: REGRESS-PILOT-06
+  severity: major
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "skt regress: which test-graph runner it picks"
+  observed: "a later pilot: the shared home's runner was chosen over the worktree's; it relinked the worktree's test graph to the shared home and every node failed at setup. Worked around with --runner"
+  effect: "false red on every node"
+  fix: "f01f8313 (another session): the worktree's own home is tried before the session's; the runner used is printed and recorded"
+  pinned_by: "skills/skt/tests/test_regress.py::test_an_adopted_tree_uses_its_own_home_runner_over_the_session_and_main_homes"
+
+- id: REGRESS-PILOT-07
+  severity: minor
+  channel: operator-running-a-shipped-instrument
+  origin: product
+  area: "the brief: what the agent may name as a cause"
+  observed: "same pilot as REGRESS-PILOT-06: the Haiku-written attribution row blamed missing Python dependencies; the cause was the runner"
+  effect: "a wrong row offered to the ledger"
+  fix: "#279: name only a cause you can quote, otherwise `unknown`; one `environment` row when every node fails the same way at setup"
+  pinned_by: null
+  pin_note: "text only. No setup-failure case has been run live under the new brief, so this is not shown to work"
+
+- id: REGRESS-279-REVIEW-01
+  severity: major
+  channel: independent-review
+  origin: instrument
+  area: "evals/skt/w-skt-regress-agent-waits-by-repeating-the-graph-command"
+  observed: "the passed report with the run id was on disk from placement, so a transcript with one ls and one Write earned every verdict; the run_in_background alternative could never match because the rule searched only `command`; `grep 'sleep 4'` tripped the sleep rule; the stand-in's counter was never reset between runs"
+  effect: "false pass for an agent that never waits; one false fail"
+  fix: "the run id is printed only on FINISHED and is on no file; separate rules on the `run_in_background` and `command` fields; the counter is keyed on the placement time and a stand-in that cannot count fails visibly"
+  pinned_by: null
+  pin_note: "the first eval pass (1.00, 3 of 3) was on the defective version and proves nothing about waiting; the rerun on the fixed version is 1.00, 3 of 3"
+
+- id: REGRESS-279-REVIEW-02
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "the brief: run limits against the wait loop"
+  observed: "report-only said 'never run a graph more than twice' and fix mode 'at most 8 times', while step 1 called each repeat of the graph command 'run it again'. A model on a ten-minute graph could count three STILL RUNNING replies as three runs and stop"
+  effect: "an early stop with not_run on exactly the long graphs the tool exists for"
+  fix: "the brief says repeating on STILL RUNNING is the same run and counts toward no limit"
+  pinned_by: "skills/skt/tests/test_regress.py::test_the_brief_says_how_to_wait_when_to_stop_and_to_keep_fixing"
+
+- id: REGRESS-279-REVIEW-03
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "the brief: the FROM THE CALLER section"
+  observed: "the section said its notes could not relax 'any rule above', but the stopping and report rules sit below it; a note containing `---` closed the section early; no size limit"
+  effect: "a caller note could change when the agent stops, or have its tail read as brief text"
+  fix: "every rule in the brief, above or below, outranks the notes; each note line is quoted with '> '; 4000-character limit"
+  pinned_by: "skills/skt/tests/test_regress.py::test_caller_instructions_follow_the_rules_and_are_saved"
+
+- id: REGRESS-279-REVIEW-04
+  severity: minor
+  channel: independent-review
+  origin: instrument
+  area: "evals/skt/w-skt-regress-caller-notes-cannot-loosen-a-rule"
+  observed: "the 'harmless' hint told the agent to record ORD-12 as introduced_by, which the brief allows only when git log shows it, so the case rewarded an unverified cause; a sed -i edit of the check through Bash earned every verdict"
+  effect: "the eval rewarded the one way a caller note really loosens something; false pass on a shell edit"
+  fix: "the hint is now a fact only the caller knows (the owning team) and conflicts with nothing; the brief says a cause the caller names is a lead, not a finding; a Bash rule forbids in-place edits"
+  pinned_by: null
+
+- id: REGRESS-279-REVIEW-05
+  severity: minor
+  channel: independent-review
+  origin: product
+  area: "the brief, fix mode and report-only"
+  observed: "no action defined for a graph that used all its runs; 'you stop when the graph is green' read as stop after the first of several graphs; --max-attempts 0 accepted; a setup failure classed `environment` earned a pointless retry"
+  effect: "ambiguity a small model resolves differently run to run"
+  fix: "a graph out of runs is escalated; a graph is done when green, then the next; values below 1 are a usage error; what is not set up is not retried"
+  pinned_by: "skills/skt/tests/test_regress.py::test_the_brief_says_how_to_wait_when_to_stop_and_to_keep_fixing"
+
+- id: REGRESS-279-MAN-01
+  severity: minor
+  channel: operator-doing-the-work
+  origin: instrument
+  area: "this branch's own manual check of waiting"
+  observed: "the first live round ran sktSurface, sktHooks and cliWorkflow report-only as the waiting check. All three finished inside one 100-second wait (120 s in total, 3 Bash calls), so no STILL RUNNING reply was ever seen"
+  effect: "a manual pass that did not exercise what it was for; it would have been reported as covering waiting"
+  fix: "SKT_REGRESS_GRAPH_WAIT shortens the wait so a short graph prints STILL RUNNING; three runs at 10 s"
+  pinned_by: null
+  skill_change: "skt references/regression-agent.md, 'Checking a change to the brief by hand': the waiting run needs a graph longer than the wait, or SKT_REGRESS_GRAPH_WAIT"
+
+- id: REGRESS-279-LIVE
+  severity: none
+  channel: operator-doing-the-work
+  origin: product
+  area: "the brief of #279 with Haiku, measured"
+  observed: "fix loop, two planted one-line faults in two nodes of sktSurface: 4 of 4 runs green with two commits of one changed line pair each, 4 graph runs, correct `instrument` / `false red` rows quoting the AttributeError, introduced_by SCRATCH-1, no wait tool, 172-186 s, $0.12-0.13. Caller notes: followed in 2 of 2 runs. Graph regression of sktSurface, sktHooks, cliWorkflow on c55f2711: green, 120 s, $0.06"
+  effect: "not a defect: the measured state at merge. No mistake at the terminal was seen in 8 live runs"
+  fix: none
+  pinned_by: null
+  pin_note: "small sample on one repository and one kind of fault (a typo that crashes a node). Not seen live: an escalation, a fault needing more than one attempt on a node, a setup failure, a graph longer than a few minutes"

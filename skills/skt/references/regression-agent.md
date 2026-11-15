@@ -284,7 +284,9 @@ takes about fifteen minutes and a few cents.
 2. Read the brief you will send: `skt regress run <id> <graph> --dry-run`.
 3. Three live runs with the default model, one after another, each in a fresh
    `skt regress new HEAD`:
-   - **waiting:** a graph that takes several minutes, report-only;
+   - **waiting:** report-only, on a graph that takes longer than one wait. With
+     a short graph set `SKT_REGRESS_GRAPH_WAIT=10`, or it finishes inside the
+     first call and nothing about waiting is tested;
    - **fixing:** plant two small faults in two nodes of a fast graph, commit,
      and run `--fix --isolated "local temp only"`;
    - **instructions:** any graph with `--instructions` carrying a hint the
