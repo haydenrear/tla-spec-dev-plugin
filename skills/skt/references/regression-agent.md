@@ -72,9 +72,11 @@ forbids everything else, by name:
 
 These are instructions to a small model, not a sandbox. Its permission requests
 are approved automatically. What `skt` does enforce: the private meta-harness
-server runs in its own process group, which is stopped when the run ends, and
-an episode whose trace records nothing for `--stall-timeout` seconds (default
-900) is stopped. A process that detached itself survives both.
+server runs in its own process group, which is stopped when the run ends. An
+agent that records nothing for `--stall-timeout` seconds (default 900) is ended
+by meta-harness itself: the value is sent as the episode's `idleTimeoutSeconds`,
+and the episode comes back with outcome `idle_timeout`. A process that detached
+itself survives both.
 
 ## Telling the agent something: `--instructions`
 
@@ -200,15 +202,20 @@ before it passed in the same run. A single node run on its own never counts.
 A crash inside `skt regress` exits 3, never 1: exit 1 always means a graph's
 own report is red.
 
-Whether the agent started is read from meta-harness's trace, and `result.json`
-carries it as `agent_started` with a `trace` summary (tool calls by name, the
-last tool, tokens, cost).
+Whether the agent started is what meta-harness reports in the episode result,
+and `result.json` carries it as `agent_started` with a `trace` summary (tool
+calls by name, the last tool, tokens, cost). `skt` reads no event log: the
+figures come from the result's `summary`, and `evidence` is the result's
+`evidencePath`.
 
 - **`AGENT STOPPED WITHOUT REPORTING`** (exit 3, `agent_started: true`): it ran
   tools and then the episode ended with no report. Not a login problem. Read
   the trace. `WAIT TOOL USED` names a scheduling tool it called.
-- With `--base-url`, or when the private server wrote no trace at all,
+- When the result carries no summary (the episode produced no result at all),
   `agent_started` is `null` and the output says it is unknown.
+- An episode that overstays `--timeout` by five minutes is sent SIGTERM.
+  `meta-harness episode` turns that into a cancel on the server and reports
+  `cancelled`; `skt` invents no outcome of its own.
 
 **The wait tools are taken away, not only forbidden.** The episode request
 carries `denyTools` (`ScheduleWakeup`, `CronCreate`, `Monitor`,
@@ -224,8 +231,10 @@ model is offered. `result.json` carries `wait_tools_denied`:
   model the brief is the only thing forbidding the tools.
 
 **`AGENT DID NOT START`** (exit 3, `agent_started: false` in `result.json`):
-the trace holds no tool call and no message from the agent. Running again will
-give the same result. The usual cause is that the provider CLI behind the model
+meta-harness reported `agent_failed_to_start` (no session was opened; the
+output carries the harness's own reason and the stage it stopped at), or a
+session was opened and the agent ran no tool and said nothing. Running again
+will give the same result. The usual cause is that the provider CLI behind the model
 has no logged-in session on this machine. meta-harness starts that CLI and uses
 its login; `skt` cannot log in for it. For a `CLAUDE_*` model, a person runs
 `claude` in a terminal once and logs in. `CLAUDE_CODE_OAUTH_TOKEN`, when set, is
@@ -282,7 +291,8 @@ attribution row against its report before it goes in the ledger.
 - `--base-url` drives an already running `meta-harness serve` instead of
   starting one. Evidence then lives wherever that server keeps it.
 - `--timeout` bounds the whole episode in seconds (default four hours).
-  `--stall-timeout` stops it earlier when the trace goes quiet (default 900).
+  `--stall-timeout` is the episode's idle limit: meta-harness ends it when
+  the agent has recorded nothing for that long (default 900).
 
 meta-harness answers the agent's permission requests with the first option
 offered, which is how an unattended agent gets to run shell commands. That is

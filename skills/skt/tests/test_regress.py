@@ -50,7 +50,10 @@ def stub_harness(tmp_path: Path, behaviour: str, wait_ready: bool = True) -> Pat
 
     ``behaviour`` is Python with ``request`` (the episode request), ``brief``
     (its prompt), ``write_summary(graph, status, mode='full')`` and
-    ``commit(relative_path, text)`` (a fix commit in the worktree) in scope.
+    ``commit(relative_path, text)`` (a fix commit in the worktree) in scope. It
+    may set ``outcome``, ``error`` and ``summary`` (``work(tools, messages,
+    tokens)`` builds one), which go into the episode result as meta-harness
+    writes them.
     """
     path = tmp_path / "meta-harness"
     path.write_text("#!" + sys.executable + "\n" + f"WAIT_READY = {wait_ready}\n" + textwrap.dedent("""
@@ -100,16 +103,23 @@ def stub_harness(tmp_path: Path, behaviour: str, wait_ready: bool = True) -> Pat
                 import os
                 os.utime(d / "summary.json", (time.time() - age, time.time() - age))
             time.sleep(0.02)
-        def trace(*events):
-            d = Path(argv[argv.index("--project-root") + 1]) / ".meta-harness" / "evidence" / "e-1"
-            d.mkdir(parents=True, exist_ok=True)
-            with open(d / "events.jsonl", "a") as f:
-                for kind, data in events:
-                    f.write(json.dumps({"kind": kind, "ts": "t", "data": data}) + chr(10))
-        outcome = "succeeded"
+        def work(tools=None, messages=0, tokens=None):
+            # The summary meta-harness puts in an episode result.
+            tools = tools or {}
+            s = {"eventCount": sum(tools.values()) + messages, "turns": 1, "agentMessages": messages,
+                 "toolCalls": {"total": sum(tools.values()), "byName": tools, "unnamed": 0,
+                               "last": list(tools)[-1] if tools else None},
+                 "lastEvent": {"kind": "turn.ended", "seq": 1, "ts": "t"}}
+            if tokens is not None:
+                s["tokens"] = {"total": tokens}
+            return s
+        outcome, error, summary = "succeeded", None, None
     """) + textwrap.dedent(behaviour) + textwrap.dedent("""
-        Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
-            {"outcome": outcome, "executionId": "e-1", "conversationId": "c-1"}))
+        result = {"outcome": outcome, "executionId": "e-1", "conversationId": "c-1", "error": error}
+        if summary is not None:
+            result["summary"] = summary
+            result["evidencePath"] = "/evidence/e-1"
+        Path(argv[argv.index("--output") + 1]).write_text(json.dumps(result))
     """))
     path.chmod(0o755)
     return path
@@ -505,18 +515,32 @@ def test_a_second_run_is_refused_while_an_unisolated_one_is_live(repo, tmp_path)
     assert not (state / "skt-regress" / "two" / "running.json").exists()
 
 
-def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
+def test_an_agent_that_failed_to_start_is_named_by_meta_harness(repo, tmp_path):
     harness = stub_harness(tmp_path, """
-        # What a rejected credential really leaves: one empty closing message.
-        trace(("execution.started", {}),
-              ("agent.message.complete", {"content": [{"type": "text", "text": ""}]}),
-              ("turn.ended", {"stop_reason": "error"}))
+        outcome = "agent_failed_to_start"
+        error = ("the harness `claude-agent-acp` failed to start at session/new: Authentication required. "
+                 "No session was opened and nothing ran. The harness asked for authentication: "
+                 "log in to it on this machine, then retry.")
+    """)
+    assert skt(repo, "new", "HEAD", "--id", "nostart").returncode == 0
+    out = skt(repo, "run", "nostart", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "AGENT DID NOT START  no session was opened" in out.stdout
+    assert "failed to start at session/new" in out.stdout
+    assert _result(repo, "nostart")["agent_started"] is False
+
+
+def test_an_agent_that_opened_a_session_and_did_nothing_is_named_as_that(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        # What a rejected credential can leave when the harness does open a
+        # session: a turn that fails at once, with no tool and no words.
+        summary = work()
         outcome = "failed"
     """)
     assert skt(repo, "new", "HEAD", "--id", "auth").returncode == 0
     out = skt(repo, "run", "auth", "alpha", env={"META_HARNESS_BIN": str(harness)})
     assert out.returncode == 3, out.stdout + out.stderr
-    assert "AGENT DID NOT START" in out.stdout and "log in" in out.stdout
+    assert "AGENT DID NOT START  it ran no tool and said nothing" in out.stdout and "log in" in out.stdout
     state = subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
                             "--git-common-dir"], capture_output=True, text=True).stdout.strip()
     result = json.loads((Path(state) / "skt-regress" / "auth" / "attempt-1" / "result.json").read_text())
@@ -575,8 +599,7 @@ def _result(repo: Path, run_id: str, attempt: int = 1) -> dict:
 
 def test_an_agent_that_ran_tools_and_then_hung_is_not_called_a_login_problem(repo, tmp_path):
     harness = stub_harness(tmp_path, """
-        trace(("tool.call", {"name": "Bash"}), ("tool.call", {"name": "ScheduleWakeup"}),
-              ("turn.ended", {"usage": {"session_total_tokens": 1234}}))
+        summary = work(tools={"Bash": 1, "ScheduleWakeup": 1}, tokens=1234)
         outcome = "failed"
     """)
     assert skt(repo, "new", "HEAD", "--id", "hung").returncode == 0
@@ -587,7 +610,8 @@ def test_an_agent_that_ran_tools_and_then_hung_is_not_called_a_login_problem(rep
     assert "WAIT TOOL USED  ScheduleWakeup" in out.stdout
     result = _result(repo, "hung")
     assert result["agent_started"] is True
-    assert result["trace"]["tool_calls"] == 2 and result["trace"]["tokens"]["total_tokens"] == 1234
+    assert result["trace"]["tool_calls"] == 2 and result["trace"]["tokens"]["total"] == 1234
+    assert result["evidence"] == "/evidence/e-1"
 
 
 def test_without_a_trace_nothing_is_claimed_about_the_login(repo, tmp_path):
@@ -599,14 +623,42 @@ def test_without_a_trace_nothing_is_claimed_about_the_login(repo, tmp_path):
     assert _result(repo, "blind")["agent_started"] is None
 
 
-def test_a_silent_episode_is_stopped(repo, tmp_path):
-    harness = stub_harness(tmp_path, "trace(('tool.call', {'name': 'Bash'})); time.sleep(60)")
+def test_a_silent_episode_is_ended_by_meta_harness_and_reported(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        assert request["idleTimeoutSeconds"] == 3      # --stall-timeout is the request's idle limit
+        summary = work(tools={"Bash": 1})
+        outcome = "idle_timeout"
+        error = "idle_timeout: the harness recorded no event for 3s (idleTimeoutSeconds 3); the execution was stopped"
+    """)
     assert skt(repo, "new", "HEAD", "--id", "quiet").returncode == 0
-    began = time.time()
     out = skt(repo, "run", "quiet", "alpha", "--stall-timeout", "3", env={"META_HARNESS_BIN": str(harness)})
-    assert time.time() - began < 40
     assert out.returncode == 3, out.stdout + out.stderr
-    assert "recorded nothing for" in out.stdout and "AGENT DID NOT START" not in out.stdout
+    assert "episode        idle_timeout: idle_timeout: the harness recorded no event" in out.stdout
+    assert "AGENT DID NOT START" not in out.stdout
+
+
+def test_an_episode_that_overstays_is_signalled_and_reports_cancelled(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        import signal
+        def stop(*_):
+            # What `meta-harness episode` does with SIGTERM: cancel on the
+            # server, then write a result that says so.
+            Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
+                {"outcome": "cancelled", "executionId": "e-1", "error": "the episode was stopped by a signal",
+                 "summary": work(tools={"Bash": 2})}))
+            sys.exit(1)
+        signal.signal(signal.SIGTERM, stop)
+        time.sleep(120)
+    """)
+    assert skt(repo, "new", "HEAD", "--id", "over").returncode == 0
+    began = time.time()
+    out = skt(repo, "run", "over", "alpha", "--timeout", "1",
+              env={"META_HARNESS_BIN": str(harness), "SKT_REGRESS_EPISODE_GRACE": "1"})
+    assert time.time() - began < 60
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "episode        cancelled" in out.stdout
+    result = _result(repo, "over")
+    assert result["episode"]["outcome"] == "cancelled" and result["trace"]["tool_calls"] == 2
 
 
 def test_adopt_runs_in_an_existing_worktree_and_close_leaves_it(repo, tmp_path):

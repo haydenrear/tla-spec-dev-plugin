@@ -46,7 +46,9 @@ from pathlib import Path
 
 DEFAULT_MODEL = "CLAUDE_haiku"
 DEFAULT_TIMEOUT = 4 * 60 * 60
-DEFAULT_STALL_TIMEOUT = 15 * 60  # seconds without a trace event before the episode is stopped
+DEFAULT_STALL_TIMEOUT = 15 * 60  # seconds without a recorded event before meta-harness ends the episode
+# How long past its own timeout the episode process may run before it is told to stop.
+EPISODE_GRACE = int(os.environ.get("SKT_REGRESS_EPISODE_GRACE", "300"))
 # Seconds one call of graph.sh blocks: under a default command timeout. The
 # environment override exists so a brief change can be checked against a short
 # graph: with a small value even a one-minute graph prints STILL RUNNING.
@@ -827,54 +829,34 @@ def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Pa
             )
 
 
-def read_trace(evidence: Path) -> dict | None:
-    """What the agent did, from meta-harness's own event log. None when there is none."""
-    logs = sorted(evidence.glob("*/events.jsonl")) if evidence.is_dir() else []
-    if not logs:
+def trace_of(episode: dict) -> dict | None:
+    """What the agent did, from the summary meta-harness puts in the result.
+
+    None when the episode has no summary: no session was ever opened (the
+    agent failed to start, the request was refused), or the server could not
+    be asked. meta-harness folds its own events into this, so nothing here
+    reads an event log or knows the event schema.
+    """
+    summary = episode.get("summary")
+    if not isinstance(summary, dict):
         return None
-    trace = {"events": 0, "tool_calls": 0, "agent_messages": 0, "tools": {}, "wait_tools": [],
-             "last_tool": None, "last_event": None, "tokens": None, "cost_usd": None}
-    for log in logs:
-        try:
-            lines = log.read_text(errors="replace").splitlines()
-        except OSError:
-            continue
-        for line in lines:
-            try:
-                event = json.loads(line)
-            except ValueError:
-                continue
-            kind, data = event.get("kind"), event.get("data") or {}
-            trace["events"] += 1
-            trace["last_event"] = event.get("ts") or trace["last_event"]
-            if kind == "tool.call":
-                name = data.get("name") or data.get("title") or "?"
-                trace["tool_calls"] += 1
-                trace["tools"][name] = trace["tools"].get(name, 0) + 1
-                trace["last_tool"] = name
-                if name in WAIT_TOOLS and name not in trace["wait_tools"]:
-                    trace["wait_tools"].append(name)
-            elif kind in ("agent.message.chunk", "agent.message.complete", "agent.thought.chunk"):
-                # A turn that failed at once still closes with one empty message.
-                content = data.get("content")
-                parts = content if isinstance(content, list) else [content]
-                if any(isinstance(c, dict) and (c.get("text") or "").strip() for c in parts):
-                    trace["agent_messages"] += 1
-            elif kind == "turn.ended":
-                usage = data.get("usage") or {}
-                if usage.get("session_total_tokens") is not None:
-                    trace["tokens"] = {k[len("session_"):]: v for k, v in usage.items()
-                                       if k.startswith("session_")}
-            elif kind == "usage.update":
-                cost = ((data.get("usage") or {}).get("raw") or {}).get("cost") or {}
-                if cost.get("amount") is not None:
-                    trace["cost_usd"] = cost["amount"]
-    return trace
-
-
-def _trace_mtime(evidence: Path) -> float | None:
-    times = [f.stat().st_mtime for f in evidence.glob("*/events.jsonl")] if evidence.is_dir() else []
-    return max(times) if times else None
+    calls = summary.get("toolCalls") or {}
+    tools = dict(calls.get("byName") or {})
+    violated = list((summary.get("toolPolicy") or {}).get("violated") or [])
+    return {
+        "events": summary.get("eventCount", 0),
+        "tool_calls": calls.get("total", 0),
+        "agent_messages": summary.get("agentMessages", 0),
+        "tools": tools,
+        # A wait tool in the counts means the harness called it although it
+        # was denied; meta-harness records that as a policy violation too.
+        "wait_tools": sorted({t for t in tools if t in WAIT_TOOLS} | {t for t in violated if t in WAIT_TOOLS}),
+        "last_tool": calls.get("last"),
+        "last_event": (summary.get("lastEvent") or {}).get("ts"),
+        "tokens": summary.get("tokens"),
+        "cost_usd": (summary.get("cost") or {}).get("amount"),
+        "finished": (summary.get("finished") or {}).get("outcome"),
+    }
 
 
 def _stop_group(proc: subprocess.Popen) -> None:
@@ -891,21 +873,25 @@ def _stop_group(proc: subprocess.Popen) -> None:
             continue
 
 
-def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
-                stall_timeout: int = DEFAULT_STALL_TIMEOUT) -> tuple[dict, str]:
+def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None) -> tuple[dict, str]:
     """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
+
+    Stopping an episode is meta-harness's job. An agent that goes quiet is
+    ended by the request's ``idleTimeoutSeconds``, and one that runs past
+    ``timeoutSeconds`` by the episode's own timeout; both come back as an
+    outcome in the result. This function only waits. If the episode process
+    itself overstays, it is sent SIGTERM, which it turns into a cancel on the
+    server and a result that says ``cancelled``.
 
     The private server runs in its own process group, and the group is stopped
     when the episode ends, so nothing the agent started outlives the run unless
-    it detached itself. With a private server the trace is watched: an episode
-    that records nothing for ``stall_timeout`` seconds is stopped.
+    it detached itself.
     """
     request_path = attempt_dir / "request.json"
     result_path = attempt_dir / "episode.json"
     request_path.write_text(json.dumps(request, indent=2) + "\n")
-    evidence = attempt_dir / ".meta-harness" / "evidence"
+    result_path.unlink(missing_ok=True)
     serve = client = log = None
-    stopped = None
     try:
         if base_url is None:
             log = open(attempt_dir / "serve.log", "w")
@@ -915,20 +901,14 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
              "--request", str(request_path), "--output", str(result_path)],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        began = time.time()
-        deadline = began + request["timeoutSeconds"] + 300
-        while client.poll() is None:
-            now = time.time()
-            if now > deadline:
-                stopped = "the episode ran past its timeout"
-                break
-            if serve is not None and stall_timeout:
-                quiet = now - (_trace_mtime(evidence) or began)
-                if quiet > stall_timeout:
-                    stopped = (f"the agent recorded nothing for {int(quiet)}s and was stopped "
-                               f"(--stall-timeout {stall_timeout})")
-                    break
-            time.sleep(2)
+        try:
+            client.wait(timeout=request["timeoutSeconds"] + EPISODE_GRACE)
+        except subprocess.TimeoutExpired:
+            client.send_signal(signal.SIGTERM)   # the episode cancels on the server and reports it
+            try:
+                client.wait(timeout=90)
+            except subprocess.TimeoutExpired:
+                pass
     finally:
         if client is not None and client.poll() is None:
             client.kill()
@@ -937,8 +917,6 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
             _stop_group(serve)
         if log is not None:
             log.close()
-    if stopped:
-        return {"outcome": "stopped", "error": stopped}, base_url
     try:
         return json.loads(result_path.read_text()), base_url
     except (OSError, ValueError):
@@ -1041,6 +1019,10 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         # sentence in the brief could only ask.
         "denyTools": list(WAIT_TOOLS),
     }
+    if stall_timeout:
+        # An agent with nothing left to do, or stuck, goes quiet. meta-harness
+        # ends the episode then, and the result says `idle_timeout`.
+        request["idleTimeoutSeconds"] = stall_timeout
     if fix and shared:
         print(f"note: these graphs declare effects beyond this machine: {', '.join(shared)}.\n"
               f"      The isolation statement has to cover them: {isolated}", file=sys.stderr)
@@ -1061,7 +1043,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
                                   "isolated": isolated, "started": started}) + "\n")
     wait_tools_denied = True
     try:
-        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
+        episode, used_url = run_episode(binary, attempt_dir, request, base_url)
         if tool_lists_unsupported(episode):
             # meta-harness refused to open a session it could not take the
             # tools away from, and nothing ran. Say so and run once without
@@ -1070,7 +1052,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
                   f"({', '.join(WAIT_TOOLS)}) are forbidden by the brief only.", file=sys.stderr)
             wait_tools_denied = False
             request = {k: v for k, v in request.items() if k != "denyTools"}
-            episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
+            episode, used_url = run_episode(binary, attempt_dir, request, base_url)
     finally:
         marker.unlink(missing_ok=True)
 
@@ -1105,14 +1087,16 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         verdict, code = "green", EXIT_GREEN
     else:
         verdict, code = "incomplete", EXIT_INCOMPLETE
-    # Whether the agent ever got to work is read from meta-harness's trace, not
-    # guessed from what is missing afterwards: an agent that ran tools and then
-    # hung leaves the same empty hands as one that could not log in.
-    trace = read_trace(attempt_dir / ".meta-harness" / "evidence") if base_url is None else None
+    # Whether the agent ever got to work is what meta-harness says, not a guess
+    # from what is missing afterwards: an agent that ran tools and then hung
+    # leaves the same empty hands as one that could not log in.
+    trace = trace_of(episode)
     silent = (episode.get("outcome") != "succeeded" and agent_report is None
               and all(r["runs"] == 0 for r in rows) and not this_attempt["files"])
-    if trace is None:
-        agent_started = None if silent else True   # no trace to read (--base-url, or none written)
+    if episode.get("outcome") == "agent_failed_to_start":
+        agent_started = False
+    elif trace is None:
+        agent_started = None if silent else True   # the result carries no summary
     else:
         agent_started = bool(trace["tool_calls"] or trace["agent_messages"]) or not silent
     gaps = attribution_gaps(agent_report, reds)
@@ -1152,7 +1136,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
                     ("outcome", "error", "executionId", "conversationId", "durationMillis", "usage")},
         "agent_report": str(report_path) if agent_report else None,
         "agent_report_problem": report_problem,
-        "evidence": str(attempt_dir / ".meta-harness" / "evidence") if base_url is None else used_url,
+        # meta-harness names this execution's evidence directory itself.
+        "evidence": episode.get("evidencePath") or used_url,
         "duration_seconds": round(time.time() - started),
     }
     (attempt_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n")
@@ -1192,28 +1177,29 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     for gap in gaps:
         print(f"  ATTRIBUTION GAP  {gap}")
     if agent_started is False:
-        print("  AGENT DID NOT START  the trace holds no tool call and no message from the agent.\n"
-              "                 Do not rerun as it is.\n"
+        why = ("no session was opened, so nothing ran" if episode.get("outcome") == "agent_failed_to_start"
+               else "it ran no tool and said nothing")
+        print(f"  AGENT DID NOT START  {why}. Do not rerun as it is.\n"
               f"                 episode {episode.get('outcome')}: {episode.get('error')}\n"
               f"                 server log: {attempt_dir / 'serve.log'}\n"
-              "                 Usual cause: the provider CLI behind this model has no logged-in\n"
-              "                 session on this machine (for CLAUDE_*: run `claude` once in a\n"
-              "                 terminal and log in). Then run this command again.")
+              "                 If it asks for authentication: the provider CLI behind this model has\n"
+              "                 no logged-in session on this machine (for CLAUDE_*: run `claude` once\n"
+              "                 in a terminal and log in). Then run this command again.")
     elif episode.get("outcome") != "succeeded":
         print(f"  episode        {episode.get('outcome')}: {episode.get('error')}")
         if agent_started is None:
-            print("                 whether the agent started is unknown: no local trace to read")
+            print("                 whether the agent started is unknown: the result has no summary")
         elif agent_report is None and trace:
             print(f"  AGENT STOPPED WITHOUT REPORTING  it had started: {trace['tool_calls']} tool call(s), "
                   f"last tool {trace['last_tool']}, last event {trace['last_event']}.\n"
                   "                 This is not a login problem. Read the trace before running again:\n"
-                  f"                 {attempt_dir / '.meta-harness' / 'evidence'}")
+                  f"                 {episode.get('evidencePath') or used_url}")
     if trace and trace["wait_tools"]:
         print(f"  WAIT TOOL USED  {', '.join(trace['wait_tools'])}: nothing wakes a session driven "
               "through meta-harness, so the agent stopped there")
     if trace and trace["tokens"]:
         cost = f", ${trace['cost_usd']:.2f}" if isinstance(trace["cost_usd"], (int, float)) else ""
-        print(f"  usage          {trace['tokens'].get('total_tokens')} tokens, "
+        print(f"  usage          {trace['tokens'].get('total')} tokens, "
               f"{trace['tool_calls']} tool call(s){cost}")
     notes = (agent_report or {}).get("notes")
     if isinstance(notes, str) and notes.strip():
