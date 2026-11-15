@@ -450,6 +450,9 @@ a node script that crashes for a reason unrelated to what it asserts.
 - Commit each fix on its own: `git commit -am "regress: <what you fixed>"`.
   You are on branch {run.get('branch', '(detached)')}. Do not push. Do not switch branches.
 - All of your fixes together must stay within {max_fix_lines} changed lines in {max_fix_files} files.
+  Check BEFORE each commit: `git diff --numstat {run['sha']}` lists every line changed since
+  the commit under test, your earlier fixes included. If the total with this fix passes the
+  limit, do not commit it. Undo it (`git checkout -- <file>`) and escalate.
 - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
   an assertion or a node, and do not change an expected value to whatever the code now prints.
 - An assertion you ADD must be able to fail: it has to read a value the node computed from
@@ -471,6 +474,11 @@ STOP AND ESCALATE, do not attempt the fix, when any of these is true:
 - you would have to decide what the correct behaviour is;
 - you have made {max_attempts} fixes for one node and it still fails, or your last fix
   changed nothing about how it fails;
+- your next fix for a node goes after a different cause than your last one did: you are
+  guessing, and each guess moves the check further from what it was written to catch;
+- the fix would make a check read a different source than it read before (a summary
+  where it read the events, one endpoint where it read another): that changes what the
+  node asserts, which is not yours to decide;
 - a graph has used its {max_runs} runs and is not green;
 - you cannot tell why it failed;
 - the graph cannot run because something is not set up, or the failure is in the
@@ -578,6 +586,15 @@ FOR EACH GRAPH
      `false red` when the code under test was fine and the instrument or the environment failed.
    - `observed`: quote the line of the report or the log that shows the cause. Do not guess.
      Name only a cause you can quote. If no line shows why, the origin is `unknown`.
+   - The failure message is the first witness. When the line you quote already states the
+     cause (two files that must match and do not, a path that is missing, a gate that
+     refused and says why), the cause IS what that line says. Do not add a theory about
+     what lies behind it, and do not name a commit or a feature the line does not name.
+     In an escalation, `needed` repeats what the message asks for, in its words.
+   - `product` means an assertion about how the program BEHAVED was false. A gate or a
+     precondition that refused to run the checks (inputs out of sync, something not
+     generated, a file that differs from its copy) has not observed the program at all:
+     its origin is `instrument`, however the message is worded.
    - When every node fails the same way before any test ran, that is ONE setup failure,
      origin `environment`: write one row, quote the first error, and do not guess at
      what is missing beyond what that line says.

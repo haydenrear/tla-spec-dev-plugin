@@ -803,3 +803,20 @@ def test_the_brief_says_how_to_wait_when_to_stop_and_to_keep_fixing(repo):
     assert "you fixed it once" not in brief
     assert "Name only a cause you can quote" in brief
     assert "is the SAME run" in brief and "a graph has used its 8 runs" in brief
+    # DEF-713 (meta-harness-run): three laps where the verdict was right and the
+    # diagnosis was not. The message is the witness; a refusing gate is not the product;
+    # the budget is checked before a commit, not measured after five of them.
+    assert "The failure message is the first witness" in brief
+    assert "has not observed the program at all" in brief
+    assert "Check BEFORE each commit: `git diff --numstat " in brief
+    assert "goes after a different cause than your last one did" in brief
+    assert "read a different source than it read before" in brief
+
+
+def test_a_report_only_brief_carries_the_attribution_rules_and_no_fix_rules(repo):
+    assert skt(repo, "new", "HEAD", "--id", "b3").returncode == 0
+    assert skt(repo, "run", "b3", "alpha", "--dry-run").returncode == 0
+    brief = _brief(repo, "b3")
+    assert "The failure message is the first witness" in brief
+    assert "has not observed the program at all" in brief
+    assert "Check BEFORE each commit" not in brief
