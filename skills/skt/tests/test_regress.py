@@ -432,6 +432,27 @@ def test_close_finishes_a_removal_git_left_half_done(repo):
     assert "r1" not in skt(repo, "list").stdout
 
 
+def test_close_will_not_delete_an_orphan_that_holds_uncommitted_work(repo):
+    # Found by review of the test above: the uncommitted-work check ran only
+    # inside a registered worktree, so an orphan was deleted with edits in it.
+    record = new(repo)
+    worktree = Path(record["worktree"])
+    admin = Path(subprocess.run(["git", "-C", str(worktree), "rev-parse", "--absolute-git-dir"],
+                                capture_output=True, text=True).stdout.strip())
+    (worktree / "test_graph" / "keep").write_text("an edit nobody committed\n")
+    (worktree / "new_file.py").write_text("x = 1\n")
+    shutil.rmtree(admin)
+
+    refused = skt(repo, "close", "r1")
+
+    assert refused.returncode == 2, refused.stdout
+    assert "new_file.py" in refused.stderr and "test_graph/keep" in refused.stderr
+    assert (worktree / "new_file.py").exists()
+    branches = subprocess.run(["git", "-C", str(repo), "branch", "--list", "regress/r1"],
+                              capture_output=True, text=True).stdout
+    assert "regress/r1" in branches
+
+
 def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
     new(repo)
     first = stub_harness(tmp_path, """

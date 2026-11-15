@@ -1314,6 +1314,39 @@ def _is_registered_worktree(worktree: Path, start: str | Path) -> bool:
     return False
 
 
+def _orphan_changes(record: dict, worktree: Path, start: str | Path) -> list[str]:
+    """Files in an unregistered worktree directory that differ from the run's branch.
+
+    Raises when the comparison cannot be made: an unknown is not a licence to delete.
+    """
+    import tempfile
+
+    branch = record.get("branch")
+    ref = record["sha"]
+    if branch and subprocess.run(["git", "rev-parse", "--verify", "--quiet", branch], cwd=str(start),
+                                 capture_output=True).returncode == 0:
+        ref = branch
+    tg_rel = os.path.relpath(record["test_graph_root"], worktree)
+    with tempfile.TemporaryDirectory() as scratch:
+        env = {**os.environ, "GIT_INDEX_FILE": str(Path(scratch) / "index"), "GIT_WORK_TREE": str(worktree)}
+        read = subprocess.run(["git", "read-tree", ref], cwd=str(start), env=env, capture_output=True, text=True)
+        status = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=str(start),
+                                env=env, capture_output=True, text=True)
+    if read.returncode != 0 or status.returncode != 0:
+        raise RegressError(
+            f"{worktree} is no longer a git worktree and could not be compared with {ref}: "
+            f"{(read.stderr or status.stderr).strip()}",
+            fix=f"inspect {worktree} by hand, delete the directory, then close again",
+        )
+    changed = []
+    for row in status.stdout.splitlines():
+        path = row[3:].strip().strip('"')
+        if not path or _os_noise(path) or path == ".git" or path.startswith(f"{tg_rel}/build/"):
+            continue
+        changed.append(path)
+    return changed
+
+
 def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int:
     record = load_run(run_id, start)
     worktree = Path(record["worktree"])
@@ -1348,13 +1381,24 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
                 # died on "not a git repository". The sweep below finishes it.
                 if _is_registered_worktree(worktree, start):
                     raise
+        else:
+            # An orphan from an earlier call: git no longer lists it, so the
+            # check above cannot run inside it. Compare its files with the
+            # run's branch through a scratch index before deleting anything.
+            leftover = _orphan_changes(record, worktree, start)
+            if leftover:
+                raise RegressError(
+                    f"{worktree} is no longer a git worktree, and it holds work that is not on "
+                    f"{branch or record['sha'][:10]} ({', '.join(leftover[:5])})",
+                    fix=f"copy what you need out of {worktree}, delete the directory, then close again",
+                )
     _git(["worktree", "prune"], start)
     if worktree.is_dir() and not record.get("adopted"):
         if _is_registered_worktree(worktree, start):
             raise RegressError(f"git still lists {worktree} as a worktree and did not remove it",
                                fix=f"git worktree remove --force {worktree}, then close again")
-        # Not a worktree any more: what is left is this run's own checkout,
-        # already checked for uncommitted work before the removal began.
+        # Not a worktree any more, and checked for uncommitted work above
+        # (inside it while git still listed it, through a scratch index if not).
         shutil.rmtree(worktree, ignore_errors=True)
         if worktree.is_dir():
             raise RegressError(
