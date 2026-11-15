@@ -4,6 +4,23 @@ Finalize only after the user asks to resume/finalize, all delivered tickets have
 returned PRs, and all retired tickets have canonical receipts. Work from a
 clean worktree at the remote epic tip.
 
+**Find out early what the close will demand.** Run the workflow close as a dry
+run at the FIRST boundary of the epic, not here:
+
+```bash
+python <spec-double-compiler-skill>/scripts/close_tickets.py --repo-root . --dry-run \
+  --summary "dry run" --result <any evidence path>
+```
+
+It lists every delivered ticket that has no close receipt. A ticket with no
+model change still needs one: `tla-spec-dev close ticket <id>` at the boundary
+that validated it, with a ledger that says "no model file changed". Marking it
+`closed` in the plan is not a receipt. Receipts written afterwards, out of
+order, also make the complexity ledger report one ticket's increase on another.
+Also check that the plan kept every `planning_rules` key the previous epic's
+plan had; a rule dropped by omission is found by whichever project test reads
+it, at the worst time.
+
 ## 1. Audit integration
 
 Fetch remote state and verify, for every ticket in

@@ -203,7 +203,18 @@ stronger model may support a larger batch, but that is a hypothesis to test
    fault does not hold the product batch. Put the instrument fix in the same
    batch, ahead in `promotion_order`, with a `depends_on` edge only from the
    items whose verification needs it (§9, decision 2).
-5. State the binding constraint, the evidence, the uncertainty, and what would
+5. **Items that edit the same file do not share a step unless one instrument
+   can tell their failures apart.** The plan's `conflict_keys` are the signal:
+   two items in one step with a production key in common is the case to split.
+   This holds when ONE agent writes the whole step too. The validator's
+   same-wave conflict warning was written for parallel ticket agents, and it is
+   tempting to wave it away when there is no parallelism; do not. The cost it
+   predicts is not a merge conflict, it is several product reds arriving at one
+   boundary in one file with nothing to say which item caused which. One epic
+   stacked four items on one file and spent longer untangling the four reds
+   than it had spent writing the items; its five-item step on separate files
+   had none.
+6. State the binding constraint, the evidence, the uncertainty, and what would
    move it (§6).
 
 **The batch unit** is the scope item (§2). "Halve" and "one step" are counted
