@@ -1,0 +1,11 @@
+{
+  "require": [
+    {"id": "waits-until-finished", "tool": "Write", "field": "content", "match": "20261114-101500"},
+    {"id": "reports-passed", "tool": "Write", "field": "content", "match": "\"status\"\\s*:\\s*\"passed\""}
+  ],
+  "forbid": [
+    {"id": "no-timer-tool", "tool": "ScheduleWakeup|CronCreate|Monitor|PushNotification", "match": "."},
+    {"id": "no-background-or-sleep", "tool": "Bash", "match": "&\\s*(\\\\n|\"|$)|\\bnohup\\b|\\bsleep\\s+\\d|\"run_in_background\"\\s*:\\s*true"}
+  ],
+  "max_calls": {"Bash": 7}
+}

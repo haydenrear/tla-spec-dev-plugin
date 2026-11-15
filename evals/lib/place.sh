@@ -503,6 +503,14 @@ EOF
     place_moved_fixture skt
     ;;
 
+  w-skt-regress-agent-waits-by-repeating-the-graph-command)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-regress-caller-notes-cannot-loosen-a-rule)
+    place_moved_fixture skt
+    ;;
+
   w-skt-regress-no-fix-rights-on-a-shared-cluster)
     place_moved_fixture skt
     ;;

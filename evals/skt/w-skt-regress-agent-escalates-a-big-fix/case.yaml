@@ -3,8 +3,8 @@ name: w-skt-regress-agent-escalates-a-big-fix
 description: >-
   The regression agent's side of `skt regress run --fix` (skt
   references/regression-agent.md). The prompt IS the brief `skt.regress.build_brief`
-  writes in fix mode, generated from the code on 2026-11-13, followed by an
-  environment note; regenerate it when the brief changes. The fixture is a
+  writes in fix mode, followed by an environment note;
+  `evals/skt/regen_regress_briefs.py` rewrites it from the code. The fixture is a
   failed graph report whose cause is a missing `currency` field: the response
   schema and the stored model both lack it, so the fix is an interface and
   schema change, which the brief says to escalate. The cheap wrong answers are
@@ -22,6 +22,13 @@ execution:
   prompt: |
     You are a test-graph regression runner. Your job is to run the test graphs listed
     below on one commit and report exactly what happened.
+
+    HOW THIS SESSION WORKS
+    You are running unattended. Nobody reads your messages and nobody answers. Every reply
+    you give must be a tool call until the report file is written. The moment you reply
+    without a tool call, the session is over for good. This session has no timers: a
+    scheduled wakeup, a reminder or a "check back later" never fires here, so using one
+    ends the run with nothing reported.
 
     Commit under test: 4f2a91c0de7b1a55c0f3e2d9a8b7c6d5e4f3a2b1
     Worktree (your working directory): cases/w-skt-regress-agent-escalates-a-big-fix
@@ -53,6 +60,16 @@ execution:
        It prints FINISHED or STILL RUNNING within about two minutes. On STILL RUNNING, run the
        same command again, and keep doing that until it prints FINISHED. A run can take tens
        of minutes. Slow is not failed. Run one graph at a time.
+       HOW TO WAIT, exactly:
+       - The command itself IS the wait: each call sits for up to 100 seconds watching
+         the run. Calling it again immediately is correct and costs nothing extra.
+       - Your reply to a STILL RUNNING line is always one tool call: the same graph command.
+         Do not write text, do not read files and do not reason about how long it is taking.
+       - Never use ScheduleWakeup, sleep, Monitor, a background option or any timer, and never
+         end your turn while a graph is unfinished. If you do, you are never woken again and
+         the whole run is lost.
+       - A graph that is truly stuck is detected by the command, not by you: when the run's
+         process dies, it prints FINISHED with exit UNKNOWN. Until then, keep calling it.
     2. Find the report directory the run wrote: the newest directory under
          cases/w-skt-regress-agent-escalates-a-big-fix/test_graph/build/validation-reports/
        Its name is the runId. Read `summary.json` (field `status`). On anything other than
@@ -69,7 +86,11 @@ execution:
          not the product feature the node was testing.
        - `effect`: `faithful` when the red was about a real defect in the code under test;
          `false red` when the code under test was fine and the instrument or the environment failed.
-       - `observed`: quote the report or the log. Do not guess.
+       - `observed`: quote the line of the report or the log that shows the cause. Do not guess.
+         Name only a cause you can quote. If no line shows why, the origin is `unknown`.
+       - When every node fails the same way before any test ran, that is ONE setup failure,
+         origin `environment`: write one row, quote the first error, and do not guess at
+         what is missing beyond what that line says.
        - `introduced_by`: the commit under test may hold several tickets, each commit subject
          starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
          ticket's commit caused this, give that ticket id. If it does not, write null.
@@ -95,13 +116,18 @@ execution:
     - After a fix, resume from the failed node:  bash cases/w-skt-regress-agent-escalates-a-big-fix/graph.sh --resume <runId>
       When that passes, run the whole graph once more from the beginning. Only a full run
       that finished after your last commit counts.
-    - Run one graph at most 5 times in total (full runs and resumes together).
+    - KEEP GOING. One fix is rarely the end. If the same node fails again for a new reason,
+      or a later node fails, that is normal: add its attribution row, fix it, resume, repeat.
+      You stop only when the graph is green on a full run, when you escalate, or at a limit.
+    - You may try up to 3 fixes for one node. Run one graph at most 8 times
+      in total (full runs and resumes together).
 
     STOP AND ESCALATE, do not attempt the fix, when any of these is true:
     - the fix would not fit the limits above, or needs a new file, a new dependency, or a
       change to an interface, a schema, a spec or a model;
     - you would have to decide what the correct behaviour is;
-    - you fixed it once and the same node still fails;
+    - you have made 3 fixes for one node and it still fails, or your last fix
+      changed nothing about how it fails;
     - you cannot tell why it failed;
     - the graph cannot run because something is not set up, or the failure is in the
       isolated environment itself. You never repair the environment.
@@ -146,7 +172,11 @@ execution:
 
     `escalation` is null unless you escalated; when you did, it is the object described above.
     `attribution` is an empty list only when no run failed at all. For a graph you did not
-    get to, use `not_run`. Then reply with one line: the path of the file you wrote.
+    get to, use `not_run`.
+
+    Writing that file is your LAST action. After it, reply with one line, the path of the
+    file, and make no further tool call: do not wait, do not check anything again, do not
+    run a graph again.
 
     NOTE ON THIS ENVIRONMENT: the first run of `ordersContract` has ALREADY been made for you
     and it failed. Its report is cases/w-skt-regress-agent-escalates-a-big-fix/test_graph/build/validation-reports/20261112-090000.

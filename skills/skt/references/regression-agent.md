@@ -76,12 +76,32 @@ server runs in its own process group, which is stopped when the run ends, and
 an episode whose trace records nothing for `--stall-timeout` seconds (default
 900) is stopped. A process that detached itself survives both.
 
+## Telling the agent something: `--instructions`
+
+The brief is fixed text. What you know about this step goes in with
+`--instructions "<text>"` or `--instructions-file <path>`: which nodes are
+flaky, what the tickets changed, where a failure is likely to come from, a
+tighter limit for this run.
+
+```bash
+skt regress run <id> ordersContract --fix --isolated "local temp only" \
+    --instructions "This step is ORD-11 and ORD-12. ORD-12 changed the response schema; look there first."
+```
+
+The text is placed in a `FROM THE CALLER` section after the brief's rules, and
+the agent is told the rules win on any conflict. So instructions can add
+context and tighten, and are not a way to permit setup, a weakened check, a
+timer or a larger fix. The limits `skt` measures itself (lines, files, runs,
+the isolation statement, one run at a time) are not text and cannot be changed
+this way at all. The text is saved as `instructions.md` in the attempt and
+named in `result.json`.
+
 ## Two modes
 
 | | report-only (default) | `--fix` |
 | --- | --- | --- |
 | edits files | never | small fixes, one commit each, on `regress/<id>` |
-| reruns | once, by resume, for an `environment` failure | until green, up to `--max-runs` per graph (default 5) |
+| reruns | once, by resume, for an `environment` failure | fixes and reruns until green: up to `--max-attempts` fixes for one node (default 3), `--max-runs` runs of one graph (default 8) |
 | needs `--isolated` | no | **yes, refused without it** |
 | a bigger fix is needed | says so in `escalation` | stops at once and says so in `escalation` |
 
@@ -138,12 +158,16 @@ and that changing how the code under test behaves is never a small fix.
 It must stop, change nothing more, run nothing more and write an `escalation`
 (graph, node, reason, what is needed, files, quoted evidence) when the fix would
 exceed the budget, needs a new file or dependency, changes an interface, schema,
-spec or model, requires deciding what correct behaviour is, was tried once and
-did not work, or has an unknown cause.
+spec or model, requires deciding what correct behaviour is, has been tried
+`--max-attempts` times on one node without working, or has an unknown cause.
+
+Short of those it is told to keep going: a later node failing after a fix is
+normal, and it fixes that too. `--max-attempts` is an instruction to the agent;
+`skt` does not count attempts per node. It does count runs, lines and files.
 
 The budget is measured by `skt` from git, not taken from the agent:
 `--max-fix-lines` (default 60 changed lines in total), `--max-fix-files`
-(default 4) and `--max-runs` (default 5 runs of one graph). A run over any of
+(default 4) and `--max-runs` (default 8 runs of one graph). A run over any of
 them is `escalated` even when every graph is green. So is any change to the
 tree in a report-only run.
 
@@ -245,3 +269,28 @@ attribution row against its report before it goes in the ledger.
 meta-harness answers the agent's permission requests with the first option
 offered, which is how an unattended agent gets to run shell commands. That is
 the other reason fix mode asks for isolation.
+
+## Checking a change to the brief by hand
+
+The brief is the only thing a small model has, and one run of a small model
+proves little. After changing `build_brief`, run this loop before merging. It
+takes about fifteen minutes and a few cents.
+
+1. `python3 evals/skt/regen_regress_briefs.py`, then
+   `evals/run.sh --case 'w-skt-regress-*'`. These run the brief on the eval
+   lane's model in under a minute each: waiting, escalating, and a caller note
+   that tries to loosen a rule.
+2. Read the brief you will send: `skt regress run <id> <graph> --dry-run`.
+3. Three live runs with the default model, one after another, each in a fresh
+   `skt regress new HEAD`:
+   - **waiting:** a graph that takes several minutes, report-only;
+   - **fixing:** plant two small faults in two nodes of a fast graph, commit,
+     and run `--fix --isolated "local temp only"`;
+   - **instructions:** any graph with `--instructions` carrying a hint the
+     agent could not have known.
+4. For each, read `result.json`: `trace.wait_tools` must be empty, the wall
+   time should be within a few minutes of the graphs' own time, the fixing run
+   should end green with one commit per fault, and the attribution rows should
+   quote the line that shows the cause.
+5. Record what you saw, including each mistake at the terminal, in the
+   repository's attribution record.

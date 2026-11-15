@@ -249,8 +249,16 @@ def build_parser() -> argparse.ArgumentParser:
                          help="run: changed lines the agent's fixes may total before the run is escalated (default 60)")
     regress.add_argument("--max-fix-files", type=int, default=4,
                          help="run: files the agent's fixes may touch (default 4)")
-    regress.add_argument("--max-runs", type=int, default=5,
-                         help="run: times the agent may run one graph, resumes included (default 5)")
+    regress.add_argument("--max-runs", type=int, default=8,
+                         help="run: times the agent may run one graph, resumes included (default 8)")
+    regress.add_argument("--max-attempts", type=int, default=3,
+                         help="run: fixes the agent is told it may try for one node before it "
+                         "escalates (default 3)")
+    regress.add_argument("--instructions", metavar="TEXT",
+                         help="run: notes for the agent (hints, context, tighter limits); placed "
+                         "after the brief's rules and ranked below them")
+    regress.add_argument("--instructions-file", metavar="PATH",
+                         help="run: the same, read from a file")
     regress.add_argument("--stall-timeout", type=int, default=15 * 60,
                          help="run: stop the episode when the agent records nothing for this many "
                          "seconds (default 900; 0 never)")

@@ -1,0 +1,10 @@
+{
+  "runId": "20261114-101500",
+  "status": "passed",
+  "execution": {
+    "mode": "full",
+    "graphName": "slowGraph",
+    "complete": true,
+    "expectedNodeIds": ["slow.service.start", "slow.service.smoke"]
+  }
+}

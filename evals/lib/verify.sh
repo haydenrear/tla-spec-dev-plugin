@@ -637,6 +637,14 @@ case "$case_name" in
     verify_from_expect
     ;;
 
+  w-skt-regress-agent-waits-by-repeating-the-graph-command)
+    verify_from_expect
+    ;;
+
+  w-skt-regress-caller-notes-cannot-loosen-a-rule)
+    verify_from_expect
+    ;;
+
   w-skt-regress-no-fix-rights-on-a-shared-cluster)
     verify_from_expect
     ;;
