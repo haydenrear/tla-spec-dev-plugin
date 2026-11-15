@@ -42,7 +42,7 @@ When the graphs need that setup, do not let the agent build it. Use `adopt`:
 ```bash
 skt regress adopt ../myrepo-TICKET-12     # or the epic's own checkout
 skt regress run <id> <graph>...
-skt regress close <id>                    # drops the results; the worktree and branch stay
+skt regress close <id>                    # DELETES the results (copy them first, or --keep-state); the worktree and branch stay
 ```
 
 `adopt` refuses a worktree with modified tracked files, because the agent's
@@ -270,6 +270,46 @@ missing a field. Gaps do not change the verdict. They are yours to fill.
 **The rows and the fixes are a small model's.** Read `fixes.patch` before you
 merge `regress/<id>`, in particular for a check that was loosened, and read each
 attribution row against its report before it goes in the ledger.
+
+## Teaching the agent: the OK and NO GO cases
+
+The brief shows the agent a list of things earlier runs did, sorted into OK and
+NO GO. The list is `skills/skt/src/skt/regress_cases.md`, sent verbatim: the
+attribution cases in every brief, the fix cases only in a fix-mode brief. It is
+the first place to go when a lap disappoints. Change the list before you change
+the rules or the code.
+
+After every lap, read what the agent did and file it:
+
+- **It did something right that was not obvious** (escalated instead of forcing a
+  fix, recorded existing checks as assertions, named the right origin for an odd
+  failure): add an OK case.
+- **You threw its fix away, or corrected its attribution row**: add a NO GO case.
+  Say what the failure looked like, what the agent did, and what it should have
+  done, in two to four lines. Use the real message and the real code, shortened.
+  A case is something that happened; if you find yourself writing "always" or
+  "never" with no example, it is a rule and belongs in the brief instead.
+- **It made the same mistake a NO GO case already describes**: do not add a
+  second case. Rewrite the first so it matches better, and note the repeat in the
+  commit message. A case the agent keeps walking past is the signal that a
+  prompt is not enough for that failure, and only then is code the next step.
+
+Cases are about the kind of mistake, not about your repository. A note that only
+makes sense for one project (a directory that must not be touched, a graph that
+is known to be slow) goes in `--instructions-file`, which the agent also reads.
+
+What to expect: the agent's red/green verdict has been reliable; its explanation
+of WHY something is red has not. Read the quoted line in each attribution row
+yourself before acting on the row.
+
+## Keep a lap's results before you close it
+
+`skt regress close <id>` deletes that run's results (`result.json`,
+`attribution.yaml`, the brief, the per-graph logs) unless you pass
+`--keep-state`. The agent cannot run `close`; you do, so this is yours to get
+right. Before closing, either copy `<git common dir>/skt-regress/<id>/` to where
+your review keeps evidence, or close with `--keep-state` and copy afterwards.
+A lap whose results were deleted cannot be attributed, and cannot become a case.
 
 ## Choosing the model and the binaries
 

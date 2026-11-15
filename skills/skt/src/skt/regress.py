@@ -396,6 +396,35 @@ def write_graph_script(attempt_dir: Path, runner: Path, tg_root: str) -> Path:
     return path
 
 
+def known_cases(fix: bool) -> str:
+    """The OK / NO GO cases from earlier runs, as the brief shows them.
+
+    They live in ``regress_cases.md`` beside this file so that teaching the
+    agent is editing a list, not this module. A missing file is an empty list.
+    """
+    path = Path(__file__).with_name("regress_cases.md")
+    if not path.is_file():
+        return ""
+    text = re.sub(r"<!--.*?-->", "", path.read_text(encoding="utf-8"), flags=re.S)
+    parts = {"ATTRIBUTION": "", "FIXES": ""}
+    current = None
+    for line in text.splitlines():
+        if line.startswith("## "):
+            current = line[3:].strip()
+            continue
+        if current in parts:
+            parts[current] += line + "\n"
+    shown = parts["ATTRIBUTION"].strip()
+    if fix and parts["FIXES"].strip():
+        shown += "\n\nWHEN YOU FIX\n" + parts["FIXES"].strip()
+    if not shown:
+        return ""
+    return ("\nCASES FROM EARLIER RUNS\n"
+            "These happened. Match what you are about to do against them before you do it.\n"
+            "A NO GO case is not a suggestion: if your next step looks like one, do not take it.\n\n"
+            "WHEN YOU DECIDE THE ORIGIN\n" + shown + "\n")
+
+
 def build_brief(run: dict, graphs: list[str], runner: Path, report_path: Path, *,
                 fix: bool = False, isolated: str | None = None, effects: list[str] | None = None,
                 max_fix_lines: int = DEFAULT_MAX_FIX_LINES, max_fix_files: int = DEFAULT_MAX_FIX_FILES,
@@ -604,7 +633,7 @@ FOR EACH GRAPH
      A node no commit under test touched was not broken by any of them: write null, and
      do not put a ticket id on the commit that fixes it either.
 
-{mode}{caller}
+{mode}{known_cases(fix)}{caller}
 WHEN YOU ARE DONE, OR HAVE ESCALATED, write this JSON file, and nothing else, to:
   {report_path}
 

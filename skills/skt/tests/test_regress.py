@@ -813,6 +813,27 @@ def test_the_brief_says_how_to_wait_when_to_stop_and_to_keep_fixing(repo):
     assert "read a different source than it read before" in brief
 
 
+def test_the_brief_shows_the_ok_and_no_go_cases_for_its_mode(repo):
+    """The cases file is the teaching surface: attribution cases in every brief,
+    fix cases only where fixing is allowed, and the caller's notes still last."""
+    assert skt(repo, "new", "HEAD", "--id", "c1").returncode == 0
+    assert skt(repo, "run", "c1", "alpha", "--dry-run", "--instructions", "look at alpha").returncode == 0
+    report_only = _brief(repo, "c1")
+    assert "CASES FROM EARLIER RUNS" in report_only
+    assert "NOT byte-identical" in report_only                 # an attribution NO GO
+    assert "WHEN YOU FIX" not in report_only
+    assert "bool(failed is not None)" not in report_only       # a fix NO GO
+    assert "<!--" not in report_only and "This file is the place" not in report_only
+    assert report_only.index("CASES FROM EARLIER RUNS") < report_only.index("FROM THE CALLER")
+
+    assert skt(repo, "new", "HEAD", "--id", "c2").returncode == 0
+    assert skt(repo, "run", "c2", "alpha", "--dry-run", "--fix", "--isolated", "local temp").returncode == 0
+    fixing = _brief(repo, "c2")
+    assert "WHEN YOU FIX" in fixing and "bool(failed is not None)" in fixing
+    assert "read the result summary instead of the events" in fixing
+    assert fixing.index("YOU MAY MAKE SMALL FIXES") < fixing.index("CASES FROM EARLIER RUNS")
+
+
 def test_a_report_only_brief_carries_the_attribution_rules_and_no_fix_rules(repo):
     assert skt(repo, "new", "HEAD", "--id", "b3").returncode == 0
     assert skt(repo, "run", "b3", "alpha", "--dry-run").returncode == 0
