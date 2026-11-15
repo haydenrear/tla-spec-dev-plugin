@@ -651,6 +651,17 @@ run a graph again.
 
 # ------------------------------------------------------------------ verdict
 
+# Files the operating system rewrites by itself. macOS updates a directory's
+# .DS_Store when anything lists it, and some repositories track one. A live
+# report-only lap was marked ESCALATED ("the agent changed the tree") for
+# exactly that, with both graphs green and no edit by the agent.
+OS_NOISE_NAMES = frozenset({".DS_Store"})
+
+
+def _os_noise(path: str) -> bool:
+    return Path(path).name in OS_NOISE_NAMES
+
+
 def tree_changes(run: dict, since: str | None = None) -> dict:
     """What changed in the worktree since ``since`` (default: the commit under test).
 
@@ -663,6 +674,8 @@ def tree_changes(run: dict, since: str | None = None) -> dict:
     files, lines = [], 0
     for row in _git(["diff", "--numstat", base], wt).splitlines():
         added, deleted, path = row.split("\t", 2)
+        if _os_noise(path):
+            continue
         files.append(path)
         lines += (int(added) if added.isdigit() else 0) + (int(deleted) if deleted.isdigit() else 0)
     tg_rel = os.path.relpath(run["test_graph_root"], wt)
@@ -670,14 +683,17 @@ def tree_changes(run: dict, since: str | None = None) -> dict:
     # the runner's, whether or not the repository ignores it.
     baseline = set(run.get("baseline_untracked") or [])
     untracked = [u for u in _git(["ls-files", "--others", "--exclude-standard"], wt).splitlines()
-                 if u and not u.startswith(f"{tg_rel}/build/") and u not in baseline]
+                 if u and not u.startswith(f"{tg_rel}/build/") and u not in baseline
+                 and not _os_noise(u)]
     for path in untracked:
         files.append(path)
         try:
             lines += len((Path(wt) / path).read_bytes().splitlines())
         except OSError:
             pass
-    status = _git(["status", "--porcelain", "--untracked-files=no"], wt)
+    status = "\n".join(
+        row for row in _git(["status", "--porcelain", "--untracked-files=no"], wt).splitlines()
+        if row.strip() and not _os_noise(row.split(maxsplit=1)[-1].strip('"')))
     head = _git(["rev-parse", "HEAD"], wt)
     return {
         "files": files,
