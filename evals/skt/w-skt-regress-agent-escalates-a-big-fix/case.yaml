@@ -60,6 +60,9 @@ execution:
        It prints FINISHED or STILL RUNNING within about two minutes. On STILL RUNNING, run the
        same command again, and keep doing that until it prints FINISHED. A run can take tens
        of minutes. Slow is not failed. Run one graph at a time.
+       Repeating the command while it says STILL RUNNING is the SAME run. It is not a rerun
+       and does not count toward any limit on runs below. A new run starts only when you
+       call the command after a FINISHED.
        HOW TO WAIT, exactly:
        - The command itself IS the wait: each call sits for up to 100 seconds watching
          the run. Calling it again immediately is correct and costs nothing extra.
@@ -118,7 +121,8 @@ execution:
       that finished after your last commit counts.
     - KEEP GOING. One fix is rarely the end. If the same node fails again for a new reason,
       or a later node fails, that is normal: add its attribution row, fix it, resume, repeat.
-      You stop only when the graph is green on a full run, when you escalate, or at a limit.
+      A graph is done when it is green on a full run; then go on to the next graph. You stop
+      early only to escalate.
     - You may try up to 3 fixes for one node. Run one graph at most 8 times
       in total (full runs and resumes together).
 
@@ -128,6 +132,7 @@ execution:
     - you would have to decide what the correct behaviour is;
     - you have made 3 fixes for one node and it still fails, or your last fix
       changed nothing about how it fails;
+    - a graph has used its 8 runs and is not green;
     - you cannot tell why it failed;
     - the graph cannot run because something is not set up, or the failure is in the
       isolated environment itself. You never repair the environment.

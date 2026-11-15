@@ -255,8 +255,8 @@ def build_parser() -> argparse.ArgumentParser:
                          help="run: fixes the agent is told it may try for one node before it "
                          "escalates (default 3)")
     regress.add_argument("--instructions", metavar="TEXT",
-                         help="run: notes for the agent (hints, context, tighter limits); placed "
-                         "after the brief's rules and ranked below them")
+                         help="run: notes for the agent (hints, context, tighter limits); quoted in "
+                         "the brief and ranked below every rule in it")
     regress.add_argument("--instructions-file", metavar="PATH",
                          help="run: the same, read from a file")
     regress.add_argument("--stall-timeout", type=int, default=15 * 60,

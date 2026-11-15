@@ -57,6 +57,9 @@ execution:
        It prints FINISHED or STILL RUNNING within about two minutes. On STILL RUNNING, run the
        same command again, and keep doing that until it prints FINISHED. A run can take tens
        of minutes. Slow is not failed. Run one graph at a time.
+       Repeating the command while it says STILL RUNNING is the SAME run. It is not a rerun
+       and does not count toward any limit on runs below. A new run starts only when you
+       call the command after a FINISHED.
        HOW TO WAIT, exactly:
        - The command itself IS the wait: each call sits for up to 100 seconds watching
          the run. Calling it again immediately is correct and costs nothing extra.
@@ -94,9 +97,11 @@ execution:
 
     YOU DO NOT FIX ANYTHING
     - Do not edit, create or delete any tracked file. Do not commit, push, or change branches.
-    - Only when the origin of a failure is `environment`, retry ONCE by resuming from the failed node:
+    - Only when the origin of a failure is `environment` and it looks passing (a timeout, a port
+      in use, a network blip), retry ONCE by resuming from the failed node:
         bash cases/w-skt-regress-agent-waits-by-repeating-the-graph-command/graph.sh --resume <runId>
-      Never run a graph more than twice in total. Never retry a `product` or `instrument` failure.
+      Do not retry something that is not set up: it will fail the same way.
+      Never start a graph more than twice in total. Never retry a `product` or `instrument` failure.
     - If a failure needs a change or some setup to pass, say what is needed in `escalation`:
         {"graph": "<graph>", "node": "<node id>", "reason": "<why this is not a small fix>", "needed": "<what has to change, as specifically as you can say>", "files": ["<files you believe are involved>"], "evidence": "<text quoted from the report or log>"}
 
@@ -144,7 +149,9 @@ execution:
     run a graph again.
 
     NOTE ON THIS ENVIRONMENT: the graph command above is a stand-in that takes a few
-    seconds per call and runs nothing real. Use it exactly as the brief says. Write the report
+    seconds per call and runs nothing real. Use it exactly as the brief says. This environment
+    keeps no report directory: when the command prints FINISHED it also prints a `summary:` line
+    with the runId and status, and that line is the report for steps 2 and 3. Write the report
     file with the Write tool.
 
     EVAL-CASE: w-skt-regress-agent-waits-by-repeating-the-graph-command

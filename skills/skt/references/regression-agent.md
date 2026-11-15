@@ -88,8 +88,9 @@ skt regress run <id> ordersContract --fix --isolated "local temp only" \
     --instructions "This step is ORD-11 and ORD-12. ORD-12 changed the response schema; look there first."
 ```
 
-The text is placed in a `FROM THE CALLER` section after the brief's rules, and
-the agent is told the rules win on any conflict. So instructions can add
+The text is placed in a `FROM THE CALLER` section, each line quoted, and the
+agent is told that every rule in the brief wins on any conflict and that a
+cause you name is a lead to check, not a finding. The limit is 4000 characters. So instructions can add
 context and tighten, and are not a way to permit setup, a weakened check, a
 timer or a larger fix. The limits `skt` measures itself (lines, files, runs,
 the isolation statement, one run at a time) are not text and cannot be changed
