@@ -40,21 +40,40 @@ def repo(tmp_path: Path) -> Path:
     return root
 
 
-def stub_harness(tmp_path: Path, behaviour: str) -> Path:
+def stub_harness(tmp_path: Path, behaviour: str, wait_ready: bool = True) -> Path:
     """A fake `meta-harness`: `serve` idles, `episode` runs ``behaviour``.
+
+    Like the real one, `serve --port 0` binds a port of the system's choosing
+    and records it in ``<project-root>/.meta-harness/server.json``, and
+    `wait-ready` reads it back. ``wait_ready=False`` is a binary from before
+    that command existed.
 
     ``behaviour`` is Python with ``request`` (the episode request), ``brief``
     (its prompt), ``write_summary(graph, status, mode='full')`` and
     ``commit(relative_path, text)`` (a fix commit in the worktree) in scope.
     """
     path = tmp_path / "meta-harness"
-    path.write_text("#!" + sys.executable + "\n" + textwrap.dedent("""
+    path.write_text("#!" + sys.executable + "\n" + f"WAIT_READY = {wait_ready}\n" + textwrap.dedent("""
         import http.server, json, re, sys, time
         from pathlib import Path
         argv = sys.argv[1:]
+        root = Path(argv[argv.index("--project-root") + 1]) / ".meta-harness" if "--project-root" in argv else None
         if "serve" in argv:
-            port = int(argv[argv.index("--port") + 1])
-            http.server.HTTPServer(("127.0.0.1", port), http.server.SimpleHTTPRequestHandler).serve_forever()
+            server = http.server.HTTPServer(("127.0.0.1", int(argv[argv.index("--port") + 1])), http.server.SimpleHTTPRequestHandler)
+            root.mkdir(parents=True, exist_ok=True)
+            (root / "server.json").write_text(json.dumps({"base_url": "http://127.0.0.1:%d" % server.server_address[1]}))
+            server.serve_forever()
+        if "wait-ready" in argv:
+            if not WAIT_READY:
+                sys.stderr.write("error: unrecognized subcommand 'wait-ready'" + chr(10))
+                sys.exit(2)
+            for _ in range(100):
+                if (root / "server.json").exists():
+                    print(json.dumps({"ready": True, **json.loads((root / "server.json").read_text())}))
+                    sys.exit(0)
+                time.sleep(0.05)
+            print(json.dumps({"ready": False, "reason": "no server.json"}))
+            sys.exit(1)
         request = json.loads(Path(argv[argv.index("--request") + 1]).read_text())
         brief = request["messages"][0]["content"]
         tg = re.search(r"Test graph project: (.+)", brief).group(1)
@@ -504,15 +523,48 @@ def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
     assert result["agent_started"] is False
 
 
-def test_the_agent_keeps_its_credentials_but_not_the_parent_session(monkeypatch):
-    sys.path.insert(0, str(CLI.parent))
-    import regress
-    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "t")
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s")
-    monkeypatch.setenv("CLAUDECODE", "1")
-    env = regress._agent_env()
-    assert env.get("CLAUDE_CODE_OAUTH_TOKEN") == "t"
-    assert "CLAUDE_CODE_SESSION_ID" not in env and "CLAUDECODE" not in env
+def test_the_wait_tools_are_taken_away_not_only_forbidden(repo, tmp_path):
+    record = new(repo)
+    proc = skt(repo, "run", "r1", "alpha", "--dry-run")
+    assert proc.returncode == 0, proc.stderr
+    request = json.loads((Path(record["state"]) / "attempt-1" / "request.json").read_text())
+    assert request["denyTools"] == ["ScheduleWakeup", "CronCreate", "Monitor", "PushNotification"]
+
+
+def test_the_server_picks_its_own_port_and_the_episode_is_told_it(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        assert argv[argv.index("--base-url") + 1].startswith("http://127.0.0.1:")
+        assert not argv[argv.index("--base-url") + 1].endswith(":0")
+        assert request["denyTools"]
+        write_summary("alpha", "passed")
+    """)
+    new(repo, "port")
+    out = skt(repo, "run", "port", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert _result(repo, "port")["wait_tools_denied"] is True
+
+
+def test_a_meta_harness_without_wait_ready_is_refused_by_name(repo, tmp_path):
+    harness = stub_harness(tmp_path, "write_summary('alpha', 'passed')", wait_ready=False)
+    new(repo, "old")
+    out = skt(repo, "run", "old", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 2, out.stdout + out.stderr
+    assert "wait-ready" in out.stderr and "--meta-harness" in out.stderr
+
+
+def test_a_harness_that_cannot_take_a_tool_list_runs_once_more_without_it(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        if "denyTools" in request:
+            Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
+                {"outcome": "failed", "error": "400 tool_policy_unsupported: the tool lists on this request cannot be honoured by codex-acp"}))
+            sys.exit(1)
+        write_summary("alpha", "passed")
+    """)
+    new(repo, "codex")
+    out = skt(repo, "run", "codex", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert "forbidden by the brief only" in out.stderr
+    assert _result(repo, "codex")["wait_tools_denied"] is False
 
 
 def _result(repo: Path, run_id: str, attempt: int = 1) -> dict:

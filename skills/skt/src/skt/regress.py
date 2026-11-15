@@ -39,11 +39,9 @@ import re
 import shlex
 import shutil
 import signal
-import socket
 import subprocess
 import sys
 import time
-import urllib.request
 from pathlib import Path
 
 DEFAULT_MODEL = "CLAUDE_haiku"
@@ -751,21 +749,38 @@ def write_attribution_yaml(path: Path, run: dict, attempt_no: int, rows: list[di
 
 # ------------------------------------------------------------- meta-harness
 
-def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
+def start_private_server(binary: str, attempt_dir: Path, log) -> tuple[subprocess.Popen, str]:
+    """Start a ``serve`` for one attempt and return it with its base URL.
 
-
-AUTH_ENV = ("CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX")
-
-
-def _agent_env() -> dict:
-    # A session spawned from inside another agent session must not inherit its
-    # identity. Its credentials are another matter: without them the agent has
-    # nothing to log in with.
-    return {k: v for k, v in os.environ.items()
-            if k in AUTH_ENV or not (k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"))}
+    meta-harness picks the port (``--port 0``) and says when it is ready
+    (``wait-ready`` reads the port back from the attempt's ``server.json`` and
+    waits on ``/readyz``), so there is no free-port guess to race and no
+    endpoint to poll here. The server also removes the calling agent session's
+    markers from what it hands a harness, so the environment is passed as it is.
+    """
+    serve = subprocess.Popen(
+        [binary, "--project-root", str(attempt_dir), "serve", "--port", "0"],
+        stdout=log, stderr=subprocess.STDOUT, cwd=str(attempt_dir), start_new_session=True,
+    )
+    ready = subprocess.run(
+        [binary, "--project-root", str(attempt_dir), "wait-ready", "--timeout-seconds", "60"],
+        capture_output=True, text=True,
+    )
+    try:
+        answer = json.loads(ready.stdout)
+    except ValueError:
+        answer = None
+    if ready.returncode == 0 and answer and answer.get("base_url"):
+        return serve, answer["base_url"]
+    _stop_group(serve)
+    if answer is None:
+        # Not a failed wait: this binary has no such command.
+        raise RegressError(
+            "this meta-harness has no `wait-ready` command, so it predates `serve --port 0` and "
+            "per-episode tool lists",
+            fix="pass a newer binary: --meta-harness <path to meta-harness>", code=EXIT_USAGE)
+    raise RegressError(f"meta-harness serve did not become ready: {answer.get('reason') or 'no reason given'}",
+                       code=EXIT_INCOMPLETE)
 
 
 # ------------------------------------------------------------- one at a time
@@ -810,22 +825,6 @@ def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Pa
                 "runs sharing ports, clusters or output directories fail each other's graphs",
                 fix='wait for it to finish, or give every overlapping run --isolated "<statement>"',
             )
-
-
-def _wait_listening(base_url: str, proc: subprocess.Popen, seconds: float = 60) -> None:
-    deadline = time.time() + seconds
-    while time.time() < deadline:
-        if proc.poll() is not None:
-            raise RegressError(f"meta-harness serve exited with {proc.returncode} before listening",
-                               code=EXIT_INCOMPLETE)
-        try:
-            urllib.request.urlopen(f"{base_url}/v1/models", timeout=2).close()
-            return
-        except urllib.error.HTTPError:
-            return  # it answered; that is all this asks
-        except OSError:
-            time.sleep(0.5)
-    raise RegressError("meta-harness serve did not start listening within 60s", code=EXIT_INCOMPLETE)
 
 
 def read_trace(evidence: Path) -> dict | None:
@@ -909,15 +908,8 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
     stopped = None
     try:
         if base_url is None:
-            port = _free_port()
-            base_url = f"http://127.0.0.1:{port}"
             log = open(attempt_dir / "serve.log", "w")
-            serve = subprocess.Popen(
-                [binary, "--project-root", str(attempt_dir), "serve", "--port", str(port)],
-                stdout=log, stderr=subprocess.STDOUT, env=_agent_env(), cwd=str(attempt_dir),
-                start_new_session=True,
-            )
-            _wait_listening(base_url, serve)
+            serve, base_url = start_private_server(binary, attempt_dir, log)
         client = subprocess.Popen(
             [binary, "--project-root", str(attempt_dir), "episode", "--base-url", base_url,
              "--request", str(request_path), "--output", str(result_path)],
@@ -951,6 +943,12 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
         return json.loads(result_path.read_text()), base_url
     except (OSError, ValueError):
         return {"outcome": "failed", "error": "meta-harness episode wrote no result"}, base_url
+
+
+def tool_lists_unsupported(episode: dict) -> bool:
+    """Whether the episode failed because the harness cannot take a tool list."""
+    error = str(episode.get("error") or "")
+    return episode.get("outcome") == "failed" and ("tool_policy_unsupported" in error or "cannot be honoured" in error)
 
 
 # ---------------------------------------------------------------------- run
@@ -1038,6 +1036,10 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "workingDirectory": record["worktree"],
         "timeoutSeconds": timeout,
         "env": agent_env,
+        # The agent does not get the tools it could use to wait instead of
+        # work. The harness removes them from what the model is offered; a
+        # sentence in the brief could only ask.
+        "denyTools": list(WAIT_TOOLS),
     }
     if fix and shared:
         print(f"note: these graphs declare effects beyond this machine: {', '.join(shared)}.\n"
@@ -1057,8 +1059,18 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     marker = Path(record["state"]) / "running.json"
     marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
                                   "isolated": isolated, "started": started}) + "\n")
+    wait_tools_denied = True
     try:
         episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
+        if tool_lists_unsupported(episode):
+            # meta-harness refused to open a session it could not take the
+            # tools away from, and nothing ran. Say so and run once without
+            # the list: for this harness the brief is all there is.
+            print(f"note: {model}'s harness cannot be told which tools it may use, so the wait tools "
+                  f"({', '.join(WAIT_TOOLS)}) are forbidden by the brief only.", file=sys.stderr)
+            wait_tools_denied = False
+            request = {k: v for k, v in request.items() if k != "denyTools"}
+            episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
     finally:
         marker.unlink(missing_ok=True)
 
@@ -1127,6 +1139,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "runner": str(runner_path),
         "verdict": verdict,
         "agent_started": agent_started,
+        "wait_tools_denied": wait_tools_denied,
         "trace": trace,
         "graphs": rows,
         "escalation": escalation,

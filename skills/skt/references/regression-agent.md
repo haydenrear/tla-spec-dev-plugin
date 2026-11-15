@@ -210,6 +210,19 @@ last tool, tokens, cost).
 - With `--base-url`, or when the private server wrote no trace at all,
   `agent_started` is `null` and the output says it is unknown.
 
+**The wait tools are taken away, not only forbidden.** The episode request
+carries `denyTools` (`ScheduleWakeup`, `CronCreate`, `Monitor`,
+`PushNotification`), and meta-harness has the harness remove them from what the
+model is offered. `result.json` carries `wait_tools_denied`:
+
+- `true`: the harness was told. A wait-tool call in the trace now means the
+  harness ignored the list, which meta-harness records as
+  `tool.policy.violation`.
+- `false`: the model's harness cannot be told which tools it may use (anything
+  but claude-agent-acp today). meta-harness refused to open that session, and
+  `skt regress` ran once more without the list and printed a note. For such a
+  model the brief is the only thing forbidding the tools.
+
 **`AGENT DID NOT START`** (exit 3, `agent_started: false` in `result.json`):
 the trace holds no tool call and no message from the agent. Running again will
 give the same result. The usual cause is that the provider CLI behind the model
@@ -255,6 +268,10 @@ attribution row against its report before it goes in the ledger.
   prefix followed by the model the provider should select. The default is
   `CLAUDE_haiku`. `meta-harness providers` lists the prefixes.
 - `--meta-harness` or `$META_HARNESS_BIN`, else `meta-harness` on `PATH`.
+  It must have the `wait-ready` command: `skt regress` starts its private
+  server with `serve --port 0` and reads the address back with `wait-ready`,
+  so it never picks a port or polls an endpoint. A binary without the command
+  is refused by name (exit 2); pass a newer one.
 - `--runner` or `$SKT_REGRESS_RUNNER`: the test-graph `run.py`. By default the
   copy inside the worktree under test is used when the repository ships one,
   then the worktree's own skill home (`<worktree>/.skill-manager`), then this
