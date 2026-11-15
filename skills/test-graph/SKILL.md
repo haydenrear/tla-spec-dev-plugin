@@ -63,6 +63,33 @@ If the user asks to run or debug a graph, start with `discover.py` before
 `run.py`. If they ask for all validation, use `run.py --all`. If they ask for CI,
 read `references/github-actions.md`.
 
+## Storage profiles
+
+A repository whose graphs start clusters can track which disk they use in a
+`deploy-storage.toml` at its root (format and commands: the `deploy-helm`
+skill, `references/storage-profiles.md`). When that file exists, `run.py` does
+three things before Gradle starts:
+
+1. runs `deploy-storage up`, which attaches the sparsebundle or finds the
+   external drive by its filesystem UUID;
+2. exports the resolved paths to every node: `DEPLOY_STORAGE_ROOT`,
+   `DEPLOY_STORAGE_PROFILE`, `DEPLOY_STORAGE_LOCATION`, `DEPLOY_STORAGE_BACKEND`,
+   and whatever the file's `[storage.env]` maps;
+3. records the selection in `outcome.json` under `storage`, and prints one
+   `storage:` line.
+
+If the selected storage cannot be used, for example the drive is not
+connected, nothing runs: the outcome is `errored`, exit 3, with the reason and
+the drive's name. That is an environment problem, not a red. Fix the storage
+and run again; do not attribute it to a ticket. Nodes read the exported
+variables and must not hardcode a `/Volumes/...` path or fall back to one.
+
+`--storage off` (or `TEST_GRAPH_STORAGE=off`) skips the preparation and records
+`skipped`. A repository without the file is unaffected and `storage` is `null`.
+A node that creates a cluster should confirm it afterwards with
+`deploy-storage verify-mounts --cluster <name>`, which reads the real Docker
+mounts.
+
 ## When a graph fails
 
 **Do not blindly rerun a whole graph after every small fix.** Nodes are

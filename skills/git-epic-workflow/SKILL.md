@@ -163,7 +163,11 @@ keys before dispatch, and validate each assignment against its plan entry.
 
 ## Operating flow
 
-- **Start or resume:** `references/plan-and-schedule.md`. Agree goals before
+- **Start or resume:** `references/plan-and-schedule.md`. Before creating any
+  worktree, find out where worktrees go: read the recorded answer
+  (`deploy-storage worktrees`, or the plan), and if there is none ask the owner
+  once whether to use the internal disk or a removable drive, then record it
+  (§ "Where the worktrees go"). Agree goals before
   scaffolding, author issues through `git-issue`, record the deferment policy
   and review cadence, and validate every rendered assignment with
   `scripts/validate_assignment.py` — run with `uv run --script`, never

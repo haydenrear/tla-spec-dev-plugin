@@ -46,6 +46,56 @@ snapshot branching consume these OIDs as base-snapshot identity):
    namespace, never public tags.
 4. **Branch from the pinned commit**, not from the moving ref name.
 
+### Where the worktrees go: ask once, before creating any
+
+An epic creates one worktree for itself and one per ticket, and each carries a
+Skill Manager home. On a machine short of internal disk that can be the
+largest thing the epic writes. So the location is the owner's decision, made
+once, before the first worktree exists:
+
+1. Look for a recorded answer. In a repository with a `deploy-storage.toml`:
+
+   ```bash
+   deploy-storage worktrees
+   ```
+
+   It prints the directory, and `(no [worktrees] choice recorded ...)` when
+   nobody has decided. In any other repository, look for a "Worktree root" line
+   in the epic plan or the repository's agent instructions.
+
+2. If nothing is recorded, ask the owner one question: **create this epic's
+   worktrees on the internal disk, beside the repository, or on a removable
+   drive?** Say what you measured (`df -h` for the internal disk and for each
+   connected drive) and recommend one. Do not choose silently, and do not ask
+   again for each ticket.
+
+3. Record the answer where the next agent finds it. With `deploy-storage`:
+
+   ```bash
+   deploy-storage worktrees select internal
+   deploy-storage worktrees select external --device <name> --directory worktrees/<repo>
+   ```
+
+   That writes `[worktrees]` in the tracked file; commit it. A drive is named
+   through the machine's device registry (`deploy-storage device register
+   <name> <mount path>`), never by its mount path. Without `deploy-storage`,
+   write a "Worktree root: <absolute directory>" line into the epic plan.
+
+4. Use that directory as the parent of every worktree path in this epic:
+   `<worktree root>/wt-epic-<slug>` here, and the `--path` of every `skt ticket
+   new` in the assignments. The examples below write `../wt-epic-<slug>`, which
+   is the internal answer.
+
+5. If the recorded drive is not connected, `deploy-storage worktrees` exits 3
+   and names it. Stop and tell the owner. Never fall back to the internal disk:
+   half an epic's worktrees on each disk is worse than waiting.
+
+This decides where code is checked out. Where the clusters keep their data is
+a separate choice, the repository's selected storage profile, and Test Graph
+applies it by itself (`test-graph` skill, "Storage profiles"). Moving an
+existing worktree with its home has no command yet (issue #280): finish or
+retire it where it stands.
+
 Choose a short stable slug and create a dedicated epic worktree from the fetched
 default-branch tip:
 

@@ -80,6 +80,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import _storage
 from _common import (add_test_graph_root_arg, run_gradle, target_project_root,
                      project_execution_lock, ProjectExecutionBusy)
 
@@ -776,6 +777,16 @@ def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
     extra_env = {SWEEP_LEDGER_ENV: str(ledger)}
     if args.continue_after_failure:
         extra_env[CONTINUE_AFTER_FAILURE_ENV] = "1"
+    # The repository's selected storage profile, when it has one. Prepared
+    # before Gradle starts so every node sees the same resolved paths, and so a
+    # drive that is not connected stops the run instead of redirecting it.
+    storage = _storage.prepare(root, getattr(args, "storage", None))
+    storage_line = _storage.describe(storage)
+    if storage_line:
+        print(storage_line, flush=True)
+    if storage.error:
+        return _storage_unavailable(args, graphs, storage, sweep_dir, argv)
+    extra_env.update(storage.env)
     if sweep:
         what = "every registered graph" if args.run_all else ", ".join(graphs)
         policy = "stopping at the first red graph" if args.fail_fast else "continuing past red graphs"
@@ -803,6 +814,7 @@ def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
     outcome = build_outcome(
         summary, monitor, started=started, ended=ended, gradle_rc=rc, exit_code=exit_code,
         argv=argv, continue_after_failure=bool(args.continue_after_failure), record_dir=sweep_dir)
+    outcome["storage"] = storage.record
     if args.resume_from_build:
         outcome["resume"] = {
             "source_report": args.resume_from_build,
@@ -816,6 +828,31 @@ def run_invocation(args: argparse.Namespace, graphs: list[str], *, sweep: bool,
     # Last stdout line, always: the path a caller reads instead of grepping logs.
     print(outcome_path, flush=True)
     return outcome["exit_code"]
+
+
+def _storage_unavailable(args: argparse.Namespace, graphs: list[str], storage: "_storage.Storage",
+                         sweep_dir: Path, argv: list[str]) -> int:
+    """Nothing ran because the selected storage cannot be used: say so in outcome.json.
+
+    ``errored`` (exit 3), not ``failed``: no node observed the program, so
+    there is no red to attribute. Connect the drive, or attach the image, and
+    run again.
+    """
+    now = time.time()
+    summary = summarize_sweep(graphs, [], args.run_all)
+    outcome = build_outcome(
+        summary, None, started=now, ended=now, gradle_rc=0, exit_code=SWEEP_EXIT_ERRORED,
+        argv=argv, continue_after_failure=bool(args.continue_after_failure), record_dir=sweep_dir)
+    outcome["status"] = "errored"
+    outcome["exit_code"] = SWEEP_EXIT_ERRORED
+    outcome["gradle_exit_code"] = None
+    outcome["reason"] = storage.error
+    outcome["storage"] = storage.record
+    outcome_path = sweep_dir / OUTCOME_FILE
+    outcome_path.write_text(json.dumps(outcome, indent=2) + "\n", encoding="utf-8")
+    print(f"ERRORED before any graph ran: {storage.error}", flush=True)
+    print(outcome_path, flush=True)
+    return SWEEP_EXIT_ERRORED
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -878,6 +915,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="In a sweep, stop at the first failing graph. Graphs after it are "
              "reported as not run.",
+    )
+    parser.add_argument(
+        "--storage",
+        choices=("auto", "off"),
+        default=None,
+        help="auto (default): when the repository has a deploy-storage.toml, run "
+             "`deploy-storage up`, export the resolved paths to every node and record "
+             "the selection in outcome.json; the run does not start if the selected "
+             "storage cannot be used. off: skip that and record it as skipped. "
+             "TEST_GRAPH_STORAGE=off does the same.",
     )
     parser.add_argument(
         "--resume",
