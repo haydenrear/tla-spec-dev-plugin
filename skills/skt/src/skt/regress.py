@@ -1306,6 +1306,14 @@ def list_runs(start: str | Path = ".") -> int:
     return 0
 
 
+def _is_registered_worktree(worktree: Path, start: str | Path) -> bool:
+    wanted = str(worktree.resolve())
+    for line in _git(["worktree", "list", "--porcelain"], start).splitlines():
+        if line.startswith("worktree ") and str(Path(line[len("worktree "):]).resolve()) == wanted:
+            return True
+    return False
+
+
 def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int:
     record = load_run(run_id, start)
     worktree = Path(record["worktree"])
@@ -1322,16 +1330,37 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
         if here == worktree.resolve() or worktree.resolve() in here.parents:
             raise RegressError("close cannot run from inside the worktree it removes",
                                fix=f"cd {_main_worktree(start)} && skt regress close {run_id}")
-        left = tree_changes(record)
-        if left["uncommitted"]:
-            what = ", ".join(left["untracked"][:5]) or "modified tracked files"
-            raise RegressError(
-                f"{worktree} holds uncommitted work ({what})",
-                fix=f"commit or delete it in {worktree}, then close again",
-            )
-        # --force: build output under test_graph/build is untracked, and expected.
-        _git(["worktree", "remove", "--force", str(worktree)], start)
+        if _is_registered_worktree(worktree, start):
+            left = tree_changes(record)
+            if left["uncommitted"]:
+                what = ", ".join(left["untracked"][:5]) or "modified tracked files"
+                raise RegressError(
+                    f"{worktree} holds uncommitted work ({what})",
+                    fix=f"commit or delete it in {worktree}, then close again",
+                )
+            try:
+                # --force: build output under test_graph/build is untracked, and expected.
+                _git(["worktree", "remove", "--force", str(worktree)], start)
+            except RegressError:
+                # git can drop the registration and then fail to delete the
+                # directory ("Directory not empty") when something wrote into it
+                # meanwhile. Seen live: the files stayed, and every later close
+                # died on "not a git repository". The sweep below finishes it.
+                if _is_registered_worktree(worktree, start):
+                    raise
     _git(["worktree", "prune"], start)
+    if worktree.is_dir() and not record.get("adopted"):
+        if _is_registered_worktree(worktree, start):
+            raise RegressError(f"git still lists {worktree} as a worktree and did not remove it",
+                               fix=f"git worktree remove --force {worktree}, then close again")
+        # Not a worktree any more: what is left is this run's own checkout,
+        # already checked for uncommitted work before the removal began.
+        shutil.rmtree(worktree, ignore_errors=True)
+        if worktree.is_dir():
+            raise RegressError(
+                f"could not delete {worktree}: something is still writing into it",
+                fix="stop what is writing there (a Gradle daemon from the lap?), then close again",
+            )
     kept = ""
     if branch:
         ahead = subprocess.run(["git", "rev-list", "--count", f"{record['sha']}..{branch}"],

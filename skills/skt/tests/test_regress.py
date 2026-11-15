@@ -8,6 +8,7 @@ comes from the graph reports and never from what the agent claims.
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -411,6 +412,24 @@ def test_a_ds_store_the_system_rewrote_is_not_the_agents_change(repo, tmp_path):
     assert proc.returncode == 0, proc.stdout
     fixes = json.loads(proc.stdout)["fixes"]
     assert fixes["files"] == [] and fixes["untracked"] == [] and fixes["uncommitted"] is False
+
+
+def test_close_finishes_a_removal_git_left_half_done(repo):
+    # Found live: `git worktree remove` dropped the registration, failed with
+    # "Directory not empty", and left the files. Every later close then died on
+    # "not a git repository" and the run could never be closed.
+    record = new(repo)
+    worktree = Path(record["worktree"])
+    admin = Path(subprocess.run(["git", "-C", str(worktree), "rev-parse", "--absolute-git-dir"],
+                                capture_output=True, text=True).stdout.strip())
+    shutil.rmtree(admin)  # what git had already done when it failed
+    assert worktree.is_dir()
+
+    closed = skt(repo, "close", "r1")
+
+    assert closed.returncode == 0, closed.stderr
+    assert not worktree.exists()
+    assert "r1" not in skt(repo, "list").stdout
 
 
 def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
