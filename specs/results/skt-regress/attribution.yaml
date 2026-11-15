@@ -376,3 +376,65 @@
   fix: none
   pinned_by: null
   pin_note: "small sample on one repository and one kind of fault (a typo that crashes a node). Not seen live: an escalation, a fault needing more than one attempt on a node, a setup failure, a graph longer than a few minutes"
+
+- id: REGRESS-281-PIN-01
+  severity: minor
+  channel: test-suite
+  origin: instrument
+  area: "evals/skt/w-skt-regress-* briefs on PR #281"
+  observed: "tests/test_regress_eval_briefs.py failed on the PR branch: the three pinned eval briefs were not regenerated after the brief gained the OK / NO GO cases and six rules. The PR listed only the two pytest suites it ran"
+  effect: "the evals would have graded the previous brief"
+  fix: "regenerated with evals/skt/regen_regress_briefs.py; evals rerun on the result: 4 cases x 3 runs, all 1.00"
+  pinned_by: "tests/test_regress_eval_briefs.py::test_the_eval_briefs_are_the_briefs_the_code_writes"
+
+- id: REGRESS-281-LIVE-01
+  severity: major
+  channel: operator-doing-the-work
+  origin: product
+  area: "skt regress tree_changes"
+  observed: "first live report-only lap on PR #281 (sktSurface, sktHooks, Haiku, 92 s): both graphs passed and the verdict was ESCALATED, exit 4, 'the agent changed the tree in a report-only run: .DS_Store'. macOS had rewritten the repository's tracked .DS_Store in the regress worktree"
+  effect: "a false escalation on a green lap; the caller would have gone looking for an edit the agent never made"
+  fix: "tree_changes skips .DS_Store in the diff, the untracked list and the status; the repository no longer tracks its root .DS_Store. Rerun: GREEN, 92 s, $0.04"
+  pinned_by: "skills/skt/tests/test_regress.py::test_a_ds_store_the_system_rewrote_is_not_the_agents_change"
+
+- id: REGRESS-281-LIVE-02
+  severity: major
+  channel: operator-doing-the-work
+  origin: product
+  area: "skt regress close"
+  observed: "`skt regress close` on that run: git worktree remove dropped the registration and failed with 'Directory not empty' (something wrote into the directory meanwhile; a plain `git worktree remove` of a fresh worktree failed the same way minutes later). The files stayed, and every later close died on 'not a git repository'"
+  effect: "a run that could never be closed, and a full checkout left on disk"
+  fix: "close finishes the removal of its own worktree once git no longer lists it"
+  pinned_by: "skills/skt/tests/test_regress.py::test_close_finishes_a_removal_git_left_half_done"
+
+- id: REGRESS-281-REVIEW-01
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "skt regress close, the fix for REGRESS-281-LIVE-02"
+  observed: "my first fix ran the uncommitted-work check only while git still listed the worktree, then deleted any unregistered directory. The reviewer edited a tracked file and added an untracked one, removed the registration, and close deleted both and the branch"
+  effect: "data loss introduced by a fix; before it, that state failed without deleting anything"
+  fix: "an orphan is compared with the run's branch through a scratch index first; any difference, or a comparison that cannot be made, refuses the delete"
+  pinned_by: "skills/skt/tests/test_regress.py::test_close_will_not_delete_an_orphan_that_holds_uncommitted_work"
+
+- id: REGRESS-281-SUITE-01
+  severity: minor
+  channel: test-suite
+  origin: instrument
+  area: "skills/test-graph/scripts/tests on main"
+  observed: "on main (2e51e378) four real-SDK fixture tests do not pass: three RealSdkResumeTest tests error at setup because the fixture's passing node records no assertion, which the SDK has required since 3cb94ec4; test_red_node_and_dead_runner_are_told_apart reports the red fixture graph as errored. Neither #273, #275 nor #279 ran this suite"
+  effect: "a red suite on main that nobody was reading"
+  fix: "the resume fixture's passing node records an assertion (3 tests pass again). The errored-vs-failed fixture is NOT fixed: it still fails, on main and here"
+  pinned_by: null
+  pin_note: "open: test_errored_vs_failed.py::GradleFixtureTest::test_red_node_and_dead_runner_are_told_apart"
+
+- id: REGRESS-281-LIVE
+  severity: none
+  channel: operator-doing-the-work
+  origin: product
+  area: "PR #281 with Haiku on meta-harness main (42c73ed), measured"
+  observed: "report-only, sktSurface and sktHooks: GREEN, 92 s, 3 tool calls, $0.04. Fix mode, one planted instrument fault (an assertion expecting 5 records where the fixture makes 4): GREEN after 3 graph runs, one commit of one changed line, attribution row written, 228 s, 19 tool calls, $0.18. Evals: 4 cases x 3 runs, all 1.00, 431 s, $2.47"
+  effect: "not a defect: the measured state at merge. First live fix-mode lap with the OK / NO GO cases in the brief"
+  fix: none
+  pinned_by: null
+  pin_note: "one fault of one kind on one repository. Not seen live: an escalation, a NO GO case being offered and refused, an idle episode ended by meta-harness"
