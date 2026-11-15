@@ -97,6 +97,8 @@ execution:
        - `introduced_by`: the commit under test may hold several tickets, each commit subject
          starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
          ticket's commit caused this, give that ticket id. If it does not, write null.
+         A node no commit under test touched was not broken by any of them: write null, and
+         do not put a ticket id on the commit that fixes it either.
 
     YOU MAY MAKE SMALL FIXES, AND ONLY SMALL ONES
     This run is isolated: local temp and loopback only; the service under test is started by the graph on a free port
@@ -116,6 +118,9 @@ execution:
     - All of your fixes together must stay within 60 changed lines in 4 files.
     - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
       an assertion or a node, and do not change an expected value to whatever the code now prints.
+    - An assertion you ADD must be able to fail: it has to read a value the node computed from
+      the program. Never add one that is always true. If a node is refused because it "recorded
+      no observations", record the checks it ALREADY makes as assertions, one per check.
     - After a fix, resume from the failed node:  bash cases/w-skt-regress-agent-escalates-a-big-fix/graph.sh --resume <runId>
       When that passes, run the whole graph once more from the beginning. Only a full run
       that finished after your last commit counts.

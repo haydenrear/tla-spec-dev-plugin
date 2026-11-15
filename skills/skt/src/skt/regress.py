@@ -452,6 +452,9 @@ a node script that crashes for a reason unrelated to what it asserts.
 - All of your fixes together must stay within {max_fix_lines} changed lines in {max_fix_files} files.
 - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
   an assertion or a node, and do not change an expected value to whatever the code now prints.
+- An assertion you ADD must be able to fail: it has to read a value the node computed from
+  the program. Never add one that is always true. If a node is refused because it "recorded
+  no observations", record the checks it ALREADY makes as assertions, one per check.
 - After a fix, resume from the failed node:  {resume_cmd}
   When that passes, run the whole graph once more from the beginning. Only a full run
   that finished after your last commit counts.
@@ -581,6 +584,8 @@ FOR EACH GRAPH
    - `introduced_by`: the commit under test may hold several tickets, each commit subject
      starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
      ticket's commit caused this, give that ticket id. If it does not, write null.
+     A node no commit under test touched was not broken by any of them: write null, and
+     do not put a ticket id on the commit that fixes it either.
 
 {mode}{caller}
 WHEN YOU ARE DONE, OR HAVE ESCALATED, write this JSON file, and nothing else, to:

@@ -94,6 +94,8 @@ execution:
        - `introduced_by`: the commit under test may hold several tickets, each commit subject
          starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
          ticket's commit caused this, give that ticket id. If it does not, write null.
+         A node no commit under test touched was not broken by any of them: write null, and
+         do not put a ticket id on the commit that fixes it either.
 
     YOU DO NOT FIX ANYTHING
     - Do not edit, create or delete any tracked file. Do not commit, push, or change branches.
