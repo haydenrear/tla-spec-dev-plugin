@@ -42,13 +42,12 @@ regression once, which is what makes the larger batch worth taking.
    - `skt regress list`: is it still `RUNNING`?
    - The newest report under `<test graph>/build/validation-reports/`: is a
      graph still producing output, and has any graph finished?
-   - `<git common dir>/skt-regress/<id>/attempt-<n>/.meta-harness/evidence/`:
-     is the agent still doing useful work, or is it idle after the graphs
-     finished, calling a timer, or running setup commands?
-
-   If the graphs have finished and the agent is idling or waiting on a timer,
-   stop the run (kill the `skt regress run` process; it stops the agent with
-   it) and read what it left. Then set the backup timer again and sleep.
+   You do not have to watch for an idle agent. `skt regress` sends the wait
+   tools (`ScheduleWakeup`, `CronCreate`, `Monitor`) as the episode's deny
+   list, so the agent cannot wait on a timer, and passes `--stall-timeout` as
+   the episode's idle timeout, so meta-harness itself ends an agent that has
+   gone quiet. Stop a run by hand (signal the `skt regress run` process; it
+   cancels the episode on the server) only when a GRAPH is stuck, not the agent.
 4. **Read what came back** (table below), absorb the attribution, and either go
    on to manual testing and the merge, or repair and hand off again.
 
@@ -62,6 +61,24 @@ regression once, which is what makes the larger batch worth taking.
 | 3 | incomplete | a graph was not decided (timeout, episode failure, or `needs_full_run`); run again with the same id, naming those graphs |
 | 3 | `AGENT STOPPED WITHOUT REPORTING` | it started, ran tools and ended with no report (stalled, or used a wait tool). Read the trace the output names, check nothing it started is still running, then decide: rerun, or run the graphs as background jobs yourself |
 | 3 | `AGENT DID NOT START` | the small model never ran, usually because its CLI is not logged in on this machine. Do not rerun and do not run the graphs yourself instead: tell the user, and wait |
+
+**Trust the verdict, check the diagnosis.** Which graphs are green and which
+are red is read from the reports and has been reliable. The agent's account of
+WHY a graph is red has often been wrong: a node bug called a product defect, a
+gate's plain message turned into a theory about a recent change. Before you act
+on an attribution row, read the line it quotes. When the agent got something
+right that was not obvious, or you had to throw its fix away or correct its row,
+add a case to the OK / NO GO list the brief shows it
+(`skt` skill, `references/regression-agent.md`, *Teaching the agent*). That
+list is the first thing to change after a disappointing lap.
+
+**Copy a lap's results before `skt regress close`.** `close` deletes them
+unless you pass `--keep-state`, and the boundary review and the attribution
+ledger are written from them.
+
+**While a long corpus holds the build directory**, write and smoke-test the
+next ticket against a second build directory (for Rust,
+`CARGO_TARGET_DIR=<worktree>/target-next`) instead of waiting.
 
 **An escalation is the agent doing its job.** It is told to stop and return
 anything that is not a small, obvious fix: a change over the line budget, a new

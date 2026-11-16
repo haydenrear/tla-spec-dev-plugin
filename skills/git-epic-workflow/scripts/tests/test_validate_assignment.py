@@ -508,6 +508,39 @@ class ValidationMatrixTests(unittest.TestCase):
             )
         )
 
+    def test_accepts_na_spec_unit_when_the_ticket_declares_no_model_delta(self) -> None:
+        # A NOT REQUIRED spec workflow: no TLC, no spec graph, no spec-unit
+        # cases of its own. Found by meta-harness-run, where 8 of 11 valid
+        # assignments carried the "REQUIRED and cannot be 'N/A'" warning.
+        assignment = valid_assignment()
+        assignment["validation"]["tlc"] = "N/A: no model delta"
+        assignment["validation"]["spec_graph"] = "N/A: no model delta"
+        assignment["validation"]["spec_unit"] = "N/A: no model delta"
+        self.assertFalse(
+            [error for error in check(assignment).errors if "spec_unit" in error],
+        )
+
+    def test_a_no_model_delta_waiver_of_spec_unit_still_needs_a_reason(self) -> None:
+        assignment = valid_assignment()
+        assignment["validation"]["tlc"] = "N/A: no model delta"
+        assignment["validation"]["spec_graph"] = "N/A: no model delta"
+        assignment["validation"]["spec_unit"] = "N/A"
+        self.assertTrue(
+            any("validation.spec_unit is 'N/A' without a reason" in error for error in check(assignment).errors)
+        )
+
+    def test_rejects_na_spec_unit_when_only_one_model_check_is_waived(self) -> None:
+        assignment = valid_assignment()
+        assignment["validation"]["tlc"] = "run_tlc.sh Internal.tla Internal.cfg"
+        assignment["validation"]["spec_graph"] = "N/A: no graph for this view"
+        assignment["validation"]["spec_unit"] = "N/A: no model delta"
+        self.assertTrue(
+            any(
+                "validation.spec_unit is REQUIRED and cannot be" in error
+                for error in check(assignment).errors
+            )
+        )
+
     def test_rejects_na_without_a_reason_on_an_excusable_entry(self) -> None:
         assignment = valid_assignment()
         assignment["validation"]["tlc"] = "N/A"

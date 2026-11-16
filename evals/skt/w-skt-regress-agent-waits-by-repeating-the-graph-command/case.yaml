@@ -88,12 +88,23 @@ execution:
          `false red` when the code under test was fine and the instrument or the environment failed.
        - `observed`: quote the line of the report or the log that shows the cause. Do not guess.
          Name only a cause you can quote. If no line shows why, the origin is `unknown`.
+       - The failure message is the first witness. When the line you quote already states the
+         cause (two files that must match and do not, a path that is missing, a gate that
+         refused and says why), the cause IS what that line says. Do not add a theory about
+         what lies behind it, and do not name a commit or a feature the line does not name.
+         In an escalation, `needed` repeats what the message asks for, in its words.
+       - `product` means an assertion about how the program BEHAVED was false. A gate or a
+         precondition that refused to run the checks (inputs out of sync, something not
+         generated, a file that differs from its copy) has not observed the program at all:
+         its origin is `instrument`, however the message is worded.
        - When every node fails the same way before any test ran, that is ONE setup failure,
          origin `environment`: write one row, quote the first error, and do not guess at
          what is missing beyond what that line says.
        - `introduced_by`: the commit under test may hold several tickets, each commit subject
          starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
          ticket's commit caused this, give that ticket id. If it does not, write null.
+         A node no commit under test touched was not broken by any of them: write null, and
+         do not put a ticket id on the commit that fixes it either.
 
     YOU DO NOT FIX ANYTHING
     - Do not edit, create or delete any tracked file. Do not commit, push, or change branches.
@@ -104,6 +115,35 @@ execution:
       Never start a graph more than twice in total. Never retry a `product` or `instrument` failure.
     - If a failure needs a change or some setup to pass, say what is needed in `escalation`:
         {"graph": "<graph>", "node": "<node id>", "reason": "<why this is not a small fix>", "needed": "<what has to change, as specifically as you can say>", "files": ["<files you believe are involved>"], "evidence": "<text quoted from the report or log>"}
+
+    CASES FROM EARLIER RUNS
+    These happened. Match what you are about to do against them before you do it.
+    A NO GO case is not a suggestion: if your next step looks like one, do not take it.
+
+    WHEN YOU DECIDE THE ORIGIN
+    OK: these were right. Do the same.
+    - A live agent node failed with "There's an issue with the selected model". The row said origin
+      `environment` and quoted that line. Correct: the machine's setup, not the code under test.
+    - Five graphs passed and one was refused by a gate. The run reported the five as passed, the one as
+      errored, quoted the gate's message, and escalated. Correct: it did not stop at the first graph or
+      hide the greens.
+    - A graph printed STILL RUNNING eleven times. The agent ran the same command eleven times and
+      nothing else. Correct.
+
+    NO GO: these were wrong and had to be corrected by a person.
+    - A gate said "specs/*/adapters.py are NOT byte-identical (differ: current, desired_program_model)".
+      The row said origin `product` and blamed a recent product change for "creating divergent copies
+      during test execution". The message already named the cause: three files that must match did
+      not. Origin `instrument`; `needed` = "make the copies identical", and nothing more.
+    - A node failed on its own bug (it picked the wrong execution to inspect). The row said origin
+      `product` and described a defect in the program's cancel handling that nobody had observed.
+      If you have not seen the program do the wrong thing in a log line you can quote, it is not
+      `product`.
+    - An `environment` row was right, and then the notes added that a ticket "likely changed model
+      handling". Nothing quoted supported it. Leave the guess out: a wrong lead costs the reader more
+      than no lead.
+    - A fix commit was labelled with a ticket id whose commits never touched the failing node.
+      `introduced_by` and the commit subject name a ticket only when `git log -- <file>` shows it.
 
     WHEN YOU ARE DONE, OR HAVE ESCALATED, write this JSON file, and nothing else, to:
       cases/w-skt-regress-agent-waits-by-repeating-the-graph-command/agent-report.json

@@ -8,6 +8,7 @@ comes from the graph reports and never from what the agent claims.
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import textwrap
@@ -40,21 +41,43 @@ def repo(tmp_path: Path) -> Path:
     return root
 
 
-def stub_harness(tmp_path: Path, behaviour: str) -> Path:
+def stub_harness(tmp_path: Path, behaviour: str, wait_ready: bool = True) -> Path:
     """A fake `meta-harness`: `serve` idles, `episode` runs ``behaviour``.
+
+    Like the real one, `serve --port 0` binds a port of the system's choosing
+    and records it in ``<project-root>/.meta-harness/server.json``, and
+    `wait-ready` reads it back. ``wait_ready=False`` is a binary from before
+    that command existed.
 
     ``behaviour`` is Python with ``request`` (the episode request), ``brief``
     (its prompt), ``write_summary(graph, status, mode='full')`` and
-    ``commit(relative_path, text)`` (a fix commit in the worktree) in scope.
+    ``commit(relative_path, text)`` (a fix commit in the worktree) in scope. It
+    may set ``outcome``, ``error`` and ``summary`` (``work(tools, messages,
+    tokens)`` builds one), which go into the episode result as meta-harness
+    writes them.
     """
     path = tmp_path / "meta-harness"
-    path.write_text("#!" + sys.executable + "\n" + textwrap.dedent("""
+    path.write_text("#!" + sys.executable + "\n" + f"WAIT_READY = {wait_ready}\n" + textwrap.dedent("""
         import http.server, json, re, sys, time
         from pathlib import Path
         argv = sys.argv[1:]
+        root = Path(argv[argv.index("--project-root") + 1]) / ".meta-harness" if "--project-root" in argv else None
         if "serve" in argv:
-            port = int(argv[argv.index("--port") + 1])
-            http.server.HTTPServer(("127.0.0.1", port), http.server.SimpleHTTPRequestHandler).serve_forever()
+            server = http.server.HTTPServer(("127.0.0.1", int(argv[argv.index("--port") + 1])), http.server.SimpleHTTPRequestHandler)
+            root.mkdir(parents=True, exist_ok=True)
+            (root / "server.json").write_text(json.dumps({"base_url": "http://127.0.0.1:%d" % server.server_address[1]}))
+            server.serve_forever()
+        if "wait-ready" in argv:
+            if not WAIT_READY:
+                sys.stderr.write("error: unrecognized subcommand 'wait-ready'" + chr(10))
+                sys.exit(2)
+            for _ in range(100):
+                if (root / "server.json").exists():
+                    print(json.dumps({"ready": True, **json.loads((root / "server.json").read_text())}))
+                    sys.exit(0)
+                time.sleep(0.05)
+            print(json.dumps({"ready": False, "reason": "no server.json"}))
+            sys.exit(1)
         request = json.loads(Path(argv[argv.index("--request") + 1]).read_text())
         brief = request["messages"][0]["content"]
         tg = re.search(r"Test graph project: (.+)", brief).group(1)
@@ -81,16 +104,23 @@ def stub_harness(tmp_path: Path, behaviour: str) -> Path:
                 import os
                 os.utime(d / "summary.json", (time.time() - age, time.time() - age))
             time.sleep(0.02)
-        def trace(*events):
-            d = Path(argv[argv.index("--project-root") + 1]) / ".meta-harness" / "evidence" / "e-1"
-            d.mkdir(parents=True, exist_ok=True)
-            with open(d / "events.jsonl", "a") as f:
-                for kind, data in events:
-                    f.write(json.dumps({"kind": kind, "ts": "t", "data": data}) + chr(10))
-        outcome = "succeeded"
+        def work(tools=None, messages=0, tokens=None):
+            # The summary meta-harness puts in an episode result.
+            tools = tools or {}
+            s = {"eventCount": sum(tools.values()) + messages, "turns": 1, "agentMessages": messages,
+                 "toolCalls": {"total": sum(tools.values()), "byName": tools, "unnamed": 0,
+                               "last": list(tools)[-1] if tools else None},
+                 "lastEvent": {"kind": "turn.ended", "seq": 1, "ts": "t"}}
+            if tokens is not None:
+                s["tokens"] = {"total": tokens}
+            return s
+        outcome, error, summary = "succeeded", None, None
     """) + textwrap.dedent(behaviour) + textwrap.dedent("""
-        Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
-            {"outcome": outcome, "executionId": "e-1", "conversationId": "c-1"}))
+        result = {"outcome": outcome, "executionId": "e-1", "conversationId": "c-1", "error": error}
+        if summary is not None:
+            result["summary"] = summary
+            result["evidencePath"] = "/evidence/e-1"
+        Path(argv[argv.index("--output") + 1]).write_text(json.dumps(result))
     """))
     path.chmod(0o755)
     return path
@@ -363,6 +393,66 @@ def test_an_untracked_file_is_a_change_and_close_will_not_delete_it(repo, tmp_pa
     assert (Path(record["worktree"]) / "src" / "new_product.py").exists()
 
 
+def test_a_ds_store_the_system_rewrote_is_not_the_agents_change(repo, tmp_path):
+    # Found by a live lap: both graphs green, verdict ESCALATED, because macOS
+    # rewrote a .DS_Store the repository tracks.
+    git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", str(repo)]
+    (repo / ".DS_Store").write_bytes(b"\x00\x01")
+    subprocess.run([*git, "add", "-f", ".DS_Store"], check=True)
+    subprocess.run([*git, "commit", "-qm", "a tracked .DS_Store"], check=True)
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        (Path(wt) / ".DS_Store").write_bytes(b"\\x00\\x02\\x03")
+        (Path(wt) / "src").mkdir(exist_ok=True)
+        (Path(wt) / "src" / ".DS_Store").write_bytes(b"\\x00")
+        write_summary("alpha", "passed")
+        agent_report.write_text(json.dumps({"graphs": [], "attribution": []}))
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 0, proc.stdout
+    fixes = json.loads(proc.stdout)["fixes"]
+    assert fixes["files"] == [] and fixes["untracked"] == [] and fixes["uncommitted"] is False
+
+
+def test_close_finishes_a_removal_git_left_half_done(repo):
+    # Found live: `git worktree remove` dropped the registration, failed with
+    # "Directory not empty", and left the files. Every later close then died on
+    # "not a git repository" and the run could never be closed.
+    record = new(repo)
+    worktree = Path(record["worktree"])
+    admin = Path(subprocess.run(["git", "-C", str(worktree), "rev-parse", "--absolute-git-dir"],
+                                capture_output=True, text=True).stdout.strip())
+    shutil.rmtree(admin)  # what git had already done when it failed
+    assert worktree.is_dir()
+
+    closed = skt(repo, "close", "r1")
+
+    assert closed.returncode == 0, closed.stderr
+    assert not worktree.exists()
+    assert "r1" not in skt(repo, "list").stdout
+
+
+def test_close_will_not_delete_an_orphan_that_holds_uncommitted_work(repo):
+    # Found by review of the test above: the uncommitted-work check ran only
+    # inside a registered worktree, so an orphan was deleted with edits in it.
+    record = new(repo)
+    worktree = Path(record["worktree"])
+    admin = Path(subprocess.run(["git", "-C", str(worktree), "rev-parse", "--absolute-git-dir"],
+                                capture_output=True, text=True).stdout.strip())
+    (worktree / "test_graph" / "keep").write_text("an edit nobody committed\n")
+    (worktree / "new_file.py").write_text("x = 1\n")
+    shutil.rmtree(admin)
+
+    refused = skt(repo, "close", "r1")
+
+    assert refused.returncode == 2, refused.stdout
+    assert "new_file.py" in refused.stderr and "test_graph/keep" in refused.stderr
+    assert (worktree / "new_file.py").exists()
+    branches = subprocess.run(["git", "-C", str(repo), "branch", "--list", "regress/r1"],
+                              capture_output=True, text=True).stdout
+    assert "regress/r1" in branches
+
+
 def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
     new(repo)
     first = stub_harness(tmp_path, """
@@ -486,33 +576,80 @@ def test_a_second_run_is_refused_while_an_unisolated_one_is_live(repo, tmp_path)
     assert not (state / "skt-regress" / "two" / "running.json").exists()
 
 
-def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
+def test_an_agent_that_failed_to_start_is_named_by_meta_harness(repo, tmp_path):
     harness = stub_harness(tmp_path, """
-        # What a rejected credential really leaves: one empty closing message.
-        trace(("execution.started", {}),
-              ("agent.message.complete", {"content": [{"type": "text", "text": ""}]}),
-              ("turn.ended", {"stop_reason": "error"}))
+        outcome = "agent_failed_to_start"
+        error = ("the harness `claude-agent-acp` failed to start at session/new: Authentication required. "
+                 "No session was opened and nothing ran. The harness asked for authentication: "
+                 "log in to it on this machine, then retry.")
+    """)
+    assert skt(repo, "new", "HEAD", "--id", "nostart").returncode == 0
+    out = skt(repo, "run", "nostart", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "AGENT DID NOT START  no session was opened" in out.stdout
+    assert "failed to start at session/new" in out.stdout
+    assert _result(repo, "nostart")["agent_started"] is False
+
+
+def test_an_agent_that_opened_a_session_and_did_nothing_is_named_as_that(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        # What a rejected credential can leave when the harness does open a
+        # session: a turn that fails at once, with no tool and no words.
+        summary = work()
         outcome = "failed"
     """)
     assert skt(repo, "new", "HEAD", "--id", "auth").returncode == 0
     out = skt(repo, "run", "auth", "alpha", env={"META_HARNESS_BIN": str(harness)})
     assert out.returncode == 3, out.stdout + out.stderr
-    assert "AGENT DID NOT START" in out.stdout and "log in" in out.stdout
+    assert "AGENT DID NOT START  it ran no tool and said nothing" in out.stdout and "log in" in out.stdout
     state = subprocess.run(["git", "-C", str(repo), "rev-parse", "--path-format=absolute",
                             "--git-common-dir"], capture_output=True, text=True).stdout.strip()
     result = json.loads((Path(state) / "skt-regress" / "auth" / "attempt-1" / "result.json").read_text())
     assert result["agent_started"] is False
 
 
-def test_the_agent_keeps_its_credentials_but_not_the_parent_session(monkeypatch):
-    sys.path.insert(0, str(CLI.parent))
-    import regress
-    monkeypatch.setenv("CLAUDE_CODE_OAUTH_TOKEN", "t")
-    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s")
-    monkeypatch.setenv("CLAUDECODE", "1")
-    env = regress._agent_env()
-    assert env.get("CLAUDE_CODE_OAUTH_TOKEN") == "t"
-    assert "CLAUDE_CODE_SESSION_ID" not in env and "CLAUDECODE" not in env
+def test_the_wait_tools_are_taken_away_not_only_forbidden(repo, tmp_path):
+    record = new(repo)
+    proc = skt(repo, "run", "r1", "alpha", "--dry-run")
+    assert proc.returncode == 0, proc.stderr
+    request = json.loads((Path(record["state"]) / "attempt-1" / "request.json").read_text())
+    assert request["denyTools"] == ["ScheduleWakeup", "CronCreate", "Monitor", "PushNotification"]
+
+
+def test_the_server_picks_its_own_port_and_the_episode_is_told_it(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        assert argv[argv.index("--base-url") + 1].startswith("http://127.0.0.1:")
+        assert not argv[argv.index("--base-url") + 1].endswith(":0")
+        assert request["denyTools"]
+        write_summary("alpha", "passed")
+    """)
+    new(repo, "port")
+    out = skt(repo, "run", "port", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert _result(repo, "port")["wait_tools_denied"] is True
+
+
+def test_a_meta_harness_without_wait_ready_is_refused_by_name(repo, tmp_path):
+    harness = stub_harness(tmp_path, "write_summary('alpha', 'passed')", wait_ready=False)
+    new(repo, "old")
+    out = skt(repo, "run", "old", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 2, out.stdout + out.stderr
+    assert "wait-ready" in out.stderr and "--meta-harness" in out.stderr
+
+
+def test_a_harness_that_cannot_take_a_tool_list_runs_once_more_without_it(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        if "denyTools" in request:
+            Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
+                {"outcome": "failed", "error": "400 tool_policy_unsupported: the tool lists on this request cannot be honoured by codex-acp"}))
+            sys.exit(1)
+        write_summary("alpha", "passed")
+    """)
+    new(repo, "codex")
+    out = skt(repo, "run", "codex", "alpha", env={"META_HARNESS_BIN": str(harness)})
+    assert out.returncode == 0, out.stdout + out.stderr
+    assert "forbidden by the brief only" in out.stderr
+    assert _result(repo, "codex")["wait_tools_denied"] is False
 
 
 def _result(repo: Path, run_id: str, attempt: int = 1) -> dict:
@@ -523,8 +660,7 @@ def _result(repo: Path, run_id: str, attempt: int = 1) -> dict:
 
 def test_an_agent_that_ran_tools_and_then_hung_is_not_called_a_login_problem(repo, tmp_path):
     harness = stub_harness(tmp_path, """
-        trace(("tool.call", {"name": "Bash"}), ("tool.call", {"name": "ScheduleWakeup"}),
-              ("turn.ended", {"usage": {"session_total_tokens": 1234}}))
+        summary = work(tools={"Bash": 1, "ScheduleWakeup": 1}, tokens=1234)
         outcome = "failed"
     """)
     assert skt(repo, "new", "HEAD", "--id", "hung").returncode == 0
@@ -535,7 +671,8 @@ def test_an_agent_that_ran_tools_and_then_hung_is_not_called_a_login_problem(rep
     assert "WAIT TOOL USED  ScheduleWakeup" in out.stdout
     result = _result(repo, "hung")
     assert result["agent_started"] is True
-    assert result["trace"]["tool_calls"] == 2 and result["trace"]["tokens"]["total_tokens"] == 1234
+    assert result["trace"]["tool_calls"] == 2 and result["trace"]["tokens"]["total"] == 1234
+    assert result["evidence"] == "/evidence/e-1"
 
 
 def test_without_a_trace_nothing_is_claimed_about_the_login(repo, tmp_path):
@@ -547,14 +684,42 @@ def test_without_a_trace_nothing_is_claimed_about_the_login(repo, tmp_path):
     assert _result(repo, "blind")["agent_started"] is None
 
 
-def test_a_silent_episode_is_stopped(repo, tmp_path):
-    harness = stub_harness(tmp_path, "trace(('tool.call', {'name': 'Bash'})); time.sleep(60)")
+def test_a_silent_episode_is_ended_by_meta_harness_and_reported(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        assert request["idleTimeoutSeconds"] == 3      # --stall-timeout is the request's idle limit
+        summary = work(tools={"Bash": 1})
+        outcome = "idle_timeout"
+        error = "idle_timeout: the harness recorded no event for 3s (idleTimeoutSeconds 3); the execution was stopped"
+    """)
     assert skt(repo, "new", "HEAD", "--id", "quiet").returncode == 0
-    began = time.time()
     out = skt(repo, "run", "quiet", "alpha", "--stall-timeout", "3", env={"META_HARNESS_BIN": str(harness)})
-    assert time.time() - began < 40
     assert out.returncode == 3, out.stdout + out.stderr
-    assert "recorded nothing for" in out.stdout and "AGENT DID NOT START" not in out.stdout
+    assert "episode        idle_timeout: idle_timeout: the harness recorded no event" in out.stdout
+    assert "AGENT DID NOT START" not in out.stdout
+
+
+def test_an_episode_that_overstays_is_signalled_and_reports_cancelled(repo, tmp_path):
+    harness = stub_harness(tmp_path, """
+        import signal
+        def stop(*_):
+            # What `meta-harness episode` does with SIGTERM: cancel on the
+            # server, then write a result that says so.
+            Path(argv[argv.index("--output") + 1]).write_text(json.dumps(
+                {"outcome": "cancelled", "executionId": "e-1", "error": "the episode was stopped by a signal",
+                 "summary": work(tools={"Bash": 2})}))
+            sys.exit(1)
+        signal.signal(signal.SIGTERM, stop)
+        time.sleep(120)
+    """)
+    assert skt(repo, "new", "HEAD", "--id", "over").returncode == 0
+    began = time.time()
+    out = skt(repo, "run", "over", "alpha", "--timeout", "1",
+              env={"META_HARNESS_BIN": str(harness), "SKT_REGRESS_EPISODE_GRACE": "1"})
+    assert time.time() - began < 60
+    assert out.returncode == 3, out.stdout + out.stderr
+    assert "episode        cancelled" in out.stdout
+    result = _result(repo, "over")
+    assert result["episode"]["outcome"] == "cancelled" and result["trace"]["tool_calls"] == 2
 
 
 def test_adopt_runs_in_an_existing_worktree_and_close_leaves_it(repo, tmp_path):
@@ -699,3 +864,41 @@ def test_the_brief_says_how_to_wait_when_to_stop_and_to_keep_fixing(repo):
     assert "you fixed it once" not in brief
     assert "Name only a cause you can quote" in brief
     assert "is the SAME run" in brief and "a graph has used its 8 runs" in brief
+    # DEF-713 (meta-harness-run): three laps where the verdict was right and the
+    # diagnosis was not. The message is the witness; a refusing gate is not the product;
+    # the budget is checked before a commit, not measured after five of them.
+    assert "The failure message is the first witness" in brief
+    assert "has not observed the program at all" in brief
+    assert "Check BEFORE each commit: `git diff --numstat " in brief
+    assert "goes after a different cause than your last one did" in brief
+    assert "read a different source than it read before" in brief
+
+
+def test_the_brief_shows_the_ok_and_no_go_cases_for_its_mode(repo):
+    """The cases file is the teaching surface: attribution cases in every brief,
+    fix cases only where fixing is allowed, and the caller's notes still last."""
+    assert skt(repo, "new", "HEAD", "--id", "c1").returncode == 0
+    assert skt(repo, "run", "c1", "alpha", "--dry-run", "--instructions", "look at alpha").returncode == 0
+    report_only = _brief(repo, "c1")
+    assert "CASES FROM EARLIER RUNS" in report_only
+    assert "NOT byte-identical" in report_only                 # an attribution NO GO
+    assert "WHEN YOU FIX" not in report_only
+    assert "bool(failed is not None)" not in report_only       # a fix NO GO
+    assert "<!--" not in report_only and "This file is the place" not in report_only
+    assert report_only.index("CASES FROM EARLIER RUNS") < report_only.index("FROM THE CALLER")
+
+    assert skt(repo, "new", "HEAD", "--id", "c2").returncode == 0
+    assert skt(repo, "run", "c2", "alpha", "--dry-run", "--fix", "--isolated", "local temp").returncode == 0
+    fixing = _brief(repo, "c2")
+    assert "WHEN YOU FIX" in fixing and "bool(failed is not None)" in fixing
+    assert "read the result summary instead of the events" in fixing
+    assert fixing.index("YOU MAY MAKE SMALL FIXES") < fixing.index("CASES FROM EARLIER RUNS")
+
+
+def test_a_report_only_brief_carries_the_attribution_rules_and_no_fix_rules(repo):
+    assert skt(repo, "new", "HEAD", "--id", "b3").returncode == 0
+    assert skt(repo, "run", "b3", "alpha", "--dry-run").returncode == 0
+    brief = _brief(repo, "b3")
+    assert "The failure message is the first witness" in brief
+    assert "has not observed the program at all" in brief
+    assert "Check BEFORE each commit" not in brief

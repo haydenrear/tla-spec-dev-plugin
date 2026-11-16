@@ -444,6 +444,21 @@ def _validate_goals(
         )
 
 
+def _declares_no_model_delta(matrix: dict[str, Any]) -> bool:
+    """Whether the matrix waives BOTH model checks, each with a reason.
+
+    That pair is how an assignment says its ticket's spec workflow is NOT
+    REQUIRED (git-issue's default). Only then may `spec_unit` be waived too.
+    """
+    for field in ("tlc", "spec_graph"):
+        value = matrix.get(field)
+        if not isinstance(value, str) or not value.strip().startswith(NOT_APPLICABLE):
+            return False
+        if not _excuse_is_reasoned(value):
+            return False
+    return True
+
+
 def _validate_validation(assignment: dict[str, Any], errors: list[str]) -> None:
     matrix = _require_mapping(assignment, "validation", errors)
     if matrix is None:
@@ -453,7 +468,24 @@ def _validate_validation(assignment: dict[str, Any], errors: list[str]) -> None:
         if value is None:
             continue
         if value.strip().startswith(NOT_APPLICABLE):
-            if field not in EXCUSABLE:
+            if field == "spec_unit" and _declares_no_model_delta(matrix):
+                # A ticket whose spec workflow is NOT REQUIRED has no model
+                # delta: it runs no TLC and no spec graph, and there are no
+                # spec-unit cases of its own to run either. The waiver is
+                # allowed only as a set, and only with a reason.
+                if not _excuse_is_reasoned(value):
+                    errors.append(
+                        f"validation.{field} is {NOT_APPLICABLE!r} without a reason; "
+                        f"write '{NOT_APPLICABLE}: <why>' so the waiver is reviewable"
+                    )
+            elif field == "spec_unit":
+                errors.append(
+                    f"validation.{field} is REQUIRED and cannot be "
+                    f"{NOT_APPLICABLE!r} while validation.tlc or validation.spec_graph "
+                    "names a command: a ticket that changes the model runs its "
+                    "spec-unit cases"
+                )
+            elif field not in EXCUSABLE:
                 errors.append(
                     f"validation.{field} is REQUIRED and cannot be "
                     f"{NOT_APPLICABLE!r}"

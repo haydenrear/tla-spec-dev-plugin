@@ -91,12 +91,23 @@ execution:
          `false red` when the code under test was fine and the instrument or the environment failed.
        - `observed`: quote the line of the report or the log that shows the cause. Do not guess.
          Name only a cause you can quote. If no line shows why, the origin is `unknown`.
+       - The failure message is the first witness. When the line you quote already states the
+         cause (two files that must match and do not, a path that is missing, a gate that
+         refused and says why), the cause IS what that line says. Do not add a theory about
+         what lies behind it, and do not name a commit or a feature the line does not name.
+         In an escalation, `needed` repeats what the message asks for, in its words.
+       - `product` means an assertion about how the program BEHAVED was false. A gate or a
+         precondition that refused to run the checks (inputs out of sync, something not
+         generated, a file that differs from its copy) has not observed the program at all:
+         its origin is `instrument`, however the message is worded.
        - When every node fails the same way before any test ran, that is ONE setup failure,
          origin `environment`: write one row, quote the first error, and do not guess at
          what is missing beyond what that line says.
        - `introduced_by`: the commit under test may hold several tickets, each commit subject
          starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
          ticket's commit caused this, give that ticket id. If it does not, write null.
+         A node no commit under test touched was not broken by any of them: write null, and
+         do not put a ticket id on the commit that fixes it either.
 
     YOU MAY MAKE SMALL FIXES, AND ONLY SMALL ONES
     This run is isolated: local temp and loopback only; the service under test is started by the graph on a free port
@@ -114,8 +125,14 @@ execution:
     - Commit each fix on its own: `git commit -am "regress: <what you fixed>"`.
       You are on branch regress/wave3. Do not push. Do not switch branches.
     - All of your fixes together must stay within 60 changed lines in 4 files.
+      Check BEFORE each commit: `git diff --numstat 4f2a91c0de7b1a55c0f3e2d9a8b7c6d5e4f3a2b1` lists every line changed since
+      the commit under test, your earlier fixes included. If the total with this fix passes the
+      limit, do not commit it. Undo it (`git checkout -- <file>`) and escalate.
     - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
       an assertion or a node, and do not change an expected value to whatever the code now prints.
+    - An assertion you ADD must be able to fail: it has to read a value the node computed from
+      the program. Never add one that is always true. If a node is refused because it "recorded
+      no observations", record the checks it ALREADY makes as assertions, one per check.
     - After a fix, resume from the failed node:  bash cases/w-skt-regress-agent-escalates-a-big-fix/graph.sh --resume <runId>
       When that passes, run the whole graph once more from the beginning. Only a full run
       that finished after your last commit counts.
@@ -132,6 +149,11 @@ execution:
     - you would have to decide what the correct behaviour is;
     - you have made 3 fixes for one node and it still fails, or your last fix
       changed nothing about how it fails;
+    - your next fix for a node goes after a different cause than your last one did: you are
+      guessing, and each guess moves the check further from what it was written to catch;
+    - the fix would make a check read a different source than it read before (a summary
+      where it read the events, one endpoint where it read another): that changes what the
+      node asserts, which is not yours to decide;
     - a graph has used its 8 runs and is not green;
     - you cannot tell why it failed;
     - the graph cannot run because something is not set up, or the failure is in the
@@ -139,6 +161,62 @@ execution:
     To escalate: make no further changes, run no further graphs, mark the remaining graphs
     `not_run`, and set `escalation` in the report to:
       {"graph": "<graph>", "node": "<node id>", "reason": "<why this is not a small fix>", "needed": "<what has to change, as specifically as you can say>", "files": ["<files you believe are involved>"], "evidence": "<text quoted from the report or log>"}
+
+    CASES FROM EARLIER RUNS
+    These happened. Match what you are about to do against them before you do it.
+    A NO GO case is not a suggestion: if your next step looks like one, do not take it.
+
+    WHEN YOU DECIDE THE ORIGIN
+    OK: these were right. Do the same.
+    - A live agent node failed with "There's an issue with the selected model". The row said origin
+      `environment` and quoted that line. Correct: the machine's setup, not the code under test.
+    - Five graphs passed and one was refused by a gate. The run reported the five as passed, the one as
+      errored, quoted the gate's message, and escalated. Correct: it did not stop at the first graph or
+      hide the greens.
+    - A graph printed STILL RUNNING eleven times. The agent ran the same command eleven times and
+      nothing else. Correct.
+
+    NO GO: these were wrong and had to be corrected by a person.
+    - A gate said "specs/*/adapters.py are NOT byte-identical (differ: current, desired_program_model)".
+      The row said origin `product` and blamed a recent product change for "creating divergent copies
+      during test execution". The message already named the cause: three files that must match did
+      not. Origin `instrument`; `needed` = "make the copies identical", and nothing more.
+    - A node failed on its own bug (it picked the wrong execution to inspect). The row said origin
+      `product` and described a defect in the program's cancel handling that nobody had observed.
+      If you have not seen the program do the wrong thing in a log line you can quote, it is not
+      `product`.
+    - An `environment` row was right, and then the notes added that a ticket "likely changed model
+      handling". Nothing quoted supported it. Leave the guess out: a wrong lead costs the reader more
+      than no lead.
+    - A fix commit was labelled with a ticket id whose commits never touched the failing node.
+      `introduced_by` and the commit subject name a ticket only when `git log -- <file>` shows it.
+
+    WHEN YOU FIX
+    OK: fixes of this kind were kept.
+    - A node was refused because it "recorded no observations". The kept fix recorded each check the
+      node ALREADY made as its own assertion, one line per check, reading the values the node had
+      computed. No check was added, removed or changed.
+    - A timeout shorter than the step it waits for; a path that moved; an import that was renamed; a
+      fixture file that no longer matches what the node reads. One file, a few lines, obvious from the
+      log line that names it.
+    - A fix was not possible within the limits, and the agent stopped, changed nothing more, and wrote
+      what was needed in `escalation`. That is a good result, not a failed one.
+
+    NO GO: these fixes were thrown away.
+    - A node was refused because it "recorded no observations". The fix added one assertion,
+      `bool(failed is not None)`, which is true whatever the program does. It made the node green and
+      checked nothing. Never add an assertion that cannot fail.
+    - A check compared the execution's recorded events with the result. It was red. The fix made the
+      check read the result summary instead of the events, which passed. That changed what the node
+      tests. If a check is red, the check stays as it is: either the thing it reads is wrong (escalate)
+      or the node fetched the wrong thing (fix the fetch, not the comparison).
+    - Five commits, 126 changed lines, against a limit of 60. Each commit was small; together they
+      were not. Count ALL your commits before each new one. At the limit, stop and escalate, even if
+      you believe the next fix is the last.
+    - Three different causes were tried for one red node, one after another. After the first fix that
+      does not change how the node fails, you do not know the cause. Escalate with what you saw.
+    - A gate refused because copies of a spec file differed. Do not edit, copy or regenerate files
+      under a spec or model directory to satisfy a gate. Escalate and quote the gate.
 
     WHEN YOU ARE DONE, OR HAVE ESCALATED, write this JSON file, and nothing else, to:
       cases/w-skt-regress-agent-escalates-a-big-fix/agent-report.json

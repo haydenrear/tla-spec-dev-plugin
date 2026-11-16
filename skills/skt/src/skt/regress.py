@@ -39,16 +39,16 @@ import re
 import shlex
 import shutil
 import signal
-import socket
 import subprocess
 import sys
 import time
-import urllib.request
 from pathlib import Path
 
 DEFAULT_MODEL = "CLAUDE_haiku"
 DEFAULT_TIMEOUT = 4 * 60 * 60
-DEFAULT_STALL_TIMEOUT = 15 * 60  # seconds without a trace event before the episode is stopped
+DEFAULT_STALL_TIMEOUT = 15 * 60  # seconds without a recorded event before meta-harness ends the episode
+# How long past its own timeout the episode process may run before it is told to stop.
+EPISODE_GRACE = int(os.environ.get("SKT_REGRESS_EPISODE_GRACE", "300"))
 # Seconds one call of graph.sh blocks: under a default command timeout. The
 # environment override exists so a brief change can be checked against a short
 # graph: with a small value even a one-minute graph prints STILL RUNNING.
@@ -396,6 +396,35 @@ def write_graph_script(attempt_dir: Path, runner: Path, tg_root: str) -> Path:
     return path
 
 
+def known_cases(fix: bool) -> str:
+    """The OK / NO GO cases from earlier runs, as the brief shows them.
+
+    They live in ``regress_cases.md`` beside this file so that teaching the
+    agent is editing a list, not this module. A missing file is an empty list.
+    """
+    path = Path(__file__).with_name("regress_cases.md")
+    if not path.is_file():
+        return ""
+    text = re.sub(r"<!--.*?-->", "", path.read_text(encoding="utf-8"), flags=re.S)
+    parts = {"ATTRIBUTION": "", "FIXES": ""}
+    current = None
+    for line in text.splitlines():
+        if line.startswith("## "):
+            current = line[3:].strip()
+            continue
+        if current in parts:
+            parts[current] += line + "\n"
+    shown = parts["ATTRIBUTION"].strip()
+    if fix and parts["FIXES"].strip():
+        shown += "\n\nWHEN YOU FIX\n" + parts["FIXES"].strip()
+    if not shown:
+        return ""
+    return ("\nCASES FROM EARLIER RUNS\n"
+            "These happened. Match what you are about to do against them before you do it.\n"
+            "A NO GO case is not a suggestion: if your next step looks like one, do not take it.\n\n"
+            "WHEN YOU DECIDE THE ORIGIN\n" + shown + "\n")
+
+
 def build_brief(run: dict, graphs: list[str], runner: Path, report_path: Path, *,
                 fix: bool = False, isolated: str | None = None, effects: list[str] | None = None,
                 max_fix_lines: int = DEFAULT_MAX_FIX_LINES, max_fix_files: int = DEFAULT_MAX_FIX_FILES,
@@ -450,8 +479,14 @@ a node script that crashes for a reason unrelated to what it asserts.
 - Commit each fix on its own: `git commit -am "regress: <what you fixed>"`.
   You are on branch {run.get('branch', '(detached)')}. Do not push. Do not switch branches.
 - All of your fixes together must stay within {max_fix_lines} changed lines in {max_fix_files} files.
+  Check BEFORE each commit: `git diff --numstat {run['sha']}` lists every line changed since
+  the commit under test, your earlier fixes included. If the total with this fix passes the
+  limit, do not commit it. Undo it (`git checkout -- <file>`) and escalate.
 - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
   an assertion or a node, and do not change an expected value to whatever the code now prints.
+- An assertion you ADD must be able to fail: it has to read a value the node computed from
+  the program. Never add one that is always true. If a node is refused because it "recorded
+  no observations", record the checks it ALREADY makes as assertions, one per check.
 - After a fix, resume from the failed node:  {resume_cmd}
   When that passes, run the whole graph once more from the beginning. Only a full run
   that finished after your last commit counts.
@@ -468,6 +503,11 @@ STOP AND ESCALATE, do not attempt the fix, when any of these is true:
 - you would have to decide what the correct behaviour is;
 - you have made {max_attempts} fixes for one node and it still fails, or your last fix
   changed nothing about how it fails;
+- your next fix for a node goes after a different cause than your last one did: you are
+  guessing, and each guess moves the check further from what it was written to catch;
+- the fix would make a check read a different source than it read before (a summary
+  where it read the events, one endpoint where it read another): that changes what the
+  node asserts, which is not yours to decide;
 - a graph has used its {max_runs} runs and is not green;
 - you cannot tell why it failed;
 - the graph cannot run because something is not set up, or the failure is in the
@@ -575,14 +615,25 @@ FOR EACH GRAPH
      `false red` when the code under test was fine and the instrument or the environment failed.
    - `observed`: quote the line of the report or the log that shows the cause. Do not guess.
      Name only a cause you can quote. If no line shows why, the origin is `unknown`.
+   - The failure message is the first witness. When the line you quote already states the
+     cause (two files that must match and do not, a path that is missing, a gate that
+     refused and says why), the cause IS what that line says. Do not add a theory about
+     what lies behind it, and do not name a commit or a feature the line does not name.
+     In an escalation, `needed` repeats what the message asks for, in its words.
+   - `product` means an assertion about how the program BEHAVED was false. A gate or a
+     precondition that refused to run the checks (inputs out of sync, something not
+     generated, a file that differs from its copy) has not observed the program at all:
+     its origin is `instrument`, however the message is worded.
    - When every node fails the same way before any test ran, that is ONE setup failure,
      origin `environment`: write one row, quote the first error, and do not guess at
      what is missing beyond what that line says.
    - `introduced_by`: the commit under test may hold several tickets, each commit subject
      starting with its ticket id. If `git log --oneline -- <the files involved>` shows which
      ticket's commit caused this, give that ticket id. If it does not, write null.
+     A node no commit under test touched was not broken by any of them: write null, and
+     do not put a ticket id on the commit that fixes it either.
 
-{mode}{caller}
+{mode}{known_cases(fix)}{caller}
 WHEN YOU ARE DONE, OR HAVE ESCALATED, write this JSON file, and nothing else, to:
   {report_path}
 
@@ -600,6 +651,17 @@ run a graph again.
 
 # ------------------------------------------------------------------ verdict
 
+# Files the operating system rewrites by itself. macOS updates a directory's
+# .DS_Store when anything lists it, and some repositories track one. A live
+# report-only lap was marked ESCALATED ("the agent changed the tree") for
+# exactly that, with both graphs green and no edit by the agent.
+OS_NOISE_NAMES = frozenset({".DS_Store"})
+
+
+def _os_noise(path: str) -> bool:
+    return Path(path).name in OS_NOISE_NAMES
+
+
 def tree_changes(run: dict, since: str | None = None) -> dict:
     """What changed in the worktree since ``since`` (default: the commit under test).
 
@@ -612,6 +674,8 @@ def tree_changes(run: dict, since: str | None = None) -> dict:
     files, lines = [], 0
     for row in _git(["diff", "--numstat", base], wt).splitlines():
         added, deleted, path = row.split("\t", 2)
+        if _os_noise(path):
+            continue
         files.append(path)
         lines += (int(added) if added.isdigit() else 0) + (int(deleted) if deleted.isdigit() else 0)
     tg_rel = os.path.relpath(run["test_graph_root"], wt)
@@ -619,14 +683,17 @@ def tree_changes(run: dict, since: str | None = None) -> dict:
     # the runner's, whether or not the repository ignores it.
     baseline = set(run.get("baseline_untracked") or [])
     untracked = [u for u in _git(["ls-files", "--others", "--exclude-standard"], wt).splitlines()
-                 if u and not u.startswith(f"{tg_rel}/build/") and u not in baseline]
+                 if u and not u.startswith(f"{tg_rel}/build/") and u not in baseline
+                 and not _os_noise(u)]
     for path in untracked:
         files.append(path)
         try:
             lines += len((Path(wt) / path).read_bytes().splitlines())
         except OSError:
             pass
-    status = _git(["status", "--porcelain", "--untracked-files=no"], wt)
+    status = "\n".join(
+        row for row in _git(["status", "--porcelain", "--untracked-files=no"], wt).splitlines()
+        if row.strip() and not _os_noise(row.split(maxsplit=1)[-1].strip('"')))
     head = _git(["rev-parse", "HEAD"], wt)
     return {
         "files": files,
@@ -751,21 +818,38 @@ def write_attribution_yaml(path: Path, run: dict, attempt_no: int, rows: list[di
 
 # ------------------------------------------------------------- meta-harness
 
-def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
+def start_private_server(binary: str, attempt_dir: Path, log) -> tuple[subprocess.Popen, str]:
+    """Start a ``serve`` for one attempt and return it with its base URL.
 
-
-AUTH_ENV = ("CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX")
-
-
-def _agent_env() -> dict:
-    # A session spawned from inside another agent session must not inherit its
-    # identity. Its credentials are another matter: without them the agent has
-    # nothing to log in with.
-    return {k: v for k, v in os.environ.items()
-            if k in AUTH_ENV or not (k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"))}
+    meta-harness picks the port (``--port 0``) and says when it is ready
+    (``wait-ready`` reads the port back from the attempt's ``server.json`` and
+    waits on ``/readyz``), so there is no free-port guess to race and no
+    endpoint to poll here. The server also removes the calling agent session's
+    markers from what it hands a harness, so the environment is passed as it is.
+    """
+    serve = subprocess.Popen(
+        [binary, "--project-root", str(attempt_dir), "serve", "--port", "0"],
+        stdout=log, stderr=subprocess.STDOUT, cwd=str(attempt_dir), start_new_session=True,
+    )
+    ready = subprocess.run(
+        [binary, "--project-root", str(attempt_dir), "wait-ready", "--timeout-seconds", "60"],
+        capture_output=True, text=True,
+    )
+    try:
+        answer = json.loads(ready.stdout)
+    except ValueError:
+        answer = None
+    if ready.returncode == 0 and answer and answer.get("base_url"):
+        return serve, answer["base_url"]
+    _stop_group(serve)
+    if answer is None:
+        # Not a failed wait: this binary has no such command.
+        raise RegressError(
+            "this meta-harness has no `wait-ready` command, so it predates `serve --port 0` and "
+            "per-episode tool lists",
+            fix="pass a newer binary: --meta-harness <path to meta-harness>", code=EXIT_USAGE)
+    raise RegressError(f"meta-harness serve did not become ready: {answer.get('reason') or 'no reason given'}",
+                       code=EXIT_INCOMPLETE)
 
 
 # ------------------------------------------------------------- one at a time
@@ -812,70 +896,34 @@ def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Pa
             )
 
 
-def _wait_listening(base_url: str, proc: subprocess.Popen, seconds: float = 60) -> None:
-    deadline = time.time() + seconds
-    while time.time() < deadline:
-        if proc.poll() is not None:
-            raise RegressError(f"meta-harness serve exited with {proc.returncode} before listening",
-                               code=EXIT_INCOMPLETE)
-        try:
-            urllib.request.urlopen(f"{base_url}/v1/models", timeout=2).close()
-            return
-        except urllib.error.HTTPError:
-            return  # it answered; that is all this asks
-        except OSError:
-            time.sleep(0.5)
-    raise RegressError("meta-harness serve did not start listening within 60s", code=EXIT_INCOMPLETE)
+def trace_of(episode: dict) -> dict | None:
+    """What the agent did, from the summary meta-harness puts in the result.
 
-
-def read_trace(evidence: Path) -> dict | None:
-    """What the agent did, from meta-harness's own event log. None when there is none."""
-    logs = sorted(evidence.glob("*/events.jsonl")) if evidence.is_dir() else []
-    if not logs:
+    None when the episode has no summary: no session was ever opened (the
+    agent failed to start, the request was refused), or the server could not
+    be asked. meta-harness folds its own events into this, so nothing here
+    reads an event log or knows the event schema.
+    """
+    summary = episode.get("summary")
+    if not isinstance(summary, dict):
         return None
-    trace = {"events": 0, "tool_calls": 0, "agent_messages": 0, "tools": {}, "wait_tools": [],
-             "last_tool": None, "last_event": None, "tokens": None, "cost_usd": None}
-    for log in logs:
-        try:
-            lines = log.read_text(errors="replace").splitlines()
-        except OSError:
-            continue
-        for line in lines:
-            try:
-                event = json.loads(line)
-            except ValueError:
-                continue
-            kind, data = event.get("kind"), event.get("data") or {}
-            trace["events"] += 1
-            trace["last_event"] = event.get("ts") or trace["last_event"]
-            if kind == "tool.call":
-                name = data.get("name") or data.get("title") or "?"
-                trace["tool_calls"] += 1
-                trace["tools"][name] = trace["tools"].get(name, 0) + 1
-                trace["last_tool"] = name
-                if name in WAIT_TOOLS and name not in trace["wait_tools"]:
-                    trace["wait_tools"].append(name)
-            elif kind in ("agent.message.chunk", "agent.message.complete", "agent.thought.chunk"):
-                # A turn that failed at once still closes with one empty message.
-                content = data.get("content")
-                parts = content if isinstance(content, list) else [content]
-                if any(isinstance(c, dict) and (c.get("text") or "").strip() for c in parts):
-                    trace["agent_messages"] += 1
-            elif kind == "turn.ended":
-                usage = data.get("usage") or {}
-                if usage.get("session_total_tokens") is not None:
-                    trace["tokens"] = {k[len("session_"):]: v for k, v in usage.items()
-                                       if k.startswith("session_")}
-            elif kind == "usage.update":
-                cost = ((data.get("usage") or {}).get("raw") or {}).get("cost") or {}
-                if cost.get("amount") is not None:
-                    trace["cost_usd"] = cost["amount"]
-    return trace
-
-
-def _trace_mtime(evidence: Path) -> float | None:
-    times = [f.stat().st_mtime for f in evidence.glob("*/events.jsonl")] if evidence.is_dir() else []
-    return max(times) if times else None
+    calls = summary.get("toolCalls") or {}
+    tools = dict(calls.get("byName") or {})
+    violated = list((summary.get("toolPolicy") or {}).get("violated") or [])
+    return {
+        "events": summary.get("eventCount", 0),
+        "tool_calls": calls.get("total", 0),
+        "agent_messages": summary.get("agentMessages", 0),
+        "tools": tools,
+        # A wait tool in the counts means the harness called it although it
+        # was denied; meta-harness records that as a policy violation too.
+        "wait_tools": sorted({t for t in tools if t in WAIT_TOOLS} | {t for t in violated if t in WAIT_TOOLS}),
+        "last_tool": calls.get("last"),
+        "last_event": (summary.get("lastEvent") or {}).get("ts"),
+        "tokens": summary.get("tokens"),
+        "cost_usd": (summary.get("cost") or {}).get("amount"),
+        "finished": (summary.get("finished") or {}).get("outcome"),
+    }
 
 
 def _stop_group(proc: subprocess.Popen) -> None:
@@ -892,51 +940,42 @@ def _stop_group(proc: subprocess.Popen) -> None:
             continue
 
 
-def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
-                stall_timeout: int = DEFAULT_STALL_TIMEOUT) -> tuple[dict, str]:
+def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None) -> tuple[dict, str]:
     """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
+
+    Stopping an episode is meta-harness's job. An agent that goes quiet is
+    ended by the request's ``idleTimeoutSeconds``, and one that runs past
+    ``timeoutSeconds`` by the episode's own timeout; both come back as an
+    outcome in the result. This function only waits. If the episode process
+    itself overstays, it is sent SIGTERM, which it turns into a cancel on the
+    server and a result that says ``cancelled``.
 
     The private server runs in its own process group, and the group is stopped
     when the episode ends, so nothing the agent started outlives the run unless
-    it detached itself. With a private server the trace is watched: an episode
-    that records nothing for ``stall_timeout`` seconds is stopped.
+    it detached itself.
     """
     request_path = attempt_dir / "request.json"
     result_path = attempt_dir / "episode.json"
     request_path.write_text(json.dumps(request, indent=2) + "\n")
-    evidence = attempt_dir / ".meta-harness" / "evidence"
+    result_path.unlink(missing_ok=True)
     serve = client = log = None
-    stopped = None
     try:
         if base_url is None:
-            port = _free_port()
-            base_url = f"http://127.0.0.1:{port}"
             log = open(attempt_dir / "serve.log", "w")
-            serve = subprocess.Popen(
-                [binary, "--project-root", str(attempt_dir), "serve", "--port", str(port)],
-                stdout=log, stderr=subprocess.STDOUT, env=_agent_env(), cwd=str(attempt_dir),
-                start_new_session=True,
-            )
-            _wait_listening(base_url, serve)
+            serve, base_url = start_private_server(binary, attempt_dir, log)
         client = subprocess.Popen(
             [binary, "--project-root", str(attempt_dir), "episode", "--base-url", base_url,
              "--request", str(request_path), "--output", str(result_path)],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        began = time.time()
-        deadline = began + request["timeoutSeconds"] + 300
-        while client.poll() is None:
-            now = time.time()
-            if now > deadline:
-                stopped = "the episode ran past its timeout"
-                break
-            if serve is not None and stall_timeout:
-                quiet = now - (_trace_mtime(evidence) or began)
-                if quiet > stall_timeout:
-                    stopped = (f"the agent recorded nothing for {int(quiet)}s and was stopped "
-                               f"(--stall-timeout {stall_timeout})")
-                    break
-            time.sleep(2)
+        try:
+            client.wait(timeout=request["timeoutSeconds"] + EPISODE_GRACE)
+        except subprocess.TimeoutExpired:
+            client.send_signal(signal.SIGTERM)   # the episode cancels on the server and reports it
+            try:
+                client.wait(timeout=90)
+            except subprocess.TimeoutExpired:
+                pass
     finally:
         if client is not None and client.poll() is None:
             client.kill()
@@ -945,12 +984,16 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
             _stop_group(serve)
         if log is not None:
             log.close()
-    if stopped:
-        return {"outcome": "stopped", "error": stopped}, base_url
     try:
         return json.loads(result_path.read_text()), base_url
     except (OSError, ValueError):
         return {"outcome": "failed", "error": "meta-harness episode wrote no result"}, base_url
+
+
+def tool_lists_unsupported(episode: dict) -> bool:
+    """Whether the episode failed because the harness cannot take a tool list."""
+    error = str(episode.get("error") or "")
+    return episode.get("outcome") == "failed" and ("tool_policy_unsupported" in error or "cannot be honoured" in error)
 
 
 # ---------------------------------------------------------------------- run
@@ -1038,7 +1081,15 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "workingDirectory": record["worktree"],
         "timeoutSeconds": timeout,
         "env": agent_env,
+        # The agent does not get the tools it could use to wait instead of
+        # work. The harness removes them from what the model is offered; a
+        # sentence in the brief could only ask.
+        "denyTools": list(WAIT_TOOLS),
     }
+    if stall_timeout:
+        # An agent with nothing left to do, or stuck, goes quiet. meta-harness
+        # ends the episode then, and the result says `idle_timeout`.
+        request["idleTimeoutSeconds"] = stall_timeout
     if fix and shared:
         print(f"note: these graphs declare effects beyond this machine: {', '.join(shared)}.\n"
               f"      The isolation statement has to cover them: {isolated}", file=sys.stderr)
@@ -1057,8 +1108,18 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     marker = Path(record["state"]) / "running.json"
     marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
                                   "isolated": isolated, "started": started}) + "\n")
+    wait_tools_denied = True
     try:
-        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
+        episode, used_url = run_episode(binary, attempt_dir, request, base_url)
+        if tool_lists_unsupported(episode):
+            # meta-harness refused to open a session it could not take the
+            # tools away from, and nothing ran. Say so and run once without
+            # the list: for this harness the brief is all there is.
+            print(f"note: {model}'s harness cannot be told which tools it may use, so the wait tools "
+                  f"({', '.join(WAIT_TOOLS)}) are forbidden by the brief only.", file=sys.stderr)
+            wait_tools_denied = False
+            request = {k: v for k, v in request.items() if k != "denyTools"}
+            episode, used_url = run_episode(binary, attempt_dir, request, base_url)
     finally:
         marker.unlink(missing_ok=True)
 
@@ -1093,14 +1154,16 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         verdict, code = "green", EXIT_GREEN
     else:
         verdict, code = "incomplete", EXIT_INCOMPLETE
-    # Whether the agent ever got to work is read from meta-harness's trace, not
-    # guessed from what is missing afterwards: an agent that ran tools and then
-    # hung leaves the same empty hands as one that could not log in.
-    trace = read_trace(attempt_dir / ".meta-harness" / "evidence") if base_url is None else None
+    # Whether the agent ever got to work is what meta-harness says, not a guess
+    # from what is missing afterwards: an agent that ran tools and then hung
+    # leaves the same empty hands as one that could not log in.
+    trace = trace_of(episode)
     silent = (episode.get("outcome") != "succeeded" and agent_report is None
               and all(r["runs"] == 0 for r in rows) and not this_attempt["files"])
-    if trace is None:
-        agent_started = None if silent else True   # no trace to read (--base-url, or none written)
+    if episode.get("outcome") == "agent_failed_to_start":
+        agent_started = False
+    elif trace is None:
+        agent_started = None if silent else True   # the result carries no summary
     else:
         agent_started = bool(trace["tool_calls"] or trace["agent_messages"]) or not silent
     gaps = attribution_gaps(agent_report, reds)
@@ -1127,6 +1190,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "runner": str(runner_path),
         "verdict": verdict,
         "agent_started": agent_started,
+        "wait_tools_denied": wait_tools_denied,
         "trace": trace,
         "graphs": rows,
         "escalation": escalation,
@@ -1139,7 +1203,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
                     ("outcome", "error", "executionId", "conversationId", "durationMillis", "usage")},
         "agent_report": str(report_path) if agent_report else None,
         "agent_report_problem": report_problem,
-        "evidence": str(attempt_dir / ".meta-harness" / "evidence") if base_url is None else used_url,
+        # meta-harness names this execution's evidence directory itself.
+        "evidence": episode.get("evidencePath") or used_url,
         "duration_seconds": round(time.time() - started),
     }
     (attempt_dir / "result.json").write_text(json.dumps(result, indent=2) + "\n")
@@ -1179,28 +1244,29 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     for gap in gaps:
         print(f"  ATTRIBUTION GAP  {gap}")
     if agent_started is False:
-        print("  AGENT DID NOT START  the trace holds no tool call and no message from the agent.\n"
-              "                 Do not rerun as it is.\n"
+        why = ("no session was opened, so nothing ran" if episode.get("outcome") == "agent_failed_to_start"
+               else "it ran no tool and said nothing")
+        print(f"  AGENT DID NOT START  {why}. Do not rerun as it is.\n"
               f"                 episode {episode.get('outcome')}: {episode.get('error')}\n"
               f"                 server log: {attempt_dir / 'serve.log'}\n"
-              "                 Usual cause: the provider CLI behind this model has no logged-in\n"
-              "                 session on this machine (for CLAUDE_*: run `claude` once in a\n"
-              "                 terminal and log in). Then run this command again.")
+              "                 If it asks for authentication: the provider CLI behind this model has\n"
+              "                 no logged-in session on this machine (for CLAUDE_*: run `claude` once\n"
+              "                 in a terminal and log in). Then run this command again.")
     elif episode.get("outcome") != "succeeded":
         print(f"  episode        {episode.get('outcome')}: {episode.get('error')}")
         if agent_started is None:
-            print("                 whether the agent started is unknown: no local trace to read")
+            print("                 whether the agent started is unknown: the result has no summary")
         elif agent_report is None and trace:
             print(f"  AGENT STOPPED WITHOUT REPORTING  it had started: {trace['tool_calls']} tool call(s), "
                   f"last tool {trace['last_tool']}, last event {trace['last_event']}.\n"
                   "                 This is not a login problem. Read the trace before running again:\n"
-                  f"                 {attempt_dir / '.meta-harness' / 'evidence'}")
+                  f"                 {episode.get('evidencePath') or used_url}")
     if trace and trace["wait_tools"]:
         print(f"  WAIT TOOL USED  {', '.join(trace['wait_tools'])}: nothing wakes a session driven "
               "through meta-harness, so the agent stopped there")
     if trace and trace["tokens"]:
         cost = f", ${trace['cost_usd']:.2f}" if isinstance(trace["cost_usd"], (int, float)) else ""
-        print(f"  usage          {trace['tokens'].get('total_tokens')} tokens, "
+        print(f"  usage          {trace['tokens'].get('total')} tokens, "
               f"{trace['tool_calls']} tool call(s){cost}")
     notes = (agent_report or {}).get("notes")
     if isinstance(notes, str) and notes.strip():
@@ -1240,6 +1306,47 @@ def list_runs(start: str | Path = ".") -> int:
     return 0
 
 
+def _is_registered_worktree(worktree: Path, start: str | Path) -> bool:
+    wanted = str(worktree.resolve())
+    for line in _git(["worktree", "list", "--porcelain"], start).splitlines():
+        if line.startswith("worktree ") and str(Path(line[len("worktree "):]).resolve()) == wanted:
+            return True
+    return False
+
+
+def _orphan_changes(record: dict, worktree: Path, start: str | Path) -> list[str]:
+    """Files in an unregistered worktree directory that differ from the run's branch.
+
+    Raises when the comparison cannot be made: an unknown is not a licence to delete.
+    """
+    import tempfile
+
+    branch = record.get("branch")
+    ref = record["sha"]
+    if branch and subprocess.run(["git", "rev-parse", "--verify", "--quiet", branch], cwd=str(start),
+                                 capture_output=True).returncode == 0:
+        ref = branch
+    tg_rel = os.path.relpath(record["test_graph_root"], worktree)
+    with tempfile.TemporaryDirectory() as scratch:
+        env = {**os.environ, "GIT_INDEX_FILE": str(Path(scratch) / "index"), "GIT_WORK_TREE": str(worktree)}
+        read = subprocess.run(["git", "read-tree", ref], cwd=str(start), env=env, capture_output=True, text=True)
+        status = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=str(start),
+                                env=env, capture_output=True, text=True)
+    if read.returncode != 0 or status.returncode != 0:
+        raise RegressError(
+            f"{worktree} is no longer a git worktree and could not be compared with {ref}: "
+            f"{(read.stderr or status.stderr).strip()}",
+            fix=f"inspect {worktree} by hand, delete the directory, then close again",
+        )
+    changed = []
+    for row in status.stdout.splitlines():
+        path = row[3:].strip().strip('"')
+        if not path or _os_noise(path) or path == ".git" or path.startswith(f"{tg_rel}/build/"):
+            continue
+        changed.append(path)
+    return changed
+
+
 def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int:
     record = load_run(run_id, start)
     worktree = Path(record["worktree"])
@@ -1256,16 +1363,48 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
         if here == worktree.resolve() or worktree.resolve() in here.parents:
             raise RegressError("close cannot run from inside the worktree it removes",
                                fix=f"cd {_main_worktree(start)} && skt regress close {run_id}")
-        left = tree_changes(record)
-        if left["uncommitted"]:
-            what = ", ".join(left["untracked"][:5]) or "modified tracked files"
-            raise RegressError(
-                f"{worktree} holds uncommitted work ({what})",
-                fix=f"commit or delete it in {worktree}, then close again",
-            )
-        # --force: build output under test_graph/build is untracked, and expected.
-        _git(["worktree", "remove", "--force", str(worktree)], start)
+        if _is_registered_worktree(worktree, start):
+            left = tree_changes(record)
+            if left["uncommitted"]:
+                what = ", ".join(left["untracked"][:5]) or "modified tracked files"
+                raise RegressError(
+                    f"{worktree} holds uncommitted work ({what})",
+                    fix=f"commit or delete it in {worktree}, then close again",
+                )
+            try:
+                # --force: build output under test_graph/build is untracked, and expected.
+                _git(["worktree", "remove", "--force", str(worktree)], start)
+            except RegressError:
+                # git can drop the registration and then fail to delete the
+                # directory ("Directory not empty") when something wrote into it
+                # meanwhile. Seen live: the files stayed, and every later close
+                # died on "not a git repository". The sweep below finishes it.
+                if _is_registered_worktree(worktree, start):
+                    raise
+        else:
+            # An orphan from an earlier call: git no longer lists it, so the
+            # check above cannot run inside it. Compare its files with the
+            # run's branch through a scratch index before deleting anything.
+            leftover = _orphan_changes(record, worktree, start)
+            if leftover:
+                raise RegressError(
+                    f"{worktree} is no longer a git worktree, and it holds work that is not on "
+                    f"{branch or record['sha'][:10]} ({', '.join(leftover[:5])})",
+                    fix=f"copy what you need out of {worktree}, delete the directory, then close again",
+                )
     _git(["worktree", "prune"], start)
+    if worktree.is_dir() and not record.get("adopted"):
+        if _is_registered_worktree(worktree, start):
+            raise RegressError(f"git still lists {worktree} as a worktree and did not remove it",
+                               fix=f"git worktree remove --force {worktree}, then close again")
+        # Not a worktree any more, and checked for uncommitted work above
+        # (inside it while git still listed it, through a scratch index if not).
+        shutil.rmtree(worktree, ignore_errors=True)
+        if worktree.is_dir():
+            raise RegressError(
+                f"could not delete {worktree}: something is still writing into it",
+                fix="stop what is writing there (a Gradle daemon from the lap?), then close again",
+            )
     kept = ""
     if branch:
         ahead = subprocess.run(["git", "rev-list", "--count", f"{record['sha']}..{branch}"],
