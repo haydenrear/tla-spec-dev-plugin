@@ -70,3 +70,13 @@ reach the shared one.
 Run it report-only: drop `--fix`. The agent then runs the graph, retries an
 environment failure once by resume, attributes every red and reports what a fix
 would need. Nothing is edited and nothing is rerun in a loop.
+
+## Isolation is not a new worktree
+
+The statement above is about what the graphs touch outside the tree: ports,
+clusters, shared directories. It does not ask for a separate checkout. The
+agent runs in the development checkout by default (`skt regress adopt`), which
+is the one place guaranteed to have the skill home, the runner and the
+toolchain lock. A separate worktree is for a run that overlaps another or must
+not touch that checkout, and it needs its own home (`skt regress new <ref>
+--home`). A worktree without one cannot run a graph at all.

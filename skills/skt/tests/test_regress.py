@@ -699,3 +699,107 @@ def test_the_brief_says_how_to_wait_when_to_stop_and_to_keep_fixing(repo):
     assert "you fixed it once" not in brief
     assert "Name only a cause you can quote" in brief
     assert "is the SAME run" in brief and "a graph has used its 8 runs" in brief
+
+
+# ------------------------------------------------- where a run may execute (cdc acc09)
+# A fix agent was handed a worktree made with plain `git worktree add` in a
+# repository whose graphs run out of the checkout's skill home. It could not run
+# one graph. The run belongs in the development checkout; a new worktree is for
+# overlap or isolation, and then it carries a home.
+
+def _home_with_runner(root: Path) -> Path:
+    runner = root / ".skill-manager" / "plugins" / "tla-spec-dev" / "skills" / "test-graph" / "scripts"
+    runner.mkdir(parents=True)
+    (runner / "run.py").write_text("")
+    (runner / "discover.py").write_text("print('graph: alpha')\n")
+    return root / ".skill-manager"
+
+
+def _carrying(repo: Path) -> Path:
+    """Make ``repo`` a repository whose checkouts carry a skill home."""
+    _home_with_runner(repo)
+    (repo / ".git" / "info").mkdir(exist_ok=True)
+    (repo / ".git" / "info" / "exclude").write_text(".skill-manager/\n")
+    return repo
+
+
+def test_new_is_refused_where_checkouts_carry_a_home_and_names_the_checkout_to_use(repo):
+    _carrying(repo)
+    refused = skt(repo, "new", "HEAD", "--id", "n1")
+    assert refused.returncode == 2
+    assert "would have none" in refused.stderr and "skt regress adopt" in refused.stderr
+    assert "--home" in refused.stderr and "--bare" in refused.stderr
+    assert not (repo.parent / "proj-regress-n1").exists(), "a refusal must leave no worktree behind"
+    both = skt(repo, "new", "HEAD", "--id", "n1", "--home", "--bare")
+    assert both.returncode == 2 and "not both" in both.stderr
+
+
+def test_new_bare_is_an_explicit_choice_and_says_what_it_lacks(repo):
+    _carrying(repo)
+    made = skt(repo, "new", "HEAD", "--id", "b1", "--bare")
+    assert made.returncode == 0, made.stderr
+    assert "only what git tracks" in made.stdout
+    assert not (repo.parent / "proj-regress-b1" / ".skill-manager").exists()
+
+
+def test_a_repository_with_no_home_keeps_plain_new(repo):
+    made = skt(repo, "new", "HEAD", "--id", "p1")
+    assert made.returncode == 0, made.stderr
+
+
+def test_new_home_gives_the_worktree_a_home_and_rolls_back_when_it_cannot(repo, tmp_path):
+    home = _carrying(repo)
+    scripts = home / "skills" / "git-issue-workflow" / "scripts"
+    scripts.mkdir(parents=True)
+    bootstrap = scripts / "bootstrap-home.sh"
+    bootstrap.write_text(textwrap.dedent("""\
+        #!/usr/bin/env bash
+        root="$2"
+        d="$root/.skill-manager/plugins/tla-spec-dev/skills/test-graph/scripts"
+        mkdir -p "$d" && : > "$d/run.py"
+    """))
+    bootstrap.chmod(0o755)
+    made = skt(repo, "new", "HEAD", "--id", "h1", "--home", env={"GIT_ISSUE_WORKFLOW_SCRIPTS": str(tmp_path / "none"), "SKILL_MANAGER_HOME": str(home)})
+    assert made.returncode == 0, made.stdout + made.stderr
+    assert "with its own skill home" in made.stdout
+    assert (repo.parent / "proj-regress-h1" / ".skill-manager").is_dir()
+
+    bootstrap.write_text("#!/usr/bin/env bash\necho 'clone refused: no room' >&2\nexit 7\n")
+    failed = skt(repo, "new", "HEAD", "--id", "h2", "--home", env={"GIT_ISSUE_WORKFLOW_SCRIPTS": str(tmp_path / "none"), "SKILL_MANAGER_HOME": str(home)})
+    assert failed.returncode == 2 and "clone refused: no room" in failed.stderr
+    assert not (repo.parent / "proj-regress-h2").exists(), "a failed bootstrap rolls the worktree back"
+    branches = subprocess.run(["git", "-C", str(repo), "branch", "--list", "regress/h2"],
+                              capture_output=True, text=True).stdout
+    assert "regress/h2" not in branches
+
+
+def test_adopt_with_no_argument_adopts_the_checkout_it_is_run_in(repo):
+    _carrying(repo)
+    adopted = skt(repo, "adopt", "--id", "here")
+    assert adopted.returncode == 0, adopted.stderr
+    assert str(repo.resolve()) in adopted.stdout
+    dry = skt(repo, "run", "here", "alpha", "--dry-run")
+    assert dry.returncode == 0, dry.stdout + dry.stderr
+
+
+def test_adopt_refuses_a_worktree_with_no_home_where_checkouts_carry_one(repo, tmp_path):
+    _carrying(repo)
+    bare = tmp_path / "agent-worktree"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-q", "-b", "agent-1", str(bare)], check=True)
+    refused = skt(repo, "adopt", str(bare), "--id", "a1")
+    assert refused.returncode == 2
+    assert "has no skill home" in refused.stderr and "bootstrap-home.sh" in refused.stderr
+    (bare / ".skill-manager").mkdir()              # a home that cannot run a graph is no better
+    empty = skt(repo, "adopt", str(bare), "--id", "a1")
+    assert empty.returncode == 2 and "holds no test-graph runner" in empty.stderr
+
+
+def test_run_refuses_before_starting_an_agent_when_the_home_has_gone(repo):
+    _carrying(repo)
+    assert skt(repo, "adopt", "--id", "gone").returncode == 0
+    import shutil
+    shutil.rmtree(repo / ".skill-manager" / "plugins")
+    (repo / "skill-project.toml").write_text("")   # the repository still declares a home
+    refused = skt(repo, "run", "gone", "alpha", "--dry-run")
+    assert refused.returncode == 2
+    assert "cannot execute a graph" in refused.stderr and "skt regress adopt" in refused.stderr

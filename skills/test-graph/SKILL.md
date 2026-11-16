@@ -16,6 +16,13 @@ metadata and returns a structured `NodeResult`.
 This repo is the skill. This file is the agent-facing entry point; durable detail
 lives under `references/`.
 
+
+> **Running the project's Python unit tests?** Use
+> `scripts/unit-tests.sh [--with PKG]... <files>`. `testgraphsdk` is source
+> under `<test graph root>/sdk/python/src`, not an installed package; a
+> hand-written `uv run ... pytest` line fails every test that imports a node
+> with "No module named 'testgraphsdk'", which is not a red.
+
 ## Why Test Graph Exists
 
 Test graph exists to eliminate degenerate testing behavior. Agents are often

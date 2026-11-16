@@ -201,9 +201,13 @@ def build_parser() -> argparse.ArgumentParser:
         "graph reports, not from the agent",
         epilog=(
             "examples:\n"
-            "  skt regress new origin/epic/my-epic          worktree of that commit, on regress/<id>\n"
-            "  skt regress adopt ../repo-TICKET-12          run in that worktree instead (it already\n"
-            "                                               has its home and setup); close leaves it\n"
+            "  skt regress adopt                            run in THIS checkout (the default: no new\n"
+            "                                               worktree; it already has its home and setup)\n"
+            "  skt regress adopt ../repo-TICKET-12          or in another set-up worktree; close leaves it\n"
+            "  skt regress new origin/epic/my-epic --home   a NEW worktree with its own skill home: only\n"
+            "                                               for a run that overlaps another or must not\n"
+            "                                               touch this checkout (slow, several GiB)\n"
+            "  skt regress new <ref> --bare                 a worktree of only what git tracks\n"
             "  skt regress run <id> cliWorkflow sktSurface  run these graphs with the agent\n"
             "  skt regress run <id> --all --model CLAUDE_haiku\n"
             "  skt regress run <id> --all --fix --isolated 'k3d cluster regress-<id>' \\\n"
@@ -220,11 +224,16 @@ def build_parser() -> argparse.ArgumentParser:
     regress.add_argument("verb", choices=["new", "adopt", "run", "info", "list", "close"])
     regress.add_argument("target", nargs="?", metavar="REF|DIR|ID",
                          help="new: the commit or ref to test; adopt: an existing, set-up worktree "
-                         "to run in; run/info/close: the id `new` or `adopt` printed")
+                         "to run in (default: this checkout); run/info/close: the id `new` or `adopt` printed")
     regress.add_argument("graphs", nargs="*", help="run: graph names (or --all)")
     regress.add_argument("--all", action="store_true", help="run: every registered graph")
     regress.add_argument("--id", help="new, adopt: the id (default: the short sha)")
     regress.add_argument("--path", help="new: where to put the worktree")
+    regress.add_argument("--home", action="store_true",
+                         help="new: give the worktree its own skill home (what `skt ticket new` does); "
+                         "required, or --bare, in a repository whose checkouts carry a home")
+    regress.add_argument("--bare", action="store_true",
+                         help="new: only what git tracks -- for graphs that need no home, index or setup")
     regress.add_argument("--test-graph-root",
                          help="new: the test graph project, relative to the worktree (default test_graph)")
     regress.add_argument("--model",

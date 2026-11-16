@@ -92,8 +92,9 @@ Those lines are how two step sizes are compared. Correctness is held equal when
 product escapes found *after* the boundary (by the manual pass, or after merge)
 do not rise with the step. Reds found *at* the boundary are the step working.
 
-**When a step does not converge**, cut it at a ticket: `skt regress new <the
-commit after ticket j>` validates the first j tickets alone. The commit-per-
+**When a step does not converge**, cut it at a ticket: check out the commit
+after ticket j and `skt regress adopt` (or, to keep the tip checked out,
+`skt regress new <that commit> --home`) validates the first j tickets alone. The commit-per-
 ticket rule exists for this.
 
 **How the step is written into the plan** (§5 has the fields):
