@@ -128,8 +128,86 @@ def _save_run(run: dict) -> None:
 
 # ------------------------------------------------------------------- new
 
+HOME_DIR = ".skill-manager"
+RUNNER_IN_HOME = (
+    Path("plugins") / "tla-spec-dev" / "skills" / "test-graph" / "scripts" / "run.py",
+    Path("skills") / "test-graph" / "scripts" / "run.py",
+)
+
+
+def repository_carries_a_home(start: str | Path = ".") -> bool:
+    """Whether this repository's checkouts are meant to hold a skill home.
+
+    The main checkout has one, or the repository declares the units of one
+    (`skill-project.toml`). In such a repository the test-graph runner, its
+    toolchain lock and the units the graphs call all live in the home, so a
+    worktree without one cannot run a graph.
+    """
+    main = _main_worktree(start)
+    return (main / HOME_DIR).is_dir() or (main / "skill-project.toml").is_file()
+
+
+def home_gap(worktree: str | Path) -> str | None:
+    """What a worktree is missing to run graphs out of its own home, or None."""
+    home = Path(worktree) / HOME_DIR
+    if not home.is_dir():
+        return f"{worktree} has no skill home ({HOME_DIR}/)"
+    if not any((home / runner).is_file() for runner in RUNNER_IN_HOME):
+        return f"the skill home at {home} holds no test-graph runner (skills/test-graph/scripts/run.py)"
+    return None
+
+
+def _bootstrap_home(worktree: Path, start: str | Path = ".") -> None:
+    """Give a new worktree its own home, by the one implementation `skt ticket new` uses."""
+    ticket = _sibling("ticket")
+    cwd = os.getcwd()
+    os.chdir(_main_worktree(start))
+    try:
+        bootstrap = ticket._bootstrap_script()
+    finally:
+        os.chdir(cwd)
+    if bootstrap is None:
+        raise RegressError(
+            "cannot give the worktree a skill home: bootstrap-home.sh was not found in this "
+            "checkout's home",
+            fix="run in the development checkout instead: skt regress adopt",
+        )
+    proc = subprocess.run([str(bootstrap), "--root", str(worktree)], capture_output=True, text=True)
+    if proc.returncode != 0:
+        tail = "\n".join((proc.stderr or proc.stdout or "").strip().splitlines()[-12:])
+        raise RegressError(
+            f"home bootstrap failed (exit {proc.returncode}) for {worktree}:\n{tail}",
+            fix="run in the development checkout instead: skt regress adopt",
+        )
+    rc, error, fix, _unshared = ticket.provision(worktree, bootstrap)
+    if rc != 0:
+        raise RegressError(f"provisioning {worktree} failed: {error}", fix=fix or None)
+
+
+def _sibling(name: str):
+    import importlib
+    if __package__:
+        return importlib.import_module(f".{name}", package=__package__)
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    return importlib.import_module(f"skt.{name}")
+
+
 def new(ref: str, run_id: str | None = None, path: str | None = None,
-        test_graph_root: str | None = None, start: str | Path = ".") -> dict:
+        test_graph_root: str | None = None, start: str | Path = ".", *,
+        home: bool = False, bare: bool = False) -> dict:
+    if home and bare:
+        raise RegressError("pass --home or --bare, not both")
+    carries = repository_carries_a_home(start)
+    if carries and not (home or bare):
+        raise RegressError(
+            "this repository's checkouts carry a skill home, and a new worktree would have none: "
+            "no test-graph runner, no toolchain lock, none of the units the graphs call",
+            fix="run where the work is:  skt regress adopt          # this checkout, no new worktree\n"
+                "       only for a run that must overlap another, or must not touch this checkout:\n"
+                "         skt regress new <ref> --home     # a worktree WITH its own home (slow, several GiB)\n"
+                "       only if the graphs need nothing git does not track:\n"
+                "         skt regress new <ref> --bare",
+        )
     sha = _git(["rev-parse", "--verify", f"{ref}^{{commit}}"], start)
     run_id = _valid_id(run_id or sha[:10])
     state = state_root(start) / run_id
@@ -144,10 +222,23 @@ def new(ref: str, run_id: str | None = None, path: str | None = None,
         raise RegressError(f"{worktree} already exists", fix="pass --path <dir> or another --id")
     branch = f"regress/{run_id}"
     _git(["worktree", "add", "-b", branch, str(worktree), sha], start)
+    if home:
+        try:
+            _bootstrap_home(worktree, start)
+            gap = home_gap(worktree)
+            if gap:
+                raise RegressError(f"the home was created but cannot run graphs: {gap}",
+                                   fix="run in the development checkout instead: skt regress adopt")
+        except RegressError:
+            subprocess.run(["git", "worktree", "remove", "--force", str(worktree)],
+                           cwd=str(start), capture_output=True, text=True)
+            subprocess.run(["git", "branch", "-D", branch], cwd=str(start), capture_output=True, text=True)
+            raise
     state.mkdir(parents=True, exist_ok=True)
     run = {
         "id": run_id,
         "ref": ref,
+        "home": "own" if home else "none",
         "sha": sha,
         "branch": branch,
         "worktree": str(worktree),
@@ -168,6 +259,12 @@ def adopt(worktree_dir: str, run_id: str | None = None, test_graph_root: str | N
     more than that (a skill home, an index, installed tools) is tested where
     that setup already is: the ticket's or the epic's own worktree.
     """
+    if not worktree_dir:
+        # The default, and the usual case: the checkout the work is being done in.
+        try:
+            worktree_dir = _git(["rev-parse", "--show-toplevel"], start)
+        except subprocess.CalledProcessError:
+            raise RegressError("not inside a git checkout", fix="skt regress adopt <worktree dir>") from None
     worktree = Path(worktree_dir).resolve()
     if not worktree.is_dir():
         raise RegressError(f"{worktree} is not a directory")
@@ -179,6 +276,16 @@ def adopt(worktree_dir: str, run_id: str | None = None, test_graph_root: str | N
     if theirs != common_dir(start).resolve() or top != worktree:
         raise RegressError(f"{worktree} is not the top of a worktree of this repository",
                            fix="name the worktree's top directory (`git worktree list`)")
+    if repository_carries_a_home(start):
+        gap = home_gap(worktree)
+        if gap:
+            raise RegressError(
+                f"{gap}, and this repository's graphs run out of the checkout's own home",
+                fix="adopt the checkout the work is being done in (`skt regress adopt` from inside it); "
+                    "a worktree an agent harness made with plain `git worktree add` has no home -- "
+                    "give it one with git-issue-workflow's `bootstrap-home.sh --root <dir>`, "
+                    "or make it with `skt ticket new`",
+            )
     sha = _git(["rev-parse", "HEAD"], worktree)
     run_id = _valid_id(run_id or sha[:10])
     state = state_root(start) / run_id
@@ -1003,6 +1110,16 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
             f"no test graph project at {record['test_graph_root']}",
             fix=f"skt regress close {run_id}, then `skt regress new <ref> --test-graph-root <dir>`",
         )
+    if not runner and not os.environ.get("SKT_REGRESS_RUNNER") and record.get("home") != "none" \
+            and repository_carries_a_home(start):
+        # Checked here, before an agent is started: a missing home used to
+        # surface as every node erroring at describe, attributed to the code.
+        gap = home_gap(record["worktree"])
+        if gap:
+            raise RegressError(
+                f"this run cannot execute a graph: {gap}",
+                fix=f"skt regress close {run_id}, then from the development checkout: skt regress adopt",
+            )
     runner_path = find_runner(record, runner, start)
     registered = discover_graphs(runner_path, record["test_graph_root"])
     if all_graphs:
@@ -1288,25 +1405,26 @@ def main(args) -> int:
         verb = args.verb
         if verb == "list":
             return list_runs()
-        if not args.target:
+        if not args.target and verb != "adopt":
             raise RegressError(f"skt regress {verb or '<verb>'}: missing argument",
                                fix="skt regress --help")
         if verb == "new":
             record = new(args.target, run_id=args.id, path=args.path,
-                         test_graph_root=args.test_graph_root)
+                         test_graph_root=args.test_graph_root,
+                         home=getattr(args, "home", False), bare=getattr(args, "bare", False))
             print(f"created regression worktree {record['worktree']} @{record['sha'][:10]} "
-                  f"on {record['branch']}")
+                  f"on {record['branch']}"
+                  + (" with its own skill home" if record.get("home") == "own" else ""))
             if not Path(record["test_graph_root"]).is_dir():
                 print(f"note: no test graph project at {record['test_graph_root']} "
                       f"(--test-graph-root names another)")
-            if (_main_worktree() / ".skill-manager").is_dir():
-                print("note: this repository's checkouts carry a skill home and this worktree has none.\n"
-                      "      It holds only what git tracks. If the graphs need the home, an index or\n"
-                      "      other local setup, close this and use `skt regress adopt <ticket worktree>`.")
+            if getattr(args, "bare", False) and repository_carries_a_home():
+                print("note: --bare: this worktree holds only what git tracks. A graph that needs the\n"
+                      "      skill home, an index or other local setup will fail in it.")
             print(f"next: skt regress run {record['id']} <graph>...   # or --all")
             return 0
         if verb == "adopt":
-            record = adopt(args.target, run_id=args.id, test_graph_root=args.test_graph_root)
+            record = adopt(args.target or "", run_id=args.id, test_graph_root=args.test_graph_root)
             print(f"adopted {record['worktree']} @{record['sha'][:10]} "
                   f"({record['branch'] or 'detached'}) as regression run {record['id']}")
             print("note: fix commits land on that branch; `skt regress close` leaves the worktree alone")

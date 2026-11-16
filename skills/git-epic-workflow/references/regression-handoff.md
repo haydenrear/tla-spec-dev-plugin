@@ -15,10 +15,11 @@ regression once, which is what makes the larger batch worth taking.
 1. **Write the step.** Every ticket in the step lands its code, its unit tests
    and its new or changed graph nodes, and runs only the cheap local checks
    (`step-sizing.md` §0). Nobody runs a graph. Commits carry their ticket id.
-2. **Branch and hand off.** From the pushed batch tip:
+2. **Hand off, in the checkout you are in.** With the batch tip checked out
+   and pushed, and nothing uncommitted:
 
    ```bash
-   skt regress new <epic tip sha>          # or: skt regress adopt <a set-up worktree at that tip>
+   skt regress adopt                       # this checkout; no new worktree
    skt regress run <id> <affected graphs>... --fix --isolated "<statement>" [--env KUBECONFIG=...]
    ```
 
@@ -27,9 +28,15 @@ regression once, which is what makes the larger batch worth taking.
    flaky, where a failure is likely. It cannot be used to relax the brief's
    rules.
 
-   Use `adopt` when the graphs need a skill home, an index or other local
-   setup: a fresh worktree has none, and the agent may not create it. Never
-   let a regression run build a new index base or start services.
+   The checkout already has the skill home, the index and the built tools,
+   and you are about to stop and wait, so nothing else needs it. Create a
+   worktree (`skt regress new <sha> --home`) only when this run must overlap
+   another or you must keep working in the checkout while it runs; it takes
+   minutes and several GiB. Never hand graph work to an agent in a worktree
+   made by plain `git worktree add` or by an agent harness's worktree
+   isolation: it has no home and cannot run a graph. Go through the caller's
+   check in skt's `references/regression-agent.md` before `run`. Never let a
+   regression run build a new index base or start services.
 
    Name the affected graphs and their dependency closure from the plan's
    `testgraph_bindings`, plus the graphs the batch added. `--fix` needs the
@@ -57,7 +64,7 @@ regression once, which is what makes the larger batch worth taking.
 | exit | verdict | you |
 | --- | --- | --- |
 | 0 | green | review `fixes.patch`, merge `regress/<id>` into the epic branch, absorb `attribution.yaml`, go on to the manual pass |
-| 4 | escalated | read the escalation; make the fix yourself or dispatch it to a ticket agent; push; `skt regress new <new tip>` and run again |
+| 4 | escalated | read the escalation; make the fix yourself or dispatch it to a ticket agent; push; `skt regress close <id>`, then `skt regress adopt` at the new tip and run again |
 | 1 | red | the agent ran out of laps without escalating; treat it as an escalation and read the last report |
 | 3 | incomplete | a graph was not decided (timeout, episode failure, or `needs_full_run`); run again with the same id, naming those graphs |
 | 3 | `AGENT STOPPED WITHOUT REPORTING` | it started, ran tools and ended with no report (stalled, or used a wait tool). Read the trace the output names, check nothing it started is still running, then decide: rerun, or run the graphs as background jobs yourself |

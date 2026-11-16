@@ -11,14 +11,16 @@ yourself.
 Running graphs, waiting on them, repairing the small things that break and
 running them again is most of what validation costs. None of it needs a large
 model. `skt regress` hands it to a small one, driven through
-[meta-harness](https://github.com/haydenrear/meta-harness), in a worktree of the
-commit you name. You get back a verdict, the agent's small fixes as commits, an
+[meta-harness](https://github.com/haydenrear/meta-harness), in the checkout you
+are developing in. You get back a verdict, the agent's small fixes as commits, an
 attribution row for every red it met, and an escalation when the fix is bigger
 than it is allowed to make.
 
 ```bash
-skt regress new <ref>                  # fresh worktree of that commit on branch regress/<id>; prints the id
-skt regress adopt <worktree dir>       # or: run in a worktree that exists and is already set up
+skt regress adopt                      # run in THIS checkout (the default); prints the id
+skt regress adopt <worktree dir>       # or in another worktree that is already set up
+skt regress new <ref> --home           # only for overlap or isolation: a new worktree with its own home
+skt regress new <ref> --bare           # a new worktree of only what git tracks
 skt regress run <id> <graph>...        # report-only: run, retry environment failures, report
 skt regress run <id> --all --fix --isolated "<statement>" [--env KUBECONFIG=...]
                                        # fix mode: small fixes, rerun until green, or escalate
@@ -31,26 +33,70 @@ Flags may come before, after or between the positional arguments. `close`
 refuses while the worktree holds uncommitted or untracked work, and refuses to
 run from inside the worktree it removes.
 
-## Where it runs: a fresh worktree, or one you already have
+## Where it runs: the checkout you are developing in
 
-`new` makes a worktree that holds only what git tracks. It has no skill home
-(`.skill-manager`), no index, no installed tools, nothing a ticket worktree gets
-from `wt new`. That is right for a repository whose graphs need nothing else.
-
-When the graphs need that setup, do not let the agent build it. Use `adopt`:
+**The default is no new worktree.** Run the agent in the checkout where the
+work is being done. It already has the skill home, the index, the built tools
+and the toolchain lock the graphs need, and it costs nothing to create:
 
 ```bash
-skt regress adopt ../myrepo-TICKET-12     # or the epic's own checkout
+skt regress adopt                 # this checkout; prints the id
 skt regress run <id> <graph>...
-skt regress close <id>                    # drops the results; the worktree and branch stay
+skt regress close <id>            # drops the results; the checkout and its branch stay
 ```
 
-`adopt` refuses a worktree with modified tracked files, because the agent's
-changes could not be told from them, and a worktree that is already adopted
-under another id. Untracked files already there (the home, an index) are
-recorded as the worktree's own and are not counted as the agent's changes. In fix mode the fix commits land on
-that worktree's own branch. Nothing else should be working in it during the
-run.
+Make a new worktree only for one of two reasons:
+
+1. **The run must overlap another run** in the same repository (and then every
+   overlapping run needs `--isolated`).
+2. **The run must not touch this checkout**: you will keep editing or
+   committing here while it runs, or the fix commits must not land on this
+   branch.
+
+Neither holds for the usual case, an epic or ticket agent that stops and waits
+for the verdict. A worktree is not free: with a home it takes minutes and
+several GiB.
+
+When you do need one, it must be able to run a graph:
+
+```bash
+skt regress new <ref> --home      # a worktree WITH its own skill home (what `skt ticket new` builds)
+skt regress new <ref> --bare      # only what git tracks: for graphs that need no home, index or setup
+```
+
+In a repository whose checkouts carry a skill home (the main checkout has
+`.skill-manager/`, or the repository has a `skill-project.toml`), `new` with
+neither flag is refused. So is `adopt` of a worktree that has no home or whose
+home holds no test-graph runner, and `run` checks the same thing again before
+it starts an agent. A worktree without a home has no runner, no toolchain lock
+and none of the units the graphs call. Every graph in it fails at its first
+node, and the failure reads like the code's.
+
+**A worktree made by an agent harness is such a worktree.** Claude Code's
+`isolation: "worktree"`, Codex's worktree mode and a plain `git worktree add`
+all give a directory holding only what git tracks. Do not hand graph work to an
+agent in one. Either run the agent in the development checkout, or give the
+worktree a home first with git-issue-workflow's `bootstrap-home.sh --root
+<dir>`, or create it with `skt ticket new`.
+
+### Before you dispatch: the caller's check
+
+`skt regress` refuses the cases above by name. These it cannot see, and you
+check them yourself before `run`:
+
+| Check | How |
+| --- | --- |
+| The checkout is at the commit you mean to test, with nothing uncommitted | `git status --short` is empty; `adopt` refuses modified tracked files |
+| Nothing else will edit, commit or build in it during the run | you wait; no other agent is working in it |
+| The environment the graphs need is up | the repository's pre-flight, if it has one, passes |
+| What the graphs need from your shell reaches the agent | each variable is passed with `--env KEY=VALUE` |
+| Unit tests the step relies on were run with the SDK on the path | `skills/test-graph/scripts/unit-tests.sh <files>` |
+
+`adopt` also refuses a worktree with modified tracked files, because the
+agent's changes could not be told from them, and a worktree that is already
+adopted under another id. Untracked files already there (the home, an index)
+are recorded as the worktree's own and are not counted as the agent's changes.
+In fix mode the fix commits land on that worktree's own branch.
 
 ## What the agent may run
 

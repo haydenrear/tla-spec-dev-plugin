@@ -41,8 +41,8 @@ skt ticket list       # every ticket worktree here, and what blocks retiring it
 skt ticket sweep      # retire many at once — dry run unless you pass --yes
 skt publish [<unit>]  # a home-edited skill -> up one tier -> its own git repo
 skt build [<id>]      # rebuild a derived artifact whose inputs you changed
-skt regress new <ref> # worktree of a commit on regress/<id>, for a small-model agent to run its test graphs in
-skt regress adopt <worktree dir>            # or run it in an existing, set-up worktree (needed when graphs need the skill home)
+skt regress adopt      # hand THIS checkout's test graphs to a small-model agent (the default: no new worktree)
+skt regress new <ref> --home                # only when runs must overlap or must not touch this checkout: a worktree with its own home
 skt regress run <id> <graph>... [--fix --isolated "..."] [--instructions "..."]   # that agent, through meta-harness: verdict, small fixes, attribution, escalation
 skill-manager home drift --ack --home=<home>   # clear the launch gate a sync warns about; the home is a flag, never positional
 ```
@@ -143,8 +143,8 @@ path form still works and is the fallback when `skt` is not on `PATH`:
 ## Handing graph runs to a small model
 
 Do not run and re-run test graphs yourself after a large batch of change.
-`skt regress` runs them with a small model through meta-harness in a worktree
-of the commit. With `--fix` the agent commits small fixes and reruns until
+`skt regress` runs them with a small model through meta-harness, by default in
+the checkout you are developing in. With `--fix` the agent commits small fixes and reruns until
 green, and that needs `--isolated "<statement>"`: what the graphs touch must be
 private to the run. It returns a verdict read from the graph reports, an
 attribution row for every red it met, and an escalation (exit 4) when the fix
@@ -158,10 +158,13 @@ Before you start one, check two things:
   list` shows what is `RUNNING`; a second run without the statement is refused.
   This holds for report-only runs too: two agents on the same ports, cluster or
   output directory fail each other's graphs and the attribution blames the code.
-- **The worktree has what the graphs need.** `skt regress new` gives a bare
-  worktree with no skill home, index or tools. If the graphs need those, use
-  `skt regress adopt <ticket or epic worktree>`. The agent is forbidden to set
-  anything up and will escalate instead.
+- **Run it where the work is.** `skt regress adopt` with no argument adopts
+  the checkout you are in, which already has the home, the index and the tools.
+  Create a worktree only when runs must overlap or the run must not touch this
+  checkout, and then with a home: `skt regress new <ref> --home`. A worktree
+  from plain `git worktree add`, or from an agent harness's worktree isolation,
+  has no home and cannot run a graph; `skt regress` refuses it. The agent is
+  forbidden to set anything up and will escalate instead.
 - **Check on it; do not watch it.** Run it in the background, sleep, and look
   in about every half hour, with a 20-minute backup timer set before you
   sleep. What to look at is in git-epic-workflow's
