@@ -1715,6 +1715,12 @@ project_agent_homes() {
     # from re-measuring the links, which is what the word `verified` is about.
     # shellcheck disable=SC2046
     env $(agent_env_words) SKILL_MANAGER_HOME="$STORE" "$CLI" sync --skip-mcp --home "$STORE" >&2 || true
+    # A projection sync can move a project-pinned plugin to trunk. Reapply the
+    # checkout's declared revisions before the new home is called ready.
+    if [ -f "$ROOT/skill-project.toml" ]; then
+      # shellcheck disable=SC2046
+      env $(agent_env_words) SKILL_MANAGER_HOME="$STORE" "$CLI" project resolve --project-dir "$ROOT" --skip-gateway >&2 || exit 1
+    fi
     after="$(store_unit_list)"
     added="$(command comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") 2>/dev/null || true)"
     # The sync creates the missing records; materialize whatever it declared but
