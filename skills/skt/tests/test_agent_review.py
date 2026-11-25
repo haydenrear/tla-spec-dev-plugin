@@ -61,14 +61,24 @@ Path(args[args.index("--output") + 1]).write_text(json.dumps(
         parser = argparse.ArgumentParser()
         agent_config.add_options(parser)
         parser.add_argument("text")
+        parser.add_argument("--dry-run", action="store_true")
         args = parser.parse_args(values)
         plan = agent_config.resolve("summary", tmp_path, args)
         request = agent_config.request("fixture-1", args.text, tmp_path, plan)
+        if args.dry_run:
+            print(json.dumps(request))
+            return 0
         result, _ = episode.run_episode(str(harness), tmp_path, request, "http://localhost:12345")
         print(result["response"])
         return 0
     monkeypatch.setitem(agents.ROLE_COMMANDS, "summary", summarize)
+    monkeypatch.setenv("SKT_REVIEW_MODEL", "unrelated-review-model")
     assert cli.main(["agent", "list"]) == 0 and "summary" in capsys.readouterr().out
+    assert cli.main(["agent", "run", "summary", "--dry-run", "hello"]) == 0
+    assert json.loads(capsys.readouterr().out)["model"] == "CLAUDE_haiku"
+    monkeypatch.setenv("SKT_SUMMARY_MODEL", "summary-model")
+    assert cli.main(["agent", "run", "summary", "--dry-run", "hello"]) == 0
+    assert json.loads(capsys.readouterr().out)["model"] == "summary-model"
     assert cli.main(["agent", "run", "summary", "hello"]) == 0
     assert capsys.readouterr().out.strip() == "HELLO"
 

@@ -29,7 +29,8 @@ def resolve(role, root, args):
                 "harness_config": None, "skill_home": None}
     values = dict(defaults)
     sources = dict.fromkeys(defaults, "role default")
-    for key, var in (("model", "SKT_REGRESS_MODEL" if role == "regress" else "SKT_REVIEW_MODEL"),
+    model_env = f"SKT_{role.upper().replace('-', '_')}_MODEL"
+    for key, var in (("model", model_env),
                      ("harness_config", "MH_CONFIG"), ("meta_harness", "META_HARNESS_BIN")):
         if os.environ.get(var):
             values[key], sources[key] = os.environ[var], var
