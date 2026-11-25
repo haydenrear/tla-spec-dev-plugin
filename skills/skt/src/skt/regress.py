@@ -38,13 +38,15 @@ import os
 import re
 import shlex
 import shutil
-import signal
-import socket
 import subprocess
 import sys
 import time
-import urllib.request
 from pathlib import Path
+
+if __package__:
+    from .episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode
+else:  # The bundled tests also import regress directly from this directory.
+    from episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode
 
 DEFAULT_MODEL = "CLAUDE_haiku"
 DEFAULT_TIMEOUT = 4 * 60 * 60
@@ -76,11 +78,6 @@ ATTRIBUTION_FIELDS = ("graph", "node", "origin", "area", "effect", "observed", "
 
 ORIGINS = ("product", "instrument", "environment", "unknown")
 
-
-class RegressError(RuntimeError):
-    def __init__(self, reason: str, fix: str | None = None, code: int = EXIT_USAGE):
-        super().__init__(reason)
-        self.reason, self.fix, self.code = reason, fix, code
 
 
 # --------------------------------------------------------------- git / paths
@@ -359,23 +356,6 @@ def find_runner(run: dict, explicit: str | None = None, start: str | Path = ".")
     raise RegressError(
         "cannot find the test-graph runner (skills/test-graph/scripts/run.py)",
         fix="pass --runner <path/to/run.py> or set SKT_REGRESS_RUNNER",
-    )
-
-
-def find_meta_harness(explicit: str | None = None) -> str:
-    for value in (explicit, os.environ.get("META_HARNESS_BIN")):
-        if value:
-            path = Path(value).expanduser()
-            if not path.is_file():
-                raise RegressError(f"meta-harness binary not found at {path}")
-            return str(path.resolve())
-    found = shutil.which("meta-harness")
-    if found:
-        return found
-    raise RegressError(
-        "meta-harness is not on PATH",
-        fix="pass --meta-harness <binary> or set META_HARNESS_BIN "
-            "(cargo build -p meta-harness in the meta-harness checkout)",
     )
 
 
@@ -843,98 +823,6 @@ def attribution_gaps(agent_report: dict | None, reds: list[dict]) -> list[str]:
     return gaps
 
 
-def write_attribution_yaml(path: Path, run: dict, attempt_no: int, rows: list[dict]) -> None:
-    """The agent's rows as ledger-shaped YAML (bug_attribution.md §4), for the epic agent to absorb."""
-    out = [f"# Candidate CATCH rows from skt regress {run['id']} attempt {attempt_no}, commit {run['sha']}.",
-           "# Written by a small model: read each against its report before absorbing it."]
-    for index, row in enumerate(rows, 1):
-        out.append(f"- id: REGRESS-{run['id']}-{attempt_no}-{index}")
-        out.append("  channel: test-graph")
-        for key in ("graph", "node", "origin", "area", "effect", "observed", "fix", "pinned_by",
-                    "introduced_by"):
-            out.append(f"  {key}: {json.dumps(row.get(key))}")  # a JSON scalar is a YAML scalar
-    path.write_text("\n".join(out) + "\n")
-
-
-# ------------------------------------------------------------- meta-harness
-
-def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
-
-
-AUTH_ENV = ("CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX")
-
-
-def _agent_env() -> dict:
-    # A session spawned from inside another agent session must not inherit its
-    # identity. Its credentials are another matter: without them the agent has
-    # nothing to log in with.
-    return {k: v for k, v in os.environ.items()
-            if k in AUTH_ENV or not (k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"))}
-
-
-# ------------------------------------------------------------- one at a time
-
-def _alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
-        return True
-    return True
-
-
-def live_runs(start: str | Path = ".") -> list[dict]:
-    """Regression runs of this repository that are executing right now."""
-    found = []
-    root = state_root(start)
-    for marker in sorted(root.glob("*/running.json")) if root.is_dir() else []:
-        try:
-            data = json.loads(marker.read_text())
-        except (OSError, ValueError):
-            continue
-        if isinstance(data.get("pid"), int) and _alive(data["pid"]):
-            found.append(data)
-        else:
-            marker.unlink(missing_ok=True)  # left by a run that was killed
-    return found
-
-
-def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Path = ".") -> None:
-    """Two runs may overlap only when both say what they touch is private."""
-    for other in live_runs(start):
-        if other["id"] == run_id:
-            raise RegressError(f"regress {run_id} is already running (pid {other['pid']})",
-                               fix="wait for it; `skt regress list` shows what is running")
-        if not (isolated or "").strip() or not (other.get("isolated") or "").strip():
-            which = "this run has" if not (isolated or "").strip() else f"regress {other['id']} has"
-            raise RegressError(
-                f"regress {other['id']} is running (pid {other['pid']}, graphs: "
-                f"{', '.join(other.get('graphs') or [])}) and {which} no isolation statement: two "
-                "runs sharing ports, clusters or output directories fail each other's graphs",
-                fix='wait for it to finish, or give every overlapping run --isolated "<statement>"',
-            )
-
-
-def _wait_listening(base_url: str, proc: subprocess.Popen, seconds: float = 60) -> None:
-    deadline = time.time() + seconds
-    while time.time() < deadline:
-        if proc.poll() is not None:
-            raise RegressError(f"meta-harness serve exited with {proc.returncode} before listening",
-                               code=EXIT_INCOMPLETE)
-        try:
-            urllib.request.urlopen(f"{base_url}/v1/models", timeout=2).close()
-            return
-        except urllib.error.HTTPError:
-            return  # it answered; that is all this asks
-        except OSError:
-            time.sleep(0.5)
-    raise RegressError("meta-harness serve did not start listening within 60s", code=EXIT_INCOMPLETE)
-
-
 def read_trace(evidence: Path) -> dict | None:
     """What the agent did, from meta-harness's own event log. None when there is none."""
     logs = sorted(evidence.glob("*/events.jsonl")) if evidence.is_dir() else []
@@ -980,84 +868,65 @@ def read_trace(evidence: Path) -> dict | None:
     return trace
 
 
-def _trace_mtime(evidence: Path) -> float | None:
-    times = [f.stat().st_mtime for f in evidence.glob("*/events.jsonl")] if evidence.is_dir() else []
-    return max(times) if times else None
+def write_attribution_yaml(path: Path, run: dict, attempt_no: int, rows: list[dict]) -> None:
+    """The agent's rows as ledger-shaped YAML (bug_attribution.md §4), for the epic agent to absorb."""
+    out = [f"# Candidate CATCH rows from skt regress {run['id']} attempt {attempt_no}, commit {run['sha']}.",
+           "# Written by a small model: read each against its report before absorbing it."]
+    for index, row in enumerate(rows, 1):
+        out.append(f"- id: REGRESS-{run['id']}-{attempt_no}-{index}")
+        out.append("  channel: test-graph")
+        for key in ("graph", "node", "origin", "area", "effect", "observed", "fix", "pinned_by",
+                    "introduced_by"):
+            out.append(f"  {key}: {json.dumps(row.get(key))}")  # a JSON scalar is a YAML scalar
+    path.write_text("\n".join(out) + "\n")
 
 
-def _stop_group(proc: subprocess.Popen) -> None:
-    """Stop a process and everything it started that stayed in its group."""
-    for sig, grace in ((signal.SIGTERM, 20), (signal.SIGKILL, 5)):
+# ------------------------------------------------------------- meta-harness
+
+
+# ------------------------------------------------------------- one at a time
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
+def live_runs(start: str | Path = ".") -> list[dict]:
+    """Regression runs of this repository that are executing right now."""
+    found = []
+    root = state_root(start)
+    for marker in sorted(root.glob("*/running.json")) if root.is_dir() else []:
         try:
-            os.killpg(proc.pid, sig)
-        except (ProcessLookupError, PermissionError):
-            pass
-        try:
-            proc.wait(timeout=grace)
-            return
-        except subprocess.TimeoutExpired:
+            data = json.loads(marker.read_text())
+        except (OSError, ValueError):
             continue
+        if isinstance(data.get("pid"), int) and _alive(data["pid"]):
+            found.append(data)
+        else:
+            marker.unlink(missing_ok=True)  # left by a run that was killed
+    return found
 
 
-def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
-                stall_timeout: int = DEFAULT_STALL_TIMEOUT) -> tuple[dict, str]:
-    """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
-
-    The private server runs in its own process group, and the group is stopped
-    when the episode ends, so nothing the agent started outlives the run unless
-    it detached itself. With a private server the trace is watched: an episode
-    that records nothing for ``stall_timeout`` seconds is stopped.
-    """
-    request_path = attempt_dir / "request.json"
-    result_path = attempt_dir / "episode.json"
-    request_path.write_text(json.dumps(request, indent=2) + "\n")
-    evidence = attempt_dir / ".meta-harness" / "evidence"
-    serve = client = log = None
-    stopped = None
-    try:
-        if base_url is None:
-            port = _free_port()
-            base_url = f"http://127.0.0.1:{port}"
-            log = open(attempt_dir / "serve.log", "w")
-            serve = subprocess.Popen(
-                [binary, "--project-root", str(attempt_dir), "serve", "--port", str(port)],
-                stdout=log, stderr=subprocess.STDOUT, env=_agent_env(), cwd=str(attempt_dir),
-                start_new_session=True,
+def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Path = ".") -> None:
+    """Two runs may overlap only when both say what they touch is private."""
+    for other in live_runs(start):
+        if other["id"] == run_id:
+            raise RegressError(f"regress {run_id} is already running (pid {other['pid']})",
+                               fix="wait for it; `skt regress list` shows what is running")
+        if not (isolated or "").strip() or not (other.get("isolated") or "").strip():
+            which = "this run has" if not (isolated or "").strip() else f"regress {other['id']} has"
+            raise RegressError(
+                f"regress {other['id']} is running (pid {other['pid']}, graphs: "
+                f"{', '.join(other.get('graphs') or [])}) and {which} no isolation statement: two "
+                "runs sharing ports, clusters or output directories fail each other's graphs",
+                fix='wait for it to finish, or give every overlapping run --isolated "<statement>"',
             )
-            _wait_listening(base_url, serve)
-        client = subprocess.Popen(
-            [binary, "--project-root", str(attempt_dir), "episode", "--base-url", base_url,
-             "--request", str(request_path), "--output", str(result_path)],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        )
-        began = time.time()
-        deadline = began + request["timeoutSeconds"] + 300
-        while client.poll() is None:
-            now = time.time()
-            if now > deadline:
-                stopped = "the episode ran past its timeout"
-                break
-            if serve is not None and stall_timeout:
-                quiet = now - (_trace_mtime(evidence) or began)
-                if quiet > stall_timeout:
-                    stopped = (f"the agent recorded nothing for {int(quiet)}s and was stopped "
-                               f"(--stall-timeout {stall_timeout})")
-                    break
-            time.sleep(2)
-    finally:
-        if client is not None and client.poll() is None:
-            client.kill()
-            client.wait()
-        if serve is not None:
-            _stop_group(serve)
-        if log is not None:
-            log.close()
-    if stopped:
-        return {"outcome": "stopped", "error": stopped}, base_url
-    try:
-        return json.loads(result_path.read_text()), base_url
-    except (OSError, ValueError):
-        return {"outcome": "failed", "error": "meta-harness episode wrote no result"}, base_url
+
 
 
 # ---------------------------------------------------------------------- run

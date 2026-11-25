@@ -278,6 +278,7 @@ def build_parser() -> argparse.ArgumentParser:
     # positionals (`run <id> --fix --isolated x graphA graphB`), which a
     # subparser reached through the parent cannot parse on Python 3.11/3.12.
     parser.regress_parser = regress
+    _import_sibling("agents").add_parser(sub, regress)
 
     return parser
 
@@ -413,6 +414,8 @@ def main(argv: list[str] | None = None) -> int:
     if raw[:1] == ["regress"]:
         return _import_sibling("regress").main(parser.regress_parser.parse_intermixed_args(raw[1:]))
     args = parser.parse_args(argv)
+    if args.command == "agent":
+        return args.agent_command(args)
     if args.command is None:
         parser.print_help()
         return 0
