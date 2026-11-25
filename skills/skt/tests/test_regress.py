@@ -12,7 +12,9 @@ import subprocess
 import sys
 import textwrap
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 
@@ -505,6 +507,22 @@ def test_a_second_run_is_refused_while_an_unisolated_one_is_live(repo, tmp_path)
     assert "is running" not in swept.stderr and swept.returncode != 2
     assert not marker.exists()
     assert not (state / "skt-regress" / "two" / "running.json").exists()
+
+
+def test_distinct_run_ids_cannot_dispatch_concurrently_without_isolation(repo, tmp_path):
+    harness = stub_harness(tmp_path, "time.sleep(1); write_summary('alpha', 'passed')")
+    ready = Barrier(2)
+    def start(run_id):
+        ready.wait(timeout=10)
+        return skt(repo, "run", run_id, "alpha", env={"META_HARNESS_BIN": str(harness)})
+
+    for run_id in ("first", "second"):
+        assert skt(repo, "new", "HEAD", "--id", run_id).returncode == 0
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(start, ("first", "second")))
+    assert sorted(proc.returncode for proc in results) == [0, 2]
+    refused = next(proc for proc in results if proc.returncode == 2)
+    assert "is running" in refused.stderr
 
 
 def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
