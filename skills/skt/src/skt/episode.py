@@ -87,7 +87,7 @@ def _stop_group(proc: subprocess.Popen) -> None:
 
 
 def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
-                stall_timeout: int = DEFAULT_STALL_TIMEOUT) -> tuple[dict, str]:
+                stall_timeout: int = DEFAULT_STALL_TIMEOUT, harness_config: str | None = None) -> tuple[dict, str]:
     """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
 
     The private server runs in its own process group, and the group is stopped
@@ -95,6 +95,9 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
     it detached itself. With a private server the trace is watched: an episode
     that records nothing for ``stall_timeout`` seconds is stopped.
     """
+    command = [binary, "--project-root", str(attempt_dir)]
+    if harness_config:
+        command.extend(["--config", harness_config])
     request_path = attempt_dir / "request.json"
     result_path = attempt_dir / "episode.json"
     request_path.write_text(json.dumps(request, indent=2) + "\n")
@@ -107,13 +110,13 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
             base_url = f"http://127.0.0.1:{port}"
             log = open(attempt_dir / "serve.log", "w")
             serve = subprocess.Popen(
-                [binary, "--project-root", str(attempt_dir), "serve", "--port", str(port)],
+                [*command, "serve", "--port", str(port)],
                 stdout=log, stderr=subprocess.STDOUT, env=_agent_env(), cwd=str(attempt_dir),
                 start_new_session=True,
             )
             _wait_listening(base_url, serve)
         client = subprocess.Popen(
-            [binary, "--project-root", str(attempt_dir), "episode", "--base-url", base_url,
+            [*command, "episode", "--base-url", base_url,
              "--request", str(request_path), "--output", str(result_path)],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
