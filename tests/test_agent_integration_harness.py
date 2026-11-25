@@ -1027,7 +1027,13 @@ def test_a_forged_workspace_earns_no_verdict(tmp_path) -> None:
     # the tla2tools jar resolved, so that a missing artefact verdict can be told
     # apart from an artefact that was never checked. No grader reads it, and the
     # pin below enforces that every grader reads something else.
-    diagnostic = {"verify.log", "toolchain"}
+    diagnostic = {"verify.log", "toolchain", "UNDECIDED-toolchain"}
+    # The verifier emits this diagnostic when Linux lacks sandbox-exec. Keep
+    # testing every scored verdict path on that host, including the forgeries.
+    import shutil
+    if shutil.which("sandbox-exec") is None:
+        assert "sandbox-exec was unavailable" in (verdicts / "UNDECIDED-unconfined").read_text()
+        diagnostic.add("UNDECIDED-unconfined")
     survived = sorted(p.name for p in verdicts.iterdir() if p.name not in diagnostic)
     assert not survived, (
         f"forged verdicts survived the verifier: {survived}. Every one of these "
