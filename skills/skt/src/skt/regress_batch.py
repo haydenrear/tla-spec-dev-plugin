@@ -34,6 +34,9 @@ def verify_rows(rows, record, registered):
                 citations.append(("fix", fix))
             else:
                 problems.append("fix cites an unknown commit; supply its Git hash")
+        introduced = row.get("introduced_by")
+        if isinstance(introduced, str) and re.fullmatch(r"[a-fA-F0-9]{6,64}", introduced):
+            citations.append(("introduced_by", introduced))
         for field in ("introduced_by", "observed", "pinned_by", "effect", "area"):
             for sha in re.findall(r"\bcommit\s+[`#]?([a-fA-F0-9]{4,64})\b", str(row.get(field) or ""), re.I):
                 citations.append((field, sha))

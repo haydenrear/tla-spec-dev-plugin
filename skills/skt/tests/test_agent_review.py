@@ -41,3 +41,33 @@ def test_review_pins_inputs_and_records_missing_evidence(tmp_path, monkeypatch, 
     assert cli.main(args) == 3
     assert json.loads(capsys.readouterr().out)["attempt"] != first["attempt"]
     assert not subprocess.check_output(["git", "status", "--porcelain"]).strip()
+
+
+def test_plugin_can_register_another_role_with_its_own_result_reader(tmp_path, monkeypatch, capsys):
+    import argparse
+    from skt import agents, agent_config, episode
+    harness = tmp_path / "fixture-harness"
+    harness.write_text("#!" + sys.executable + """
+import json, sys
+from pathlib import Path
+args = sys.argv[1:]
+request = json.loads(Path(args[args.index("--request") + 1]).read_text())
+response = request["messages"][0]["content"].upper()
+Path(args[args.index("--output") + 1]).write_text(json.dumps(
+    {"outcome":"succeeded","response":response,"executionId":"fixture-execution"}))
+""")
+    harness.chmod(0o700)
+    def summarize(values, _):
+        parser = argparse.ArgumentParser()
+        agent_config.add_options(parser)
+        parser.add_argument("text")
+        args = parser.parse_args(values)
+        plan = agent_config.resolve("summary", tmp_path, args)
+        request = agent_config.request("fixture-1", args.text, tmp_path, plan)
+        result, _ = episode.run_episode(str(harness), tmp_path, request, "http://localhost:12345")
+        print(result["response"])
+        return 0
+    monkeypatch.setitem(agents.ROLE_COMMANDS, "summary", summarize)
+    assert cli.main(["agent", "list"]) == 0 and "summary" in capsys.readouterr().out
+    assert cli.main(["agent", "run", "summary", "hello"]) == 0
+    assert capsys.readouterr().out.strip() == "HELLO"

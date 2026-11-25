@@ -889,3 +889,17 @@ def test_resume_cannot_hide_new_failed_assertion(repo, tmp_path):
                "--meta-harness", str(harness), "--json")
     assert proc.returncode == 3
     assert json.loads(proc.stdout)["graphs"][0]["status"] == "needs_full_run"
+
+
+def test_close_revalidates_the_exact_reviewed_attribution(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, f"""
+        write_summary("alpha", "failed")
+        agent_report.write_text(json.dumps({{"graphs": [], "attribution": [{ {**ROW,'fix':'none'}!r}]}}))
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--base-url", "http://localhost:7777", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 1
+    path = Path(json.loads(proc.stdout)["attribution"])
+    path.write_text(path.read_text().replace('fix: "none"', 'fix: "deadbeef"'))
+    token = skt(repo, "close", "r1").stdout.split("--accept ")[1].split()[0]
+    assert "unknown commit" in skt(repo, "close", "r1", "--accept", token).stderr
