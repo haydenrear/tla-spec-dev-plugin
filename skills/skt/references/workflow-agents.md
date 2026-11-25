@@ -38,7 +38,7 @@ harness_config = "meta-harness.toml"
 
 Use the complete model ID routed by meta-harness. The upstream config defines
 the provider prefix, downstream agent command or HTTP service and credentials.
-Select a running **meta-harness server** with `--base-url`. A private server
+Select a running **meta-harness server** with `--base-url` for ACP. Text-only review uses a private server so skt can verify the actual provider transport before sending the diff. A private server
 loads `--harness-config`. Keep backend credentials in the server environment.
 Set `transport` to the selected route's type. A text-only provider supports
 diff review. Regress needs an ACP agent capable of running the graph and

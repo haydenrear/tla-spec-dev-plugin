@@ -15,7 +15,7 @@ from skt import cli, review
     ('{"findings":[],"gaps":["missing log"]}', "incomplete"),
 ])
 def test_completed_review(response, status):
-    assert review.report({"outcome": "succeeded", "response": response}, [])["status"] == status
+    assert review.report({"outcome": "succeeded", "response": response, "executionId": "e"}, [])["status"] == status
 
 
 def test_failed_episode_cannot_issue_clean_verdict():
@@ -27,7 +27,7 @@ def test_review_pins_inputs_and_records_missing_evidence(tmp_path, monkeypatch, 
     monkeypatch.chdir(tmp_path)
     subprocess.run(["git", "init", "-q"], check=True)
     subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base", "--allow-empty"], check=True)
-    def stub(binary, attempt, request, base_url, timeout, config):
+    def stub(binary, attempt, request, base_url, timeout, config, **options):
         assert request["allowTools"] == ["Read"]
         assert not (Path(request["workingDirectory"]) / ".git").exists()
         return {"outcome": "succeeded", "response": '{"findings":[],"gaps":[]}', "executionId": "e"}, "url"

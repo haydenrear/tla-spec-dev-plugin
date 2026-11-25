@@ -21,6 +21,8 @@ specific file/hunk or evidence in location. Both arrays can be empty."""
 def report(episode, missing):
     if episode.get("outcome") != "succeeded":
         raise ValueError(episode.get("error") or "episode did not succeed")
+    if not episode.get("executionId"):
+        raise ValueError("missing execution ID")
     reply = episode.get("response")
     if not isinstance(reply, str):
         raise ValueError("missing review response")
@@ -86,9 +88,13 @@ def review(args):
             (attempt / "request.json").write_text(json.dumps(request, indent=2) + "\n")
             print(attempt)
             return 0
-        binary = find_meta_harness(settings["meta_harness"])
-        episode, endpoint = run_episode(binary, attempt, request, settings["base_url"],
-                                       settings["stall_timeout"], settings["harness_config"])
+        try:
+            binary = find_meta_harness(settings["meta_harness"])
+            episode, _ = run_episode(binary, attempt, request, settings["base_url"],
+                                     settings["stall_timeout"], settings["harness_config"],
+                                     transport=settings["transport"])
+        except (OSError, ValueError, AgentError) as err:
+            episode = {"outcome": "failed", "error": str(err)}
     try:
         result = report(episode, missing)
     except ValueError as err:

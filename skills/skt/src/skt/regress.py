@@ -45,9 +45,9 @@ import time
 from pathlib import Path
 
 if __package__:
-    from .episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode
+    from .episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode, save_request
 else:  # The bundled tests also import regress directly from this directory.
-    from episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode
+    from episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode, save_request
 
 DEFAULT_MODEL = "CLAUDE_haiku"
 DEFAULT_TIMEOUT = 4 * 60 * 60
@@ -121,7 +121,7 @@ def load_run(run_id: str, start: str | Path = ".") -> dict:
 
 
 def _save_run(run: dict) -> None:
-    Path(run["state"], "run.json").write_text(json.dumps(run, indent=2) + "\n")
+    _sibling("regress_batch").atomic_json(Path(run["state"], "run.json"), run)
 
 
 # ------------------------------------------------------------------- new
@@ -425,10 +425,10 @@ set -u
 [ $# -ge 1 ] || { echo "usage: graph.sh <graph> | graph.sh --resume <runId>" >&2; exit 2; }
 if [ "$1" = "--resume" ]; then
   [ "$#" = 2 ] || { echo "resume requires exactly one run id" >&2; exit 2; }
-  python3 - @TG@ "$2" <<'CHECK_RESUME' || exit 2
+  python3 - @TG@ "$2" "$0" <<'CHECK_RESUME' || exit 2
 import json, re, sys
 from pathlib import Path
-root, run_id = sys.argv[1:]
+root, run_id, script = sys.argv[1:]
 if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", run_id):
     sys.exit("invalid resume run id")
 run = Path(root) / "build/validation-reports" / run_id
@@ -438,6 +438,15 @@ try:
     nodes.extend(json.loads(path.read_text()) for path in (run / "envelope").glob("*.json"))
     if any(node.get("status") == "failed" for node in nodes) or summary.get("status") == "failed":
         sys.exit("failed assertion: escalate or repair and rerun the full graph")
+    graph = (summary.get("execution") or {}).get("graphName")
+    stamp = Path(script).stat().st_mtime_ns
+    if not graph or (run / "summary.json").stat().st_mtime_ns < stamp:
+        sys.exit("resume source does not belong to this attempt")
+    for other in run.parent.glob("*/summary.json"):
+        if other.stat().st_mtime_ns <= (run / "summary.json").stat().st_mtime_ns or other.parent == run:
+            continue
+        if (json.loads(other.read_text()).get("execution") or {}).get("graphName") == graph:
+            sys.exit("resume requires the latest run of this graph")
     if not nodes or summary.get("status") != "errored":
         sys.exit("resume requires evidence of an errored run")
 except (ValueError, OSError, AttributeError) as err:
@@ -779,7 +788,10 @@ def read_verdict(tg_root: str, graphs: list[str], since: float,
             name = execution.get("graphName")
             if not name:
                 continue
+            failed_assertion = data.get("status") == "failed" or any(
+                isinstance(node, dict) and node.get("status") == "failed" for node in data.get("nodes") or [])
             runs.setdefault(name, []).append({
+                "failed_assertion": failed_assertion,
                 "graph": name,
                 "runId": data.get("runId") or summary.parent.name,
                 "status": data.get("status"),
@@ -798,9 +810,13 @@ def read_verdict(tg_root: str, graphs: list[str], since: float,
         status = last["status"] or "unknown"
         mode = last["mode"] or "full"
         via_resume = mode != "full"
+        last_full_pass = max((a["mtime"] for a in attempts if a["status"] == "passed"
+                              and a["mode"] in (None, "full")), default=0)
+        unresolved_assertion = any(a["failed_assertion"] and a["mtime"] >= last_full_pass for a in attempts)
         if status == "passed" and (
             # One node on its own proves nothing about the nodes after it.
             (via_resume and not mode.startswith("resume"))
+            or (via_resume and unresolved_assertion)
             # Once the tree has changed, only a full run that finished in a later
             # second than the last change counts (commit times are whole seconds).
             or (changed_at is not None and (via_resume or int(last["mtime"]) <= int(changed_at)))
@@ -1000,6 +1016,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
             raise RegressError(f"--env takes KEY=VALUE, got {pair!r}")
         key, value = pair.split("=", 1)
         agent_env[key] = value
+    private_keys = set(agent_env)
     # Branch-scoped environments (test-graph environment repositories) key on this,
     # so the run provisions its own instead of reusing the feature branch's.
     agent_env.setdefault("TEST_GRAPH_FEATURE_BRANCH", f"regress-{record['id']}")
@@ -1065,7 +1082,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         print(f"note: these graphs declare effects beyond this machine: {', '.join(shared)}.\n"
               f"      The isolation statement has to cover them: {isolated}", file=sys.stderr)
     if dry_run:
-        (attempt_dir / "request.json").write_text(json.dumps(request, indent=2) + "\n")
+        save_request(attempt_dir, request, private_keys)
         print(f"dry run: nothing started\nbrief      {attempt_dir / 'brief.md'}\n"
               f"settings   {attempt_dir / 'settings.json'}\nrequest    {attempt_dir / 'request.json'}\ngraphs     {', '.join(graphs)}\n"
               f"mode       {'fix (isolated: ' + isolated + ')' if fix else 'report-only'}\n"
@@ -1073,15 +1090,18 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         return EXIT_GREEN
 
     binary = find_meta_harness(meta_harness)
-    refuse_shared_concurrency(record["id"], isolated, start)
     head_at_start = _git(["rev-parse", "HEAD"], record["worktree"])
     started = time.time()
     marker = Path(record["state"]) / "running.json"
-    marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
-                                  "isolated": isolated, "started": started}) + "\n")
+    with (state_root(start) / ".admission.lock").open("a") as admission:
+        fcntl.flock(admission, fcntl.LOCK_EX)
+        refuse_shared_concurrency(record["id"], isolated, start)
+        _sibling("regress_batch").atomic_json(marker, {"id": record["id"], "pid": os.getpid(),
+                                               "graphs": graphs, "isolated": isolated, "started": started})
     try:
         episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout,
-                                        plan["settings"]["harness_config"] if plan else None)
+                                        plan["settings"]["harness_config"] if plan else None,
+                                        private_keys=private_keys, transport="acp")
     finally:
         marker.unlink(missing_ok=True)
 
@@ -1155,6 +1175,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "fixes": {**changes, "patch": str(attempt_dir / "fixes.patch") if changed else None},
         "attribution": str(attempt_dir / "attribution.yaml") if attribution else None,
         "attribution_rows": len(attribution),
+        "graph_sources": registered,
         "candidate_head": _git(["rev-parse", "HEAD"], record["worktree"]),
         "attribution_gaps": gaps,
         "episode": {k: episode.get(k) for k in
@@ -1269,23 +1290,12 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".", *,
     branch = record.get("branch")
     if any(item["id"] == run_id for item in live_runs(start)):
         raise RegressError("cannot close a running episode")
-    if worktree.is_dir() and not record.get("adopted"):
-        left = tree_changes(record)
-        if left["uncommitted"]:
-            what = ", ".join(left["untracked"][:5]) or "modified tracked files"
-            raise RegressError(f"{worktree} holds uncommitted work ({what})")
-    if _sibling("regress_batch").decide(record, start, accept, reject):
-        if not (accept or reject):
-            return 0
-        keep_state = True
-    if record.get("adopted"):
-        if keep_state:
-            print(f"released {worktree} (adopted; left as it is); results kept in {record['state']}")
-        else:
-            shutil.rmtree(record["state"], ignore_errors=True)
-            print(f"released {worktree} (adopted; the worktree and its branch are left as they are)")
+    if record.get("released"):
+        _sibling("regress_batch").decide(record, start, accept, reject)
         return 0
-    if worktree.is_dir():
+    if worktree.is_dir() and not record.get("adopted"):
+        if _git(["rev-parse", "--abbrev-ref", "HEAD"], worktree) != branch or common_dir(worktree) != common_dir(start):
+            raise RegressError("candidate worktree identity changed; preserving checkout")
         here = Path.cwd().resolve()
         if here == worktree.resolve() or worktree.resolve() in here.parents:
             raise RegressError("close cannot run from inside the worktree it removes",
@@ -1297,6 +1307,20 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".", *,
                 f"{worktree} holds uncommitted work ({what})",
                 fix=f"commit or delete it in {worktree}, then close again",
             )
+    if _sibling("regress_batch").decide(record, start, accept, reject):
+        if not (accept or reject):
+            return 0
+        keep_state = True
+    if record.get("adopted"):
+        if keep_state:
+            record["released"] = True
+            _save_run(record)
+            print(f"released {worktree} (adopted; left as it is); results kept in {record['state']}")
+        else:
+            shutil.rmtree(record["state"], ignore_errors=True)
+            print(f"released {worktree} (adopted; the worktree and its branch are left as they are)")
+        return 0
+    if worktree.is_dir():
         # --force: build output under test_graph/build is untracked, and expected.
         _git(["worktree", "remove", "--force", str(worktree)], start)
     _git(["worktree", "prune"], start)
@@ -1310,6 +1334,8 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".", *,
             # The agent's fixes. Deleting the only ref to them is not this command's call.
             kept = f"; branch {branch} kept ({ahead.stdout.strip()} fix commit(s))"
     if keep_state:
+        record["released"] = True
+        _save_run(record)
         print(f"closed {worktree}{kept}; results kept in {record['state']}")
     else:
         shutil.rmtree(record["state"], ignore_errors=True)

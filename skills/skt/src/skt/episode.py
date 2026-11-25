@@ -8,6 +8,7 @@ import signal
 import socket
 import subprocess
 import time
+import tempfile
 import urllib.request
 from pathlib import Path
 
@@ -86,8 +87,33 @@ def _stop_group(proc: subprocess.Popen) -> None:
             continue
 
 
+def save_request(attempt_dir, request, private_keys=()):
+    saved = dict(request)
+    saved["env"] = {key: "<supplied at launch>" if key in private_keys else value
+                    for key, value in request.get("env", {}).items()}
+    (attempt_dir / "request.json").write_text(json.dumps(saved, indent=2) + "\n")
+
+
+def check_route(binary, directory, config, model, expected):
+    command = [binary, "--project-root", str(directory)]
+    if config:
+        command.extend(["--config", config])
+    proc = subprocess.run([*command, "providers"], capture_output=True, timeout=20, env=_agent_env())
+    if proc.returncode:
+        raise AgentError("cannot read the meta-harness provider table")
+    providers = json.loads(proc.stdout)
+    matches = [p for p in providers if model.startswith(p.get("model_prefix") or "")]
+    if not matches:
+        raise AgentError(f"no meta-harness provider routes {model}")
+    provider = max(matches, key=lambda p: len(p.get("model_prefix") or ""))
+    kind = provider["transport"]["kind"]
+    if kind != {"http": "open_ai_compat", "acp": "acp_stdio"}[expected]:
+        raise AgentError(f"{model} routes to {kind}; the role requested {expected}")
+
+
 def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
-                stall_timeout: int = DEFAULT_STALL_TIMEOUT, harness_config: str | None = None) -> tuple[dict, str]:
+                stall_timeout: int = DEFAULT_STALL_TIMEOUT, harness_config: str | None = None, *,
+                private_keys=(), transport=None) -> tuple[dict, str]:
     """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
 
     The private server runs in its own process group, and the group is stopped
@@ -100,10 +126,15 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
         command.extend(["--config", harness_config])
     request_path = attempt_dir / "request.json"
     result_path = attempt_dir / "episode.json"
-    request_path.write_text(json.dumps(request, indent=2) + "\n")
+    save_request(attempt_dir, request, private_keys)
+    if transport and base_url is None:
+        check_route(binary, attempt_dir, harness_config, request["model"], transport)
+    if transport == "http" and base_url:
+        raise AgentError("read-only HTTP review needs private serve with a verifiable provider config")
     evidence = attempt_dir / ".meta-harness" / "evidence"
     serve = client = log = None
     stopped = None
+    launch_input = None
     try:
         if base_url is None:
             port = _free_port()
@@ -115,6 +146,11 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
                 start_new_session=True,
             )
             _wait_listening(base_url, serve)
+        if private_keys:
+            launch_input = tempfile.NamedTemporaryFile(mode="w", encoding="utf8", prefix="skt-episode-")
+            json.dump(request, launch_input)
+            launch_input.flush()
+            request_path = Path(launch_input.name)
         client = subprocess.Popen(
             [*command, "episode", "--base-url", base_url,
              "--request", str(request_path), "--output", str(result_path)],
@@ -136,8 +172,14 @@ def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | N
             time.sleep(2)
     finally:
         if client is not None and client.poll() is None:
-            client.kill()
-            client.wait()
+            client.terminate()
+            try:
+                client.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                client.kill()
+                client.wait()
+        if launch_input is not None:
+            launch_input.close()
         if serve is not None:
             _stop_group(serve)
         if log is not None:

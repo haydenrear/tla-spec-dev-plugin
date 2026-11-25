@@ -27,12 +27,21 @@ def verify_rows(rows, record, registered):
     gaps = []
     for row in rows:
         problems = []
-        for field in ("fix", "introduced_by", "observed", "pinned_by", "effect", "area"):
-            for sha in re.findall(r"(?<![\w-])[0-9a-fA-F]{6,64}(?![\w-])", str(row.get(field) or "")):
-                try:
-                    git(repo, "rev-parse", "--verify", "--end-of-options", sha + "^{commit}")
-                except AgentError:
-                    problems.append(f"{field} cites unknown commit {sha}")
+        fix = row.get("fix")
+        citations = []
+        if fix not in ("none", "escalated", None):
+            if isinstance(fix, str) and re.fullmatch(r"[0-9a-fA-F]{4,64}", fix):
+                citations.append(("fix", fix))
+            else:
+                problems.append("fix cites an unknown commit; supply its Git hash")
+        for field in ("introduced_by", "observed", "pinned_by", "effect", "area"):
+            for sha in re.findall(r"\bcommit\s+[`#]?([a-fA-F0-9]{4,64})\b", str(row.get(field) or ""), re.I):
+                citations.append((field, sha))
+        for field, sha in citations:
+            try:
+                git(repo, "rev-parse", "--verify", "--end-of-options", sha + "^{commit}")
+            except AgentError:
+                problems.append(f"{field} cites unknown commit {sha}")
         ticket, node = row.get("introduced_by"), row.get("node")
         touched = []
         if ticket:
@@ -56,6 +65,26 @@ def verify_rows(rows, record, registered):
         row["node_sources"] = touched
         gaps.extend(problems)
     return gaps
+
+
+def candidate_rows(path):
+    """Read the small YAML subset emitted by write_attribution_yaml (JSON scalars)."""
+    rows = []
+    for line in path.read_text().splitlines():
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("- id: REGRESS-"):
+            rows.append({})
+        elif rows and line == "  channel: test-graph":
+            continue
+        elif rows and line.startswith("  "):
+            key, separator, value = line.strip().partition(": ")
+            if not separator or key in rows[-1]:
+                raise AgentError(f"invalid attribution field in {path.name}")
+            rows[-1][key] = json.loads(value)
+        else:
+            raise AgentError(f"unreadable candidate attribution in {path.name}")
+    return rows
 
 
 def atomic_json(path, data):
@@ -108,10 +137,20 @@ def decide(record, owner, accept, reject):
     commit = prior.get("commit")
     base = record["sha"]
     if accept:
+        fix_heads = set()
         for attempt in attempts:
             info = json.loads((attempt / "result.json").read_text())
-            if any("unknown commit" in gap for gap in info["attribution_gaps"]):
-                raise AgentError("candidate attribution cites an unknown commit; reject this batch")
+            if info["mode"] == "fix" and not info["fixes"]["uncommitted"]:
+                fix_heads.add(info.get("candidate_head"))
+            attribution = attempt / "attribution.yaml"
+            if attribution.is_file():
+                rows = candidate_rows(attribution)
+                claimed = [row.get("verification") for row in rows]
+                problems = verify_rows(rows, record, info.get("graph_sources", {}))
+                if any("unknown commit" in problem for problem in problems):
+                    raise AgentError("candidate attribution cites an unknown commit; reject this batch")
+                if claimed != [row["verification"] for row in rows]:
+                    raise AgentError("candidate attribution verification changed; obtain a fresh batch")
         owner = Path(git(owner, "rev-parse", "--show-toplevel").decode().strip())
         current = git(owner, "rev-parse", "HEAD").decode().strip()
         branch = git(owner, "symbolic-ref", "--short", "HEAD").decode().strip()
@@ -123,7 +162,7 @@ def decide(record, owner, accept, reject):
             raise AgentError("stale base; rerun against the owner's current HEAD")
         if changes.is_file() and current == base:
             candidate = result.get("candidate_head")
-            if not candidate or result["mode"] != "fix" or result["fixes"]["uncommitted"]:
+            if not candidate or candidate not in fix_heads or result["fixes"]["uncommitted"]:
                 raise AgentError("acceptance needs a clean committed fix-mode candidate")
             if git(owner, "status", "--porcelain", "--untracked-files=no").strip():
                 raise AgentError("owner has uncommitted changes")

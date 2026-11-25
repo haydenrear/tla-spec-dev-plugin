@@ -52,6 +52,9 @@ def stub_harness(tmp_path: Path, behaviour: str) -> Path:
         import http.server, json, re, sys, time
         from pathlib import Path
         argv = sys.argv[1:]
+        if "providers" in argv:
+            print(json.dumps([{"model_prefix": None, "transport": {"kind": "acp_stdio"}}]))
+            sys.exit(0)
         if "serve" in argv:
             port = int(argv[argv.index("--port") + 1])
             http.server.HTTPServer(("127.0.0.1", port), http.server.SimpleHTTPRequestHandler).serve_forever()
@@ -237,7 +240,7 @@ def test_the_brief_changes_with_the_mode_and_the_env_reaches_the_agent(repo):
     request = json.loads((attempt / "attempt-1" / "request.json").read_text())
     brief = request["messages"][0]["content"]
     assert "k3d cluster regress-r1" in brief and "STOP AND ESCALATE" in brief
-    assert request["env"] == {"KUBECONFIG": "/tmp/private", "TEST_GRAPH_FEATURE_BRANCH": "regress-r1"}
+    assert request["env"] == {"KUBECONFIG": "<supplied at launch>", "TEST_GRAPH_FEATURE_BRANCH": "regress-r1"}
 
 
 def test_declared_effects_beyond_this_machine_are_named(repo):
@@ -387,6 +390,12 @@ def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
     result = json.loads(proc.stdout)
     assert result["attempt"] == 2 and result["over_budget"] == []
     assert len(result["fixes"]["commits"]) == 1  # the branch still carries attempt 1's fix
+    token = skt(repo, "close", "r1").stdout.split("--accept ")[1].split()[0]
+    stale = subprocess.run(["git", "commit", "--allow-empty", "-qm", "owner moved"], cwd=repo)
+    assert stale.returncode == 0
+    assert "stale base" in skt(repo, "close", "r1", "--accept", token).stderr
+    subprocess.run(["git", "switch", "-qc", "accept-fixture", result["sha"]], cwd=repo, check=True)
+    assert skt(repo, "close", "r1", "--accept", token).returncode == 0
 
 
 def test_a_stale_report_in_a_reused_attempt_directory_is_not_read(repo, tmp_path):
@@ -868,3 +877,15 @@ def test_report_only_episode_blocks_adopted_ref_updates(repo):
                              cwd=repo, env=env, capture_output=True, text=True)
     assert blocked.returncode and "report-only episode" in blocked.stderr
     assert subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo) == before
+
+
+def test_resume_cannot_hide_new_failed_assertion(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        write_summary("alpha", "failed")
+        write_summary("alpha", "passed", mode="resume-from-node")
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--base-url", "http://localhost:7777",
+               "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 3
+    assert json.loads(proc.stdout)["graphs"][0]["status"] == "needs_full_run"

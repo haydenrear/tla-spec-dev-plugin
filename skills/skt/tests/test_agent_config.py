@@ -22,3 +22,12 @@ def test_roles_and_invocation_override(tmp_path, monkeypatch):
         resolve("review", tmp_path, Namespace(profile="missing"))
     with pytest.raises(AgentError, match="embedded credentials"):
         resolve("review", tmp_path, Namespace(profile=None, base_url="http://secret@localhost"))
+
+
+def test_mislabeled_model_cannot_turn_off_review_tools(tmp_path):
+    from skt.episode import AgentError, check_route
+    provider = tmp_path / "fixture"
+    provider.write_text('#!/bin/sh\necho \'[{"model_prefix":"CUSTOM_", "transport":{"kind":"acp_stdio"}}]\'\n')
+    provider.chmod(0o700)
+    with pytest.raises(AgentError, match="routes to acp_stdio"):
+        check_route(str(provider), tmp_path, None, "CUSTOM_review", "http")
