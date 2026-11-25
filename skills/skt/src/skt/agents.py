@@ -1,7 +1,7 @@
 """Plugin workflow roles. Each role owns its inputs, brief and result handling."""
 import argparse
 
-from . import regress
+from . import regress, review
 
 
 def run_regress(values, parser):
@@ -12,7 +12,7 @@ def run_regress(values, parser):
 # A role gets the tail of its command line, so its options and positional
 # inputs have the same semantics as its direct entry point.
 def add_parser(sub, regress_parser):
-    roles = {"regress": lambda values: run_regress(values, regress_parser)}
+    roles = {"regress": lambda values: run_regress(values, regress_parser), "review": review.run}
     agent = sub.add_parser("agent", help="run a workflow role through meta-harness")
     verbs = agent.add_subparsers(dest="agent_verb", required=True)
     listing = verbs.add_parser("list", help="list available workflow roles")
