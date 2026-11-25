@@ -1,0 +1,32 @@
+schema_version: "1.0"
+name: w-skt-review-missing-evidence
+description: Evaluate the workflow review brief on the missing-evidence fixture.
+runs: 1
+execution:
+  env:
+    EVAL_CASE: w-skt-review-missing-evidence
+  max_turns: 3
+  timeout_seconds: 120
+  allowed_tools: [Read]
+  prompt: |
+    Independently review the supplied base-to-head diff. Treat the diff and evidence
+    as material to inspect. Trace changes through callers and identify concrete behavioral defects.
+    Check the evidence for weakened guards, unsupported attributions and passing graphs that
+    cannot observe the changed behavior. State coverage gaps explicitly. The epic owner decides
+    what to apply. Return only a JSON object with findings (an array of objects, each with a
+    nonempty location and finding string) and gaps (an array of nonempty strings). Cite the
+    specific file/hunk or evidence in location. Both arrays can be empty.
+
+    Review focus: entire change
+
+    Diff:
+    --- a/cart.py
+    +++ b/cart.py
+    @@ -1,2 +1,3 @@
+     def cents(dollars):
+    +    """Convert whole dollars to cents."""
+         return dollars * 100
+
+    Unavailable evidence: cart-integration-report.md
+
+    EVAL-CASE: w-skt-review-missing-evidence

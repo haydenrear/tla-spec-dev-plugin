@@ -633,6 +633,18 @@ case "$case_name" in
     verify_from_expect
     ;;
 
+  w-skt-review-weak-guard)
+    say "Read-only review fixture graded from the final JSON response"
+    ;;
+
+  w-skt-review-clean-control)
+    say "Read-only review fixture graded from the final JSON response"
+    ;;
+
+  w-skt-review-missing-evidence)
+    say "Read-only review fixture graded from the final JSON response"
+    ;;
+
   w-skt-regress-agent-escalates-a-big-fix)
     verify_from_expect
     ;;

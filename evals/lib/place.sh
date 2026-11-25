@@ -499,6 +499,18 @@ EOF
     place_moved_fixture skt
     ;;
 
+  w-skt-review-weak-guard)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-review-clean-control)
+    place_moved_fixture skt
+    ;;
+
+  w-skt-review-missing-evidence)
+    place_moved_fixture skt
+    ;;
+
   w-skt-regress-agent-escalates-a-big-fix)
     place_moved_fixture skt
     ;;

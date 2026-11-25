@@ -39,6 +39,7 @@ validationGraph {
     testGraph("sktSurface") {
         node("sources/skt_wrapper_installed.py")
         node("sources/skt_status_tiers.py")
+        node("sources/skt_workflow_agents.py")
         node("sources/skt_check_cached.py")
         node("sources/skt_hook_contract.py")
         node("sources/skt_ticket_roundtrip.py")
