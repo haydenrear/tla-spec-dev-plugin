@@ -19,11 +19,11 @@
 # own pinned versions on PATH.
 #
 # The shipped monitoring standard nodes are different: they invoke deploy-helm's
-# public `monitoring` launcher. The deploy-helm unit reference installs that
+# public `monitoring` launcher. The deploy-cdc unit reference installs that
 # prerequisite transitively without coupling the Test Graph SDK to provider code.
 
 skill_references = [
-  "github:haydenrear/deploy-helm", # installs the deploy-helm skill and its monitoring CLI
+  "github:haydenrear/deploy-cdc", # installs the deploy-helm skill and its monitoring CLI
 ]
 
 [skill]

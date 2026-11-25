@@ -9,7 +9,7 @@
 #
 #   github:haydenrear/test_graph_skill      -> skill "test-graph"            (validation graphs)
 #   github:haydenrear/tla-spec-dev          -> skill "spec-double-compiler"  (installs the tla-spec-dev CLI)
-#   github:haydenrear/deploy-helm            -> skill "deploy-helm"           (deployable-surface validation)
+#   github:haydenrear/deploy-cdc            -> skill "deploy-helm"           (deployable-surface validation)
 #
 # git-issue itself is a *semantic* import only (see SKILL.md skill-imports): the
 # work order is read via gh, so completing a ticket does not require the git-issue
@@ -40,7 +40,7 @@
 # declares the unit, so the file is present exactly where it is used. `wt` emits
 # the install command instead of a dead path when it is not.
 skill_references = [
-  "github:haydenrear/deploy-helm",
+  "github:haydenrear/deploy-cdc",
 ]
 
 # The GitHub CLI, installed via Homebrew. Used to read the issue, open the PR,
