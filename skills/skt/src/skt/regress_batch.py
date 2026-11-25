@@ -109,6 +109,10 @@ def decide(record, owner, accept, reject):
     files = [p / "attribution.yaml" for p in attempts if (p / "attribution.yaml").is_file()]
     if changes.exists():
         files.append(changes)
+    receipt = state / "owner-decision.json"
+    prior = json.loads(receipt.read_text()) if receipt.exists() else {}
+    if not files and prior:
+        raise AgentError("the files covered by the recorded decision are missing")
     if not files:
         if accept or reject:
             raise AgentError("there is no candidate batch")
@@ -119,8 +123,8 @@ def decide(record, owner, accept, reject):
         digest.update(str(path.relative_to(state)).encode())
         digest.update(hashlib.sha256(path.read_bytes()).digest())
     token = digest.hexdigest()
-    receipt = state / "owner-decision.json"
-    prior = json.loads(receipt.read_text()) if receipt.exists() else {}
+    if prior and prior.get("digest") != token:
+        raise AgentError("candidate files differ from the recorded owner decision")
     choice = "accepted" if accept else "rejected" if reject else None
     if choice and (accept or reject) != token:
         raise AgentError("candidate changed; inspect the current batch and use its digest")
@@ -131,6 +135,10 @@ def decide(record, owner, accept, reject):
         return True
     if not choice:
         print("Inspect the complete diff for removed or relaxed assertions, guards and identity checks.")
+        if changes.is_file():
+            for line in changes.read_text(errors="replace").splitlines():
+                if line.startswith("-") and re.search(r"\b(assert\w*|require|check|guard|identity|mtime|if)\b", line, re.I):
+                    print("Review removed guard or condition:", line[:200])
         for path in files:
             print(path)
         print(f"skt regress close {record['id']} --accept {token}  # or --reject {token}")

@@ -71,3 +71,39 @@ Path(args[args.index("--output") + 1]).write_text(json.dumps(
     assert cli.main(["agent", "list"]) == 0 and "summary" in capsys.readouterr().out
     assert cli.main(["agent", "run", "summary", "hello"]) == 0
     assert capsys.readouterr().out.strip() == "HELLO"
+
+
+def test_termination_cancels_caller_owned_episode(tmp_path):
+    import os
+    import signal
+    import time
+    harness = tmp_path / "fixture-client"
+    harness.write_text("#!" + sys.executable + """
+import os, signal, time
+from pathlib import Path
+def cancel(*args):
+    Path("cancelled").touch()
+    raise SystemExit(0)
+signal.signal(signal.SIGTERM, cancel)
+Path("started").write_text(str(os.getpid()))
+time.sleep(30)
+""")
+    harness.chmod(0o700)
+    code = """from pathlib import Path
+from skt.episode import run_episode
+run_episode(str(Path('fixture-client').resolve()),Path.cwd(),{'timeoutSeconds':30},'http://localhost:1')
+"""
+    owner = subprocess.Popen([sys.executable, "-c", code], cwd=tmp_path,
+                             env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")})
+    try:
+        for _ in range(100):
+            if (tmp_path / "started").exists():
+                break
+            time.sleep(.05)
+        assert (tmp_path / "started").exists()
+        owner.send_signal(signal.SIGTERM)
+        assert owner.wait(timeout=5) == 143 and (tmp_path / "cancelled").exists()
+    finally:
+        if owner.poll() is None:
+            owner.kill()
+            owner.wait()

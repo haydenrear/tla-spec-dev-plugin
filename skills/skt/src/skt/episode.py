@@ -9,6 +9,8 @@ import socket
 import subprocess
 import time
 import tempfile
+import threading
+from contextlib import contextmanager
 import urllib.request
 from pathlib import Path
 
@@ -98,10 +100,19 @@ def check_route(binary, directory, config, model, expected):
     command = [binary, "--project-root", str(directory)]
     if config:
         command.extend(["--config", config])
-    proc = subprocess.run([*command, "providers"], capture_output=True, timeout=20, env=_agent_env())
+    try:
+        proc = subprocess.run([*command, "providers"], capture_output=True, timeout=20, env=_agent_env())
+    except subprocess.TimeoutExpired:
+        raise AgentError("timed out reading the meta-harness provider table", code=3) from None
     if proc.returncode:
         raise AgentError("cannot read the meta-harness provider table")
     providers = json.loads(proc.stdout)
+    if not isinstance(providers, list) or not all(
+        isinstance(p, dict) and isinstance(p.get("transport"), dict)
+        and isinstance(p["transport"].get("kind"), str)
+        and (p.get("model_prefix") is None or isinstance(p["model_prefix"], str)) for p in providers
+    ):
+        raise AgentError("invalid meta-harness provider table", code=3)
     matches = [p for p in providers if model.startswith(p.get("model_prefix") or "")]
     if not matches:
         raise AgentError(f"no meta-harness provider routes {model}")
@@ -111,6 +122,22 @@ def check_route(binary, directory, config, model, expected):
         raise AgentError(f"{model} routes to {kind}; the role requested {expected}")
 
 
+@contextmanager
+def cancel_on_termination():
+    """Unwind the owner on SIGTERM so the episode client gets to cancel its session."""
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+    def terminate(signum, _frame):
+        raise SystemExit(128 + signum)
+    previous = signal.signal(signal.SIGTERM, terminate)
+    try:
+        yield
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+
+
+@cancel_on_termination()
 def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
                 stall_timeout: int = DEFAULT_STALL_TIMEOUT, harness_config: str | None = None, *,
                 private_keys=(), transport=None) -> tuple[dict, str]:

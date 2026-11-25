@@ -286,6 +286,8 @@ def test_a_small_committed_fix_then_a_full_pass_is_green_and_carries_the_patch(r
     assert accepted.returncode == 0, accepted.stderr
     assert (repo / "test_graph/fixture.txt").read_text() == "fixed\n"
     assert "decision already recorded" in skt(repo, "close", "r1", "--accept", digest).stdout
+    Path(result["attribution"]).write_text("# changed after approval\n")
+    assert "differ from the recorded owner decision" in skt(repo, "close", "r1").stderr
     assert subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", record["branch"]],
                           capture_output=True).returncode == 0
 
