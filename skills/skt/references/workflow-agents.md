@@ -60,3 +60,10 @@ the brief and calls the shared episode transport. Use the result reader to
 decide the domain outcome and retain the attempt and evidence reference. Test
 through `skt agent run` with a stub binary. Existing upstream provider routes
 work across roles that meet their capability requirements.
+
+For a private server, skt reads the actual provider table and checks the longest
+matching model prefix before dispatch. For an existing server, the published
+model list gives provider IDs and prefixes. It omits transport capabilities.
+Select an ACP route configured by that server’s operator for remote regress.
+Remote ACP review sends its read-only tool requirement with the episode and
+meta-harness refuses a provider that cannot enforce it.
