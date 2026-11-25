@@ -262,6 +262,9 @@ def build_parser() -> argparse.ArgumentParser:
                          "the brief and ranked below every rule in it")
     regress.add_argument("--instructions-file", metavar="PATH",
                          help="run: the same, read from a file")
+    decision = regress.add_mutually_exclusive_group()
+    decision.add_argument("--accept", metavar="DIGEST", help="close: apply the inspected batch from the owner checkout")
+    decision.add_argument("--reject", metavar="DIGEST", help="close: record rejection and retain evidence")
     regress.add_argument("--keep-state", action="store_true",
                          help="close: remove the worktree, keep the results")
     regress.add_argument("--json", action="store_true", help="run: machine-readable result")

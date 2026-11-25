@@ -305,6 +305,12 @@ base=<epic tip before the wave's first merge>
 tip=$(git rev-parse origin/epic/<slug>)
 ```
 
+For an independent reading of the whole step, run `skt agent run review
+--base <step-base> --head <step-head> --evidence <report>`. Supply a distinct
+`--focus` for each reviewer. Read each attempt's `review.json`, verify the
+cited locations, reconcile duplicates and carry each disposition into the
+sections below. Exit 3 means the review was incomplete.
+
 ### 3.1 Hot spots
 
 Where the wave's change concentrated or was contended. This section exists
