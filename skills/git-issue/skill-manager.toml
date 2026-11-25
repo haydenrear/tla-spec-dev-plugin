@@ -8,7 +8,7 @@
 #
 #   github:haydenrear/test_graph_skill  -> skill "test-graph"
 #   github:haydenrear/tla-spec-dev      -> skill "spec-double-compiler" (installs the tla-spec-dev CLI)
-#   github:haydenrear/deploy-cdc        -> skill "deploy-helm"
+#   github:haydenrear/deploy-helm        -> skill "deploy-helm"
 #
 # NEITHER git-integration-skill NOR git-issue-workflow-skill IS REFERENCED HERE,
 # and that is the point of this skill being the LEAF of the chain:
@@ -30,7 +30,7 @@
 # $SKILL_MANAGER_HOME/{skills,plugins/*/skills}/skt/scripts/wt — resolved, never a
 # placeholder. See references/worktree-branch.md and git-issue#4.
 skill_references = [
-  "github:haydenrear/deploy-cdc",
+  "github:haydenrear/deploy-helm",
 ]
 
 # The GitHub CLI, installed via Homebrew. This is the default issue-tracker
