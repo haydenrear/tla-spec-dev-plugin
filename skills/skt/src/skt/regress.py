@@ -938,7 +938,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         max_fix_lines: int = DEFAULT_MAX_FIX_LINES, max_fix_files: int = DEFAULT_MAX_FIX_FILES,
         max_runs: int = DEFAULT_MAX_RUNS, stall_timeout: int = DEFAULT_STALL_TIMEOUT,
         max_attempts: int = DEFAULT_MAX_ATTEMPTS, instructions: str | None = None,
-        instructions_file: str | None = None, start: str | Path = ".") -> int:
+        instructions_file: str | None = None, start: str | Path = ".", plan: dict | None = None) -> int:
     record = load_run(run_id, start)
     if not Path(record["worktree"]).is_dir():
         raise RegressError(f"worktree {record['worktree']} is gone", fix=f"skt regress close {run_id}")
@@ -1008,6 +1008,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     report_path = attempt_dir / "agent-report.json"
     for stale in ("agent-report.json", "episode.json", "result.json", "attribution.yaml", "fixes.patch"):
         (attempt_dir / stale).unlink(missing_ok=True)
+    if plan:
+        _sibling("agent_config").write_receipt(attempt_dir, plan)
     graph_script = write_graph_script(attempt_dir, runner_path, record["test_graph_root"])
     shutil.rmtree(attempt_dir / "graph-runs", ignore_errors=True)
     brief = build_brief(record, graphs, graph_script, report_path, fix=fix, isolated=isolated,
@@ -1025,13 +1027,15 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "timeoutSeconds": timeout,
         "env": agent_env,
     }
+    if plan:
+        request = _sibling("agent_config").request(request["attemptId"], brief, record["worktree"], plan, agent_env)
     if fix and shared:
         print(f"note: these graphs declare effects beyond this machine: {', '.join(shared)}.\n"
               f"      The isolation statement has to cover them: {isolated}", file=sys.stderr)
     if dry_run:
         (attempt_dir / "request.json").write_text(json.dumps(request, indent=2) + "\n")
         print(f"dry run: nothing started\nbrief      {attempt_dir / 'brief.md'}\n"
-              f"request    {attempt_dir / 'request.json'}\ngraphs     {', '.join(graphs)}\n"
+              f"settings   {attempt_dir / 'settings.json'}\nrequest    {attempt_dir / 'request.json'}\ngraphs     {', '.join(graphs)}\n"
               f"mode       {'fix (isolated: ' + isolated + ')' if fix else 'report-only'}\n"
               f"effects    {', '.join(effects) or 'none declared'}")
         return EXIT_GREEN
@@ -1044,7 +1048,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
                                   "isolated": isolated, "started": started}) + "\n")
     try:
-        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
+        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout,
+                                        plan["settings"]["harness_config"] if plan else None)
     finally:
         marker.unlink(missing_ok=True)
 
@@ -1300,14 +1305,17 @@ def main(args) -> int:
             print(f"next: skt regress run {record['id']} <graph>...   # or --all")
             return 0
         if verb == "run":
-            return run(args.target, args.graphs, all_graphs=args.all, model=args.model,
-                       timeout=args.timeout, meta_harness=args.meta_harness, runner=args.runner,
-                       base_url=args.base_url, dry_run=args.dry_run, as_json=args.json,
+            root = _git(["rev-parse", "--show-toplevel"])
+            plan = _sibling("agent_config").resolve("regress", root, args)
+            settings = plan["settings"]
+            return run(args.target, args.graphs, all_graphs=args.all, model=settings["model"],
+                       timeout=settings["timeout"], meta_harness=settings["meta_harness"], runner=args.runner,
+                       base_url=settings["base_url"], dry_run=args.dry_run, as_json=args.json,
                        fix=args.fix, isolated=args.isolated, env=args.env,
                        max_fix_lines=args.max_fix_lines, max_fix_files=args.max_fix_files,
-                       max_runs=args.max_runs, stall_timeout=args.stall_timeout,
+                       max_runs=args.max_runs, stall_timeout=settings["stall_timeout"],
                        max_attempts=args.max_attempts, instructions=args.instructions,
-                       instructions_file=args.instructions_file)
+                       instructions_file=args.instructions_file, plan=plan)
         if verb == "info":
             return info(args.target)
         if verb == "close":

@@ -803,3 +803,16 @@ def test_run_refuses_before_starting_an_agent_when_the_home_has_gone(repo):
     refused = skt(repo, "run", "gone", "alpha", "--dry-run")
     assert refused.returncode == 2
     assert "cannot execute a graph" in refused.stderr and "skt regress adopt" in refused.stderr
+
+
+def test_generic_dispatch_reuses_legacy_history_and_profile(repo, tmp_path):
+    record = new(repo)
+    (repo / "skt-agents.toml").write_text('[roles]\nregress="local"\n[profiles.local]\nmodel="ACP_tiny"\n')
+    harness = stub_harness(tmp_path, "write_summary('alpha', 'passed')")
+    proc = subprocess.run([sys.executable, str(CLI), "agent", "run", "regress", "r1", "alpha",
+                           "--base-url", "http://localhost:7777", "--meta-harness", str(harness), "--json"],
+                          cwd=repo, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr
+    result = json.loads(proc.stdout)
+    assert (result["model"], result["attempt"], result["verdict"]) == ("ACP_tiny", 1, "green")
+    assert json.loads(Path(record["state"], "run.json").read_text())["attempts"][0]["model"] == "ACP_tiny"
