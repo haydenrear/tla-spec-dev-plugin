@@ -8,9 +8,9 @@
 # read per tool call and can never stall a session on git or network.
 # The cache is populated elsewhere — the SessionStart hook's bounded
 # live refresh, or an operator's explicit `skt check` — which is why
-# hooks.json gives this hook only 2 seconds: ample for a path that
-# spawns no git, and a hard stop for any regression that reintroduces
-# one. Exit 10 from skt means notifications exist; they are surfaced
+# hooks.json gives this hook 5 seconds: ample for a path that spawns
+# no git, and still a hard stop for any regression that reintroduces
+# one (2s proved a false-positive tripwire under heavy machine I/O). Exit 10 from skt means notifications exist; they are surfaced
 # via hookSpecificOutput
 # additionalContext (harnesses that predate that field ignore it — the
 # SessionStart injection remains the primary disclosure). NEVER exits
@@ -18,6 +18,9 @@
 # actually fires (one line per session start + one per notification —
 # not one per tool call).
 set -u
+
+# Drain stdin so a large tool payload can never block or EPIPE the writer.
+cat >/dev/null 2>&1 || true
 
 pick_python() {
   if [ -n "${SKT_PYTHON:-}" ]; then printf '%s' "$SKT_PYTHON"; return 0; fi

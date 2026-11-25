@@ -25,7 +25,7 @@ def isolate_root_home(tmp_path, monkeypatch):
     monkeypatch.setenv("SKT_ROOT_HOME", str(tmp_path / "fake-root" / ".skill-manager"))
 
 
-def run_post_tool(home: Path, cwd: Path, *, with_home_env: bool = True) -> subprocess.CompletedProcess:
+def run_post_tool(home: Path, cwd: Path, *, with_home_env: bool = True, payload: str | None = None) -> subprocess.CompletedProcess:
     env = {
         "PATH": "/usr/bin:/bin",
         "SKT_PYTHON": sys.executable,
@@ -36,7 +36,7 @@ def run_post_tool(home: Path, cwd: Path, *, with_home_env: bool = True) -> subpr
         env["SKILL_MANAGER_HOME"] = str(home)
     return subprocess.run(
         ["bash", str(HOOKS / "skt-post-tool.sh")],
-        capture_output=True, text=True, cwd=cwd, env=env,
+        capture_output=True, text=True, cwd=cwd, env=env, input=payload,
     )
 
 
@@ -136,3 +136,19 @@ def test_close_note_inspects_target_worktree_home(tmp_path, monkeypatch, capsys)
     assert ticket_mod.run("close", "T-1") == 0
     out = capsys.readouterr().out
     assert "edited unit(s) in this home before close: alpha" in out
+
+
+def test_post_tool_drains_large_stdin_payload_within_timeout(tmp_path):
+    """Codex pipes the whole tool result on stdin; a hook that never reads
+    it can EPIPE the writer. A 300 KB payload must exit 0 inside the
+    hooks.json timeout."""
+    import time
+
+    timeout = json.loads((HOOKS / "hooks.json").read_text())["hooks"]["PostToolUse"][0]["hooks"][0]["timeout"]
+    assert timeout == 5
+    repo = make_repo(tmp_path / "repo")
+    home = make_home(repo, units={})
+    t0 = time.monotonic()
+    proc = run_post_tool(home, repo, payload="x" * 300_000)
+    assert proc.returncode == 0
+    assert time.monotonic() - t0 < timeout
