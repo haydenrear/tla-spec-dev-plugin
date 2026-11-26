@@ -1,0 +1,174 @@
+# Epic #292, final-boundary discoveries. Introducing tickets are attribution
+# hypotheses unless the row explicitly names an observed revision. A pin may
+# cover only part of a finding; pin_note identifies that limit.
+- id: SA-REVIEW-01
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "SA-02 / SA-04, configured transport and review permissions"
+  observed: "At 437c68a a private ACP target labeled HTTP could skip review tool restrictions. A remote endpoint could also be assigned capabilities by its caller."
+  effect: "A review could run with excessive tools, or a regress request could reach a target unable to run a graph."
+  fix: "0743ebc checks the routed private provider and read-only policy. 7504b08 documents that a caller-managed endpoint does not advertise its transport."
+  disposition: "Private routing repaired. Remote ACP regress capability remains an operator assertion. Remote HTTP review with unverifiable routing is refused."
+  pinned_by: "skills/skt/tests/test_agent_config.py::test_mislabeled_model_cannot_turn_off_review_tools"
+  skill_change: "applied(7504b08)"
+
+- id: SA-REVIEW-02
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "SA-01, cancellation in the episode launcher"
+  observed: "Direct termination of the launcher could strand the child or bypass upstream cancellation on a caller-owned server. The first fix still missed SIGTERM sent directly to skt."
+  effect: "Work and provider cost could continue after the caller stopped the command."
+  fix: "0743ebc and 7bededc unwind the active episode and give the upstream client time to cancel."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_agent_review.py::test_termination_cancels_caller_owned_episode"
+  skill_change: none
+
+- id: SA-REVIEW-03
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "SA-01 / SA-03, durable launch requests"
+  observed: "An explicit --env value was copied into the persisted request."
+  effect: "A supplied credential could be disclosed to later readers of the attempt directory."
+  fix: "0743ebc redacts explicit environment values in persisted requests and removes the private execution input after use."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_regress.py::test_the_brief_changes_with_the_mode_and_the_env_reaches_the_agent"
+  skill_change: none
+
+- id: SA-REVIEW-04
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "SA-01 / SA-04, failed episode and incomplete review evidence"
+  observed: "Startup failure, unavailable provider discovery or missing execution identity could leave a review without a usable receipt. A discovery timeout escaped the first repair."
+  effect: "An owner could lose the reason for an incomplete review or trust output with no execution identity."
+  fix: "0743ebc and 7bededc preserve incomplete receipts and normalize discovery timeouts."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_agent_review.py::test_failed_episode_cannot_issue_clean_verdict"
+  skill_change: none
+
+- id: SA-REVIEW-05
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "Regress admission across run IDs, introducing revision unverified"
+  observed: "The per-ID lock did not serialize two different IDs checking for an active unisolated run."
+  effect: "Two graph runs could acquire the same shared environment."
+  fix: "0743ebc locks the admission check and marker creation together in the common Git directory."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_regress.py::test_distinct_run_ids_cannot_dispatch_concurrently_without_isolation"
+  pin_note: "1861298 starts two independent CLI clients together. The consumer validation also ran this test through the installed wrapper. Exactly one dispatches and the other is refused."
+  skill_change: none
+
+- id: SA-REVIEW-06
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "#289, attribution and decision digest"
+  observed: "Close could reuse cached attribution after a YAML edit, classify numeric log fragments as Git citations, or acknowledge a changed digest on retry after acceptance."
+  effect: "The recorded decision and what the owner inspected could diverge. Innocent numeric evidence could also block a decision."
+  fix: "0743ebc, 1536abc and 7bededc validate the inspected YAML and declared citations and compare a later retry with the sealed decision."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_regress.py::test_close_revalidates_the_exact_reviewed_attribution"
+  skill_change: none
+
+- id: SA-REVIEW-07
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "#289, decision retry and worktree ownership"
+  observed: "A repeat close could remove a replacement worktree at a previously released path."
+  effect: "An unrelated checkout could be lost during an otherwise idempotent retry."
+  fix: "0743ebc tracks release and checks branch, checkout and common Git directory before cleanup."
+  disposition: fixed
+  pinned_by: "skills/skt/src/skt/regress_batch.py"
+  pin_note: "The decision retry is covered. The independent report supplies the replacement-path scenario."
+  skill_change: none
+
+- id: SA-REVIEW-08
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "#289, confirming a cumulative candidate patch"
+  observed: "A report-only confirmation after an earlier fix could leave the cleanly confirmed batch ineligible for acceptance."
+  effect: "The owner could not accept a valid cumulative patch through the documented workflow."
+  fix: "0743ebc consults the earlier candidate and requires a matching current branch and confirmation."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_regress.py::test_a_rerun_is_not_blamed_for_the_previous_attempts_fix"
+  skill_change: none
+
+- id: SA-REVIEW-09
+  kind: CATCH
+  severity: major
+  channel: independent-review
+  origin: product
+  area: "#289, failed assertion and resume ordering"
+  observed: "An older errored run could accept a resumed pass after a newer full run stopped at a failed assertion."
+  effect: "A regression could be presented as green without fresh full confirmation."
+  fix: "0743ebc binds resume to the relevant current run and requires full confirmation after assertion failure."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_regress.py::test_resume_cannot_hide_new_failed_assertion"
+  skill_change: none
+
+- id: SA-GRAPH-01
+  kind: CATCH
+  severity: major
+  channel: test-graph
+  origin: instrument
+  area: "spec.workflow.failure_cleanup_probe, predates this epic"
+  observed: "Full runs 20261125-233749 and 20261125-234439 errored on descendant ownership. PID 36423 was a zombie reparented to PID 1. PID 77652 was the nested Gradle daemon, identified by its matching daemon log."
+  effect: "The executor could stop the full graph and skip the reference-adapter check even after the nested probe returned."
+  fix: "315f1fe keeps the detached daemon in the Linux probe's tree and reaps exited descendants before deciding whether a process is still running."
+  disposition: "See the post-repair full run in validation.md."
+  pinned_by: "test_graph/sources/spec_workflow_failure_cleanup_probe.py"
+  skill_change: none
+
+- id: SA-EVAL-01
+  kind: CATCH
+  severity: minor
+  channel: the-suite
+  origin: instrument
+  area: "#297, response-only review eval graders"
+  observed: "The new review grader files omitted the suite's explicit visibility constraint. The hook routing smoke passed while the full eval harness suite failed."
+  effect: "Future edits could ask the grader to infer facts outside its inputs."
+  fix: "c3a0145 tells each grader it can only judge the final response against the fixture criterion."
+  disposition: fixed
+  pinned_by: "tests/test_agent_integration_harness.py::test_the_llm_grader_does_not_claim_to_read_files_it_cannot_see"
+  skill_change: none
+
+- id: SA-EVAL-02
+  kind: CATCH
+  severity: minor
+  channel: the-suite
+  origin: instrument
+  area: "Eval harness forged-verdict control, predates this epic"
+  observed: "On Linux the verifier cleared every forged verdict. The test classified its UNDECIDED-unconfined diagnostic as a forged verdict that survived."
+  effect: "The suite returned a false red on a supported diagnostic path."
+  fix: "c3a0145 asserts the diagnostic when sandbox-exec is unavailable and preserves the checks for all scored files."
+  disposition: fixed
+  pinned_by: "tests/test_agent_integration_harness.py::test_a_forged_workspace_earns_no_verdict"
+  skill_change: none
+
+- id: SA-MANUAL-01
+  kind: CATCH
+  severity: major
+  channel: operator-doing-the-work
+  origin: product
+  area: "SA-02, environment fallback when adding a third role"
+  observed: "During the final role-extension walkthrough a summary role with no explicit model inherited SKT_REVIEW_MODEL. The added regression control failed at c3a0145 with unrelated-review-model in the summary request."
+  effect: "Adding a plugin role could route it to the wrong agent when review had a model override."
+  fix: "7bef8e9 removed the shared review fallback. The first repair conflated diff-review and diff_review. 2e9d02e lets each role explicitly name its model variable and leaves new roles without a model variable by default. The two shipped variables retain their original spelling."
+  disposition: fixed
+  pinned_by: "skills/skt/tests/test_agent_review.py::test_plugin_can_register_another_role_with_its_own_result_reader"
+  pin_note: "test_roles_own_their_model_environment_names also covers punctuated and case-distinct role IDs."
+  skill_change: none

@@ -7,10 +7,12 @@
 # ///
 from __future__ import annotations
 
+import ctypes
 import json
 import os
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -159,11 +161,19 @@ def await_no_descendants(
     reported, so nothing that actually outlives the node is hidden.
     """
     deadline = time.monotonic() + budget_seconds
-    lingering = live_descendants(root_pid)
-    while lingering and time.monotonic() < deadline:
-        time.sleep(0.5)
+    while True:
+        # A detached Gradle daemon can exit between the wrapper returning and
+        # this poll. Reap children only after procs.run has waited for its own
+        # subprocess. A still-running descendant remains visible below.
+        try:
+            while os.waitpid(-1, os.WNOHANG)[0]:
+                pass
+        except ChildProcessError:
+            pass
         lingering = live_descendants(root_pid)
-    return lingering
+        if not lingering or time.monotonic() >= deadline:
+            return lingering
+        time.sleep(0.5)
 
 
 @node(SPEC)
@@ -197,6 +207,13 @@ def main(ctx):
     env["TLA_SPEC_DEV_SOURCE_REPO"] = str(source_repo)
 
     result = NodeResult.pass_(SPEC.id)
+    if sys.platform == "linux":
+        # Retain ownership when the nested Gradle wrapper detaches its JVM.
+        # Otherwise the daemon is reparented outside this node, so the local
+        # drain reports success while the executor still observes its PID.
+        pr_set_child_subreaper = 36
+        if ctypes.CDLL(None, use_errno=True).prctl(pr_set_child_subreaper, 1, 0, 0, 0):
+            raise OSError(ctypes.get_errno(), "cannot adopt the probe's child processes")
     record = procs.run(
         ctx,
         "cleanup-failure-probe",

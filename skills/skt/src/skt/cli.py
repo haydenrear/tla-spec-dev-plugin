@@ -236,14 +236,8 @@ def build_parser() -> argparse.ArgumentParser:
                          help="new: only what git tracks -- for graphs that need no home, index or setup")
     regress.add_argument("--test-graph-root",
                          help="new: the test graph project, relative to the worktree (default test_graph)")
-    regress.add_argument("--model",
-                         help="run: meta-harness model id (default $SKT_REGRESS_MODEL or CLAUDE_haiku)")
-    regress.add_argument("--timeout", type=int, default=4 * 60 * 60,
-                         help="run: seconds the whole episode may take (default 14400)")
-    regress.add_argument("--meta-harness", help="run: the meta-harness binary (default $META_HARNESS_BIN or PATH)")
+    _import_sibling("agent_config").add_options(regress)
     regress.add_argument("--runner", help="run: the test-graph run.py (default: resolved)")
-    regress.add_argument("--base-url",
-                         help="run: use this running `meta-harness serve` instead of starting a private one")
     regress.add_argument("--dry-run", action="store_true",
                          help="run: write the brief and the episode request, start nothing")
     regress.add_argument("--fix", action="store_true",
@@ -268,9 +262,9 @@ def build_parser() -> argparse.ArgumentParser:
                          "the brief and ranked below every rule in it")
     regress.add_argument("--instructions-file", metavar="PATH",
                          help="run: the same, read from a file")
-    regress.add_argument("--stall-timeout", type=int, default=15 * 60,
-                         help="run: stop the episode when the agent records nothing for this many "
-                         "seconds (default 900; 0 never)")
+    decision = regress.add_mutually_exclusive_group()
+    decision.add_argument("--accept", metavar="DIGEST", help="close: apply the inspected batch from the owner checkout")
+    decision.add_argument("--reject", metavar="DIGEST", help="close: record rejection and retain evidence")
     regress.add_argument("--keep-state", action="store_true",
                          help="close: remove the worktree, keep the results")
     regress.add_argument("--json", action="store_true", help="run: machine-readable result")
@@ -278,6 +272,7 @@ def build_parser() -> argparse.ArgumentParser:
     # positionals (`run <id> --fix --isolated x graphA graphB`), which a
     # subparser reached through the parent cannot parse on Python 3.11/3.12.
     parser.regress_parser = regress
+    _import_sibling("agents").add_parser(sub, regress)
 
     return parser
 
@@ -413,6 +408,8 @@ def main(argv: list[str] | None = None) -> int:
     if raw[:1] == ["regress"]:
         return _import_sibling("regress").main(parser.regress_parser.parse_intermixed_args(raw[1:]))
     args = parser.parse_args(argv)
+    if args.command == "agent":
+        return args.agent_command(args)
     if args.command is None:
         parser.print_help()
         return 0

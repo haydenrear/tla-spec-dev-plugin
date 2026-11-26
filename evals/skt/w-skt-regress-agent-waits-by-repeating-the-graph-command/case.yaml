@@ -74,7 +74,8 @@ execution:
          cases/w-skt-regress-agent-waits-by-repeating-the-graph-command/test_graph/build/validation-reports/
        Its name is the runId. Read `summary.json` (field `status`). On anything other than
        `passed`, read `report.md` and the failing node's files under `envelope/` and `node-logs/`.
-    3. If the status is `passed`, record it and go on.
+    3. If the status is `passed`, record it and go on. Never resume past a failed
+       assertion. Escalate it, or in fix mode repair it and rerun the full graph.
     4. If not, decide the ORIGIN, which means where the fix belongs:
          product      the code under test is wrong: an assertion about it was false
          instrument   the test apparatus is wrong: the node, its fixture or the harness

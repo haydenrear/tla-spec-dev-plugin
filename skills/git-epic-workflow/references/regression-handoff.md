@@ -19,7 +19,7 @@ regression once, which is what makes the larger batch worth taking.
    and pushed, and nothing uncommitted:
 
    ```bash
-   skt regress adopt                       # this checkout; no new worktree
+   skt regress new HEAD --home             # candidate fixes on a dedicated branch
    skt regress run <id> <affected graphs>... --fix --isolated "<statement>" [--env KUBECONFIG=...]
    ```
 
@@ -28,11 +28,10 @@ regression once, which is what makes the larger batch worth taking.
    flaky, where a failure is likely. It cannot be used to relax the brief's
    rules.
 
-   The checkout already has the skill home, the index and the built tools,
-   and you are about to stop and wait, so nothing else needs it. Create a
-   worktree (`skt regress new <sha> --home`) only when this run must overlap
-   another or you must keep working in the checkout while it runs; it takes
-   minutes and several GiB. Never hand graph work to an agent in a worktree
+   For report-only runs, `skt regress adopt` uses the checkout's existing home,
+   index and tools. For fixes, inspect the patch and all candidate attribution
+   files named by `skt regress close <id>`. From the owner checkout, accept
+   or reject the displayed digest after step review. Never hand graph work to an agent in a worktree
    made by plain `git worktree add` or by an agent harness's worktree
    isolation: it has no home and cannot run a graph. Go through the caller's
    check in skt's `references/regression-agent.md` before `run`. Never let a

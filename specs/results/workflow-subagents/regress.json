@@ -1,0 +1,82 @@
+{
+  "mode": "report-only",
+  "verdict": "green",
+  "worker": "deterministic local ACP, using the installed graph.sh for every graph",
+  "runId": "internal-graph-confirm",
+  "attempt": 1,
+  "model": "LOCAL_graphs",
+  "executionId": "01a2152a-cb62-78a0-92f2-99ec8adf65d9",
+  "episodeOutcome": "succeeded",
+  "durationSeconds": 436,
+  "ownerRefBefore": "2e9d02e50a1648c8a801510b317415c13bf2c466",
+  "ownerRefAfter": "2e9d02e50a1648c8a801510b317415c13bf2c466",
+  "attributionGaps": [],
+  "graphs": [
+    {
+      "graph": "specWorkflow",
+      "runId": "20261126-000442",
+      "traceId": "1f50c2a94162197cec01219c28d5b4d4",
+      "mode": "full",
+      "status": "passed",
+      "nodeVerdicts": {
+        "spec.cli.install": "passed",
+        "spec.reference.adapters_resolve": "passed",
+        "spec.workflow.cleanup": "passed",
+        "spec.workflow.close": "passed",
+        "spec.workflow.complete": "passed",
+        "spec.workflow.failure_cleanup_probe": "passed",
+        "spec.workflow.repo": "passed",
+        "spec.workflow.spec_units": "passed",
+        "spec.workflow.start": "passed"
+      }
+    },
+    {
+      "graph": "cliWorkflow",
+      "runId": "20261126-000722",
+      "traceId": "fa4485de302c5c0bb2a851828cad86de",
+      "mode": "full",
+      "status": "passed",
+      "nodeVerdicts": {
+        "spec.cli.help": "passed",
+        "spec.cli.install": "passed"
+      }
+    },
+    {
+      "graph": "effectProviderExamples",
+      "runId": "20261126-000757",
+      "traceId": "67772fecdaa63268ee251ee29b5121ee",
+      "mode": "full",
+      "status": "passed",
+      "nodeVerdicts": {
+        "effect.providers.examples": "passed"
+      }
+    },
+    {
+      "graph": "sktSurface",
+      "runId": "20261126-000949",
+      "traceId": "8333582298ec7d6c01b24224e78ed2e9",
+      "mode": "full",
+      "status": "passed",
+      "nodeVerdicts": {
+        "skt.check-cached-costs-one-read": "passed",
+        "skt.hook-contract": "passed",
+        "skt.status-tiers": "passed",
+        "skt.ticket-roundtrip": "passed",
+        "skt.workflow-agents": "passed",
+        "skt.wrapper-installed": "passed"
+      }
+    },
+    {
+      "graph": "sktHooks",
+      "runId": "20261126-001058",
+      "traceId": "ed955aec529860529bf676830ed3aed6",
+      "mode": "full",
+      "status": "passed",
+      "nodeVerdicts": {
+        "skt.check-cached-costs-one-read": "passed",
+        "skt.hook-contract": "passed",
+        "skt.wrapper-installed": "passed"
+      }
+    }
+  ]
+}

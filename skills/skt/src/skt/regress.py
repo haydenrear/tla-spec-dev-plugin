@@ -33,18 +33,21 @@ Stdlib-only, like the rest of skt.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
 import shlex
 import shutil
-import signal
-import socket
 import subprocess
 import sys
 import time
-import urllib.request
 from pathlib import Path
+
+if __package__:
+    from .episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode, save_request
+else:  # The bundled tests also import regress directly from this directory.
+    from episode import AgentError as RegressError, _agent_env, find_meta_harness, run_episode, save_request
 
 DEFAULT_MODEL = "CLAUDE_haiku"
 DEFAULT_TIMEOUT = 4 * 60 * 60
@@ -76,11 +79,6 @@ ATTRIBUTION_FIELDS = ("graph", "node", "origin", "area", "effect", "observed", "
 
 ORIGINS = ("product", "instrument", "environment", "unknown")
 
-
-class RegressError(RuntimeError):
-    def __init__(self, reason: str, fix: str | None = None, code: int = EXIT_USAGE):
-        super().__init__(reason)
-        self.reason, self.fix, self.code = reason, fix, code
 
 
 # --------------------------------------------------------------- git / paths
@@ -123,7 +121,7 @@ def load_run(run_id: str, start: str | Path = ".") -> dict:
 
 
 def _save_run(run: dict) -> None:
-    Path(run["state"], "run.json").write_text(json.dumps(run, indent=2) + "\n")
+    _sibling("regress_batch").atomic_json(Path(run["state"], "run.json"), run)
 
 
 # ------------------------------------------------------------------- new
@@ -310,7 +308,7 @@ def adopt(worktree_dir: str, run_id: str | None = None, test_graph_root: str | N
             taken = json.loads(other.read_text())
         except (OSError, ValueError):
             continue
-        if Path(taken.get("worktree", "")).resolve() == worktree:
+        if not (other.parent / "owner-decision.json").exists() and Path(taken.get("worktree", "")).resolve() == worktree:
             raise RegressError(f"{worktree} is already regression run {taken['id']!r}",
                                fix=f"skt regress run {taken['id']} <graph>...   # or: skt regress close {taken['id']}")
     left = tree_changes(run)
@@ -359,23 +357,6 @@ def find_runner(run: dict, explicit: str | None = None, start: str | Path = ".")
     raise RegressError(
         "cannot find the test-graph runner (skills/test-graph/scripts/run.py)",
         fix="pass --runner <path/to/run.py> or set SKT_REGRESS_RUNNER",
-    )
-
-
-def find_meta_harness(explicit: str | None = None) -> str:
-    for value in (explicit, os.environ.get("META_HARNESS_BIN")):
-        if value:
-            path = Path(value).expanduser()
-            if not path.is_file():
-                raise RegressError(f"meta-harness binary not found at {path}")
-            return str(path.resolve())
-    found = shutil.which("meta-harness")
-    if found:
-        return found
-    raise RegressError(
-        "meta-harness is not on PATH",
-        fix="pass --meta-harness <binary> or set META_HARNESS_BIN "
-            "(cargo build -p meta-harness in the meta-harness checkout)",
     )
 
 
@@ -442,6 +423,38 @@ GRAPH_SCRIPT = r"""#!/usr/bin/env bash
 # finished. Called again with the same arguments it rejoins the same run.
 set -u
 [ $# -ge 1 ] || { echo "usage: graph.sh <graph> | graph.sh --resume <runId>" >&2; exit 2; }
+if [ "$1" = "--resume" ]; then
+  [ "$#" = 2 ] || { echo "resume requires exactly one run id" >&2; exit 2; }
+  python3 - @TG@ "$2" "$0" <<'CHECK_RESUME' || exit 2
+import json, re, sys
+from pathlib import Path
+root, run_id, script = sys.argv[1:]
+if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", run_id):
+    sys.exit("invalid resume run id")
+run = Path(root) / "build/validation-reports" / run_id
+try:
+    summary = json.loads((run / "summary.json").read_text())
+    nodes = list(summary.get("nodes") or [])
+    nodes.extend(json.loads(path.read_text()) for path in (run / "envelope").glob("*.json"))
+    if any(node.get("status") == "failed" for node in nodes) or summary.get("status") == "failed":
+        sys.exit("failed assertion: escalate or repair and rerun the full graph")
+    graph = (summary.get("execution") or {}).get("graphName")
+    stamp = Path(script).stat().st_mtime_ns
+    if not graph or (run / "summary.json").stat().st_mtime_ns < stamp:
+        sys.exit("resume source does not belong to this attempt")
+    for other in run.parent.glob("*/summary.json"):
+        if other.stat().st_mtime_ns <= (run / "summary.json").stat().st_mtime_ns or other.parent == run:
+            continue
+        if (json.loads(other.read_text()).get("execution") or {}).get("graphName") == graph:
+            sys.exit("resume requires the latest run of this graph")
+    if not nodes or summary.get("status") != "errored":
+        sys.exit("resume requires evidence of an errored run")
+except (ValueError, OSError, AttributeError) as err:
+    sys.exit(f"cannot verify resume source: {err}")
+CHECK_RESUME
+elif [ "$#" != 1 ] || [[ "$1" = -* ]]; then
+  echo "use one graph name or --resume <runId>" >&2; exit 2
+fi
 dir=@DIR@
 mkdir -p "$dir"
 key=$(printf '%s' "$*" | tr -c 'A-Za-z0-9._-' '_')
@@ -559,11 +572,11 @@ a node script that crashes for a reason unrelated to what it asserts.
 - All of your fixes together must stay within {max_fix_lines} changed lines in {max_fix_files} files.
 - NEVER make a red go away by weakening the check: do not delete, skip, loosen or comment out
   an assertion or a node, and do not change an expected value to whatever the code now prints.
-- After a fix, resume from the failed node:  {resume_cmd}
-  When that passes, run the whole graph once more from the beginning. Only a full run
+- After fixing a failed assertion, rerun the whole graph. An errored environment node
+  may be retried with {resume_cmd}. Only a full run
   that finished after your last commit counts.
 - KEEP GOING. One fix is rarely the end. If the same node fails again for a new reason,
-  or a later node fails, that is normal: add its attribution row, fix it, resume, repeat.
+  or a later node fails, that is normal: add its attribution row, fix it, rerun, repeat.
   A graph is done when it is green on a full run; then go on to the next graph. You stop
   early only to escalate.
 - You may try up to {max_attempts} fixes for one node. Run one graph at most {max_runs} times
@@ -668,7 +681,8 @@ FOR EACH GRAPH
      {tg}/{REPORTS}/
    Its name is the runId. Read `summary.json` (field `status`). On anything other than
    `passed`, read `report.md` and the failing node's files under `envelope/` and `node-logs/`.
-3. If the status is `passed`, record it and go on.
+3. If the status is `passed`, record it and go on. Never resume past a failed
+   assertion. Escalate it, or in fix mode repair it and rerun the full graph.
 4. If not, decide the ORIGIN, which means where the fix belongs:
      product      the code under test is wrong: an assertion about it was false
      instrument   the test apparatus is wrong: the node, its fixture or the harness
@@ -774,7 +788,10 @@ def read_verdict(tg_root: str, graphs: list[str], since: float,
             name = execution.get("graphName")
             if not name:
                 continue
+            failed_assertion = data.get("status") == "failed" or any(
+                isinstance(node, dict) and node.get("status") == "failed" for node in data.get("nodes") or [])
             runs.setdefault(name, []).append({
+                "failed_assertion": failed_assertion,
                 "graph": name,
                 "runId": data.get("runId") or summary.parent.name,
                 "status": data.get("status"),
@@ -793,9 +810,13 @@ def read_verdict(tg_root: str, graphs: list[str], since: float,
         status = last["status"] or "unknown"
         mode = last["mode"] or "full"
         via_resume = mode != "full"
+        last_full_pass = max((a["mtime"] for a in attempts if a["status"] == "passed"
+                              and a["mode"] in (None, "full")), default=0)
+        unresolved_assertion = any(a["failed_assertion"] and a["mtime"] >= last_full_pass for a in attempts)
         if status == "passed" and (
             # One node on its own proves nothing about the nodes after it.
             (via_resume and not mode.startswith("resume"))
+            or (via_resume and unresolved_assertion)
             # Once the tree has changed, only a full run that finished in a later
             # second than the last change counts (commit times are whole seconds).
             or (changed_at is not None and (via_resume or int(last["mtime"]) <= int(changed_at)))
@@ -843,6 +864,51 @@ def attribution_gaps(agent_report: dict | None, reds: list[dict]) -> list[str]:
     return gaps
 
 
+def read_trace(evidence: Path) -> dict | None:
+    """What the agent did, from meta-harness's own event log. None when there is none."""
+    logs = sorted(evidence.glob("*/events.jsonl")) if evidence.is_dir() else []
+    if not logs:
+        return None
+    trace = {"events": 0, "tool_calls": 0, "agent_messages": 0, "tools": {}, "wait_tools": [],
+             "last_tool": None, "last_event": None, "tokens": None, "cost_usd": None}
+    for log in logs:
+        try:
+            lines = log.read_text(errors="replace").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            kind, data = event.get("kind"), event.get("data") or {}
+            trace["events"] += 1
+            trace["last_event"] = event.get("ts") or trace["last_event"]
+            if kind == "tool.call":
+                name = data.get("name") or data.get("title") or "?"
+                trace["tool_calls"] += 1
+                trace["tools"][name] = trace["tools"].get(name, 0) + 1
+                trace["last_tool"] = name
+                if name in WAIT_TOOLS and name not in trace["wait_tools"]:
+                    trace["wait_tools"].append(name)
+            elif kind in ("agent.message.chunk", "agent.message.complete", "agent.thought.chunk"):
+                # A turn that failed at once still closes with one empty message.
+                content = data.get("content")
+                parts = content if isinstance(content, list) else [content]
+                if any(isinstance(c, dict) and (c.get("text") or "").strip() for c in parts):
+                    trace["agent_messages"] += 1
+            elif kind == "turn.ended":
+                usage = data.get("usage") or {}
+                if usage.get("session_total_tokens") is not None:
+                    trace["tokens"] = {k[len("session_"):]: v for k, v in usage.items()
+                                       if k.startswith("session_")}
+            elif kind == "usage.update":
+                cost = ((data.get("usage") or {}).get("raw") or {}).get("cost") or {}
+                if cost.get("amount") is not None:
+                    trace["cost_usd"] = cost["amount"]
+    return trace
+
+
 def write_attribution_yaml(path: Path, run: dict, attempt_no: int, rows: list[dict]) -> None:
     """The agent's rows as ledger-shaped YAML (bug_attribution.md §4), for the epic agent to absorb."""
     out = [f"# Candidate CATCH rows from skt regress {run['id']} attempt {attempt_no}, commit {run['sha']}.",
@@ -851,28 +917,12 @@ def write_attribution_yaml(path: Path, run: dict, attempt_no: int, rows: list[di
         out.append(f"- id: REGRESS-{run['id']}-{attempt_no}-{index}")
         out.append("  channel: test-graph")
         for key in ("graph", "node", "origin", "area", "effect", "observed", "fix", "pinned_by",
-                    "introduced_by"):
+                    "introduced_by", "verification", "verification_notes", "node_sources"):
             out.append(f"  {key}: {json.dumps(row.get(key))}")  # a JSON scalar is a YAML scalar
     path.write_text("\n".join(out) + "\n")
 
 
 # ------------------------------------------------------------- meta-harness
-
-def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
-
-
-AUTH_ENV = ("CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX")
-
-
-def _agent_env() -> dict:
-    # A session spawned from inside another agent session must not inherit its
-    # identity. Its credentials are another matter: without them the agent has
-    # nothing to log in with.
-    return {k: v for k, v in os.environ.items()
-            if k in AUTH_ENV or not (k == "CLAUDECODE" or k.startswith("CLAUDE_CODE_"))}
 
 
 # ------------------------------------------------------------- one at a time
@@ -919,146 +969,6 @@ def refuse_shared_concurrency(run_id: str, isolated: str | None, start: str | Pa
             )
 
 
-def _wait_listening(base_url: str, proc: subprocess.Popen, seconds: float = 60) -> None:
-    deadline = time.time() + seconds
-    while time.time() < deadline:
-        if proc.poll() is not None:
-            raise RegressError(f"meta-harness serve exited with {proc.returncode} before listening",
-                               code=EXIT_INCOMPLETE)
-        try:
-            urllib.request.urlopen(f"{base_url}/v1/models", timeout=2).close()
-            return
-        except urllib.error.HTTPError:
-            return  # it answered; that is all this asks
-        except OSError:
-            time.sleep(0.5)
-    raise RegressError("meta-harness serve did not start listening within 60s", code=EXIT_INCOMPLETE)
-
-
-def read_trace(evidence: Path) -> dict | None:
-    """What the agent did, from meta-harness's own event log. None when there is none."""
-    logs = sorted(evidence.glob("*/events.jsonl")) if evidence.is_dir() else []
-    if not logs:
-        return None
-    trace = {"events": 0, "tool_calls": 0, "agent_messages": 0, "tools": {}, "wait_tools": [],
-             "last_tool": None, "last_event": None, "tokens": None, "cost_usd": None}
-    for log in logs:
-        try:
-            lines = log.read_text(errors="replace").splitlines()
-        except OSError:
-            continue
-        for line in lines:
-            try:
-                event = json.loads(line)
-            except ValueError:
-                continue
-            kind, data = event.get("kind"), event.get("data") or {}
-            trace["events"] += 1
-            trace["last_event"] = event.get("ts") or trace["last_event"]
-            if kind == "tool.call":
-                name = data.get("name") or data.get("title") or "?"
-                trace["tool_calls"] += 1
-                trace["tools"][name] = trace["tools"].get(name, 0) + 1
-                trace["last_tool"] = name
-                if name in WAIT_TOOLS and name not in trace["wait_tools"]:
-                    trace["wait_tools"].append(name)
-            elif kind in ("agent.message.chunk", "agent.message.complete", "agent.thought.chunk"):
-                # A turn that failed at once still closes with one empty message.
-                content = data.get("content")
-                parts = content if isinstance(content, list) else [content]
-                if any(isinstance(c, dict) and (c.get("text") or "").strip() for c in parts):
-                    trace["agent_messages"] += 1
-            elif kind == "turn.ended":
-                usage = data.get("usage") or {}
-                if usage.get("session_total_tokens") is not None:
-                    trace["tokens"] = {k[len("session_"):]: v for k, v in usage.items()
-                                       if k.startswith("session_")}
-            elif kind == "usage.update":
-                cost = ((data.get("usage") or {}).get("raw") or {}).get("cost") or {}
-                if cost.get("amount") is not None:
-                    trace["cost_usd"] = cost["amount"]
-    return trace
-
-
-def _trace_mtime(evidence: Path) -> float | None:
-    times = [f.stat().st_mtime for f in evidence.glob("*/events.jsonl")] if evidence.is_dir() else []
-    return max(times) if times else None
-
-
-def _stop_group(proc: subprocess.Popen) -> None:
-    """Stop a process and everything it started that stayed in its group."""
-    for sig, grace in ((signal.SIGTERM, 20), (signal.SIGKILL, 5)):
-        try:
-            os.killpg(proc.pid, sig)
-        except (ProcessLookupError, PermissionError):
-            pass
-        try:
-            proc.wait(timeout=grace)
-            return
-        except subprocess.TimeoutExpired:
-            continue
-
-
-def run_episode(binary: str, attempt_dir: Path, request: dict, base_url: str | None,
-                stall_timeout: int = DEFAULT_STALL_TIMEOUT) -> tuple[dict, str]:
-    """Drive one episode. Starts a private ``serve`` unless ``base_url`` names one.
-
-    The private server runs in its own process group, and the group is stopped
-    when the episode ends, so nothing the agent started outlives the run unless
-    it detached itself. With a private server the trace is watched: an episode
-    that records nothing for ``stall_timeout`` seconds is stopped.
-    """
-    request_path = attempt_dir / "request.json"
-    result_path = attempt_dir / "episode.json"
-    request_path.write_text(json.dumps(request, indent=2) + "\n")
-    evidence = attempt_dir / ".meta-harness" / "evidence"
-    serve = client = log = None
-    stopped = None
-    try:
-        if base_url is None:
-            port = _free_port()
-            base_url = f"http://127.0.0.1:{port}"
-            log = open(attempt_dir / "serve.log", "w")
-            serve = subprocess.Popen(
-                [binary, "--project-root", str(attempt_dir), "serve", "--port", str(port)],
-                stdout=log, stderr=subprocess.STDOUT, env=_agent_env(), cwd=str(attempt_dir),
-                start_new_session=True,
-            )
-            _wait_listening(base_url, serve)
-        client = subprocess.Popen(
-            [binary, "--project-root", str(attempt_dir), "episode", "--base-url", base_url,
-             "--request", str(request_path), "--output", str(result_path)],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        )
-        began = time.time()
-        deadline = began + request["timeoutSeconds"] + 300
-        while client.poll() is None:
-            now = time.time()
-            if now > deadline:
-                stopped = "the episode ran past its timeout"
-                break
-            if serve is not None and stall_timeout:
-                quiet = now - (_trace_mtime(evidence) or began)
-                if quiet > stall_timeout:
-                    stopped = (f"the agent recorded nothing for {int(quiet)}s and was stopped "
-                               f"(--stall-timeout {stall_timeout})")
-                    break
-            time.sleep(2)
-    finally:
-        if client is not None and client.poll() is None:
-            client.kill()
-            client.wait()
-        if serve is not None:
-            _stop_group(serve)
-        if log is not None:
-            log.close()
-    if stopped:
-        return {"outcome": "stopped", "error": stopped}, base_url
-    try:
-        return json.loads(result_path.read_text()), base_url
-    except (OSError, ValueError):
-        return {"outcome": "failed", "error": "meta-harness episode wrote no result"}, base_url
-
 
 # ---------------------------------------------------------------------- run
 
@@ -1069,7 +979,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         max_fix_lines: int = DEFAULT_MAX_FIX_LINES, max_fix_files: int = DEFAULT_MAX_FIX_FILES,
         max_runs: int = DEFAULT_MAX_RUNS, stall_timeout: int = DEFAULT_STALL_TIMEOUT,
         max_attempts: int = DEFAULT_MAX_ATTEMPTS, instructions: str | None = None,
-        instructions_file: str | None = None, start: str | Path = ".") -> int:
+        instructions_file: str | None = None, start: str | Path = ".", plan: dict | None = None) -> int:
     record = load_run(run_id, start)
     if not Path(record["worktree"]).is_dir():
         raise RegressError(f"worktree {record['worktree']} is gone", fix=f"skt regress close {run_id}")
@@ -1082,6 +992,11 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
             fix='add --isolated "<what these graphs touch, and why nobody else is on it>", '
                 "or drop --fix for a report-only run",
         )
+    if (Path(record["state"]) / "owner-decision.json").exists():
+        raise RegressError("owner decision recorded; start a new regression run")
+    if fix and (record.get("adopted") or _git(["rev-parse", "--abbrev-ref", "HEAD"], record["worktree"]) != f"regress/{run_id}"):
+        raise RegressError("fix mode requires a dedicated regress branch",
+                           fix=f"skt regress new {record['sha']} --home   # or --bare for self-contained graphs")
     if instructions and instructions_file:
         raise RegressError("pass --instructions or --instructions-file, not both")
     if instructions_file:
@@ -1101,6 +1016,7 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
             raise RegressError(f"--env takes KEY=VALUE, got {pair!r}")
         key, value = pair.split("=", 1)
         agent_env[key] = value
+    private_keys = set(agent_env)
     # Branch-scoped environments (test-graph environment repositories) key on this,
     # so the run provisions its own instead of reusing the feature branch's.
     agent_env.setdefault("TEST_GRAPH_FEATURE_BRANCH", f"regress-{record['id']}")
@@ -1139,6 +1055,10 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
     report_path = attempt_dir / "agent-report.json"
     for stale in ("agent-report.json", "episode.json", "result.json", "attribution.yaml", "fixes.patch"):
         (attempt_dir / stale).unlink(missing_ok=True)
+    if plan:
+        _sibling("agent_config").write_receipt(attempt_dir, plan)
+    if record.get("adopted"):
+        _sibling("regress_batch").protect_adopted_refs(record, attempt_dir, agent_env)
     graph_script = write_graph_script(attempt_dir, runner_path, record["test_graph_root"])
     shutil.rmtree(attempt_dir / "graph-runs", ignore_errors=True)
     brief = build_brief(record, graphs, graph_script, report_path, fix=fix, isolated=isolated,
@@ -1156,26 +1076,32 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "timeoutSeconds": timeout,
         "env": agent_env,
     }
+    if plan:
+        request = _sibling("agent_config").request(request["attemptId"], brief, record["worktree"], plan, agent_env)
     if fix and shared:
         print(f"note: these graphs declare effects beyond this machine: {', '.join(shared)}.\n"
               f"      The isolation statement has to cover them: {isolated}", file=sys.stderr)
     if dry_run:
-        (attempt_dir / "request.json").write_text(json.dumps(request, indent=2) + "\n")
+        save_request(attempt_dir, request, private_keys)
         print(f"dry run: nothing started\nbrief      {attempt_dir / 'brief.md'}\n"
-              f"request    {attempt_dir / 'request.json'}\ngraphs     {', '.join(graphs)}\n"
+              f"settings   {attempt_dir / 'settings.json'}\nrequest    {attempt_dir / 'request.json'}\ngraphs     {', '.join(graphs)}\n"
               f"mode       {'fix (isolated: ' + isolated + ')' if fix else 'report-only'}\n"
               f"effects    {', '.join(effects) or 'none declared'}")
         return EXIT_GREEN
 
     binary = find_meta_harness(meta_harness)
-    refuse_shared_concurrency(record["id"], isolated, start)
     head_at_start = _git(["rev-parse", "HEAD"], record["worktree"])
     started = time.time()
     marker = Path(record["state"]) / "running.json"
-    marker.write_text(json.dumps({"id": record["id"], "pid": os.getpid(), "graphs": graphs,
-                                  "isolated": isolated, "started": started}) + "\n")
+    with (state_root(start) / ".admission.lock").open("a") as admission:
+        fcntl.flock(admission, fcntl.LOCK_EX)
+        refuse_shared_concurrency(record["id"], isolated, start)
+        _sibling("regress_batch").atomic_json(marker, {"id": record["id"], "pid": os.getpid(),
+                                               "graphs": graphs, "isolated": isolated, "started": started})
     try:
-        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout)
+        episode, used_url = run_episode(binary, attempt_dir, request, base_url, stall_timeout,
+                                        plan["settings"]["harness_config"] if plan else None,
+                                        private_keys=private_keys, transport="acp")
     finally:
         marker.unlink(missing_ok=True)
 
@@ -1222,14 +1148,12 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         agent_started = bool(trace["tool_calls"] or trace["agent_messages"]) or not silent
     gaps = attribution_gaps(agent_report, reds)
     attribution = [r for r in (agent_report or {}).get("attribution") or [] if isinstance(r, dict)]
+    gaps.extend(_sibling("regress_batch").verify_rows(attribution, record, registered))
     if attribution:
         write_attribution_yaml(attempt_dir / "attribution.yaml", record, attempt_no, attribution)
     if changed:
-        patch = _git(["diff", record["sha"]], record["worktree"]) + "\n"
-        if changes["untracked"]:
-            patch += "\n# Untracked files, not in the diff above:\n" + "".join(
-                f"#   {u}\n" for u in changes["untracked"])
-        (attempt_dir / "fixes.patch").write_text(patch)
+        contents = _sibling("regress_batch").patch(record["worktree"], record["sha"], "HEAD")
+        (attempt_dir / "fixes.patch").write_bytes(contents)
 
     result = {
         "id": record["id"],
@@ -1251,6 +1175,8 @@ def run(run_id: str, graphs: list[str], *, all_graphs: bool = False, model: str 
         "fixes": {**changes, "patch": str(attempt_dir / "fixes.patch") if changed else None},
         "attribution": str(attempt_dir / "attribution.yaml") if attribution else None,
         "attribution_rows": len(attribution),
+        "graph_sources": registered,
+        "candidate_head": _git(["rev-parse", "HEAD"], record["worktree"]),
         "attribution_gaps": gaps,
         "episode": {k: episode.get(k) for k in
                     ("outcome", "error", "executionId", "conversationId", "durationMillis", "usage")},
@@ -1357,18 +1283,19 @@ def list_runs(start: str | Path = ".") -> int:
     return 0
 
 
-def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int:
+def close(run_id: str, keep_state: bool = False, start: str | Path = ".", *,
+          accept: str | None = None, reject: str | None = None) -> int:
     record = load_run(run_id, start)
     worktree = Path(record["worktree"])
     branch = record.get("branch")
-    if record.get("adopted"):
-        if keep_state:
-            print(f"released {worktree} (adopted; left as it is); results kept in {record['state']}")
-        else:
-            shutil.rmtree(record["state"], ignore_errors=True)
-            print(f"released {worktree} (adopted; the worktree and its branch are left as they are)")
+    if any(item["id"] == run_id for item in live_runs(start)):
+        raise RegressError("cannot close a running episode")
+    if record.get("released"):
+        _sibling("regress_batch").decide(record, start, accept, reject)
         return 0
-    if worktree.is_dir():
+    if worktree.is_dir() and not record.get("adopted"):
+        if _git(["rev-parse", "--abbrev-ref", "HEAD"], worktree) != branch or common_dir(worktree) != common_dir(start):
+            raise RegressError("candidate worktree identity changed; preserving checkout")
         here = Path.cwd().resolve()
         if here == worktree.resolve() or worktree.resolve() in here.parents:
             raise RegressError("close cannot run from inside the worktree it removes",
@@ -1380,6 +1307,20 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
                 f"{worktree} holds uncommitted work ({what})",
                 fix=f"commit or delete it in {worktree}, then close again",
             )
+    if _sibling("regress_batch").decide(record, start, accept, reject):
+        if not (accept or reject):
+            return 0
+        keep_state = True
+    if record.get("adopted"):
+        if keep_state:
+            record["released"] = True
+            _save_run(record)
+            print(f"released {worktree} (adopted; left as it is); results kept in {record['state']}")
+        else:
+            shutil.rmtree(record["state"], ignore_errors=True)
+            print(f"released {worktree} (adopted; the worktree and its branch are left as they are)")
+        return 0
+    if worktree.is_dir():
         # --force: build output under test_graph/build is untracked, and expected.
         _git(["worktree", "remove", "--force", str(worktree)], start)
     _git(["worktree", "prune"], start)
@@ -1393,11 +1334,27 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".") -> int
             # The agent's fixes. Deleting the only ref to them is not this command's call.
             kept = f"; branch {branch} kept ({ahead.stdout.strip()} fix commit(s))"
     if keep_state:
+        record["released"] = True
+        _save_run(record)
         print(f"closed {worktree}{kept}; results kept in {record['state']}")
     else:
         shutil.rmtree(record["state"], ignore_errors=True)
         print(f"closed {worktree}{kept}")
     return 0
+
+
+def run_cli(args):
+    root = _git(["rev-parse", "--show-toplevel"])
+    plan = _sibling("agent_config").resolve("regress", root, args, model_env="SKT_REGRESS_MODEL")
+    settings = plan["settings"]
+    return run(args.target, args.graphs, all_graphs=args.all, model=settings["model"],
+               timeout=settings["timeout"], meta_harness=settings["meta_harness"], runner=args.runner,
+               base_url=settings["base_url"], dry_run=args.dry_run, as_json=args.json,
+               fix=args.fix, isolated=args.isolated, env=args.env,
+               max_fix_lines=args.max_fix_lines, max_fix_files=args.max_fix_files,
+               max_runs=args.max_runs, stall_timeout=settings["stall_timeout"],
+               max_attempts=args.max_attempts, instructions=args.instructions,
+               instructions_file=args.instructions_file, plan=plan)
 
 
 def main(args) -> int:
@@ -1427,22 +1384,23 @@ def main(args) -> int:
             record = adopt(args.target or "", run_id=args.id, test_graph_root=args.test_graph_root)
             print(f"adopted {record['worktree']} @{record['sha'][:10]} "
                   f"({record['branch'] or 'detached'}) as regression run {record['id']}")
-            print("note: fix commits land on that branch; `skt regress close` leaves the worktree alone")
+            print("note: use a dedicated regress worktree for fixes; adopt is report-only")
             print(f"next: skt regress run {record['id']} <graph>...   # or --all")
             return 0
-        if verb == "run":
-            return run(args.target, args.graphs, all_graphs=args.all, model=args.model,
-                       timeout=args.timeout, meta_harness=args.meta_harness, runner=args.runner,
-                       base_url=args.base_url, dry_run=args.dry_run, as_json=args.json,
-                       fix=args.fix, isolated=args.isolated, env=args.env,
-                       max_fix_lines=args.max_fix_lines, max_fix_files=args.max_fix_files,
-                       max_runs=args.max_runs, stall_timeout=args.stall_timeout,
-                       max_attempts=args.max_attempts, instructions=args.instructions,
-                       instructions_file=args.instructions_file)
+        if verb in ("run", "close"):
+            root = state_root()
+            root.mkdir(parents=True, exist_ok=True)
+            lock = root / f".{_valid_id(args.target)}.lock"
+            with lock.open("a") as guard:
+                try:
+                    fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    raise RegressError(f"regress {args.target} is already running") from None
+                if verb == "close":
+                    return close(args.target, keep_state=args.keep_state, accept=args.accept, reject=args.reject)
+                return run_cli(args)
         if verb == "info":
             return info(args.target)
-        if verb == "close":
-            return close(args.target, keep_state=args.keep_state)
         raise RegressError(f"unknown verb {verb!r}", fix="skt regress --help")
     except RegressError as err:
         print(f"error: {err.reason}", file=sys.stderr)

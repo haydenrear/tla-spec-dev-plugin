@@ -12,7 +12,9 @@ import subprocess
 import sys
 import textwrap
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 
@@ -52,6 +54,9 @@ def stub_harness(tmp_path: Path, behaviour: str) -> Path:
         import http.server, json, re, sys, time
         from pathlib import Path
         argv = sys.argv[1:]
+        if "providers" in argv:
+            print(json.dumps([{"model_prefix": None, "transport": {"kind": "acp_stdio"}}]))
+            sys.exit(0)
         if "serve" in argv:
             port = int(argv[argv.index("--port") + 1])
             http.server.HTTPServer(("127.0.0.1", port), http.server.SimpleHTTPRequestHandler).serve_forever()
@@ -237,7 +242,7 @@ def test_the_brief_changes_with_the_mode_and_the_env_reaches_the_agent(repo):
     request = json.loads((attempt / "attempt-1" / "request.json").read_text())
     brief = request["messages"][0]["content"]
     assert "k3d cluster regress-r1" in brief and "STOP AND ESCALATE" in brief
-    assert request["env"] == {"KUBECONFIG": "/tmp/private", "TEST_GRAPH_FEATURE_BRANCH": "regress-r1"}
+    assert request["env"] == {"KUBECONFIG": "<supplied at launch>", "TEST_GRAPH_FEATURE_BRANCH": "regress-r1"}
 
 
 def test_declared_effects_beyond_this_machine_are_named(repo):
@@ -261,7 +266,10 @@ def test_a_small_committed_fix_then_a_full_pass_is_green_and_carries_the_patch(r
         write_summary("alpha", "failed")
         commit("test_graph/fixture.txt", "fixed\\n")
         write_summary("alpha", "passed")
-        agent_report.write_text(json.dumps({{"graphs": [], "attribution": [{ROW!r}]}}))
+        import subprocess
+        row = {ROW!r}
+        row["fix"] = subprocess.check_output(["git", "-C", wt, "rev-parse", "HEAD"], text=True).strip()
+        agent_report.write_text(json.dumps({{"graphs": [], "attribution": [row]}}))
     """)
     proc = skt(repo, "run", "r1", "alpha", "--fix", "--isolated", "local temp only",
                "--meta-harness", str(harness), "--json")
@@ -272,7 +280,16 @@ def test_a_small_committed_fix_then_a_full_pass_is_green_and_carries_the_patch(r
     assert "fixed" in Path(result["fixes"]["patch"]).read_text()
     assert "origin: \"instrument\"" in Path(result["attribution"]).read_text()
     # the fix branch outlives the worktree
-    assert "kept (1 fix commit(s))" in skt(repo, "close", "r1").stdout
+    preview = skt(repo, "close", "r1")
+    assert "--accept" in preview.stdout
+    digest = preview.stdout.split("--accept ")[1].split()[0]
+    assert not (repo / "test_graph/fixture.txt").exists()
+    accepted = skt(repo, "close", "r1", "--accept", digest)
+    assert accepted.returncode == 0, accepted.stderr
+    assert (repo / "test_graph/fixture.txt").read_text() == "fixed\n"
+    assert "decision already recorded" in skt(repo, "close", "r1", "--accept", digest).stdout
+    Path(result["attribution"]).write_text("# changed after approval\n")
+    assert "differ from the recorded owner decision" in skt(repo, "close", "r1").stderr
     assert subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", record["branch"]],
                           capture_output=True).returncode == 0
 
@@ -377,6 +394,12 @@ def test_a_rerun_is_not_blamed_for_the_previous_attempts_fix(repo, tmp_path):
     result = json.loads(proc.stdout)
     assert result["attempt"] == 2 and result["over_budget"] == []
     assert len(result["fixes"]["commits"]) == 1  # the branch still carries attempt 1's fix
+    token = skt(repo, "close", "r1").stdout.split("--accept ")[1].split()[0]
+    stale = subprocess.run(["git", "commit", "--allow-empty", "-qm", "owner moved"], cwd=repo)
+    assert stale.returncode == 0
+    assert "stale base" in skt(repo, "close", "r1", "--accept", token).stderr
+    subprocess.run(["git", "switch", "-qc", "accept-fixture", result["sha"]], cwd=repo, check=True)
+    assert skt(repo, "close", "r1", "--accept", token).returncode == 0
 
 
 def test_a_stale_report_in_a_reused_attempt_directory_is_not_read(repo, tmp_path):
@@ -484,6 +507,22 @@ def test_a_second_run_is_refused_while_an_unisolated_one_is_live(repo, tmp_path)
     assert "is running" not in swept.stderr and swept.returncode != 2
     assert not marker.exists()
     assert not (state / "skt-regress" / "two" / "running.json").exists()
+
+
+def test_distinct_run_ids_cannot_dispatch_concurrently_without_isolation(repo, tmp_path):
+    harness = stub_harness(tmp_path, "time.sleep(1); write_summary('alpha', 'passed')")
+    ready = Barrier(2)
+    def start(run_id):
+        ready.wait(timeout=10)
+        return skt(repo, "run", run_id, "alpha", env={"META_HARNESS_BIN": str(harness)})
+
+    for run_id in ("first", "second"):
+        assert skt(repo, "new", "HEAD", "--id", run_id).returncode == 0
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(start, ("first", "second")))
+    assert sorted(proc.returncode for proc in results) == [0, 2]
+    refused = next(proc for proc in results if proc.returncode == 2)
+    assert "is running" in refused.stderr
 
 
 def test_an_agent_that_never_started_is_named_as_that(repo, tmp_path):
@@ -803,3 +842,84 @@ def test_run_refuses_before_starting_an_agent_when_the_home_has_gone(repo):
     refused = skt(repo, "run", "gone", "alpha", "--dry-run")
     assert refused.returncode == 2
     assert "cannot execute a graph" in refused.stderr and "skt regress adopt" in refused.stderr
+
+
+def test_generic_dispatch_reuses_legacy_history_and_profile(repo, tmp_path):
+    record = new(repo)
+    (repo / "skt-agents.toml").write_text('[roles]\nregress="local"\n[profiles.local]\nmodel="ACP_tiny"\n')
+    harness = stub_harness(tmp_path, "write_summary('alpha', 'passed')")
+    proc = subprocess.run([sys.executable, str(CLI), "agent", "run", "regress", "r1", "alpha",
+                           "--base-url", "http://localhost:7777", "--meta-harness", str(harness), "--json"],
+                          cwd=repo, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr
+    result = json.loads(proc.stdout)
+    assert (result["model"], result["attempt"], result["verdict"]) == ("ACP_tiny", 1, "green")
+    assert json.loads(Path(record["state"], "run.json").read_text())["attempts"][0]["model"] == "ACP_tiny"
+
+
+def test_adopted_fix_requires_private_branch_and_resume_blocks_failed_assertion(repo):
+    assert skt(repo, "adopt", "--id", "r").returncode == 0
+    refused = skt(repo, "run", "r", "alpha", "--fix", "--isolated", "local fixture", "--dry-run")
+    assert refused.returncode == 2 and "dedicated regress branch" in refused.stderr
+    assert skt(repo, "run", "r", "alpha", "--dry-run").returncode == 0
+    run = repo / "test_graph/build/validation-reports/red"
+    run.mkdir(parents=True)
+    (run / "summary.json").write_text('{"status":"failed"}')
+    script = repo / ".git/skt-regress/r/attempt-1/graph.sh"
+    resume = subprocess.run(["bash", str(script), "--resume", "red"], capture_output=True, text=True)
+    assert resume.returncode == 2 and "failed assertion" in resume.stderr
+
+
+def test_unknown_commit_is_flagged_and_reject_preserves_branch(repo, tmp_path):
+    record = new(repo)
+    harness = stub_harness(tmp_path, f"""
+        write_summary("alpha", "failed")
+        agent_report.write_text(json.dumps({{"graphs": [], "attribution": [{ROW!r}]}}))
+    """)
+    base = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"])
+    proc = skt(repo, "run", "r1", "alpha", "--base-url", "http://localhost:7777", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 1
+    assert "unknown commit" in str(json.loads(proc.stdout)["attribution_gaps"])
+    token = skt(repo, "close", "r1").stdout.split("--accept ")[1].split()[0]
+    assert skt(repo, "close", "r1", "--accept", token).returncode == 2
+    assert skt(repo, "close", "r1", "--reject", token).returncode == 0
+    assert subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"]) == base
+    assert Path(record["state"], "owner-decision.json").is_file()
+
+
+def test_report_only_episode_blocks_adopted_ref_updates(repo):
+    assert skt(repo, "adopt", "--id", "guard").returncode == 0
+    assert skt(repo, "run", "guard", "alpha", "--dry-run").returncode == 0
+    attempt = repo / ".git/skt-regress/guard/attempt-1"
+    env = {**os.environ, **json.loads((attempt / "request.json").read_text())["env"]}
+    before = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo)
+    blocked = subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "--allow-empty", "-m", "attempt"],
+                             cwd=repo, env=env, capture_output=True, text=True)
+    assert blocked.returncode and "report-only episode" in blocked.stderr
+    assert subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo) == before
+
+
+def test_resume_cannot_hide_new_failed_assertion(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, """
+        write_summary("alpha", "failed")
+        write_summary("alpha", "passed", mode="resume-from-node")
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--base-url", "http://localhost:7777",
+               "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 3
+    assert json.loads(proc.stdout)["graphs"][0]["status"] == "needs_full_run"
+
+
+def test_close_revalidates_the_exact_reviewed_attribution(repo, tmp_path):
+    new(repo)
+    harness = stub_harness(tmp_path, f"""
+        write_summary("alpha", "failed")
+        agent_report.write_text(json.dumps({{"graphs": [], "attribution": [{ {**ROW,'fix':'none'}!r}]}}))
+    """)
+    proc = skt(repo, "run", "r1", "alpha", "--base-url", "http://localhost:7777", "--meta-harness", str(harness), "--json")
+    assert proc.returncode == 1
+    path = Path(json.loads(proc.stdout)["attribution"])
+    path.write_text(path.read_text().replace('fix: "none"', 'fix: "deadbeef"'))
+    token = skt(repo, "close", "r1").stdout.split("--accept ")[1].split()[0]
+    assert "unknown commit" in skt(repo, "close", "r1", "--accept", token).stderr

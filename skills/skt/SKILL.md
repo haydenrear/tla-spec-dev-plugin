@@ -140,11 +140,24 @@ path form still works and is the fallback when `skt` is not on `PATH`:
 `wt` resolves that unit at run time, refusing in one line when it cannot
 (`$GIT_ISSUE_WORKFLOW_SCRIPTS` overrides).
 
+## Running a workflow subagent
+
+Use `skt agent list` to discover roles. An independent review compares two
+commits and reads any evidence files the caller supplies.
+
+```bash
+skt agent run review --base origin/main --head HEAD --evidence step-report.md
+skt agent run regress <id> <graph> --profile graph-runner
+```
+
+See `references/workflow-agents.md` for profile selection, dry runs, evidence
+and how a plugin contributor adds another role.
+
 ## Handing graph runs to a small model
 
 Do not run and re-run test graphs yourself after a large batch of change.
 `skt regress` runs them with a small model through meta-harness, by default in
-the checkout you are developing in. With `--fix` the agent commits small fixes and reruns until
+the checkout you are developing in. On a dedicated `regress/<id>` branch, `--fix` commits candidate fixes and reruns until
 green, and that needs `--isolated "<statement>"`: what the graphs touch must be
 private to the run. It returns a verdict read from the graph reports, an
 attribution row for every red it met, and an escalation (exit 4) when the fix

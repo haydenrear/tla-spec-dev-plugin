@@ -96,7 +96,14 @@ check them yourself before `run`:
 agent's changes could not be told from them, and a worktree that is already
 adopted under another id. Untracked files already there (the home, an index)
 are recorded as the worktree's own and are not counted as the agent's changes.
-In fix mode the fix commits land on that worktree's own branch.
+An adopted checkout supports report-only runs. For a repair, create a dedicated
+`regress/<id>` worktree with `new`. From the owner checkout run `skt regress
+close <id>` to see the candidate patch, attribution files and decision digest.
+Inspect all changes to guards, assertions and identity checks. Use the printed
+`--accept <digest>` to apply the inspected tree as one commit at the recorded
+base, or `--reject <digest>` to retain evidence and release the worktree.
+A changed owner tip requires a new run. The agent's raw report and candidate
+attribution are review inputs. The owner reconciles verified rows into the ledger.
 
 ## What the agent may run
 
