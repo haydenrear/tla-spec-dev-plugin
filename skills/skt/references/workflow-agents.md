@@ -61,6 +61,10 @@ decide the domain outcome and retain the attempt and evidence reference. Test
 through `skt agent run` with a stub binary. Existing upstream provider routes
 work across roles that meet their capability requirements.
 
+To support an environment fallback, pass the role's own variable name to
+`agent_config.resolve`, for example `model_env="SKT_SUMMARY_MODEL"`.
+Omitting this option leaves model selection to defaults, profiles and CLI flags.
+
 For a private server, skt reads the actual provider table and checks the longest
 matching model prefix before dispatch. For an existing server, the published
 model list gives provider IDs and prefixes. It omits transport capabilities.

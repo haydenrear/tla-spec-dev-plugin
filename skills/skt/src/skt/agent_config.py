@@ -20,7 +20,7 @@ def add_options(parser):
     parser.add_argument("--base-url", help="use a caller-owned meta-harness server")
 
 
-def resolve(role, root, args):
+def resolve(role, root, args, *, model_env=None):
     root = Path(root)
     file = root / "skt-agents.toml"
     config = tomllib.loads(file.read_text()) if file.is_file() else {}
@@ -29,10 +29,9 @@ def resolve(role, root, args):
                 "harness_config": None, "skill_home": None}
     values = dict(defaults)
     sources = dict.fromkeys(defaults, "role default")
-    model_env = f"SKT_{role.upper().replace('-', '_')}_MODEL"
     for key, var in (("model", model_env),
                      ("harness_config", "MH_CONFIG"), ("meta_harness", "META_HARNESS_BIN")):
-        if os.environ.get(var):
+        if var and os.environ.get(var):
             values[key], sources[key] = os.environ[var], var
     roles = config.get("roles", {})
     profiles = config.get("profiles", {})

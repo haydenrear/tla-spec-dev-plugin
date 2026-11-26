@@ -63,7 +63,7 @@ Path(args[args.index("--output") + 1]).write_text(json.dumps(
         parser.add_argument("text")
         parser.add_argument("--dry-run", action="store_true")
         args = parser.parse_args(values)
-        plan = agent_config.resolve("summary", tmp_path, args)
+        plan = agent_config.resolve("summary", tmp_path, args, model_env="SKT_SUMMARY_MODEL")
         request = agent_config.request("fixture-1", args.text, tmp_path, plan)
         if args.dry_run:
             print(json.dumps(request))

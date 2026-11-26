@@ -24,6 +24,16 @@ def test_roles_and_invocation_override(tmp_path, monkeypatch):
         resolve("review", tmp_path, Namespace(profile=None, base_url="http://secret@localhost"))
 
 
+def test_roles_own_their_model_environment_names(tmp_path, monkeypatch):
+    monkeypatch.setenv("SKT_DIFF_REVIEW_MODEL", "first")
+    monkeypatch.setenv("SKT_SECOND_MODEL", "second")
+    for role, variable, expected in (("diff-review", "SKT_DIFF_REVIEW_MODEL", "first"),
+                                     ("diff_review", "SKT_SECOND_MODEL", "second"),
+                                     ("DIFF_REVIEW", None, "CLAUDE_haiku")):
+        plan = resolve(role, tmp_path, Namespace(profile=None), model_env=variable)
+        assert plan["settings"]["model"] == expected
+
+
 def test_mislabeled_model_cannot_turn_off_review_tools(tmp_path):
     from skt.episode import AgentError, check_route
     provider = tmp_path / "fixture"

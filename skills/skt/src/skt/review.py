@@ -58,7 +58,7 @@ def run(values):
 
 def review(args):
     root = Path(_git(["rev-parse", "--show-toplevel"]))
-    plan = agent_config.resolve("review", root, args)
+    plan = agent_config.resolve("review", root, args, model_env="SKT_REVIEW_MODEL")
     settings = plan["settings"]
     base, head = [_git(["rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}"], root)
                   for ref in (args.base, args.head)]

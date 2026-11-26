@@ -1345,7 +1345,7 @@ def close(run_id: str, keep_state: bool = False, start: str | Path = ".", *,
 
 def run_cli(args):
     root = _git(["rev-parse", "--show-toplevel"])
-    plan = _sibling("agent_config").resolve("regress", root, args)
+    plan = _sibling("agent_config").resolve("regress", root, args, model_env="SKT_REGRESS_MODEL")
     settings = plan["settings"]
     return run(args.target, args.graphs, all_graphs=args.all, model=settings["model"],
                timeout=settings["timeout"], meta_harness=settings["meta_harness"], runner=args.runner,
