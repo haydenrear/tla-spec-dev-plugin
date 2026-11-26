@@ -1,0 +1,82 @@
+[
+  {
+    "case": "weakened-guard",
+    "transport": "acp",
+    "exitCode": 1,
+    "base": "6cea82e717e017bef3fcbac561c1983e031c8110",
+    "head": "208e6773ce035f53c2bccffcdc3bdc512fb64da2",
+    "executionId": "01a21528-da19-7440-9884-990232c75e97",
+    "status": "findings",
+    "findings": [
+      {
+        "location": "cart.py:1",
+        "finding": "zero is now accepted"
+      }
+    ],
+    "gaps": []
+  },
+  {
+    "case": "weakened-guard",
+    "transport": "http",
+    "exitCode": 1,
+    "base": "6cea82e717e017bef3fcbac561c1983e031c8110",
+    "head": "208e6773ce035f53c2bccffcdc3bdc512fb64da2",
+    "executionId": "01a21528-e461-7930-bfd5-7f7b86628035",
+    "status": "findings",
+    "findings": [
+      {
+        "location": "cart.py:1",
+        "finding": "zero is now accepted"
+      }
+    ],
+    "gaps": []
+  },
+  {
+    "case": "clean-control",
+    "transport": "acp",
+    "exitCode": 0,
+    "base": "2b91b64d1497155caec735be0806acd5c5585645",
+    "head": "35ff10377edc30536a91e68624891b0ea7af321a",
+    "executionId": "01a21528-f22f-7373-a562-d18ec364e3ee",
+    "status": "clean",
+    "findings": [],
+    "gaps": []
+  },
+  {
+    "case": "clean-control",
+    "transport": "http",
+    "exitCode": 0,
+    "base": "2b91b64d1497155caec735be0806acd5c5585645",
+    "head": "35ff10377edc30536a91e68624891b0ea7af321a",
+    "executionId": "01a21528-fca5-7c13-9c5f-bad204924061",
+    "status": "clean",
+    "findings": [],
+    "gaps": []
+  },
+  {
+    "case": "missing-evidence",
+    "transport": "acp",
+    "exitCode": 3,
+    "base": "b0023e89089ffcb297497edb815a5f9559564e56",
+    "head": "51aa92ae615e93aad7c5952b9b6650ae798840da",
+    "executionId": "01a21529-07bb-7f70-84be-3d180dbeca18",
+    "status": "incomplete",
+    "findings": [],
+    "gaps": [
+      "Unavailable evidence: cart-integration-report.md"
+    ]
+  },
+  {
+    "case": "missing-evidence",
+    "transport": "http",
+    "exitCode": 3,
+    "base": "b0023e89089ffcb297497edb815a5f9559564e56",
+    "head": "51aa92ae615e93aad7c5952b9b6650ae798840da",
+    "executionId": "01a21529-1239-7a61-a8cb-f3ba15c8279d",
+    "status": "incomplete",
+    "findings": [],
+    "gaps": [
+      "Unavailable evidence: cart-integration-report.md"
+    ]
+  }
+]

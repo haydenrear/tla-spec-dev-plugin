@@ -1,0 +1,175 @@
+[
+  {
+    "graph": "specWorkflow",
+    "purpose": "initial cleanup error",
+    "runId": "20261125-233749",
+    "traceId": "db8710caebe6ff3e35aedd3f89a291db",
+    "scope": "full",
+    "status": "errored",
+    "expectedNodes": [
+      "spec.cli.install",
+      "spec.workflow.repo",
+      "spec.workflow.start",
+      "spec.workflow.complete",
+      "spec.workflow.spec_units",
+      "spec.workflow.close",
+      "spec.workflow.failure_cleanup_probe",
+      "spec.workflow.cleanup",
+      "spec.reference.adapters_resolve"
+    ],
+    "nodeVerdicts": {
+      "spec.cli.install": "passed",
+      "spec.workflow.close": "passed",
+      "spec.workflow.complete": "passed",
+      "spec.workflow.repo": "passed",
+      "spec.workflow.spec_units": "passed",
+      "spec.workflow.start": "passed"
+    }
+  },
+  {
+    "graph": "specWorkflow",
+    "purpose": "cleanup error before probe fix",
+    "runId": "20261125-234439",
+    "traceId": "d4b6a3de70137ef7bbc28e8be01bde26",
+    "scope": "full",
+    "status": "errored",
+    "expectedNodes": [
+      "spec.cli.install",
+      "spec.workflow.repo",
+      "spec.workflow.start",
+      "spec.workflow.complete",
+      "spec.workflow.spec_units",
+      "spec.workflow.close",
+      "spec.workflow.failure_cleanup_probe",
+      "spec.workflow.cleanup",
+      "spec.reference.adapters_resolve"
+    ],
+    "nodeVerdicts": {
+      "spec.cli.install": "passed",
+      "spec.reference.adapters_resolve": "skipped",
+      "spec.workflow.cleanup": "passed",
+      "spec.workflow.close": "passed",
+      "spec.workflow.complete": "passed",
+      "spec.workflow.failure_cleanup_probe": "errored",
+      "spec.workflow.repo": "passed",
+      "spec.workflow.spec_units": "passed",
+      "spec.workflow.start": "passed"
+    }
+  },
+  {
+    "graph": "specWorkflow",
+    "purpose": "confirmation",
+    "runId": "20261126-000640",
+    "traceId": "3781f6b1a403e165245848d2ec93f0d2",
+    "scope": "full",
+    "status": "passed",
+    "expectedNodes": [
+      "spec.cli.install",
+      "spec.workflow.repo",
+      "spec.workflow.start",
+      "spec.workflow.complete",
+      "spec.workflow.spec_units",
+      "spec.workflow.close",
+      "spec.workflow.failure_cleanup_probe",
+      "spec.workflow.cleanup",
+      "spec.reference.adapters_resolve"
+    ],
+    "nodeVerdicts": {
+      "spec.cli.install": "passed",
+      "spec.reference.adapters_resolve": "passed",
+      "spec.workflow.cleanup": "passed",
+      "spec.workflow.close": "passed",
+      "spec.workflow.complete": "passed",
+      "spec.workflow.failure_cleanup_probe": "passed",
+      "spec.workflow.repo": "passed",
+      "spec.workflow.spec_units": "passed",
+      "spec.workflow.start": "passed"
+    }
+  },
+  {
+    "graph": "cliWorkflow",
+    "purpose": "confirmation",
+    "runId": "20261126-000155",
+    "traceId": "54bba71aa52285fb904d85b20c2998a9",
+    "scope": "full",
+    "status": "passed",
+    "expectedNodes": [
+      "spec.cli.install",
+      "spec.cli.help"
+    ],
+    "nodeVerdicts": {
+      "spec.cli.help": "passed",
+      "spec.cli.install": "passed"
+    }
+  },
+  {
+    "graph": "effectProviderExamples",
+    "purpose": "tlc2 unavailable on PATH",
+    "runId": "20261125-235358",
+    "traceId": "4a1c38f99175ae0c466cf60dfc44eb75",
+    "scope": "full",
+    "status": "errored",
+    "expectedNodes": [
+      "effect.providers.examples"
+    ],
+    "nodeVerdicts": {
+      "effect.providers.examples": "failed"
+    }
+  },
+  {
+    "graph": "sktSurface",
+    "purpose": "confirmation",
+    "runId": "20261126-000427",
+    "traceId": "c3f5de28a829d6ae37a76413a0f6c97b",
+    "scope": "full",
+    "status": "passed",
+    "expectedNodes": [
+      "skt.wrapper-installed",
+      "skt.status-tiers",
+      "skt.workflow-agents",
+      "skt.check-cached-costs-one-read",
+      "skt.hook-contract",
+      "skt.ticket-roundtrip"
+    ],
+    "nodeVerdicts": {
+      "skt.check-cached-costs-one-read": "passed",
+      "skt.hook-contract": "passed",
+      "skt.status-tiers": "passed",
+      "skt.ticket-roundtrip": "passed",
+      "skt.workflow-agents": "passed",
+      "skt.wrapper-installed": "passed"
+    }
+  },
+  {
+    "graph": "sktHooks",
+    "purpose": "confirmation",
+    "runId": "20261126-000552",
+    "traceId": "ffc266492c2426b043af9dccaca02bd7",
+    "scope": "full",
+    "status": "passed",
+    "expectedNodes": [
+      "skt.wrapper-installed",
+      "skt.check-cached-costs-one-read",
+      "skt.hook-contract"
+    ],
+    "nodeVerdicts": {
+      "skt.check-cached-costs-one-read": "passed",
+      "skt.hook-contract": "passed",
+      "skt.wrapper-installed": "passed"
+    }
+  },
+  {
+    "graph": "effectProviderExamples",
+    "purpose": "confirmation",
+    "runId": "20261126-000229",
+    "traceId": "8d3c587e5c5baf2ac510293941d6d93a",
+    "scope": "full",
+    "status": "passed",
+    "expectedNodes": [
+      "effect.providers.examples"
+    ],
+    "nodeVerdicts": {
+      "effect.providers.examples": "passed"
+    }
+  }
+]
